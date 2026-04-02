@@ -200,7 +200,7 @@
       container.appendChild(root);
     }
 
-    fetch('../padsplit_scraper/output/latest.json', { cache: 'no-cache' })
+    fetch('./data/latest.json', { cache: 'no-cache' })
       .then(r => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
