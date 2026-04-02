@@ -1,9 +1,13 @@
 import json
 import os
 import sys
+from datetime import datetime
+from pathlib import Path
 from typing import Dict, List, Optional
 
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 from dotenv import load_dotenv
 
 BASE_URL = "https://www.padsplit.com"
@@ -14,6 +18,7 @@ USER_AGENT = (
     "AppleWebKit/537.36 (KHTML, like Gecko) "
     "Chrome/123.0.0.0 Safari/537.36"
 )
+DEFAULT_TIMEOUT = (10, 30)  # (connect, read)
 
 # GraphQL query from network capture
 CHAT_LIST_QUERY = """
@@ -186,6 +191,40 @@ def load_credentials() -> Dict[str, str]:
     return {"email": email, "password": password}
 
 
+def create_session() -> requests.Session:
+    session = requests.Session()
+    session.headers.update({"User-Agent": USER_AGENT})
+
+    retry = Retry(
+        total=3,
+        backoff_factor=1,
+        status_forcelist=[500, 502, 503, 504],
+        allowed_methods=["GET", "POST"],
+    )
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount("https://", adapter)
+    session.mount("http://", adapter)
+    return session
+
+
+def _authed_request(
+    session: requests.Session,
+    method: str,
+    url: str,
+    *,
+    creds: Dict[str, str],
+    login_fn,
+    **kwargs,
+) -> requests.Response:
+    resp = session.request(method, url, **kwargs)
+    if resp.status_code in (401, 403):
+        login_fn(session, creds["email"], creds["password"])
+        resp = session.request(method, url, **kwargs)
+        if resp.status_code in (401, 403):
+            raise RuntimeError("Session could not be refreshed — check credentials")
+    return resp
+
+
 def login(session: requests.Session, email: str, password: str) -> None:
     payload = {
         "email": email,
@@ -198,14 +237,14 @@ def login(session: requests.Session, email: str, password: str) -> None:
         "Accept": "application/json",
         "Referer": BASE_URL + "/",
     }
-    resp = session.post(LOGIN_URL, json=payload, headers=headers)
+    resp = session.post(LOGIN_URL, json=payload, headers=headers, timeout=DEFAULT_TIMEOUT)
     if resp.status_code != 200:
         raise RuntimeError(f"Login failed: {resp.status_code} {resp.text}")
     if not session.cookies.get("sessionid"):
         raise RuntimeError("Login did not set sessionid cookie")
 
 
-def fetch_messages(session: requests.Session, page_size: int = 10) -> List[Dict]:
+def fetch_messages(session: requests.Session, creds: Dict[str, str], page_size: int = 10) -> List[Dict]:
     headers = {
         "Content-Type": "application/json",
         "Accept": "application/json",
@@ -226,10 +265,15 @@ def fetch_messages(session: requests.Session, page_size: int = 10) -> List[Dict]
             "active": False,
             "archived": False,
         }
-        resp = session.post(
+        resp = _authed_request(
+            session,
+            "POST",
             GRAPHQL_URL,
+            creds=creds,
+            login_fn=login,
             headers=headers,
             json={"query": CHAT_LIST_QUERY, "variables": variables},
+            timeout=DEFAULT_TIMEOUT,
         )
         resp.raise_for_status()
         data = resp.json()
@@ -254,7 +298,7 @@ def fetch_messages(session: requests.Session, page_size: int = 10) -> List[Dict]
     return [edge.get("node") for edge in all_edges if edge.get("node")]
 
 
-def fetch_tasks(session: requests.Session) -> Dict[str, List[Dict]]:
+def fetch_tasks(session: requests.Session, creds: Dict[str, str]) -> Dict[str, List[Dict]]:
     """Fetch maintenance tickets and group them by status to mirror UI buckets."""
 
     headers = {
@@ -262,9 +306,14 @@ def fetch_tasks(session: requests.Session) -> Dict[str, List[Dict]]:
         "Referer": f"{BASE_URL}/host/tasks",
     }
 
-    resp = session.get(
+    resp = _authed_request(
+        session,
+        "GET",
         f"{BASE_URL}/api/admin-new/property/maintenance/tickets/",
+        creds=creds,
+        login_fn=login,
         headers=headers,
+        timeout=DEFAULT_TIMEOUT,
     )
     resp.raise_for_status()
     tickets = resp.json()
@@ -292,15 +341,38 @@ def fetch_tasks(session: requests.Session) -> Dict[str, List[Dict]]:
     return {k: v for k, v in grouped.items() if v}
 
 
-def main() -> None:
+def run() -> None:
     creds = load_credentials()
-    with requests.Session() as session:
-        session.headers.update({"User-Agent": USER_AGENT})
+    base_dir = Path(__file__).resolve().parent
+    with create_session() as session:
         login(session, creds["email"], creds["password"])
-        messages = fetch_messages(session)
-        tasks = fetch_tasks(session)
-        print(json.dumps({"messages": messages, "tasks": tasks}, indent=2))
+        messages = fetch_messages(session, creds)
+        tasks = fetch_tasks(session, creds)
+        payload = {
+            "scraped_at": datetime.utcnow().isoformat() + "Z",
+            "messages": messages,
+            "tasks": tasks,
+        }
+
+        print(json.dumps(payload, indent=2))
+
+        output_dir = base_dir / "output"
+        output_dir.mkdir(parents=True, exist_ok=True)
+        filename = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%S") + ".json"
+        out_path = output_dir / filename
+        out_path.write_text(json.dumps(payload, indent=2))
+        sys.stderr.write(f"# Saved to {out_path}\n")
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        run()
+    except requests.exceptions.ConnectionError:
+        sys.stderr.write("Network error: could not reach padsplit.com\n")
+        sys.exit(1)
+    except requests.exceptions.Timeout:
+        sys.stderr.write("Request timed out — PadSplit may be slow\n")
+        sys.exit(1)
+    except RuntimeError as exc:
+        sys.stderr.write(f"{exc}\n")
+        sys.exit(1)
