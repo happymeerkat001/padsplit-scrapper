@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(venv/bin/pip install -q -r padsplit_scraper/requirements.txt 2>&1 | tail -5)",
+      "Bash(venv/bin/python padsplit_scraper/scraper.py 2>&1 | head -60)",
+      "Bash(venv/bin/python padsplit_scraper/scraper.py 2>&1 | head -80)",
+      "Bash(venv/bin/python padsplit_scraper/scraper.py 2>&1 | python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('Messages:', len\\(d['messages']\\)\\); print\\('Task buckets:', list\\(d['tasks'].keys\\(\\)\\)\\); print\\('Total tickets:', sum\\(len\\(v\\) for v in d['tasks'].values\\(\\)\\)\\)\")",
+      "Bash(venv/bin/python padsplit_scraper/scraper.py 2>&1 | python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('Messages:', len\\(d['messages']\\)\\); print\\('Task buckets:', {k: len\\(v\\) for k,v in d['tasks'].items\\(\\)}\\)\")"
+    ]
+  }
+}
