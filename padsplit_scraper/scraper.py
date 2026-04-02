@@ -361,7 +361,9 @@ def run() -> None:
         output_dir.mkdir(parents=True, exist_ok=True)
         filename = scraped_at.replace(":", "-") + ".json"
         out_path = output_dir / filename
+        latest_path = output_dir / "latest.json"
         out_path.write_text(json.dumps(payload, indent=2))
+        latest_path.write_text(json.dumps(payload, indent=2))
         sys.stderr.write(f"# Saved to {out_path}\n")
 
 
