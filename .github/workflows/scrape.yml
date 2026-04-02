@@ -1,0 +1,38 @@
+name: PadSplit Scrape
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r padsplit_scraper/requirements.txt
+
+      - name: Run scraper
+        env:
+          PADSPLIT_EMAIL: ${{ secrets.PADSPLIT_EMAIL }}
+          PADSPLIT_PASSWORD: ${{ secrets.PADSPLIT_PASSWORD }}
+        run: python padsplit_scraper/scraper.py
+
+      - name: Commit snapshot
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add padsplit_scraper/output/
+          git diff --cached --quiet || git commit -m "chore: scrape $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git push

@@ -1,7 +1,7 @@
 import json
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -348,8 +348,9 @@ def run() -> None:
         login(session, creds["email"], creds["password"])
         messages = fetch_messages(session, creds)
         tasks = fetch_tasks(session, creds)
+        scraped_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         payload = {
-            "scraped_at": datetime.utcnow().isoformat() + "Z",
+            "scraped_at": scraped_at,
             "messages": messages,
             "tasks": tasks,
         }
@@ -358,7 +359,7 @@ def run() -> None:
 
         output_dir = base_dir / "output"
         output_dir.mkdir(parents=True, exist_ok=True)
-        filename = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%S") + ".json"
+        filename = scraped_at.replace(":", "-") + ".json"
         out_path = output_dir / filename
         out_path.write_text(json.dumps(payload, indent=2))
         sys.stderr.write(f"# Saved to {out_path}\n")
