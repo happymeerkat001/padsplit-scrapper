@@ -185,8 +185,8 @@
             </div>
             <div class="muted">${t.details || t.description || 'No details'}</div>
             <div class="chips">
+              ${t.property_address?.street1 ? `<span class="chip">${t.property_address.street1}</span>` : ''}
               ${t.location ? `<span class="chip">${t.location}</span>` : ''}
-              ${t.id ? `<span class="chip">ID: ${t.id}</span>` : ''}
             </div>
           `;
           bucketDiv.appendChild(row);
