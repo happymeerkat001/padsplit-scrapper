@@ -1,6 +1,71 @@
 {
-  "scraped_at": "2026-04-04T15:43:01Z",
+  "scraped_at": "2026-04-04T16:40:27Z",
   "messages": [
+    {
+      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzIyODU0",
+      "title": "Henry Buris",
+      "chatType": "HOST_SUPPORT_CHAT",
+      "isArchived": false,
+      "occupancy": {
+        "moveInDate": "2026-04-06",
+        "moveOutDate": null,
+        "conditionalEligibilityApplied": null,
+        "room": {
+          "pk": 21180,
+          "roomNumber": 7
+        },
+        "user": {
+          "picture": "img/profiles/user_1003192_28563c09-bedb-4b0f-a4e4-e231f3745eda.jpg",
+          "firstName": "Henry",
+          "lastName": "Buris",
+          "displayName": null
+        }
+      },
+      "property": {
+        "host": {
+          "firstName": "Tinghui",
+          "lastName": "Li",
+          "displayName": "",
+          "picture": ""
+        },
+        "description": "Your new home awaits! This cozy Dallas home is waiting for you. This PadSplit has a Backyard and Dining area, and is newly-renovated and cozy.\n\nThis home has a full kitchen, onsite laundry and parking and is very commutable close to public transit and multiple highways.  Located right between I35E, I45 and I20.\n\nThe neighborhood is quiet, which means you won\u2019t be far from all Dallas has to offer.\nThe image on satellite is a few years old and please come and see the house by yourself before you make any judgement.",
+        "address": {
+          "street1": "3414 Pebbleshores Drive",
+          "street2": "",
+          "zip": "75241",
+          "city": {
+            "name": "Dallas",
+            "state": {
+              "name": "Texas"
+            }
+          }
+        }
+      },
+      "isCancelled": false,
+      "lastMessage": {
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODMyNjMxNg==",
+        "created": "2026-04-04T16:31:33.643107",
+        "text": "Would like to move in today",
+        "deleted": null,
+        "extra": null,
+        "messageType": "OPEN_REQUEST",
+        "sender": {
+          "pk": 1003192,
+          "firstName": "Henry",
+          "lastName": "Buris",
+          "displayName": null
+        },
+        "attachments": [],
+        "paymentExtensionStatus": null,
+        "ticketStatus": null,
+        "bookingStatus": null
+      },
+      "member": {
+        "seenAt": null,
+        "isPinned": false,
+        "isUnread": true
+      }
+    },
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzIxMDIw",
       "title": "Kay Clark",
@@ -43,12 +108,12 @@
       },
       "isCancelled": false,
       "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODMyNTQxNQ==",
-        "created": "2026-04-04T15:37:45.768007",
-        "text": "Okay, that\u2019s fine as well",
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODMyNjI0Ng==",
+        "created": "2026-04-04T16:26:38.721861",
+        "text": null,
         "deleted": null,
         "extra": null,
-        "messageType": "TEXT",
+        "messageType": "TICKET_UPDATE",
         "sender": {
           "pk": 318367,
           "firstName": "Ang",
@@ -57,13 +122,122 @@
         },
         "attachments": [],
         "paymentExtensionStatus": null,
-        "ticketStatus": null,
+        "ticketStatus": {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czo4OTA5NDg=",
+          "created": "2026-04-04T16:26:38.728572",
+          "status": "SUBMITTED",
+          "canRate": false,
+          "ticket": {
+            "id": "391592",
+            "author": {
+              "firstName": "Kevin",
+              "lastName": "Clark",
+              "id": "979475",
+              "displayName": "Kay"
+            },
+            "details": "Pad lock has a little trouble locking and unlocking and when you open the door from the inside, it makes a loud screech.",
+            "location": "ROOM",
+            "status": "SUBMITTED",
+            "rating": null,
+            "comment": null,
+            "category": "UNCLASSIFIED",
+            "onHoldReason": null,
+            "withdrawReason": null
+          }
+        },
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-04-04T15:37:46.864222",
+        "seenAt": "2026-04-04T15:52:03.722308",
         "isPinned": false,
-        "isUnread": false
+        "isUnread": true
+      }
+    },
+    {
+      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MjI3OTM1",
+      "title": "Christopher Ames",
+      "chatType": "HOST_SUPPORT_CHAT",
+      "isArchived": false,
+      "occupancy": {
+        "moveInDate": "2025-11-15",
+        "moveOutDate": null,
+        "conditionalEligibilityApplied": null,
+        "room": {
+          "pk": 55032,
+          "roomNumber": 3
+        },
+        "user": {
+          "picture": "img/profiles/user_634613_07c60de8-b199-44b1-8823-b4641f3ecce8.jpg",
+          "firstName": "Christopher",
+          "lastName": "Ames",
+          "displayName": null
+        }
+      },
+      "property": {
+        "host": {
+          "firstName": "Ang",
+          "lastName": "Li",
+          "displayName": null,
+          "picture": ""
+        },
+        "description": "Move into a newly-renovated House today! Homey and comfortable, this is the perfect place to call home. \n\nThe kitchen comes equipped with a fridge, sink, oven, stovetop, as well as garbage disposal, making it the perfect spot to whip up a meal or two.\n\nThe neighbourhood is near highways, and you won\u2019t be far from all Haltom City has to offer.",
+        "address": {
+          "street1": "3541 Parker Road East",
+          "street2": "",
+          "zip": "76117",
+          "city": {
+            "name": "Haltom City",
+            "state": {
+              "name": "Texas"
+            }
+          }
+        }
+      },
+      "isCancelled": false,
+      "lastMessage": {
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODMyNjIwNA==",
+        "created": "2026-04-04T16:24:37.447411",
+        "text": null,
+        "deleted": null,
+        "extra": null,
+        "messageType": "TICKET_UPDATE",
+        "sender": {
+          "pk": 701127,
+          "firstName": "Ang",
+          "lastName": "Li",
+          "displayName": null
+        },
+        "attachments": [],
+        "paymentExtensionStatus": null,
+        "ticketStatus": {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czo4OTA5NDY=",
+          "created": "2026-04-04T16:24:37.457700",
+          "status": "SUBMITTED",
+          "canRate": false,
+          "ticket": {
+            "id": "391591",
+            "author": {
+              "firstName": "Christopher",
+              "lastName": "Ames",
+              "id": "634613",
+              "displayName": null
+            },
+            "details": "Kitchen sink leaking when water is used",
+            "location": "KITCHEN",
+            "status": "SUBMITTED",
+            "rating": null,
+            "comment": null,
+            "category": "UNCLASSIFIED",
+            "onHoldReason": null,
+            "withdrawReason": null
+          }
+        },
+        "bookingStatus": null
+      },
+      "member": {
+        "seenAt": "2026-03-23T22:17:17.719234",
+        "isPinned": false,
+        "isUnread": true
       }
     },
     {
@@ -550,7 +724,7 @@
       "isArchived": false,
       "occupancy": {
         "moveInDate": "2026-04-01",
-        "moveOutDate": null,
+        "moveOutDate": "2026-04-05",
         "conditionalEligibilityApplied": null,
         "room": {
           "pk": 99243,
@@ -1666,71 +1840,6 @@
       },
       "member": {
         "seenAt": "2026-03-16T13:36:30.019166",
-        "isPinned": false,
-        "isUnread": false
-      }
-    },
-    {
-      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MjI3OTM1",
-      "title": "Christopher Ames",
-      "chatType": "HOST_SUPPORT_CHAT",
-      "isArchived": false,
-      "occupancy": {
-        "moveInDate": "2025-11-15",
-        "moveOutDate": null,
-        "conditionalEligibilityApplied": null,
-        "room": {
-          "pk": 55032,
-          "roomNumber": 3
-        },
-        "user": {
-          "picture": "img/profiles/user_634613_07c60de8-b199-44b1-8823-b4641f3ecce8.jpg",
-          "firstName": "Christopher",
-          "lastName": "Ames",
-          "displayName": null
-        }
-      },
-      "property": {
-        "host": {
-          "firstName": "Ang",
-          "lastName": "Li",
-          "displayName": null,
-          "picture": ""
-        },
-        "description": "Move into a newly-renovated House today! Homey and comfortable, this is the perfect place to call home. \n\nThe kitchen comes equipped with a fridge, sink, oven, stovetop, as well as garbage disposal, making it the perfect spot to whip up a meal or two.\n\nThe neighbourhood is near highways, and you won\u2019t be far from all Haltom City has to offer.",
-        "address": {
-          "street1": "3541 Parker Road East",
-          "street2": "",
-          "zip": "76117",
-          "city": {
-            "name": "Haltom City",
-            "state": {
-              "name": "Texas"
-            }
-          }
-        }
-      },
-      "isCancelled": false,
-      "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODIzODI2Ng==",
-        "created": "2026-03-31T12:30:59.428066",
-        "text": "Hi everyone, just a quick update: Amy in room 2 will no longer be living with us and will be moving out. Thank you.",
-        "deleted": null,
-        "extra": null,
-        "messageType": "TEXT",
-        "sender": {
-          "pk": 318367,
-          "firstName": "Ang",
-          "lastName": "Li",
-          "displayName": "Cyndy Manager"
-        },
-        "attachments": [],
-        "paymentExtensionStatus": null,
-        "ticketStatus": null,
-        "bookingStatus": null
-      },
-      "member": {
-        "seenAt": "2026-03-23T22:17:17.719234",
         "isPinned": false,
         "isUnread": false
       }
@@ -2986,6 +3095,91 @@
   ],
   "tasks": {
     "Requests": [
+      {
+        "id": 391592,
+        "status": "submitted",
+        "comment": null,
+        "category": "unclassified",
+        "media": [],
+        "created": "2026-04-04T16:26:38.682165",
+        "modified": "2026-04-04T16:26:38.682165",
+        "room_name": "",
+        "room_number": 7,
+        "room_status": 1,
+        "room_code": "121212",
+        "location": "Room",
+        "details": "Pad lock has a little trouble locking and unlocking and when you open the door from the inside, it makes a loud screech.",
+        "property_id": 24516,
+        "property_address": {
+          "id": 33032,
+          "street1": "5509 Burton Avenue",
+          "street2": "",
+          "city": "Fort Worth",
+          "state": "TX",
+          "zip": "76119",
+          "city_slug": "fort-worth-tx"
+        },
+        "reported_by": {
+          "id": 979475,
+          "name": "Kay",
+          "role_id": 0,
+          "picture": "img/profiles/user_979475_d6108760-b3d0-4c24-a4ef-1c460eae46ca.jpg"
+        },
+        "assigned_to": null,
+        "on_hold_reason": null,
+        "update_status_at": "2026-04-04T16:26:38.683842",
+        "rating": null,
+        "extra_data": {},
+        "has_reused_code": true,
+        "moveout_photos_count": 0,
+        "days_to_complete": null
+      },
+      {
+        "id": 391591,
+        "status": "submitted",
+        "comment": null,
+        "category": "unclassified",
+        "media": [
+          {
+            "id": 134551,
+            "location": "img/tickets/ticket_391591_0.jpg",
+            "category": "default",
+            "media_type": "image"
+          }
+        ],
+        "created": "2026-04-04T16:24:37.412958",
+        "modified": "2026-04-04T16:24:37.412958",
+        "room_name": "",
+        "room_number": 3,
+        "room_status": 1,
+        "room_code": "1234(give it when appying)",
+        "location": "Kitchen",
+        "details": "Kitchen sink leaking when water is used",
+        "property_id": 15799,
+        "property_address": {
+          "id": 21682,
+          "street1": "3541 Parker Road East",
+          "street2": "",
+          "city": "Haltom City",
+          "state": "TX",
+          "zip": "76117",
+          "city_slug": "haltom-city-tx"
+        },
+        "reported_by": {
+          "id": 634613,
+          "name": "Christopher Ames",
+          "role_id": 0,
+          "picture": "img/profiles/user_634613_07c60de8-b199-44b1-8823-b4641f3ecce8.jpg"
+        },
+        "assigned_to": null,
+        "on_hold_reason": null,
+        "update_status_at": "2026-04-04T16:24:37.414012",
+        "rating": null,
+        "extra_data": {},
+        "has_reused_code": true,
+        "moveout_photos_count": 0,
+        "days_to_complete": null
+      },
       {
         "id": 391491,
         "status": "submitted",
