@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-04-05T14:06:51Z",
+  "scraped_at": "2026-04-05T15:02:21Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzE5MDA1",
@@ -43,43 +43,42 @@
       },
       "isCancelled": false,
       "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODMzNjU3Mw==",
-        "created": "2026-04-05T12:30:56.244491",
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODMzODkxMg==",
+        "created": "2026-04-05T14:54:44.475148",
         "text": null,
         "deleted": null,
         "extra": null,
-        "messageType": "TICKET_UPDATE",
+        "messageType": "MOVE_OUT_PHOTOS",
         "sender": {
-          "pk": 701127,
-          "firstName": "Ang",
-          "lastName": "Li",
+          "pk": 1020558,
+          "firstName": "Gregory L",
+          "lastName": "Johnson",
           "displayName": null
         },
-        "attachments": [],
-        "paymentExtensionStatus": null,
-        "ticketStatus": {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czo4OTE1ODY=",
-          "created": "2026-04-05T12:30:56.254070",
-          "status": "SUBMITTED",
-          "canRate": false,
-          "ticket": {
-            "id": "391852",
-            "author": {
-              "firstName": "Gregory L",
-              "lastName": "Johnson",
-              "id": "1020558",
-              "displayName": null
-            },
-            "details": "Room transfer",
-            "location": "ROOM",
-            "status": "SUBMITTED",
-            "rating": null,
-            "comment": null,
-            "category": "ROOM_TURN",
-            "onHoldReason": null,
-            "withdrawReason": null
+        "attachments": [
+          {
+            "mediaType": "PICTURE",
+            "deleted": null
+          },
+          {
+            "mediaType": "PICTURE",
+            "deleted": null
+          },
+          {
+            "mediaType": "PICTURE",
+            "deleted": null
+          },
+          {
+            "mediaType": "PICTURE",
+            "deleted": null
+          },
+          {
+            "mediaType": "PICTURE",
+            "deleted": null
           }
-        },
+        ],
+        "paymentExtensionStatus": null,
+        "ticketStatus": null,
         "bookingStatus": null
       },
       "member": {
@@ -3037,7 +3036,7 @@
         "category": "room-turn",
         "media": [],
         "created": "2026-04-05T12:30:56.210325",
-        "modified": "2026-04-05T12:30:56.210325",
+        "modified": "2026-04-05T14:55:09.773932",
         "room_name": "",
         "room_number": 5,
         "room_status": 3,
@@ -3067,10 +3066,13 @@
         "extra_data": {
           "user_id": 1020558,
           "occupancy_id": 284606,
-          "move_out_date": "2026-04-05"
+          "move_out_date": "2026-04-05",
+          "move_out_quiz": {
+            "Do you have a physical key to your room?": "No, I don\u2019t have a key to my room"
+          }
         },
         "has_reused_code": false,
-        "moveout_photos_count": 0,
+        "moveout_photos_count": 5,
         "days_to_complete": null
       },
       {
