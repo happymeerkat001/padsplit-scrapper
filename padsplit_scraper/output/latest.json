@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-04-05T15:56:48Z",
+  "scraped_at": "2026-04-05T16:47:48Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MjA1MTQx",
@@ -3074,6 +3074,51 @@
   "tasks": {
     "Requests": [
       {
+        "id": 391964,
+        "status": "submitted",
+        "comment": null,
+        "category": "room-turn",
+        "media": [],
+        "created": "2026-04-05T15:03:45.605912",
+        "modified": "2026-04-05T16:14:46.543612",
+        "room_name": "",
+        "room_number": 3,
+        "room_status": 3,
+        "room_code": "2516",
+        "location": "Room",
+        "details": "Collections",
+        "property_id": 8840,
+        "property_address": {
+          "id": 11718,
+          "street1": "2516 Sylvia Street",
+          "street2": "",
+          "city": "Dallas",
+          "state": "TX",
+          "zip": "75241",
+          "city_slug": "dallas-tx"
+        },
+        "reported_by": {
+          "id": 526387,
+          "name": "Matthew Strode",
+          "role_id": 0,
+          "picture": "img/profiles/user_526387_b7b89226-8341-4a62-9fcc-a47d417e81c8.jpg"
+        },
+        "assigned_to": null,
+        "on_hold_reason": null,
+        "update_status_at": "2026-04-05T15:03:45.606966",
+        "rating": null,
+        "extra_data": {
+          "user_id": 526387,
+          "occupancy_id": 131732,
+          "move_out_date": "2026-04-05",
+          "move_out_details": "Pay to Stay request sent to host, pending approval\nAmount to Pay - $25\nPayment Date -4/5\nReason: did not calculate for the late fee. \nHost ticket#:1118488\nMember ticket#:1118468",
+          "is_present_after_move_out": true
+        },
+        "has_reused_code": true,
+        "moveout_photos_count": 0,
+        "days_to_complete": null
+      },
+      {
         "id": 392032,
         "status": "submitted",
         "comment": null,
@@ -3153,49 +3198,6 @@
         "extra_data": {
           "user_id": 816944,
           "occupancy_id": 215610,
-          "move_out_date": "2026-04-05"
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null
-      },
-      {
-        "id": 391964,
-        "status": "submitted",
-        "comment": null,
-        "category": "room-turn",
-        "media": [],
-        "created": "2026-04-05T15:03:45.605912",
-        "modified": "2026-04-05T15:03:46.050330",
-        "room_name": "",
-        "room_number": 3,
-        "room_status": 3,
-        "room_code": "2516",
-        "location": "Room",
-        "details": "Collections",
-        "property_id": 8840,
-        "property_address": {
-          "id": 11718,
-          "street1": "2516 Sylvia Street",
-          "street2": "",
-          "city": "Dallas",
-          "state": "TX",
-          "zip": "75241",
-          "city_slug": "dallas-tx"
-        },
-        "reported_by": {
-          "id": 526387,
-          "name": "Matthew Strode",
-          "role_id": 0,
-          "picture": "img/profiles/user_526387_b7b89226-8341-4a62-9fcc-a47d417e81c8.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-04-05T15:03:45.606966",
-        "rating": null,
-        "extra_data": {
-          "user_id": 526387,
-          "occupancy_id": 131732,
           "move_out_date": "2026-04-05"
         },
         "has_reused_code": true,
