@@ -9,7 +9,7 @@ import requests
 from dotenv import load_dotenv
 
 PORTAL_URL = "https://mytotalconnectcomfort.com/portal"
-LOCATIONS_URL = f"{PORTAL_URL}/Location/GetLocationListData?page=1&filter="
+LOCATIONS_BASE_URL = f"{PORTAL_URL}/Location/GetLocationListData?page={{page}}&filter="
 
 USER_AGENT = (
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
@@ -61,16 +61,24 @@ def login(session: requests.Session, email: str, password: str) -> None:
 
 
 def fetch_locations(session: requests.Session) -> List[Dict]:
-    # Returns a bare JSON array (not {"Locations": [...]})
-    resp = session.post(
-        LOCATIONS_URL,
-        headers={"Content-Type": "application/json; charset=utf-8"},
-        data=b"",
-        timeout=TIMEOUT,
-    )
-    resp.raise_for_status()
-    data = resp.json()
-    return data if isinstance(data, list) else []
+    # Returns a bare JSON array (not {"Locations": [...]}).
+    # Paginate until the API returns an empty array.
+    all_locations: List[Dict] = []
+    page = 1
+    while True:
+        resp = session.post(
+            LOCATIONS_BASE_URL.format(page=page),
+            headers={"Content-Type": "application/json; charset=utf-8"},
+            data=b"",
+            timeout=TIMEOUT,
+        )
+        resp.raise_for_status()
+        batch = resp.json()
+        if not isinstance(batch, list) or not batch:
+            break
+        all_locations.extend(batch)
+        page += 1
+    return all_locations
 
 
 def extract_device(dev: Dict) -> Dict:
