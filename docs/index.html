@@ -100,6 +100,13 @@
     td { padding: 0.4rem 0.6rem; border-bottom: 1px solid rgba(148,163,184,0.08); }
     .temp-high { color: var(--error); }
     .temp-ok   { color: var(--success); }
+    details summary {
+      cursor: pointer;
+      user-select: none;
+      list-style: none;
+    }
+    details summary::-webkit-details-marker { display: none; }
+    details summary h2 { display: inline-block; margin: 0 0 0.75rem; }
   </style>
 </head>
 <body>
@@ -151,7 +158,10 @@
       // Messages
       const msgSection = document.createElement('div');
       msgSection.className = 'section';
-      msgSection.innerHTML = '<h2>Messages</h2>';
+      const msgDetails = document.createElement('details');
+      const msgSummary = document.createElement('summary');
+      msgSummary.innerHTML = '<h2>Messages</h2>';
+      msgDetails.appendChild(msgSummary);
       const msgGrid = document.createElement('div');
       msgGrid.className = 'grid';
       (data.messages || []).forEach(msg => {
@@ -172,13 +182,17 @@
         `;
         msgGrid.appendChild(card);
       });
-      msgSection.appendChild(msgGrid);
+      msgDetails.appendChild(msgGrid);
+      msgSection.appendChild(msgDetails);
       root.appendChild(msgSection);
 
       // Tasks
       const taskSection = document.createElement('div');
       taskSection.className = 'section';
-      taskSection.innerHTML = '<h2>Tasks</h2>';
+      const taskDetails = document.createElement('details');
+      const taskSummary = document.createElement('summary');
+      taskSummary.innerHTML = '<h2>Tasks</h2>';
+      taskDetails.appendChild(taskSummary);
       const tasks = data.tasks || {};
       Object.keys(tasks).forEach(bucket => {
         const bucketDiv = document.createElement('div');
@@ -200,8 +214,9 @@
           `;
           bucketDiv.appendChild(row);
         });
-        taskSection.appendChild(bucketDiv);
+        taskDetails.appendChild(bucketDiv);
       });
+      taskSection.appendChild(taskDetails);
       root.appendChild(taskSection);
 
       const container = document.getElementById('content');
@@ -217,10 +232,13 @@
 
       let html = `
         <div class="section">
-          <div class="flex-between" style="margin-bottom:0.75rem">
-            <h2>Thermostats</h2>
-            <span class="muted" style="font-size:0.85rem">Updated ${fmtDate(data.scraped_at)}</span>
-          </div>
+          <details open>
+            <summary>
+              <div class="flex-between" style="margin-bottom:0.75rem">
+                <h2>Thermostats</h2>
+                <span class="muted" style="font-size:0.85rem">Updated ${fmtDate(data.scraped_at)}</span>
+              </div>
+            </summary>
           <div class="card">
             <table>
               <thead>
@@ -249,7 +267,7 @@
                 </tr>`;
       });
 
-      html += `</tbody></table></div></div>`;
+      html += `</tbody></table></div></details></div>`;
       section.innerHTML = html;
     }
 
