@@ -125,6 +125,7 @@ def main() -> None:
             devices_out = [extract_device(dev) for dev in (loc.get("Devices") or [])]
             locations_out.append({
                 "id": loc.get("LocationID"),
+                "name": loc.get("Name"),
                 "devices": devices_out,
             })
 
