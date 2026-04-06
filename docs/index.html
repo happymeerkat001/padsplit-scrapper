@@ -95,6 +95,11 @@
       font-size: 0.9rem;
     }
     .loading { text-align: center; padding: 2rem; color: var(--muted); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th { text-align: left; padding: 0.4rem 0.6rem; color: var(--muted); font-weight: 500; border-bottom: 1px solid rgba(148,163,184,0.15); }
+    td { padding: 0.4rem 0.6rem; border-bottom: 1px solid rgba(148,163,184,0.08); }
+    .temp-high { color: var(--error); }
+    .temp-ok   { color: var(--success); }
   </style>
 </head>
 <body>
@@ -103,6 +108,10 @@
     <span class="pill" id="last-updated">Loading…</span>
     <span class="muted" id="refresh-info">Auto-refresh in 300s</span>
   </header>
+
+  <div id="thermostat-section">
+    <div class="loading">Fetching thermostat data…</div>
+  </div>
 
   <div id="content">
     <div class="loading">Fetching latest.json …</div>
@@ -199,6 +208,58 @@
       container.innerHTML = '';
       container.appendChild(root);
     }
+
+    function renderThermostats(data) {
+      const section = document.getElementById('thermostat-section');
+      const rows = (data.locations || []).flatMap(loc =>
+        (loc.devices || []).map(d => ({ ...d, location_id: loc.id }))
+      );
+
+      let html = `
+        <div class="section">
+          <div class="flex-between" style="margin-bottom:0.75rem">
+            <h2>Thermostats</h2>
+            <span class="muted" style="font-size:0.85rem">Updated ${fmtDate(data.scraped_at)}</span>
+          </div>
+          <div class="card">
+            <table>
+              <thead>
+                <tr>
+                  <th>Property</th>
+                  <th>Temp</th>
+                  <th>Heat Set</th>
+                  <th>Cool Set</th>
+                  <th>Humidity</th>
+                  <th>Outdoor</th>
+                </tr>
+              </thead>
+              <tbody>`;
+
+      rows.forEach(d => {
+        const temp = d.temp ?? '—';
+        const tempClass = d.temp >= 78 ? 'temp-high' : d.temp <= 65 ? 'temp-ok' : '';
+        html += `
+                <tr>
+                  <td>${d.name || d.location_id}</td>
+                  <td class="${tempClass}">${temp !== '—' ? temp + '°F' : '—'}</td>
+                  <td>${d.heat_setpoint != null ? d.heat_setpoint + '°F' : '—'}</td>
+                  <td>${d.cool_setpoint != null ? d.cool_setpoint + '°F' : '—'}</td>
+                  <td>${d.humidity != null ? d.humidity + '%' : '—'}</td>
+                  <td>${d.outdoor_temp != null ? d.outdoor_temp + '°F' : '—'}</td>
+                </tr>`;
+      });
+
+      html += `</tbody></table></div></div>`;
+      section.innerHTML = html;
+    }
+
+    fetch('./thermostat/latest.json', { cache: 'no-cache' })
+      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+      .then(renderThermostats)
+      .catch(err => {
+        document.getElementById('thermostat-section').innerHTML =
+          `<div class="card error" style="margin-bottom:1rem">Thermostat data unavailable (${err.message}).</div>`;
+      });
 
     fetch('./data/latest.json', { cache: 'no-cache' })
       .then(r => {
