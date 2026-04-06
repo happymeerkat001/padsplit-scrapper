@@ -69,18 +69,21 @@ def fetch_location_names(session: requests.Session) -> Dict[int, str]:
             <div class="location-name">Some Name</div>
     """
     import re as _re
-    r = session.get(
-        f"{PORTAL_URL}/Locations",
-        timeout=TIMEOUT,
-        headers={"X-Requested-With": None},  # HTML page, not AJAX
-    )
-    r.raise_for_status()
-    # Match each table row's data-id then the first location-name div
-    pattern = _re.compile(
-        r'data-id="(\d+)"[^>]*>.*?class="location-name">\s*(.+?)\s*<',
-        _re.DOTALL,
-    )
-    return {int(m.group(1)): m.group(2).strip() for m in pattern.finditer(r.text)}
+    try:
+        r = session.get(
+            f"{PORTAL_URL}/Locations",
+            timeout=TIMEOUT,
+            headers={"X-Requested-With": None},  # HTML page, not AJAX
+        )
+        r.raise_for_status()
+        # Match each table row's data-id then the first location-name div
+        pattern = _re.compile(
+            r'data-id="(\d+)"[^>]*>.*?class="location-name">\s*(.+?)\s*<',
+            _re.DOTALL,
+        )
+        return {int(m.group(1)): m.group(2).strip() for m in pattern.finditer(r.text)}
+    except Exception:
+        return {}
 
 
 def fetch_locations(session: requests.Session) -> List[Dict]:
@@ -179,6 +182,9 @@ if __name__ == "__main__":
         sys.exit(1)
     except requests.exceptions.Timeout:
         sys.stderr.write("Request timed out\n")
+        sys.exit(1)
+    except requests.exceptions.RequestException as exc:
+        sys.stderr.write(f"HTTP error: {exc}\n")
         sys.exit(1)
     except RuntimeError as exc:
         sys.stderr.write(f"{exc}\n")
