@@ -1,6 +1,93 @@
 {
-  "scraped_at": "2026-04-06T14:52:54Z",
+  "scraped_at": "2026-04-06T15:52:39Z",
   "messages": [
+    {
+      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6OTA1MDg=",
+      "title": "Matthew Strode",
+      "chatType": "HOST_SUPPORT_CHAT",
+      "isArchived": false,
+      "occupancy": {
+        "moveInDate": "2024-09-26",
+        "moveOutDate": null,
+        "conditionalEligibilityApplied": null,
+        "room": {
+          "pk": 31130,
+          "roomNumber": 3
+        },
+        "user": {
+          "picture": "img/profiles/user_526387_b7b89226-8341-4a62-9fcc-a47d417e81c8.jpg",
+          "firstName": "Matthew",
+          "lastName": "Strode",
+          "displayName": null
+        }
+      },
+      "property": {
+        "host": {
+          "firstName": "Tinghui",
+          "lastName": "Li",
+          "displayName": "",
+          "picture": ""
+        },
+        "description": "Enjoy living in a comfortable House. This beautiful home is decorated with modern touches while providing the basic necessities. All that\u2019s missing is you!\n\nThe kitchen is equipped with a fridge, sink, oven, stovetop, as well as upgraded appliances. It\u2019s the perfect spot for you to cook at home and save money.\n\nThe surrounding location is near grocery stores, making it the perfect place to call home.",
+        "address": {
+          "street1": "2516 Sylvia Street",
+          "street2": "",
+          "zip": "75241",
+          "city": {
+            "name": "Dallas",
+            "state": {
+              "name": "Texas"
+            }
+          }
+        }
+      },
+      "isCancelled": false,
+      "lastMessage": {
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODM1Mjk4Ng==",
+        "created": "2026-04-06T15:05:15.172298",
+        "text": null,
+        "deleted": null,
+        "extra": null,
+        "messageType": "TICKET_UPDATE",
+        "sender": {
+          "pk": 339595,
+          "firstName": "Tinghui",
+          "lastName": "Li",
+          "displayName": ""
+        },
+        "attachments": [],
+        "paymentExtensionStatus": null,
+        "ticketStatus": {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czo4OTMwNTU=",
+          "created": "2026-04-06T15:05:15.180270",
+          "status": "WITHDRAWN",
+          "canRate": false,
+          "ticket": {
+            "id": "391964",
+            "author": {
+              "firstName": "Matthew",
+              "lastName": "Strode",
+              "id": "526387",
+              "displayName": null
+            },
+            "details": "Collections",
+            "location": "ROOM",
+            "status": "WITHDRAWN",
+            "rating": null,
+            "comment": null,
+            "category": "ROOM_TURN",
+            "onHoldReason": null,
+            "withdrawReason": null
+          }
+        },
+        "bookingStatus": null
+      },
+      "member": {
+        "seenAt": "2026-04-05T18:15:31.242744",
+        "isPinned": false,
+        "isUnread": true
+      }
+    },
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzIyNDc0",
       "title": "Angel Cole",
@@ -387,71 +474,6 @@
       },
       "member": {
         "seenAt": "2026-04-05T18:16:35.546750",
-        "isPinned": false,
-        "isUnread": false
-      }
-    },
-    {
-      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6OTA1MDg=",
-      "title": "Matthew Strode",
-      "chatType": "HOST_SUPPORT_CHAT",
-      "isArchived": false,
-      "occupancy": {
-        "moveInDate": "2024-09-26",
-        "moveOutDate": "2026-04-05",
-        "conditionalEligibilityApplied": null,
-        "room": {
-          "pk": 31130,
-          "roomNumber": 3
-        },
-        "user": {
-          "picture": "img/profiles/user_526387_b7b89226-8341-4a62-9fcc-a47d417e81c8.jpg",
-          "firstName": "Matthew",
-          "lastName": "Strode",
-          "displayName": null
-        }
-      },
-      "property": {
-        "host": {
-          "firstName": "Tinghui",
-          "lastName": "Li",
-          "displayName": "",
-          "picture": ""
-        },
-        "description": "Enjoy living in a comfortable House. This beautiful home is decorated with modern touches while providing the basic necessities. All that\u2019s missing is you!\n\nThe kitchen is equipped with a fridge, sink, oven, stovetop, as well as upgraded appliances. It\u2019s the perfect spot for you to cook at home and save money.\n\nThe surrounding location is near grocery stores, making it the perfect place to call home.",
-        "address": {
-          "street1": "2516 Sylvia Street",
-          "street2": "",
-          "zip": "75241",
-          "city": {
-            "name": "Dallas",
-            "state": {
-              "name": "Texas"
-            }
-          }
-        }
-      },
-      "isCancelled": false,
-      "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODM0MjA0NA==",
-        "created": "2026-04-05T18:15:30.118014",
-        "text": "Payment portal is open, you can make payment",
-        "deleted": null,
-        "extra": null,
-        "messageType": "TEXT",
-        "sender": {
-          "pk": 318367,
-          "firstName": "Ang",
-          "lastName": "Li",
-          "displayName": "Cyndy Manager"
-        },
-        "attachments": [],
-        "paymentExtensionStatus": null,
-        "ticketStatus": null,
-        "bookingStatus": null
-      },
-      "member": {
-        "seenAt": "2026-04-05T18:15:31.242744",
         "isPinned": false,
         "isUnread": false
       }
@@ -3051,51 +3073,6 @@
   ],
   "tasks": {
     "Requests": [
-      {
-        "id": 391964,
-        "status": "submitted",
-        "comment": null,
-        "category": "room-turn",
-        "media": [],
-        "created": "2026-04-05T15:03:45.605912",
-        "modified": "2026-04-05T16:14:46.543612",
-        "room_name": "",
-        "room_number": 3,
-        "room_status": 3,
-        "room_code": "2516",
-        "location": "Room",
-        "details": "Collections",
-        "property_id": 8840,
-        "property_address": {
-          "id": 11718,
-          "street1": "2516 Sylvia Street",
-          "street2": "",
-          "city": "Dallas",
-          "state": "TX",
-          "zip": "75241",
-          "city_slug": "dallas-tx"
-        },
-        "reported_by": {
-          "id": 526387,
-          "name": "Matthew Strode",
-          "role_id": 0,
-          "picture": "img/profiles/user_526387_b7b89226-8341-4a62-9fcc-a47d417e81c8.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-04-05T15:03:45.606966",
-        "rating": null,
-        "extra_data": {
-          "user_id": 526387,
-          "occupancy_id": 131732,
-          "move_out_date": "2026-04-05",
-          "move_out_details": "Pay to Stay request sent to host, pending approval\nAmount to Pay - $25\nPayment Date -4/5\nReason: did not calculate for the late fee. \nHost ticket#:1118488\nMember ticket#:1118468",
-          "is_present_after_move_out": true
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null
-      },
       {
         "id": 392032,
         "status": "submitted",
