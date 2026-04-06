@@ -60,6 +60,29 @@ def login(session: requests.Session, email: str, password: str) -> None:
         raise RuntimeError("Login failed: .ASPXAUTH_TRUEHOME cookie not set — check credentials")
 
 
+def fetch_location_names(session: requests.Session) -> Dict[int, str]:
+    """Parse /portal/Locations HTML for the true location names keyed by LocationID.
+
+    The GetLocationListData AJAX endpoint does not include location names.
+    The portal HTML embeds them in:
+        <tr ... data-id="<LocationID>" ...>
+            <div class="location-name">Some Name</div>
+    """
+    import re as _re
+    r = session.get(
+        f"{PORTAL_URL}/Locations",
+        timeout=TIMEOUT,
+        headers={"X-Requested-With": None},  # HTML page, not AJAX
+    )
+    r.raise_for_status()
+    # Match each table row's data-id then the first location-name div
+    pattern = _re.compile(
+        r'data-id="(\d+)"[^>]*>.*?class="location-name">\s*(.+?)\s*<',
+        _re.DOTALL,
+    )
+    return {int(m.group(1)): m.group(2).strip() for m in pattern.finditer(r.text)}
+
+
 def fetch_locations(session: requests.Session) -> List[Dict]:
     # Returns a bare JSON array (not {"Locations": [...]}).
     # Paginate until the API returns an empty array.
@@ -118,14 +141,19 @@ def main() -> None:
     creds = load_credentials()
     with create_session() as session:
         login(session, creds["email"], creds["password"])
+        location_names = fetch_location_names(session)
         raw_locations = fetch_locations(session)
 
         locations_out: List[Dict] = []
         for loc in raw_locations:
+            loc_id = loc.get("LocationID")
             devices_out = [extract_device(dev) for dev in (loc.get("Devices") or [])]
+            # Use the true portal location name; fall back to device name if unavailable
+            first_device_name = devices_out[0]["name"] if devices_out else None
+            loc_name = location_names.get(loc_id) or first_device_name or str(loc_id)
             locations_out.append({
-                "id": loc.get("LocationID"),
-                "name": loc.get("Name"),
+                "id": loc_id,
+                "name": loc_name,
                 "devices": devices_out,
             })
 

@@ -212,7 +212,7 @@
     function renderThermostats(data) {
       const section = document.getElementById('thermostat-section');
       const rows = (data.locations || []).flatMap(loc =>
-        (loc.devices || []).map(d => ({ ...d, location_id: loc.id }))
+        (loc.devices || []).map(d => ({ ...d, location_id: loc.id, location_name: loc.name }))
       );
 
       let html = `
@@ -240,7 +240,7 @@
         const tempClass = d.temp >= 78 ? 'temp-high' : d.temp <= 65 ? 'temp-ok' : '';
         html += `
                 <tr>
-                  <td>${d.name || d.location_id}</td>
+                  <td>${d.location_name || d.name || d.location_id}</td>
                   <td class="${tempClass}">${temp !== '—' ? temp + '°F' : '—'}</td>
                   <td>${d.heat_setpoint != null ? d.heat_setpoint + '°F' : '—'}</td>
                   <td>${d.cool_setpoint != null ? d.cool_setpoint + '°F' : '—'}</td>
