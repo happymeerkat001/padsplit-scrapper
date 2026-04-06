@@ -11,7 +11,12 @@
       "WebFetch(domain:home-assistant.io)",
       "WebFetch(domain:pypi.org)",
       "WebFetch(domain:www.reddit.com)",
-      "WebFetch(domain:api.github.com)"
+      "WebFetch(domain:api.github.com)",
+      "Bash(gh run list --workflow=thermostat.yml --limit=3 2>/dev/null || gh run list --limit=5)",
+      "Bash(venv/bin/python thermostat/scraper.py 2>&1)",
+      "Bash(git add docs/index.html && git commit -m \"feat: add collapsible sections to dashboard\" && git push)",
+      "Bash(git pull --rebase && git push)",
+      "Bash(git status && git stash && git pull --rebase && git stash pop && git push)"
     ]
   }
 }

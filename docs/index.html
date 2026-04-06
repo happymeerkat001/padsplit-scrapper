@@ -95,6 +95,17 @@
       font-size: 0.9rem;
     }
     .loading { text-align: center; padding: 2rem; color: var(--muted); }
+    .chat-box { margin-top: 0.75rem; padding: 0.75rem; border: 1px solid rgba(148,163,184,0.25); border-radius: 10px; background: rgba(255,255,255,0.02); }
+    .chat-controls { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
+    .chat-controls select, .chat-controls input { padding: 0.35rem 0.5rem; border-radius: 8px; border: 1px solid rgba(148,163,184,0.35); background: #0b1222; color: var(--text); }
+    .chat-controls button { padding: 0.4rem 0.85rem; border-radius: 8px; border: none; background: var(--accent); color: #0b1222; font-weight: 600; cursor: pointer; }
+    .chat-controls button:disabled { opacity: 0.6; cursor: not-allowed; }
+    .chat-messages { display: flex; flex-direction: column; gap: 0.3rem; max-height: 200px; overflow-y: auto; }
+    .chat-msg { padding: 0.4rem 0.6rem; border-radius: 8px; background: rgba(148,163,184,0.12); }
+    .role-owner { color: #38bdf8; }
+    .role-manager { color: #22c55e; }
+    .role-repairman { color: #f59e0b; }
+    .msg-meta { font-size: 0.75rem; color: var(--muted); }
     table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
     th { text-align: left; padding: 0.4rem 0.6rem; color: var(--muted); font-weight: 500; border-bottom: 1px solid rgba(148,163,184,0.15); }
     td { padding: 0.4rem 0.6rem; border-bottom: 1px solid rgba(148,163,184,0.08); }
@@ -128,10 +139,19 @@
     Data auto-refreshes every 5 minutes from <code>padsplit_scraper/output/latest.json</code>. Pages is public; repo history stays private.
   </footer>
 
-  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    // Paste your Firebase config keys here
+    const firebaseConfig = { /* PASTE KEYS HERE */ };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
     const REFRESH_SEC = 300;
     let counter = REFRESH_SEC;
     const refreshInfo = document.getElementById('refresh-info');
+    const taskMessageContainers = new Map();
 
     setInterval(() => {
       counter -= 1;
@@ -199,6 +219,7 @@
         bucketDiv.className = 'card';
         bucketDiv.innerHTML = `<div class="flex-between"><h3>${bucket}</h3><span class="badge">${tasks[bucket].length}</span></div>`;
         tasks[bucket].forEach(t => {
+          const taskId = t.id || `${bucket}-${Math.random().toString(16).slice(2)}`;
           const row = document.createElement('div');
           row.style.marginTop = '0.5rem';
           row.innerHTML = `
@@ -212,6 +233,52 @@
               ${t.location ? `<span class="chip">${t.location}</span>` : ''}
             </div>
           `;
+
+          const chatBox = document.createElement('div');
+          chatBox.className = 'chat-box';
+          const controls = document.createElement('div');
+          controls.className = 'chat-controls';
+          controls.innerHTML = `
+            <select data-role>
+              <option value="Owner">Owner</option>
+              <option value="Manager">Manager</option>
+              <option value="Repairman">Repairman</option>
+            </select>
+            <input data-msg placeholder="Type a message" />
+            <button data-send>Send</button>
+          `;
+          const messagesDiv = document.createElement('div');
+          messagesDiv.className = 'chat-messages';
+          messagesDiv.dataset.taskId = taskId;
+          taskMessageContainers.set(taskId, messagesDiv);
+
+          const sendBtn = controls.querySelector('[data-send]');
+          const msgInput = controls.querySelector('[data-msg]');
+
+          sendBtn.addEventListener('click', async () => {
+            const role = controls.querySelector('[data-role]').value;
+            const text = msgInput.value.trim();
+            if (!text) return;
+            sendBtn.disabled = true;
+            try {
+              await addDoc(collection(db, "task_messages"), {
+                taskId,
+                role,
+                text,
+                created: serverTimestamp(),
+              });
+              msgInput.value = "";
+            } catch (err) {
+              console.error("Failed to send message", err);
+              alert("Failed to send message");
+            } finally {
+              sendBtn.disabled = false;
+            }
+          });
+
+          chatBox.appendChild(controls);
+          chatBox.appendChild(messagesDiv);
+          row.appendChild(chatBox);
           bucketDiv.appendChild(row);
         });
         taskDetails.appendChild(bucketDiv);
@@ -290,6 +357,28 @@
           `<div class="card error">Failed to load latest.json (${err.message}).</div>`;
         console.error(err);
       });
+
+    // Real-time listener for task messages
+    const q = query(collection(db, "task_messages"), orderBy("created", "asc"));
+    onSnapshot(q, (snapshot) => {
+      snapshot.docChanges().forEach(change => {
+        if (change.type === "added") {
+          const data = change.doc.data();
+          const container = taskMessageContainers.get(data.taskId);
+          if (!container) return;
+          const roleClass = data.role === "Manager" ? "role-manager" : data.role === "Repairman" ? "role-repairman" : "role-owner";
+          const created = data.created?.toDate ? data.created.toDate() : data.created;
+          const msgDiv = document.createElement('div');
+          msgDiv.className = `chat-msg ${roleClass}`;
+          msgDiv.innerHTML = `
+            <div><strong>${data.role || 'Role'}:</strong> ${data.text || ''}</div>
+            <div class="msg-meta">${created ? fmtDate(created) : ''}</div>
+          `;
+          container.appendChild(msgDiv);
+          container.scrollTop = container.scrollHeight;
+        }
+      });
+    });
   </script>
 </body>
 </html>
