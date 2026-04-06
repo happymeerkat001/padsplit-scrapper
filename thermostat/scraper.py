@@ -48,7 +48,7 @@ def create_session() -> requests.Session:
 def login(session: requests.Session, email: str, password: str) -> None:
     # GET first — server requires TrueHomeCheckCookie to be set before POST.
     # Must NOT send X-Requested-With here or the server skips setting that cookie.
-    session.get(PORTAL_URL, timeout=TIMEOUT, headers={"X-Requested-With": ""})
+    session.get(PORTAL_URL, timeout=TIMEOUT, headers={"X-Requested-With": None})
     session.post(
         PORTAL_URL,
         data={"UserName": email, "Password": password, "RememberMe": "false", "timeOffset": "480"},
