@@ -1,0 +1,53 @@
+name: Thermostat Scrape
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r thermostat/requirements.txt
+
+      - name: Run scraper
+        env:
+          TCC_EMAIL: ${{ secrets.TCC_EMAIL }}
+          TCC_PASSWORD: ${{ secrets.TCC_PASSWORD }}
+        run: python thermostat/scraper.py
+
+      - name: Copy latest snapshot for Pages
+        run: |
+          mkdir -p docs/thermostat
+          cp thermostat/output/latest.json docs/thermostat/latest.json
+
+      - name: Commit snapshots
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add thermostat/output/ docs/thermostat/latest.json
+          git diff --cached --quiet || git commit -m "chore: thermostat scrape $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git push
+
+      - name: Notify Slack on failure
+        if: failure()
+        uses: slackapi/slack-github-action@v2
+        with:
+          payload: |
+            {"text": "❌ Thermostat scrape failed\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
