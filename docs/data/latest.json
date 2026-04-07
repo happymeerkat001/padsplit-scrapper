@@ -1,6 +1,71 @@
 {
-  "scraped_at": "2026-04-07T13:55:09Z",
+  "scraped_at": "2026-04-07T15:13:20Z",
   "messages": [
+    {
+      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzI0MTU5",
+      "title": "Jorge Ontiveros",
+      "chatType": "HOST_SUPPORT_CHAT",
+      "isArchived": false,
+      "occupancy": {
+        "moveInDate": "2026-04-19",
+        "moveOutDate": null,
+        "conditionalEligibilityApplied": null,
+        "room": {
+          "pk": 71401,
+          "roomNumber": 3
+        },
+        "user": {
+          "picture": "img/profiles/user_1040211_dcec9407-5c48-4a5a-b713-5a7111bb699f.jpg",
+          "firstName": "Jorge",
+          "lastName": "Ontiveros",
+          "displayName": null
+        }
+      },
+      "property": {
+        "host": {
+          "firstName": "Tinghui",
+          "lastName": "Li",
+          "displayName": "",
+          "picture": ""
+        },
+        "description": "Enjoy living in a cozy House. This comfortable home is decorated with modern touches while providing the basic necessities. All that\u2019s missing is you!\n\nThe kitchen is equipped with a fridge, sink, oven, stovetop, as well as upgraded appliances. It\u2019s the perfect spot for you to cook at home and save money.\n\nThe surrounding location is near grocery stores, making it the perfect place to call home.",
+        "address": {
+          "street1": "1404 Pioneer Lane",
+          "street2": "",
+          "zip": "75023",
+          "city": {
+            "name": "Plano",
+            "state": {
+              "name": "Texas"
+            }
+          }
+        }
+      },
+      "isCancelled": false,
+      "lastMessage": {
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODM2OTc0OA==",
+        "created": "2026-04-07T14:47:31.418500",
+        "text": "Done ",
+        "deleted": null,
+        "extra": null,
+        "messageType": "TEXT",
+        "sender": {
+          "pk": 1040211,
+          "firstName": "Jorge",
+          "lastName": "Ontiveros",
+          "displayName": null
+        },
+        "attachments": [],
+        "paymentExtensionStatus": null,
+        "ticketStatus": null,
+        "bookingStatus": null
+      },
+      "member": {
+        "seenAt": "2026-04-07T14:14:27.552687",
+        "isPinned": false,
+        "isUnread": true
+      }
+    },
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzE1NDIy",
       "title": "Lacy Johnson",
@@ -43,43 +108,30 @@
       },
       "isCancelled": false,
       "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODM2Nzg0OQ==",
-        "created": "2026-04-07T12:33:15.378147",
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODM2OTUxNQ==",
+        "created": "2026-04-07T14:33:31.265323",
         "text": null,
         "deleted": null,
         "extra": null,
-        "messageType": "TICKET_UPDATE",
+        "messageType": "MOVE_OUT_PHOTOS",
         "sender": {
-          "pk": 701127,
-          "firstName": "Ang",
-          "lastName": "Li",
+          "pk": 858070,
+          "firstName": "Lacy",
+          "lastName": "Johnson",
           "displayName": null
         },
-        "attachments": [],
-        "paymentExtensionStatus": null,
-        "ticketStatus": {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czo4OTQ0NjI=",
-          "created": "2026-04-07T12:33:15.386024",
-          "status": "SUBMITTED",
-          "canRate": false,
-          "ticket": {
-            "id": "392844",
-            "author": {
-              "firstName": "Lacy",
-              "lastName": "Johnson",
-              "id": "858070",
-              "displayName": null
-            },
-            "details": "moving-to-a-new-home",
-            "location": "ROOM",
-            "status": "SUBMITTED",
-            "rating": null,
-            "comment": null,
-            "category": "ROOM_TURN",
-            "onHoldReason": null,
-            "withdrawReason": null
+        "attachments": [
+          {
+            "mediaType": "PICTURE",
+            "deleted": null
+          },
+          {
+            "mediaType": "PICTURE",
+            "deleted": null
           }
-        },
+        ],
+        "paymentExtensionStatus": null,
+        "ticketStatus": null,
         "bookingStatus": null
       },
       "member": {
@@ -130,17 +182,17 @@
       },
       "isCancelled": false,
       "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODM2NzQyMg==",
-        "created": "2026-04-07T12:15:39.246350",
-        "text": "Lock for room don\u2019t lock ",
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODM2OTIyMg==",
+        "created": "2026-04-07T14:13:49.158318",
+        "text": "Please hold",
         "deleted": null,
         "extra": null,
         "messageType": "TEXT",
         "sender": {
-          "pk": 1034604,
-          "firstName": "Angel",
-          "lastName": "Cole",
-          "displayName": null
+          "pk": 318367,
+          "firstName": "Ang",
+          "lastName": "Li",
+          "displayName": "Cyndy Manager"
         },
         "attachments": [],
         "paymentExtensionStatus": null,
@@ -148,9 +200,74 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-04-07T00:15:53.473576",
+        "seenAt": "2026-04-07T14:13:50.099368",
         "isPinned": false,
-        "isUnread": true
+        "isUnread": false
+      }
+    },
+    {
+      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzE5NzYx",
+      "title": "Paris Irby",
+      "chatType": "HOST_SUPPORT_CHAT",
+      "isArchived": false,
+      "occupancy": {
+        "moveInDate": "2026-04-07",
+        "moveOutDate": null,
+        "conditionalEligibilityApplied": null,
+        "room": {
+          "pk": 31133,
+          "roomNumber": 6
+        },
+        "user": {
+          "picture": "img/profiles/user_870317_cec7fc1d-8225-487c-bbf9-365a6268ce15.jpg",
+          "firstName": "Paris",
+          "lastName": "Irby",
+          "displayName": null
+        }
+      },
+      "property": {
+        "host": {
+          "firstName": "Tinghui",
+          "lastName": "Li",
+          "displayName": "",
+          "picture": ""
+        },
+        "description": "Enjoy living in a comfortable House. This beautiful home is decorated with modern touches while providing the basic necessities. All that\u2019s missing is you!\n\nThe kitchen is equipped with a fridge, sink, oven, stovetop, as well as upgraded appliances. It\u2019s the perfect spot for you to cook at home and save money.\n\nThe surrounding location is near grocery stores, making it the perfect place to call home.",
+        "address": {
+          "street1": "2516 Sylvia Street",
+          "street2": "",
+          "zip": "75241",
+          "city": {
+            "name": "Dallas",
+            "state": {
+              "name": "Texas"
+            }
+          }
+        }
+      },
+      "isCancelled": false,
+      "lastMessage": {
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODM2OTE1Ng==",
+        "created": "2026-04-07T14:09:32.131252",
+        "text": "We wish to welcome you to our home. Front door code 4306. WiFi TomLi, password hduep3tkr77. Room 6 code 2024",
+        "deleted": null,
+        "extra": null,
+        "messageType": "TEXT",
+        "sender": {
+          "pk": 318367,
+          "firstName": "Ang",
+          "lastName": "Li",
+          "displayName": "Cyndy Manager"
+        },
+        "attachments": [],
+        "paymentExtensionStatus": null,
+        "ticketStatus": null,
+        "bookingStatus": null
+      },
+      "member": {
+        "seenAt": "2026-04-07T14:09:33.505410",
+        "isPinned": false,
+        "isUnread": false
       }
     },
     {
@@ -213,72 +330,7 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-04-07T09:23:12.119396",
-        "isPinned": false,
-        "isUnread": true
-      }
-    },
-    {
-      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzI0MTU5",
-      "title": "Jorge Ontiveros",
-      "chatType": "HOST_SUPPORT_CHAT",
-      "isArchived": false,
-      "occupancy": {
-        "moveInDate": "2026-04-19",
-        "moveOutDate": null,
-        "conditionalEligibilityApplied": null,
-        "room": {
-          "pk": 71401,
-          "roomNumber": 3
-        },
-        "user": {
-          "picture": "img/profiles/user_1040211_dcec9407-5c48-4a5a-b713-5a7111bb699f.jpg",
-          "firstName": "Jorge",
-          "lastName": "Ontiveros",
-          "displayName": null
-        }
-      },
-      "property": {
-        "host": {
-          "firstName": "Tinghui",
-          "lastName": "Li",
-          "displayName": "",
-          "picture": ""
-        },
-        "description": "Enjoy living in a cozy House. This comfortable home is decorated with modern touches while providing the basic necessities. All that\u2019s missing is you!\n\nThe kitchen is equipped with a fridge, sink, oven, stovetop, as well as upgraded appliances. It\u2019s the perfect spot for you to cook at home and save money.\n\nThe surrounding location is near grocery stores, making it the perfect place to call home.",
-        "address": {
-          "street1": "1404 Pioneer Lane",
-          "street2": "",
-          "zip": "75023",
-          "city": {
-            "name": "Plano",
-            "state": {
-              "name": "Texas"
-            }
-          }
-        }
-      },
-      "isCancelled": false,
-      "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODM2NjY5MA==",
-        "created": "2026-04-07T09:22:43.139700",
-        "text": null,
-        "deleted": null,
-        "extra": null,
-        "messageType": "CHAT_OPENED",
-        "sender": {
-          "pk": 318367,
-          "firstName": "Ang",
-          "lastName": "Li",
-          "displayName": "Cyndy Manager"
-        },
-        "attachments": [],
-        "paymentExtensionStatus": null,
-        "ticketStatus": null,
-        "bookingStatus": null
-      },
-      "member": {
-        "seenAt": "2026-04-07T09:22:44.379931",
+        "seenAt": "2026-04-07T14:09:41.020939",
         "isPinned": false,
         "isUnread": false
       }
@@ -1693,71 +1745,6 @@
       }
     },
     {
-      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzE5NzYx",
-      "title": "Paris Irby",
-      "chatType": "HOST_SUPPORT_CHAT",
-      "isArchived": false,
-      "occupancy": {
-        "moveInDate": "2026-04-07",
-        "moveOutDate": null,
-        "conditionalEligibilityApplied": null,
-        "room": {
-          "pk": 31133,
-          "roomNumber": 6
-        },
-        "user": {
-          "picture": "img/profiles/user_870317_cec7fc1d-8225-487c-bbf9-365a6268ce15.jpg",
-          "firstName": "Paris",
-          "lastName": "Irby",
-          "displayName": null
-        }
-      },
-      "property": {
-        "host": {
-          "firstName": "Tinghui",
-          "lastName": "Li",
-          "displayName": "",
-          "picture": ""
-        },
-        "description": "Enjoy living in a comfortable House. This beautiful home is decorated with modern touches while providing the basic necessities. All that\u2019s missing is you!\n\nThe kitchen is equipped with a fridge, sink, oven, stovetop, as well as upgraded appliances. It\u2019s the perfect spot for you to cook at home and save money.\n\nThe surrounding location is near grocery stores, making it the perfect place to call home.",
-        "address": {
-          "street1": "2516 Sylvia Street",
-          "street2": "",
-          "zip": "75241",
-          "city": {
-            "name": "Dallas",
-            "state": {
-              "name": "Texas"
-            }
-          }
-        }
-      },
-      "isCancelled": false,
-      "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODI3Njg2Ng==",
-        "created": "2026-04-01T22:35:30.411662",
-        "text": "I be paying it from my paycheck each week.",
-        "deleted": null,
-        "extra": null,
-        "messageType": "TEXT",
-        "sender": {
-          "pk": 870317,
-          "firstName": "Paris",
-          "lastName": "Irby",
-          "displayName": null
-        },
-        "attachments": [],
-        "paymentExtensionStatus": null,
-        "ticketStatus": null,
-        "bookingStatus": null
-      },
-      "member": {
-        "seenAt": "2026-04-02T21:42:12.967189",
-        "isPinned": false,
-        "isUnread": false
-      }
-    },
-    {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6Mjg3MjYy",
       "title": "Mike Bouwens",
       "chatType": "HOST_SUPPORT_CHAT",
@@ -3145,7 +3132,7 @@
         "category": "room-turn",
         "media": [],
         "created": "2026-04-07T12:33:15.312340",
-        "modified": "2026-04-07T12:33:15.312340",
+        "modified": "2026-04-07T14:33:36.399664",
         "room_name": "",
         "room_number": 7,
         "room_status": 3,
@@ -3175,10 +3162,13 @@
         "extra_data": {
           "user_id": 858070,
           "occupancy_id": 282250,
-          "move_out_date": "2026-04-07"
+          "move_out_date": "2026-04-07",
+          "move_out_quiz": {
+            "Do you have a physical key to your room?": "No, I don\u2019t have a key to my room"
+          }
         },
         "has_reused_code": true,
-        "moveout_photos_count": 0,
+        "moveout_photos_count": 2,
         "days_to_complete": null
       },
       {
