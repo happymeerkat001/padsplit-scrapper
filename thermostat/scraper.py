@@ -1,6 +1,7 @@
 import json
 import os
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List
@@ -49,15 +50,21 @@ def login(session: requests.Session, email: str, password: str) -> None:
     # GET first — server requires TrueHomeCheckCookie to be set before POST.
     # Must NOT send X-Requested-With here or the server skips setting that cookie.
     session.get(PORTAL_URL, timeout=TIMEOUT, headers={"X-Requested-With": None})
-    session.post(
+    resp = session.post(
         PORTAL_URL,
         data={"UserName": email, "Password": password, "RememberMe": "false", "timeOffset": "480"},
         headers={"Content-Type": "application/x-www-form-urlencoded", "Referer": PORTAL_URL},
         timeout=TIMEOUT,
         allow_redirects=False,
     )
+    sys.stderr.write(
+        f"Login POST → status={resp.status_code}, cookies={list(session.cookies.keys())}\n"
+    )
     if not session.cookies.get(".ASPXAUTH_TRUEHOME"):
-        raise RuntimeError("Login failed: .ASPXAUTH_TRUEHOME cookie not set — check credentials")
+        raise RuntimeError(
+            f"Login failed: .ASPXAUTH_TRUEHOME cookie not set — check credentials or site changes. "
+            f"Cookies present: {list(session.cookies.keys())}"
+        )
 
 
 def fetch_location_names(session: requests.Session) -> Dict[int, str]:
@@ -174,18 +181,32 @@ def main() -> None:
         sys.stderr.write(f"# Saved to {out_dir / filename}\n")
 
 
+MAX_RETRIES = 3
+RETRY_BACKOFF = 30  # seconds
+
+
 if __name__ == "__main__":
-    try:
-        main()
-    except requests.exceptions.ConnectionError:
-        sys.stderr.write("Network error: could not reach mytotalconnectcomfort.com\n")
-        sys.exit(1)
-    except requests.exceptions.Timeout:
-        sys.stderr.write("Request timed out\n")
-        sys.exit(1)
-    except requests.exceptions.RequestException as exc:
-        sys.stderr.write(f"HTTP error: {exc}\n")
-        sys.exit(1)
-    except RuntimeError as exc:
-        sys.stderr.write(f"{exc}\n")
-        sys.exit(1)
+    last_exc = None
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            main()
+            sys.exit(0)
+        except requests.exceptions.ConnectionError as exc:
+            last_exc = exc
+            sys.stderr.write(f"Attempt {attempt}/{MAX_RETRIES}: Network error — {exc}\n")
+        except requests.exceptions.Timeout as exc:
+            last_exc = exc
+            sys.stderr.write(f"Attempt {attempt}/{MAX_RETRIES}: Timeout — {exc}\n")
+        except requests.exceptions.RequestException as exc:
+            last_exc = exc
+            sys.stderr.write(f"Attempt {attempt}/{MAX_RETRIES}: HTTP error — {exc}\n")
+        except RuntimeError as exc:
+            sys.stderr.write(f"{exc}\n")
+            sys.exit(1)
+
+        if attempt < MAX_RETRIES:
+            sys.stderr.write(f"Retrying in {RETRY_BACKOFF}s...\n")
+            time.sleep(RETRY_BACKOFF)
+
+    sys.stderr.write(f"All {MAX_RETRIES} attempts failed. Last error: {last_exc}\n")
+    sys.exit(1)

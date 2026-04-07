@@ -18,7 +18,10 @@
       "Bash(git pull --rebase && git push)",
       "Bash(git status && git stash && git pull --rebase && git stash pop && git push)",
       "Bash(git add docs/index.html && git commit -m \"fix: add Firebase project config\" && git pull --rebase && git push)",
-      "Bash(git stash && git pull --rebase && git stash pop && git push)"
+      "Bash(git stash && git pull --rebase && git stash pop && git push)",
+      "Bash(git -C /Users/leon/Documents/Code/padsplit-scraper log --oneline -20)",
+      "Bash(git -C /Users/leon/Documents/Code/padsplit-scraper show HEAD -- thermostat/scraper.py)",
+      "WebSearch"
     ]
   }
 }
