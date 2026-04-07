@@ -4,7 +4,7 @@ import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import requests
 from dotenv import load_dotenv
@@ -114,11 +114,41 @@ def fetch_locations(session: requests.Session) -> List[Dict]:
     return all_locations
 
 
+def fetch_device_uidata(session: requests.Session, device_id: int) -> Dict:
+    """Fetch active setpoints via CheckDataSession.
+
+    GetLocationListData always returns HeatSetpoint/CoolSetpoint as null;
+    the real active (possibly held) setpoints live in CheckDataSession uiData.
+    """
+    try:
+        r = session.get(
+            f"{PORTAL_URL}/Device/CheckDataSession/{device_id}",
+            timeout=TIMEOUT,
+        )
+        r.raise_for_status()
+        data = r.json()
+        if data.get("success"):
+            return (data.get("latestData") or {}).get("uiData") or {}
+    except Exception:
+        pass
+    return {}
+
+
 def extract_device(dev: Dict) -> Dict:
     td = dev.get("ThermostatData") or {}
-    # Active setpoints are null when running on schedule — fall back to schedule values
-    heat_sp = td.get("HeatSetpoint") or td.get("ScheduleHeatSp")
-    cool_sp = td.get("CoolSetpoint") or td.get("ScheduleCoolSp")
+
+    def first_present(keys: List[str]) -> Optional[float]:
+        for k in keys:
+            v = td.get(k)
+            if v is not None:
+                return v
+        return None
+
+    # HeatSetpoint/CoolSetpoint are patched from CheckDataSession before this runs;
+    # fall back to schedule values only if patching failed.
+    heat_sp = first_present(["HeatSetpoint", "ScheduleHeatSp"])
+    cool_sp = first_present(["CoolSetpoint", "ScheduleCoolSp"])
+
     return {
         "id": dev.get("DeviceID"),
         "name": dev.get("Name"),
@@ -153,6 +183,19 @@ def main() -> None:
         login(session, creds["email"], creds["password"])
         location_names = fetch_location_names(session)
         raw_locations = fetch_locations(session)
+
+        # Patch each device's ThermostatData with active setpoints from CheckDataSession.
+        # GetLocationListData always returns HeatSetpoint/CoolSetpoint as null; the real
+        # active values (including holds) come from CheckDataSession uiData.
+        for loc in raw_locations:
+            for dev in (loc.get("Devices") or []):
+                ui = fetch_device_uidata(session, dev.get("DeviceID"))
+                if ui:
+                    td = dev.get("ThermostatData") or {}
+                    dev["ThermostatData"] = td
+                    for key in ["HeatSetpoint", "CoolSetpoint"]:
+                        if ui.get(key) is not None:
+                            td[key] = ui[key]
 
         locations_out: List[Dict] = []
         for loc in raw_locations:
