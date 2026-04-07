@@ -47,24 +47,29 @@ def create_session() -> requests.Session:
 
 
 def login(session: requests.Session, email: str, password: str) -> None:
-    # GET first — server requires TrueHomeCheckCookie to be set before POST.
-    # Must NOT send X-Requested-With here or the server skips setting that cookie.
-    session.get(PORTAL_URL, timeout=TIMEOUT, headers={"X-Requested-With": None})
-    resp = session.post(
-        PORTAL_URL,
-        data={"UserName": email, "Password": password, "RememberMe": "false", "timeOffset": "480"},
-        headers={"Content-Type": "application/x-www-form-urlencoded", "Referer": PORTAL_URL},
-        timeout=TIMEOUT,
-        allow_redirects=False,
-    )
-    sys.stderr.write(
-        f"Login POST → status={resp.status_code}, cookies={list(session.cookies.keys())}\n"
-    )
-    if not session.cookies.get(".ASPXAUTH_TRUEHOME"):
-        raise RuntimeError(
-            f"Login failed: .ASPXAUTH_TRUEHOME cookie not set — check credentials or site changes. "
-            f"Cookies present: {list(session.cookies.keys())}"
+    max_attempts = 3
+    for attempt in range(1, max_attempts + 1):
+        # GET first — server requires TrueHomeCheckCookie to be set before POST.
+        # Must NOT send X-Requested-With here or the server skips setting that cookie.
+        session.get(PORTAL_URL, timeout=TIMEOUT, headers={"X-Requested-With": None})
+        resp = session.post(
+            PORTAL_URL,
+            data={"UserName": email, "Password": password, "RememberMe": "false", "timeOffset": "480"},
+            headers={"Content-Type": "application/x-www-form-urlencoded", "Referer": PORTAL_URL},
+            timeout=TIMEOUT,
+            allow_redirects=False,
         )
+        sys.stderr.write(
+            f"Login attempt {attempt}/{max_attempts} → status={resp.status_code}, cookies={list(session.cookies.keys())}\n"
+        )
+        if session.cookies.get(".ASPXAUTH_TRUEHOME"):
+            return
+        if attempt < max_attempts:
+            time.sleep(5)
+    raise RuntimeError(
+        f"Login failed after {max_attempts} attempts: .ASPXAUTH_TRUEHOME cookie not set. "
+        f"Cookies present: {list(session.cookies.keys())}"
+    )
 
 
 def fetch_location_names(session: requests.Session) -> Dict[int, str]:
