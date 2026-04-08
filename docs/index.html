@@ -186,6 +186,7 @@
       const taskSection = document.createElement('div');
       taskSection.className = 'section';
       const taskDetails = document.createElement('details');
+      taskDetails.open = true;
       const taskSummary = document.createElement('summary');
       taskSummary.innerHTML = '<h2>Tasks</h2>';
       taskDetails.appendChild(taskSummary);
