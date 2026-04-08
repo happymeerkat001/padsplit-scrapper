@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Tenant Messages — Private</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --text: #e2e8f0;
+      --warn: #fbbf24;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem clamp(1rem, 4vw, 2.5rem);
+    }
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.75rem;
+    }
+    h1 { margin: 0; font-size: 1.5rem; }
+    .pill {
+      padding: 0.3rem 0.7rem;
+      border-radius: 999px;
+      background: rgba(251,191,36,0.15);
+      color: var(--warn);
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+    .updated {
+      margin-left: auto;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+    .filter-bar {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.25rem;
+      flex-wrap: wrap;
+    }
+    .filter-bar input {
+      padding: 0.4rem 0.7rem;
+      border-radius: 8px;
+      border: 1px solid rgba(148,163,184,0.3);
+      background: #1e293b;
+      color: var(--text);
+      font-size: 0.9rem;
+      flex: 1;
+      min-width: 180px;
+    }
+    .filter-bar input::placeholder { color: var(--muted); }
+    .count { color: var(--muted); font-size: 0.85rem; align-self: center; }
+    .list { display: flex; flex-direction: column; gap: 0.65rem; }
+    .card {
+      background: #1e293b;
+      border: 1px solid rgba(148,163,184,0.15);
+      border-radius: 10px;
+      padding: 0.85rem 1rem;
+    }
+    .card.unread { border-left: 3px solid var(--accent); }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.5rem;
+      margin-bottom: 0.35rem;
+    }
+    .tenant-name { font-weight: 600; font-size: 0.95rem; }
+    .badge-unread {
+      font-size: 0.7rem;
+      padding: 0.15rem 0.45rem;
+      border-radius: 999px;
+      background: rgba(56,189,248,0.18);
+      color: var(--accent);
+      white-space: nowrap;
+    }
+    .address { color: var(--muted); font-size: 0.82rem; margin-bottom: 0.45rem; }
+    .message-text { font-size: 0.9rem; line-height: 1.45; margin-bottom: 0.4rem; }
+    .meta { font-size: 0.78rem; color: var(--muted); }
+    .meta .sender { color: #94a3b8; }
+    .loading { text-align: center; padding: 3rem; color: var(--muted); }
+    .error { color: #f87171; padding: 1rem; }
+    footer { margin-top: 2.5rem; color: var(--muted); font-size: 0.82rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Tenant Messages</h1>
+    <span class="pill">PRIVATE</span>
+    <span class="updated" id="updated"></span>
+  </header>
+
+  <div class="filter-bar">
+    <input id="search" type="search" placeholder="Filter by name, address, or message…" />
+    <span class="count" id="count"></span>
+  </div>
+
+  <div id="list" class="list">
+    <div class="loading">Loading…</div>
+  </div>
+
+  <footer>Private view — not indexed by search engines. Source: <code>data/latest.json</code></footer>
+
+  <script>
+    function fmtDate(s) {
+      if (!s) return '—';
+      const d = new Date(s);
+      return isNaN(d.getTime()) ? s : d.toLocaleString();
+    }
+
+    let allMessages = [];
+
+    function renderList(messages) {
+      const list = document.getElementById('list');
+      document.getElementById('count').textContent = `${messages.length} thread${messages.length !== 1 ? 's' : ''}`;
+      if (!messages.length) {
+        list.innerHTML = '<div class="loading">No matching threads.</div>';
+        return;
+      }
+      list.innerHTML = '';
+      messages.forEach(msg => {
+        const unread = msg.member?.isUnread || msg.unread || (msg.unreadCount > 0);
+        const tenantName = msg.title
+          || msg.occupancy?.user?.firstName + ' ' + (msg.occupancy?.user?.lastName || '')
+          || 'Unknown Tenant';
+        const address = [
+          msg.property?.address?.street1,
+          msg.property?.address?.city?.name,
+          msg.property?.address?.city?.state?.name,
+        ].filter(Boolean).join(', ') || msg.property?.name || '—';
+        const lastText = msg.lastMessage?.text || msg.lastMessage?.body || '(no text)';
+        const lastDate = msg.lastMessage?.created || msg.lastMessage?.createdAt;
+        const senderFirst = msg.lastMessage?.sender?.firstName || '';
+        const senderDisplay = msg.lastMessage?.sender?.displayName || '';
+        const senderLabel = senderDisplay || senderFirst || '';
+
+        const card = document.createElement('div');
+        card.className = 'card' + (unread ? ' unread' : '');
+        card.innerHTML = `
+          <div class="card-header">
+            <span class="tenant-name">${tenantName.trim()}</span>
+            ${unread ? '<span class="badge-unread">Unread</span>' : ''}
+          </div>
+          <div class="address">${address}</div>
+          <div class="message-text">${lastText}</div>
+          <div class="meta">
+            ${senderLabel ? `<span class="sender">${senderLabel} · </span>` : ''}
+            ${fmtDate(lastDate)}
+          </div>
+        `;
+        list.appendChild(card);
+      });
+    }
+
+    document.getElementById('search').addEventListener('input', e => {
+      const q = e.target.value.toLowerCase();
+      if (!q) { renderList(allMessages); return; }
+      renderList(allMessages.filter(msg => {
+        const name = (msg.title || '').toLowerCase();
+        const addr = (msg.property?.address?.street1 || '').toLowerCase();
+        const text = (msg.lastMessage?.text || msg.lastMessage?.body || '').toLowerCase();
+        return name.includes(q) || addr.includes(q) || text.includes(q);
+      }));
+    });
+
+    fetch('./data/latest.json', { cache: 'no-cache' })
+      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+      .then(data => {
+        document.getElementById('updated').textContent = `Updated ${fmtDate(data.scraped_at)}`;
+        allMessages = (data.messages || []).sort((a, b) => {
+          const ta = new Date(a.lastMessage?.created || 0);
+          const tb = new Date(b.lastMessage?.created || 0);
+          return tb - ta;
+        });
+        renderList(allMessages);
+      })
+      .catch(err => {
+        document.getElementById('list').innerHTML =
+          `<div class="error">Failed to load latest.json: ${err.message}</div>`;
+      });
+  </script>
+</body>
+</html>
