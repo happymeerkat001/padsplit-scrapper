@@ -1,6 +1,71 @@
 {
-  "scraped_at": "2026-04-08T00:03:44Z",
+  "scraped_at": "2026-04-08T03:40:20Z",
   "messages": [
+    {
+      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzI0Nzgz",
+      "title": "Savon Sanders",
+      "chatType": "HOST_SUPPORT_CHAT",
+      "isArchived": false,
+      "occupancy": {
+        "moveInDate": "2026-04-10",
+        "moveOutDate": null,
+        "conditionalEligibilityApplied": null,
+        "room": {
+          "pk": 82574,
+          "roomNumber": 4
+        },
+        "user": {
+          "picture": "img/profiles/user_470676_1ed7df33-4160-4780-8430-d64a9d8fcc80.jpg",
+          "firstName": "Savon",
+          "lastName": "Sanders",
+          "displayName": null
+        }
+      },
+      "property": {
+        "host": {
+          "firstName": "Ang",
+          "lastName": "Li",
+          "displayName": "Cyndy Manager",
+          "picture": ""
+        },
+        "description": "Your new home awaits! This comfortable Fort Worth home is waiting for you. This PadSplit has a Backyard, and it\u2019s newly-renovated and homey.\n\nThe kitchen comes equipped with a fridge, sink, oven, stovetop, as well as upgraded appliances.\n\nThe neighbourhood is near highways, which means you won\u2019t be far from all Fort Worth has to offer.",
+        "address": {
+          "street1": "5509 Burton Avenue",
+          "street2": "",
+          "zip": "76119",
+          "city": {
+            "name": "Fort Worth",
+            "state": {
+              "name": "Texas"
+            }
+          }
+        }
+      },
+      "isCancelled": false,
+      "lastMessage": {
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODM4MjQ5NA==",
+        "created": "2026-04-08T03:08:11.118746",
+        "text": "My name is Savon Sanders. I'm having to start over and build up my savings again so this sounded like the most sound option. I'm currently employed as an Security Guard and I get paid weekly. I'm a very low maintenance and down to earth person and very minamilistic. I have no pets.",
+        "deleted": null,
+        "extra": null,
+        "messageType": "TEXT",
+        "sender": {
+          "pk": 470676,
+          "firstName": "Savon",
+          "lastName": "Sanders",
+          "displayName": null
+        },
+        "attachments": [],
+        "paymentExtensionStatus": null,
+        "ticketStatus": null,
+        "bookingStatus": null
+      },
+      "member": {
+        "seenAt": null,
+        "isPinned": false,
+        "isUnread": true
+      }
+    },
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzI0MTU5",
       "title": "Jorge Ontiveros",
@@ -43,22 +108,26 @@
       },
       "isCancelled": false,
       "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODM3OTYwMQ==",
-        "created": "2026-04-07T23:09:29.148267",
-        "text": "Am I still waiting on approval?",
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODM4MTYwNA==",
+        "created": "2026-04-08T01:38:05.980064",
+        "text": null,
         "deleted": null,
         "extra": null,
-        "messageType": "TEXT",
+        "messageType": "BOOKING_STATUS",
         "sender": {
-          "pk": 1040211,
-          "firstName": "Jorge",
-          "lastName": "Ontiveros",
-          "displayName": null
+          "pk": 339595,
+          "firstName": "Tinghui",
+          "lastName": "Li",
+          "displayName": ""
         },
         "attachments": [],
         "paymentExtensionStatus": null,
         "ticketStatus": null,
-        "bookingStatus": null
+        "bookingStatus": {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZUJvb2tpbmdTdGF0dXM6MjU0NDk5",
+          "created": "2026-04-08T01:38:05.988675",
+          "status": "APPROVED"
+        }
       },
       "member": {
         "seenAt": "2026-04-07T18:05:02.783865",
