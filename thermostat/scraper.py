@@ -249,8 +249,8 @@ if __name__ == "__main__":
             last_exc = exc
             sys.stderr.write(f"Attempt {attempt}/{MAX_RETRIES}: HTTP error — {exc}\n")
         except RuntimeError as exc:
-            sys.stderr.write(f"{exc}\n")
-            sys.exit(1)
+            last_exc = exc
+            sys.stderr.write(f"Attempt {attempt}/{MAX_RETRIES}: {exc}\n")
 
         if attempt < MAX_RETRIES:
             sys.stderr.write(f"Retrying in {RETRY_BACKOFF}s...\n")
