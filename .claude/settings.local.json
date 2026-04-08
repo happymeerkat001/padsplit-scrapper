@@ -25,7 +25,10 @@
       "Bash(git -C /Users/leon/Documents/Code/padsplit-scraper ls-files padsplit_scraper/output/)",
       "Bash(git checkout --theirs thermostat/output/latest.json && git add thermostat/output/latest.json && GIT_EDITOR=true git rebase --continue && git stash pop && git push)",
       "Bash(GIT_EDITOR=true git rebase --continue && git stash pop && git push)",
-      "Bash(git rebase --continue 2>&1; echo \"Exit: $?\")"
+      "Bash(git rebase --continue 2>&1; echo \"Exit: $?\")",
+      "Bash(git pull:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m ':*)"
     ]
   }
 }

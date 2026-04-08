@@ -88,7 +88,6 @@
     .error { color: var(--error); }
     .warn { color: var(--warn); }
     .success { color: var(--success); }
-    .last-message { margin: 0.35rem 0; color: var(--muted); }
     footer {
       margin-top: 2rem;
       color: var(--muted);
@@ -181,37 +180,6 @@
       // Header info
       const last = document.getElementById('last-updated');
       last.textContent = `Updated ${fmtDate(data.scraped_at)}`;
-
-      // Messages
-      const msgSection = document.createElement('div');
-      msgSection.className = 'section';
-      const msgDetails = document.createElement('details');
-      const msgSummary = document.createElement('summary');
-      msgSummary.innerHTML = '<h2>Messages</h2>';
-      msgDetails.appendChild(msgSummary);
-      const msgGrid = document.createElement('div');
-      msgGrid.className = 'grid';
-      (data.messages || []).forEach(msg => {
-        const card = document.createElement('div');
-        card.className = 'card';
-        const title = msg.title || 'Untitled chat';
-        const unread = msg.member?.isUnread || msg.unread || msg.unreadCount > 0;
-        card.innerHTML = `
-          <div class="flex-between">
-            <h3>${title}</h3>
-            ${unread ? '<span class="badge">Unread</span>' : ''}
-          </div>
-          <p class="last-message">${msg.lastMessage?.text || msg.lastMessage?.body || 'No messages yet.'}</p>
-          <div class="chips">
-            <span class="chip">${msg.property?.address?.street1 || msg.property?.name || 'Unknown property'}</span>
-            <span class="chip">${fmtDate(msg.lastMessage?.created || msg.lastMessage?.createdAt)}</span>
-          </div>
-        `;
-        msgGrid.appendChild(card);
-      });
-      msgDetails.appendChild(msgGrid);
-      msgSection.appendChild(msgDetails);
-      root.appendChild(msgSection);
 
       // Tasks
       const taskSection = document.createElement('div');
