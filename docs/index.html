@@ -117,6 +117,29 @@
     }
     details summary::-webkit-details-marker { display: none; }
     details summary h2 { display: inline-block; margin: 0 0 0.75rem; }
+    .weather-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .weather-day {
+      flex: 1;
+      min-width: 76px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(148,163,184,0.2);
+      border-radius: 10px;
+      padding: 0.65rem 0.5rem;
+      text-align: center;
+    }
+    .weather-day.heat-warn {
+      background: rgba(248,113,113,0.12);
+      border-color: rgba(248,113,113,0.4);
+    }
+    .weather-day.freeze-warn {
+      background: rgba(56,189,248,0.1);
+      border-color: rgba(56,189,248,0.4);
+    }
+    .wd-label { font-size: 0.72rem; color: var(--muted); margin-bottom: 0.3rem; }
+    .wd-high { font-size: 1rem; font-weight: 600; }
+    .wd-low { font-size: 0.85rem; color: var(--muted); margin-top: 0.15rem; }
+    .weather-day.heat-warn .wd-high { color: var(--error); }
+    .weather-day.freeze-warn .wd-low { color: var(--accent); }
   </style>
 </head>
 <body>
@@ -126,12 +149,16 @@
     <span class="muted" id="refresh-info">Auto-refresh in 300s</span>
   </header>
 
-  <div id="content">
-    <div class="loading">Fetching latest.json …</div>
-  </div>
-
   <div id="thermostat-section">
     <div class="loading">Fetching thermostat data…</div>
+  </div>
+
+  <div id="weather-section">
+    <div class="loading">Fetching weather…</div>
+  </div>
+
+  <div id="content">
+    <div class="loading">Fetching latest.json …</div>
   </div>
 
   <footer>
@@ -314,6 +341,39 @@
       html += `</tbody></table></div></details></div>`;
       section.innerHTML = html;
     }
+
+    function renderWeather(data) {
+      const section = document.getElementById('weather-section');
+      const daily = data.daily;
+      const days = daily.time.map((dateStr, i) => {
+        const d = new Date(dateStr + 'T12:00:00');
+        const label = d.toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric' });
+        const high = Math.round(daily.temperature_2m_max[i]);
+        const low  = Math.round(daily.temperature_2m_min[i]);
+        const cls  = high >= 98 ? 'heat-warn' : low <= 60 ? 'freeze-warn' : '';
+        return `
+          <div class="weather-day ${cls}">
+            <div class="wd-label">${label}</div>
+            <div class="wd-high">${high}°F</div>
+            <div class="wd-low">${low}°F</div>
+          </div>`;
+      });
+      section.innerHTML = `
+        <div class="section">
+          <h2>DFW Weather Forecast</h2>
+          <div class="card">
+            <div class="weather-row">${days.join('')}</div>
+          </div>
+        </div>`;
+    }
+
+    fetch('https://api.open-meteo.com/v1/forecast?latitude=33.1507&longitude=-96.8236&daily=temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit&timezone=America%2FChicago', { cache: 'no-cache' })
+      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+      .then(renderWeather)
+      .catch(err => {
+        document.getElementById('weather-section').innerHTML =
+          `<div class="card error" style="margin-bottom:1rem">Weather unavailable (${err.message}).</div>`;
+      });
 
     fetch('./thermostat/latest.json', { cache: 'no-cache' })
       .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
