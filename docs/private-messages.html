@@ -115,6 +115,13 @@
   <footer>Private view — not indexed by search engines. Source: <code>data/latest.json</code></footer>
 
   <script>
+    const pin = prompt("Enter PIN to view messages:");
+    if (pin !== "9999") {
+      document.body.innerHTML = "<h1 style='text-align:center;margin-top:2rem;'>Access Denied</h1>";
+      // Abort further script execution
+      throw new Error("Access denied");
+    }
+
     function fmtDate(s) {
       if (!s) return '—';
       const d = new Date(s);
