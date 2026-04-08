@@ -1,6 +1,75 @@
 {
-  "scraped_at": "2026-04-08T14:54:17Z",
+  "scraped_at": "2026-04-08T16:17:36Z",
   "messages": [
+    {
+      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzI0MzMx",
+      "title": "Daniel Brown",
+      "chatType": "HOST_SUPPORT_CHAT",
+      "isArchived": false,
+      "occupancy": {
+        "moveInDate": "2026-04-17",
+        "moveOutDate": null,
+        "conditionalEligibilityApplied": null,
+        "room": {
+          "pk": 28753,
+          "roomNumber": 4
+        },
+        "user": {
+          "picture": "img/profiles/user_1041034_ae72b664-185f-47bb-bfc7-4430a74ac6bc.jpg",
+          "firstName": "Daniel",
+          "lastName": "Brown",
+          "displayName": null
+        }
+      },
+      "property": {
+        "host": {
+          "firstName": "Tinghui",
+          "lastName": "Li",
+          "displayName": "",
+          "picture": ""
+        },
+        "description": "Move into a cozy House today! Newly-renovated and comfortable, this is the perfect place to call home. \n\nThe kitchen comes equipped with a fridge, sink, oven, stovetop, as well as garbage disposal, making it the perfect spot to whip up a meal or two.\n\nThe neighbourhood is near highways, and you won\u2019t be far from all Dallas has to offer.",
+        "address": {
+          "street1": "10235 Ridge Oak Street",
+          "street2": "",
+          "zip": "75227",
+          "city": {
+            "name": "Dallas",
+            "state": {
+              "name": "Texas"
+            }
+          }
+        }
+      },
+      "isCancelled": false,
+      "lastMessage": {
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODM4ODE5Nw==",
+        "created": "2026-04-08T15:38:49.446405",
+        "text": null,
+        "deleted": null,
+        "extra": null,
+        "messageType": "BOOKING_STATUS",
+        "sender": {
+          "pk": 339595,
+          "firstName": "Tinghui",
+          "lastName": "Li",
+          "displayName": ""
+        },
+        "attachments": [],
+        "paymentExtensionStatus": null,
+        "ticketStatus": null,
+        "bookingStatus": {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZUJvb2tpbmdTdGF0dXM6MjU0NzAz",
+          "created": "2026-04-08T15:38:49.455440",
+          "status": "APPROVED"
+        }
+      },
+      "member": {
+        "seenAt": "2026-04-07T18:05:06.100842",
+        "isPinned": false,
+        "isUnread": true
+      }
+    },
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzI0Nzgz",
       "title": "Savon Sanders",
@@ -61,7 +130,7 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-04-08T07:45:30.579499",
+        "seenAt": "2026-04-08T15:46:05.440190",
         "isPinned": false,
         "isUnread": false
       }
@@ -198,76 +267,6 @@
         "seenAt": "2026-03-18T23:57:43.664811",
         "isPinned": false,
         "isUnread": true
-      }
-    },
-    {
-      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzI0MzMx",
-      "title": "Daniel Brown",
-      "chatType": "HOST_SUPPORT_CHAT",
-      "isArchived": false,
-      "occupancy": {
-        "moveInDate": "2026-04-17",
-        "moveOutDate": null,
-        "conditionalEligibilityApplied": null,
-        "room": {
-          "pk": 28753,
-          "roomNumber": 4
-        },
-        "user": {
-          "picture": "img/profiles/user_1041034_ae72b664-185f-47bb-bfc7-4430a74ac6bc.jpg",
-          "firstName": "Daniel",
-          "lastName": "Brown",
-          "displayName": null
-        }
-      },
-      "property": {
-        "host": {
-          "firstName": "Tinghui",
-          "lastName": "Li",
-          "displayName": "",
-          "picture": ""
-        },
-        "description": "Move into a cozy House today! Newly-renovated and comfortable, this is the perfect place to call home. \n\nThe kitchen comes equipped with a fridge, sink, oven, stovetop, as well as garbage disposal, making it the perfect spot to whip up a meal or two.\n\nThe neighbourhood is near highways, and you won\u2019t be far from all Dallas has to offer.",
-        "address": {
-          "street1": "10235 Ridge Oak Street",
-          "street2": "",
-          "zip": "75227",
-          "city": {
-            "name": "Dallas",
-            "state": {
-              "name": "Texas"
-            }
-          }
-        }
-      },
-      "isCancelled": false,
-      "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODM3MTI5NA==",
-        "created": "2026-04-07T15:50:47.751223",
-        "text": "Will this be sufficient? The company is paying for a short term rental to get me relocated up to $5,000",
-        "deleted": null,
-        "extra": null,
-        "messageType": "TEXT",
-        "sender": {
-          "pk": 1041034,
-          "firstName": "Daniel",
-          "lastName": "Brown",
-          "displayName": null
-        },
-        "attachments": [
-          {
-            "mediaType": "FILE",
-            "deleted": null
-          }
-        ],
-        "paymentExtensionStatus": null,
-        "ticketStatus": null,
-        "bookingStatus": null
-      },
-      "member": {
-        "seenAt": "2026-04-07T18:05:06.100842",
-        "isPinned": false,
-        "isUnread": false
       }
     },
     {
