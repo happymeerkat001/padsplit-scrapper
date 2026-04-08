@@ -1,0 +1,21 @@
+name: Slack Digests
+
+on:
+  schedule:
+    - cron: "0 11,15,19 * * *"
+  workflow_dispatch:
+
+jobs:
+  task-digest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Send task digest to Slack
+        env:
+          SLACK_WEBHOOK_TASKS: ${{ secrets.SLACK_WEBHOOK_TASKS }}
+        run: python slack_notifier.py
