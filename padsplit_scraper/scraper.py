@@ -6,11 +6,12 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Dict, List, Optional
 
+import urllib.request
+
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from dotenv import load_dotenv
-import anthropic
 
 
 def send_to_slack(text: str, webhook_url: Optional[str]) -> None:
@@ -599,7 +600,6 @@ def run(messages_only: bool = False) -> None:
 
         # --- 2. SEND THE DATA TO MINIMAX AI ---
         sys.stderr.write("Sending data to MiniMax AI for processing...\n")
-        client = anthropic.Anthropic()
         payload_string = json.dumps(payload)
 
         if messages_only:
@@ -617,14 +617,27 @@ def run(messages_only: bool = False) -> None:
                 "outdated.\n\n" + payload_string
             )
 
-        message = client.messages.create(
-            model="MiniMax-M2.5",
-            max_tokens=4096,
-            messages=[{"role": "user", "content": prompt}],
-        )
+        minimax_api_key = os.getenv("MINIMAX_API_KEY")
+        if not minimax_api_key:
+            sys.exit("Missing MINIMAX_API_KEY in environment/.env")
 
-        # --- 3. PRINT & SLACK THE AI'S RESPONSE ---
-        full_text = "\n".join(block.text for block in message.content if getattr(block, "type", None) == "text")
+        body = json.dumps({
+            "model": "MiniMax-M2.5",
+            "messages": [{"role": "user", "content": prompt}],
+        }).encode()
+
+        req = urllib.request.Request(
+            "https://api.minimax.io/v1/text/chatcompletion_v2",
+            data=body,
+            headers={
+                "Authorization": f"Bearer {minimax_api_key}",
+                "Content-Type": "application/json",
+            },
+        )
+        with urllib.request.urlopen(req) as resp:
+            result = json.loads(resp.read())
+
+        full_text = result.get("choices", [{}])[0].get("message", {}).get("content", "")
         print("\n" + "=" * 50)
         print(f"AI Response:\n{full_text}")
         print("=" * 50 + "\n")
