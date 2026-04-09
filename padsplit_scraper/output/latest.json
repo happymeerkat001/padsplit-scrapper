@@ -1,6 +1,75 @@
 {
-  "scraped_at": "2026-04-09T00:00:15Z",
+  "scraped_at": "2026-04-09T03:35:33Z",
   "messages": [
+    {
+      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzI0Nzgz",
+      "title": "Savon Sanders",
+      "chatType": "HOST_SUPPORT_CHAT",
+      "isArchived": false,
+      "occupancy": {
+        "moveInDate": "2026-04-10",
+        "moveOutDate": null,
+        "conditionalEligibilityApplied": null,
+        "room": {
+          "pk": 82574,
+          "roomNumber": 4
+        },
+        "user": {
+          "picture": "img/profiles/user_470676_1ed7df33-4160-4780-8430-d64a9d8fcc80.jpg",
+          "firstName": "Savon",
+          "lastName": "Sanders",
+          "displayName": null
+        }
+      },
+      "property": {
+        "host": {
+          "firstName": "Ang",
+          "lastName": "Li",
+          "displayName": "Cyndy Manager",
+          "picture": ""
+        },
+        "description": "Your new home awaits! This comfortable Fort Worth home is waiting for you. This PadSplit has a Backyard, and it\u2019s newly-renovated and homey.\n\nThe kitchen comes equipped with a fridge, sink, oven, stovetop, as well as upgraded appliances.\n\nThe neighbourhood is near highways, which means you won\u2019t be far from all Fort Worth has to offer.",
+        "address": {
+          "street1": "5509 Burton Avenue",
+          "street2": "",
+          "zip": "76119",
+          "city": {
+            "name": "Fort Worth",
+            "state": {
+              "name": "Texas"
+            }
+          }
+        }
+      },
+      "isCancelled": false,
+      "lastMessage": {
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODQwMDY3Mw==",
+        "created": "2026-04-09T03:08:06.183995",
+        "text": null,
+        "deleted": null,
+        "extra": null,
+        "messageType": "BOOKING_STATUS",
+        "sender": {
+          "pk": 318367,
+          "firstName": "Ang",
+          "lastName": "Li",
+          "displayName": "Cyndy Manager"
+        },
+        "attachments": [],
+        "paymentExtensionStatus": null,
+        "ticketStatus": null,
+        "bookingStatus": {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZUJvb2tpbmdTdGF0dXM6MjU1MTEw",
+          "created": "2026-04-09T03:08:06.192045",
+          "status": "APPROVED"
+        }
+      },
+      "member": {
+        "seenAt": "2026-04-08T17:59:03.000518",
+        "isPinned": false,
+        "isUnread": false
+      }
+    },
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzE2MjA3",
       "title": "Dre Faulkner",
@@ -43,9 +112,9 @@
       },
       "isCancelled": false,
       "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODM5NzMyMg==",
-        "created": "2026-04-08T22:52:31.777153",
-        "text": "Is the wifi out?",
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODM5OTMxNw==",
+        "created": "2026-04-09T01:06:32.242432",
+        "text": "I didn't mean to create a ticket,  I was just checking on the wifi",
         "deleted": null,
         "extra": null,
         "messageType": "TEXT",
@@ -62,6 +131,71 @@
       },
       "member": {
         "seenAt": "2026-04-03T23:13:06.886107",
+        "isPinned": false,
+        "isUnread": true
+      }
+    },
+    {
+      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzA1Mzk4",
+      "title": "Christopher Griffin",
+      "chatType": "HOST_SUPPORT_CHAT",
+      "isArchived": false,
+      "occupancy": {
+        "moveInDate": "2026-03-13",
+        "moveOutDate": null,
+        "conditionalEligibilityApplied": null,
+        "room": {
+          "pk": 21176,
+          "roomNumber": 3
+        },
+        "user": {
+          "picture": "img/profiles/user_921873_92d2030a-e411-49bb-9042-1db1b3b4ddd3.jpg",
+          "firstName": "Christopher",
+          "lastName": "Griffin",
+          "displayName": null
+        }
+      },
+      "property": {
+        "host": {
+          "firstName": "Tinghui",
+          "lastName": "Li",
+          "displayName": "",
+          "picture": ""
+        },
+        "description": "Your new home awaits! This cozy Dallas home is waiting for you. This PadSplit has a Backyard and Dining area, and is newly-renovated and cozy.\n\nThis home has a full kitchen, onsite laundry and parking and is very commutable close to public transit and multiple highways.  Located right between I35E, I45 and I20.\n\nThe neighborhood is quiet, which means you won\u2019t be far from all Dallas has to offer.\nThe image on satellite is a few years old and please come and see the house by yourself before you make any judgement.",
+        "address": {
+          "street1": "3414 Pebbleshores Drive",
+          "street2": "",
+          "zip": "75241",
+          "city": {
+            "name": "Dallas",
+            "state": {
+              "name": "Texas"
+            }
+          }
+        }
+      },
+      "isCancelled": false,
+      "lastMessage": {
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODM5ODk2Nw==",
+        "created": "2026-04-09T00:35:32.213477",
+        "text": "Ok",
+        "deleted": null,
+        "extra": null,
+        "messageType": "TEXT",
+        "sender": {
+          "pk": 921873,
+          "firstName": "Christopher",
+          "lastName": "Griffin",
+          "displayName": null
+        },
+        "attachments": [],
+        "paymentExtensionStatus": null,
+        "ticketStatus": null,
+        "bookingStatus": null
+      },
+      "member": {
+        "seenAt": "2026-04-08T17:42:36.925681",
         "isPinned": false,
         "isUnread": true
       }
@@ -192,136 +326,6 @@
       },
       "member": {
         "seenAt": "2026-04-08T17:59:42.259941",
-        "isPinned": false,
-        "isUnread": false
-      }
-    },
-    {
-      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzI0Nzgz",
-      "title": "Savon Sanders",
-      "chatType": "HOST_SUPPORT_CHAT",
-      "isArchived": false,
-      "occupancy": {
-        "moveInDate": "2026-04-10",
-        "moveOutDate": null,
-        "conditionalEligibilityApplied": null,
-        "room": {
-          "pk": 82574,
-          "roomNumber": 4
-        },
-        "user": {
-          "picture": "img/profiles/user_470676_1ed7df33-4160-4780-8430-d64a9d8fcc80.jpg",
-          "firstName": "Savon",
-          "lastName": "Sanders",
-          "displayName": null
-        }
-      },
-      "property": {
-        "host": {
-          "firstName": "Ang",
-          "lastName": "Li",
-          "displayName": "Cyndy Manager",
-          "picture": ""
-        },
-        "description": "Your new home awaits! This comfortable Fort Worth home is waiting for you. This PadSplit has a Backyard, and it\u2019s newly-renovated and homey.\n\nThe kitchen comes equipped with a fridge, sink, oven, stovetop, as well as upgraded appliances.\n\nThe neighbourhood is near highways, which means you won\u2019t be far from all Fort Worth has to offer.",
-        "address": {
-          "street1": "5509 Burton Avenue",
-          "street2": "",
-          "zip": "76119",
-          "city": {
-            "name": "Fort Worth",
-            "state": {
-              "name": "Texas"
-            }
-          }
-        }
-      },
-      "isCancelled": false,
-      "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODM5MTYzNg==",
-        "created": "2026-04-08T17:56:37.850544",
-        "text": "No ma'am this is my first stinch with CoLiving space before. Yes I'm opened and will abide by all the rules set in place.",
-        "deleted": null,
-        "extra": null,
-        "messageType": "TEXT",
-        "sender": {
-          "pk": 470676,
-          "firstName": "Savon",
-          "lastName": "Sanders",
-          "displayName": null
-        },
-        "attachments": [],
-        "paymentExtensionStatus": null,
-        "ticketStatus": null,
-        "bookingStatus": null
-      },
-      "member": {
-        "seenAt": "2026-04-08T17:59:03.000518",
-        "isPinned": false,
-        "isUnread": false
-      }
-    },
-    {
-      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzA1Mzk4",
-      "title": "Christopher Griffin",
-      "chatType": "HOST_SUPPORT_CHAT",
-      "isArchived": false,
-      "occupancy": {
-        "moveInDate": "2026-03-13",
-        "moveOutDate": null,
-        "conditionalEligibilityApplied": null,
-        "room": {
-          "pk": 21176,
-          "roomNumber": 3
-        },
-        "user": {
-          "picture": "img/profiles/user_921873_92d2030a-e411-49bb-9042-1db1b3b4ddd3.jpg",
-          "firstName": "Christopher",
-          "lastName": "Griffin",
-          "displayName": null
-        }
-      },
-      "property": {
-        "host": {
-          "firstName": "Tinghui",
-          "lastName": "Li",
-          "displayName": "",
-          "picture": ""
-        },
-        "description": "Your new home awaits! This cozy Dallas home is waiting for you. This PadSplit has a Backyard and Dining area, and is newly-renovated and cozy.\n\nThis home has a full kitchen, onsite laundry and parking and is very commutable close to public transit and multiple highways.  Located right between I35E, I45 and I20.\n\nThe neighborhood is quiet, which means you won\u2019t be far from all Dallas has to offer.\nThe image on satellite is a few years old and please come and see the house by yourself before you make any judgement.",
-        "address": {
-          "street1": "3414 Pebbleshores Drive",
-          "street2": "",
-          "zip": "75241",
-          "city": {
-            "name": "Dallas",
-            "state": {
-              "name": "Texas"
-            }
-          }
-        }
-      },
-      "isCancelled": false,
-      "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODM5MTM3Nw==",
-        "created": "2026-04-08T17:42:37.107720",
-        "text": "We sent people to change your code your door is locking that means you have a key to get in. Please let them to change your code and give the key back . Thanks ",
-        "deleted": null,
-        "extra": null,
-        "messageType": "TEXT",
-        "sender": {
-          "pk": 318367,
-          "firstName": "Ang",
-          "lastName": "Li",
-          "displayName": "Cyndy Manager"
-        },
-        "attachments": [],
-        "paymentExtensionStatus": null,
-        "ticketStatus": null,
-        "bookingStatus": null
-      },
-      "member": {
-        "seenAt": "2026-04-08T17:42:36.925681",
         "isPinned": false,
         "isUnread": false
       }
@@ -3259,6 +3263,45 @@
   ],
   "tasks": {
     "Requests": [
+      {
+        "id": 393580,
+        "status": "submitted",
+        "comment": null,
+        "category": "unclassified",
+        "media": [],
+        "created": "2026-04-09T00:35:45.856316",
+        "modified": "2026-04-09T00:35:45.856316",
+        "room_name": "",
+        "room_number": 4,
+        "room_status": 1,
+        "room_code": "1234",
+        "location": "Internet",
+        "details": "The internet out.",
+        "property_id": 9369,
+        "property_address": {
+          "id": 12545,
+          "street1": "3406 Green Hill Drive",
+          "street2": "",
+          "city": "Arlington",
+          "state": "TX",
+          "zip": "76014",
+          "city_slug": "arlington-tx"
+        },
+        "reported_by": {
+          "id": 1013051,
+          "name": "Dre",
+          "role_id": 0,
+          "picture": "img/profiles/user_1013051_95630ae3-f5e1-4abb-8aec-85e69c6805eb.jpg"
+        },
+        "assigned_to": null,
+        "on_hold_reason": null,
+        "update_status_at": "2026-04-09T00:35:45.858008",
+        "rating": null,
+        "extra_data": {},
+        "has_reused_code": true,
+        "moveout_photos_count": 0,
+        "days_to_complete": null
+      },
       {
         "id": 392844,
         "status": "submitted",
