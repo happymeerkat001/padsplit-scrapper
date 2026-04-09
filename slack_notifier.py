@@ -9,7 +9,8 @@ import json
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Optional
+from zoneinfo import ZoneInfo
 import urllib.request
 import urllib.error
 
@@ -79,10 +80,48 @@ def send_to_slack(message: str) -> None:
         print(f"Slack webhook URL error: {exc}")
 
 
+def fetch_weather() -> Optional[str]:
+    now_ct = datetime.now(ZoneInfo("America/Chicago"))
+    hour = now_ct.hour
+    if hour < 5 or hour >= 9:
+        print("Skipping weather (not morning run.)")
+        return None
+
+    url = (
+        "https://api.open-meteo.com/v1/forecast"
+        "?latitude=33.1507&longitude=-96.8236"
+        "&daily=temperature_2m_max,temperature_2m_min"
+        "&temperature_unit=fahrenheit"
+        "&timezone=America%2FChicago"
+    )
+    try:
+        with urllib.request.urlopen(url) as resp:
+            data = json.loads(resp.read().decode())
+        times = data.get("daily", {}).get("time", []) or []
+        highs = data.get("daily", {}).get("temperature_2m_max", []) or []
+        lows = data.get("daily", {}).get("temperature_2m_min", []) or []
+        lines = ["🌤️  DFW 7-Day Forecast:"]
+        for date_str, high, low in zip(times, highs, lows):
+            d = datetime.strptime(date_str, "%Y-%m-%d")
+            label = d.strftime("%a (%-m/%-d)")
+            flags = ""
+            if high is not None and high >= 98:
+                flags += " 🚨"
+            if low is not None and low <= 60:
+                flags += " ❄️"
+            lines.append(f"{label}: High {round(high)}°F / Low {round(low)}°F{flags}")
+        return "\n".join(lines)
+    except Exception as err:
+        print(f"Weather fetch failed: {err}")
+        return None
+
+
 def main() -> None:
+    weather_block = fetch_weather()
     tasks = load_tasks()
     grouped, total_req, total_open = collect_tasks(tasks)
-    message = format_message(grouped, total_req, total_open)
+    task_block = format_message(grouped, total_req, total_open)
+    message = "\n\n".join(filter(None, [weather_block, task_block]))
     print(message)
     send_to_slack(message)
 
