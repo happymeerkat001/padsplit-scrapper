@@ -2,7 +2,7 @@ name: PadSplit Scrape
 
 on:
   schedule:
-    - cron: "*/30 * * * *"
+    - cron: "0 11 * * *"
   workflow_dispatch:
 
 permissions:
