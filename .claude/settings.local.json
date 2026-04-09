@@ -28,7 +28,12 @@
       "Bash(git rebase --continue 2>&1; echo \"Exit: $?\")",
       "Bash(git pull:*)",
       "Bash(git add:*)",
-      "Bash(git commit -m ':*)"
+      "Bash(git commit -m ':*)",
+      "Bash(git push:*)",
+      "Bash(git stash:*)",
+      "Bash(ls /Users/leon/Documents/Code/padsplit-scraper/*.py)",
+      "Bash(ls /Users/leon/Documents/Code/padsplit-scraper/padsplit_scraper/*.py)",
+      "Bash(python3:*)"
     ]
   }
 }

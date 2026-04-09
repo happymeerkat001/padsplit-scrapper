@@ -11,6 +11,20 @@ from urllib3.util.retry import Retry
 from dotenv import load_dotenv
 import anthropic
 
+
+def send_to_slack(text: str, webhook_url: Optional[str]) -> None:
+    if not webhook_url:
+        sys.stderr.write("SLACK_WEBHOOK_URL not set — skipping Slack send.\n")
+        return
+    try:
+        resp = requests.post(webhook_url, json={"text": text}, timeout=10)
+        if resp.status_code >= 400:
+            sys.stderr.write(f"Slack webhook returned {resp.status_code}: {resp.text}\n")
+        else:
+            sys.stderr.write("Sent AI summary to Slack.\n")
+    except Exception as exc:
+        sys.stderr.write(f"Failed to send to Slack: {exc}\n")
+
 # ==========================================
 # CONFIGURATION & CONSTANTS
 # ==========================================
@@ -336,14 +350,15 @@ MESSAGE_LIST_QUERY = """
 # ==========================================
 # SCRAPER FUNCTIONS
 # ==========================================
-def load_credentials() -> Dict[str, str]:
+def load_credentials() -> Dict[str, Optional[str]]:
     # Load environment variables here so they are ready for Padsplit AND MiniMax
     load_dotenv()
     email = os.getenv("PADSPLIT_EMAIL")
     password = os.getenv("PADSPLIT_PASSWORD")
+    slack_webhook = os.getenv("SLACK_WEBHOOK_URL")
     if not email or not password:
         sys.exit("Missing PADSPLIT_EMAIL or PADSPLIT_PASSWORD in environment/.env")
-    return {"email": email, "password": password}
+    return {"email": email, "password": password, "SLACK_WEBHOOK_URL": slack_webhook}
 
 
 def create_session() -> requests.Session:
@@ -595,21 +610,22 @@ def run() -> None:
 
         message = client.messages.create(
             model="MiniMax-M2.5", 
-            max_tokens=2000, # Increased so the AI has room to write a longer answer
+            max_tokens=4096,
             messages=[
                 {
                     "role": "user", 
-                    "content": f"Here is the latest data scraped from Padsplit. Please summarize the most urgent messages and any open tasks:\n\n{payload_string}"
+                    "content": f"Here is the latest data scraped from Padsplit. Please summarize the most urgent messages and any open tasks. CRITICAL: For every message or task you summarize, you MUST explicitly state the date and time it was submitted so I know if it is outdated.\n\n{payload_string}"
                 }
             ]
         )
 
-        # --- 3. PRINT THE AI'S RESPONSE ---
+        # --- 3. PRINT & SLACK THE AI'S RESPONSE ---
+        full_text = "\n".join(block.text for block in message.content if getattr(block, "type", None) == "text")
         print("\n" + "="*50)
-        for block in message.content:
-            if block.type == "text":
-                print(f"AI Response:\n{block.text}")
+        print(f"AI Response:\n{full_text}")
         print("="*50 + "\n")
+
+        send_to_slack(full_text, creds.get("SLACK_WEBHOOK_URL"))
 
 
 if __name__ == "__main__":
