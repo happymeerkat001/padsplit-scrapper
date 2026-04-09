@@ -1,5 +1,14 @@
+# Environment Variables (CRITICAL: Keeps your passwords and API keys safe)
 .env
+
+# AI Coding Assistant Settings
+.claude/
+
+# Scraped Data Output (Ignores timestamped files, keeps latest.json)
+padsplit_scraper/output/202*.json
+thermostat/output/202*.json
+
+# Python Virtual Environment & Cache
 venv/
 __pycache__/
-thermostat/output/202*.json
-padsplit_scraper/output/202*.json
+*.pyc
