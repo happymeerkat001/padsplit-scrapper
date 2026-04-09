@@ -91,6 +91,10 @@
     .message-text { font-size: 0.9rem; line-height: 1.45; margin-bottom: 0.4rem; }
     .meta { font-size: 0.78rem; color: var(--muted); }
     .meta .sender { color: #94a3b8; }
+    .thread { display: flex; flex-direction: column; gap: 0.45rem; margin-top: 0.4rem; }
+    .thread-msg { font-size: 0.88rem; line-height: 1.5; padding: 0.3rem 0; border-bottom: 1px solid rgba(148,163,184,0.08); }
+    .thread-msg:last-child { border-bottom: none; }
+    .thread-msg .t-meta { font-size: 0.73rem; color: var(--muted); margin-top: 0.15rem; }
     .loading { text-align: center; padding: 3rem; color: var(--muted); }
     .error { color: #f87171; padding: 1rem; }
     footer { margin-top: 2.5rem; color: var(--muted); font-size: 0.82rem; }
@@ -148,29 +152,55 @@
           msg.property?.address?.city?.name,
           msg.property?.address?.city?.state?.name,
         ].filter(Boolean).join(', ') || msg.property?.name || '—';
+      const card = document.createElement('div');
+      card.className = 'card' + (unread ? ' unread' : '');
+      card.innerHTML = `
+        <div class="card-header">
+          <span class="tenant-name">${tenantName.trim()}</span>
+          ${unread ? '<span class="badge-unread">Unread</span>' : ''}
+        </div>
+        <div class="address">${address}</div>
+      `;
+
+      const threadData = Array.isArray(msg.recent_messages) ? [...msg.recent_messages] : [];
+      const filtered = threadData
+        .filter(m => m && !m.deleted && (m.text ?? '').toString().trim() !== '')
+        .sort((a, b) => new Date(a.created) - new Date(b.created));
+
+      if (filtered.length) {
+        const thread = document.createElement('div');
+        thread.className = 'thread';
+        filtered.forEach(m => {
+          const senderLabel = (m.sender?.displayName || `${m.sender?.firstName || ''} ${m.sender?.lastName || ''}`).trim();
+          const msgDiv = document.createElement('div');
+          msgDiv.className = 'thread-msg';
+          msgDiv.innerHTML = `
+            <div><strong>${senderLabel || 'Unknown'}:</strong> ${m.text}</div>
+            <div class="t-meta">${fmtDate(m.created)}</div>
+          `;
+          thread.appendChild(msgDiv);
+        });
+        card.appendChild(thread);
+      } else {
         const lastText = msg.lastMessage?.text || msg.lastMessage?.body || '(no text)';
         const lastDate = msg.lastMessage?.created || msg.lastMessage?.createdAt;
         const senderFirst = msg.lastMessage?.sender?.firstName || '';
         const senderDisplay = msg.lastMessage?.sender?.displayName || '';
         const senderLabel = senderDisplay || senderFirst || '';
+        const msgTextDiv = document.createElement('div');
+        msgTextDiv.className = 'message-text';
+        msgTextDiv.textContent = lastText;
+        card.appendChild(msgTextDiv);
 
-        const card = document.createElement('div');
-        card.className = 'card' + (unread ? ' unread' : '');
-        card.innerHTML = `
-          <div class="card-header">
-            <span class="tenant-name">${tenantName.trim()}</span>
-            ${unread ? '<span class="badge-unread">Unread</span>' : ''}
-          </div>
-          <div class="address">${address}</div>
-          <div class="message-text">${lastText}</div>
-          <div class="meta">
-            ${senderLabel ? `<span class="sender">${senderLabel} · </span>` : ''}
-            ${fmtDate(lastDate)}
-          </div>
-        `;
-        list.appendChild(card);
-      });
-    }
+        const metaDiv = document.createElement('div');
+        metaDiv.className = 'meta';
+        metaDiv.innerHTML = `${senderLabel ? `<span class="sender">${senderLabel} · </span>` : ''}${fmtDate(lastDate)}`;
+        card.appendChild(metaDiv);
+      }
+
+      list.appendChild(card);
+    });
+  }
 
     document.getElementById('search').addEventListener('input', e => {
       const q = e.target.value.toLowerCase();
