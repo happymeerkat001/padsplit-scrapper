@@ -9,7 +9,11 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from dotenv import load_dotenv
+import anthropic
 
+# ==========================================
+# CONFIGURATION & CONSTANTS
+# ==========================================
 BASE_URL = "https://www.padsplit.com"
 LOGIN_URL = f"{BASE_URL}/api/auth/login"
 GRAPHQL_URL = f"{BASE_URL}/api/graphql/"
@@ -19,8 +23,11 @@ USER_AGENT = (
     "Chrome/123.0.0.0 Safari/537.36"
 )
 DEFAULT_TIMEOUT = (10, 30)  # (connect, read)
+RECENT_DAYS = 5
 
-# GraphQL query from network capture
+# ==========================================
+# GRAPHQL QUERIES
+# ==========================================
 CHAT_LIST_QUERY = """
     query chatList($first: Int, $after: String, $searchMember: String, $searchProperty: String, $moveIn: Boolean, $moveOut: Boolean, $active: Boolean, $archived: Boolean) {
   messenger(
@@ -325,10 +332,12 @@ MESSAGE_LIST_QUERY = """
 }
 """
 
-RECENT_DAYS = 5
 
-
+# ==========================================
+# SCRAPER FUNCTIONS
+# ==========================================
 def load_credentials() -> Dict[str, str]:
+    # Load environment variables here so they are ready for Padsplit AND MiniMax
     load_dotenv()
     email = os.getenv("PADSPLIT_EMAIL")
     password = os.getenv("PADSPLIT_PASSWORD")
@@ -521,11 +530,18 @@ def fetch_tasks(session: requests.Session, creds: Dict[str, str]) -> Dict[str, L
     return {k: v for k, v in grouped.items() if v}
 
 
+# ==========================================
+# MAIN EXECUTION
+# ==========================================
 def run() -> None:
-    creds = load_credentials()
+    creds = load_credentials() # This also loads the .env file!
     base_dir = Path(__file__).resolve().parent
+    
     with create_session() as session:
+        sys.stderr.write("Logging in to Padsplit...\n")
         login(session, creds["email"], creds["password"])
+        
+        sys.stderr.write("Fetching messages...\n")
         messages = fetch_messages(session, creds)
 
         # Enrich threads active in the last RECENT_DAYS days with full message context
@@ -548,16 +564,17 @@ def run() -> None:
             sys.stderr.write(f"# Fetching context for thread {chat_id} (last active {created_str})\n")
             thread["recent_messages"] = fetch_thread_messages(session, creds, chat_id)
 
+        sys.stderr.write("Fetching tasks...\n")
         tasks = fetch_tasks(session, creds)
         scraped_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        
         payload = {
             "scraped_at": scraped_at,
             "messages": messages,
             "tasks": tasks,
         }
 
-        print(json.dumps(payload, indent=2))
-
+        # --- 1. SAVE THE RAW DATA LOCALLY ---
         output_dir = base_dir / "output"
         output_dir.mkdir(parents=True, exist_ok=True)
         filename = scraped_at.replace(":", "-") + ".json"
@@ -565,7 +582,34 @@ def run() -> None:
         latest_path = output_dir / "latest.json"
         out_path.write_text(json.dumps(payload, indent=2))
         latest_path.write_text(json.dumps(payload, indent=2))
-        sys.stderr.write(f"# Saved to {out_path}\n")
+        sys.stderr.write(f"# Saved raw data to {out_path}\n")
+
+        # --- 2. SEND THE DATA TO MINIMAX AI ---
+        sys.stderr.write("Sending data to MiniMax AI for processing...\n")
+        
+        # Initialize client (it will use the keys loaded in load_credentials)
+        client = anthropic.Anthropic()
+        
+        # Convert our scraped dictionary into a string so the AI can read it
+        payload_string = json.dumps(payload) 
+
+        message = client.messages.create(
+            model="MiniMax-M2.5", 
+            max_tokens=2000, # Increased so the AI has room to write a longer answer
+            messages=[
+                {
+                    "role": "user", 
+                    "content": f"Here is the latest data scraped from Padsplit. Please summarize the most urgent messages and any open tasks:\n\n{payload_string}"
+                }
+            ]
+        )
+
+        # --- 3. PRINT THE AI'S RESPONSE ---
+        print("\n" + "="*50)
+        for block in message.content:
+            if block.type == "text":
+                print(f"AI Response:\n{block.text}")
+        print("="*50 + "\n")
 
 
 if __name__ == "__main__":
