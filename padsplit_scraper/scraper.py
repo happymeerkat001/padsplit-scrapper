@@ -1,3 +1,4 @@
+import argparse
 import json
 import os
 import sys
@@ -548,14 +549,14 @@ def fetch_tasks(session: requests.Session, creds: Dict[str, str]) -> Dict[str, L
 # ==========================================
 # MAIN EXECUTION
 # ==========================================
-def run() -> None:
-    creds = load_credentials() # This also loads the .env file!
+def run(messages_only: bool = False) -> None:
+    creds = load_credentials()
     base_dir = Path(__file__).resolve().parent
-    
+
     with create_session() as session:
         sys.stderr.write("Logging in to Padsplit...\n")
         login(session, creds["email"], creds["password"])
-        
+
         sys.stderr.write("Fetching messages...\n")
         messages = fetch_messages(session, creds)
 
@@ -579,15 +580,12 @@ def run() -> None:
             sys.stderr.write(f"# Fetching context for thread {chat_id} (last active {created_str})\n")
             thread["recent_messages"] = fetch_thread_messages(session, creds, chat_id)
 
-        sys.stderr.write("Fetching tasks...\n")
-        tasks = fetch_tasks(session, creds)
         scraped_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-        
-        payload = {
-            "scraped_at": scraped_at,
-            "messages": messages,
-            "tasks": tasks,
-        }
+        payload: Dict = {"scraped_at": scraped_at, "messages": messages}
+
+        if not messages_only:
+            sys.stderr.write("Fetching tasks...\n")
+            payload["tasks"] = fetch_tasks(session, creds)
 
         # --- 1. SAVE THE RAW DATA LOCALLY ---
         output_dir = base_dir / "output"
@@ -601,36 +599,45 @@ def run() -> None:
 
         # --- 2. SEND THE DATA TO MINIMAX AI ---
         sys.stderr.write("Sending data to MiniMax AI for processing...\n")
-        
-        # Initialize client (it will use the keys loaded in load_credentials)
         client = anthropic.Anthropic()
-        
-        # Convert our scraped dictionary into a string so the AI can read it
-        payload_string = json.dumps(payload) 
+        payload_string = json.dumps(payload)
+
+        if messages_only:
+            prompt = (
+                "Here is the latest PadSplit message data. Please summarize ONLY the most urgent "
+                "tenant messages. CRITICAL: For every message you summarize, you MUST explicitly "
+                "state the date and time it was sent so I know if it is outdated.\n\n"
+                + payload_string
+            )
+        else:
+            prompt = (
+                "Here is the latest data scraped from Padsplit. Please summarize the most urgent "
+                "messages and any open tasks. CRITICAL: For every message or task you summarize, "
+                "you MUST explicitly state the date and time it was submitted so I know if it is "
+                "outdated.\n\n" + payload_string
+            )
 
         message = client.messages.create(
-            model="MiniMax-M2.5", 
+            model="MiniMax-M2.5",
             max_tokens=4096,
-            messages=[
-                {
-                    "role": "user", 
-                    "content": f"Here is the latest data scraped from Padsplit. Please summarize the most urgent messages and any open tasks. CRITICAL: For every message or task you summarize, you MUST explicitly state the date and time it was submitted so I know if it is outdated.\n\n{payload_string}"
-                }
-            ]
+            messages=[{"role": "user", "content": prompt}],
         )
 
         # --- 3. PRINT & SLACK THE AI'S RESPONSE ---
         full_text = "\n".join(block.text for block in message.content if getattr(block, "type", None) == "text")
-        print("\n" + "="*50)
+        print("\n" + "=" * 50)
         print(f"AI Response:\n{full_text}")
-        print("="*50 + "\n")
+        print("=" * 50 + "\n")
 
         send_to_slack(full_text, creds.get("SLACK_WEBHOOK_URL"))
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--messages-only", action="store_true", help="Skip tasks; summarize messages only")
+    args = parser.parse_args()
     try:
-        run()
+        run(messages_only=args.messages_only)
     except requests.exceptions.ConnectionError:
         sys.stderr.write("Network error: could not reach padsplit.com\n")
         sys.exit(1)
