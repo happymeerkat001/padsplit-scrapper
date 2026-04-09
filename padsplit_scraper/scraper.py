@@ -1,7 +1,7 @@
 import json
 import os
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -181,6 +181,152 @@ CHAT_LIST_QUERY = """
 }
 """
 
+MESSAGE_LIST_QUERY = """
+    query messageList($chatId: ID!, $first: Int, $after: String) {
+  messenger(
+    messageTypes: [BOOKING_STATUS, MOVE_IN, CHANGE_MOVE_IN_REQUEST, APPROVE_MOVE_IN_REQUEST, DENY_MOVE_IN_REQUEST, MOVE_OUT_PHOTOS, MOVE_OUT_CONFIRMED, TICKET_RATING, TICKET_UPDATE, PAYMENT_EXTENSION_REQUEST, PAYMENT_EXTENSION_APPROVED, PAYMENT_EXTENSION_REJECTED, REFERRALS_MONTHLY_UPDATE, COME_LIVE_WITH_ME_EXPERIMENT]
+  ) {
+    chat(id: $chatId) {
+      messages(first: $first, after: $after) {
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
+        edges {
+          node {
+            ...baseMessageListFields
+          }
+        }
+      }
+    }
+  }
+}
+
+    fragment baseMessageListFields on MessengerMessageType {
+  id
+  text
+  created
+  messageType
+  deleted
+  isBroadcast
+  extra {
+    ... on ChangeMoveInDateRequestChatExtraType {
+      changeMoveInDateRequest {
+        id
+        decision
+        moveInDate
+        previousMoveInDate
+        stale
+        pk
+      }
+      originalMoveInDate
+      newMoveInDate
+    }
+    ... on ApproveMoveInDateRequestChatExtraType {
+      changeMoveInDateRequest {
+        id
+        decision
+        moveInDate
+        previousMoveInDate
+        stale
+        pk
+      }
+      newMoveInDate
+    }
+    ... on DenyMoveInDateRequestChatExtraType {
+      changeMoveInDateRequest {
+        id
+        decision
+        moveInDate
+        previousMoveInDate
+        stale
+        pk
+      }
+      originalMoveInDate
+    }
+  }
+  sender {
+    id
+    pk
+    roleId
+    picture
+    preferredPicture
+    firstName
+    lastName
+    isActive
+    displayName
+    padmateProfileId
+  }
+  attachments {
+    id
+    deleted
+    mediaType
+    location
+    filename
+  }
+  reactions {
+    id
+    reaction
+  }
+  paymentExtensionStatus {
+    ...basePaymentExtensionRequestFields
+  }
+  ticketStatus {
+    ...baseMessengerTicketStatusFields
+  }
+  bookingStatus {
+    id
+    created
+    status
+    verificationTimeInHours
+  }
+}
+
+    fragment basePaymentExtensionRequestFields on MessengerPaymentExtensionStatusType {
+  newDate
+  status
+  id
+  created
+  changedFromDate
+  date
+  paymentExtensionRequest {
+    id
+    reason
+    comment
+    minimumPayment
+    status
+    dateChanged
+    endDate
+  }
+}
+
+    fragment baseMessengerTicketStatusFields on MessengerMessageTicketStatus {
+  id
+  created
+  status
+  canRate
+  ticket {
+    id
+    author {
+      firstName
+      lastName
+      id
+      displayName
+    }
+    details
+    location
+    status
+    rating
+    comment
+    category
+    onHoldReason
+    withdrawReason
+  }
+}
+"""
+
+RECENT_DAYS = 5
+
 
 def load_credentials() -> Dict[str, str]:
     load_dotenv()
@@ -298,6 +444,40 @@ def fetch_messages(session: requests.Session, creds: Dict[str, str], page_size: 
     return [edge.get("node") for edge in all_edges if edge.get("node")]
 
 
+def fetch_thread_messages(
+    session: requests.Session, creds: Dict[str, str], chat_id: str, first: int = 10
+) -> List[Dict]:
+    """Fetch the most recent `first` messages for a single chat thread."""
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Referer": f"{BASE_URL}/host/communication/{chat_id}",
+    }
+    resp = _authed_request(
+        session,
+        "POST",
+        GRAPHQL_URL,
+        creds=creds,
+        login_fn=login,
+        headers=headers,
+        json={"query": MESSAGE_LIST_QUERY, "variables": {"chatId": chat_id, "first": first}},
+        timeout=DEFAULT_TIMEOUT,
+    )
+    resp.raise_for_status()
+    data = resp.json()
+    if "errors" in data:
+        sys.stderr.write(f"GraphQL errors fetching thread {chat_id}: {data['errors']}\n")
+        return []
+    edges = (
+        data.get("data", {})
+        .get("messenger", {})
+        .get("chat", {})
+        .get("messages", {})
+        .get("edges", [])
+    ) or []
+    return [e["node"] for e in edges if e.get("node")]
+
+
 def fetch_tasks(session: requests.Session, creds: Dict[str, str]) -> Dict[str, List[Dict]]:
     """Fetch maintenance tickets and group them by status to mirror UI buckets."""
 
@@ -347,6 +527,27 @@ def run() -> None:
     with create_session() as session:
         login(session, creds["email"], creds["password"])
         messages = fetch_messages(session, creds)
+
+        # Enrich threads active in the last RECENT_DAYS days with full message context
+        cutoff = datetime.now(timezone.utc) - timedelta(days=RECENT_DAYS)
+        for thread in messages:
+            created_str = (thread.get("lastMessage") or {}).get("created", "")
+            if not created_str:
+                continue
+            try:
+                last_dt = datetime.fromisoformat(created_str)
+                if last_dt.tzinfo is None:
+                    last_dt = last_dt.replace(tzinfo=timezone.utc)
+            except ValueError:
+                continue
+            if last_dt < cutoff:
+                continue
+            chat_id = thread.get("id", "")
+            if not chat_id:
+                continue
+            sys.stderr.write(f"# Fetching context for thread {chat_id} (last active {created_str})\n")
+            thread["recent_messages"] = fetch_thread_messages(session, creds, chat_id)
+
         tasks = fetch_tasks(session, creds)
         scraped_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         payload = {
