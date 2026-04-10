@@ -253,7 +253,7 @@
             <div class="muted">${t.details || t.description || 'No details'}</div>
             <div class="chips">
               ${t.property_address?.street1 ? `<span class="chip">${t.property_address.street1}</span>` : ''}
-              ${t.location ? `<span class="chip">${t.location}</span>` : ''}
+              ${t.location ? `<span class="chip">${t.location}${t.room_number != null ? ` #${t.room_number}` : ''}</span>` : ''}
             </div>
           `;
 
