@@ -118,6 +118,18 @@
     .role-owner { color: #38bdf8; }
     .role-manager { color: #22c55e; }
     .role-repairman { color: #f59e0b; }
+    .delete-msg-btn {
+      background: none;
+      border: none;
+      color: #ef4444;
+      cursor: pointer;
+      font-size: 0.75rem;
+      margin-left: 0.4rem;
+      padding: 0 2px;
+      opacity: 0.6;
+      vertical-align: middle;
+    }
+    .delete-msg-btn:hover { opacity: 1; }
     .msg-meta { font-size: 0.75rem; color: var(--muted); }
     table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
     th { text-align: left; padding: 0.4rem 0.6rem; color: var(--muted); font-weight: 500; border-bottom: 1px solid rgba(148,163,184,0.15); }
@@ -188,7 +200,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, serverTimestamp, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, deleteDoc, doc, serverTimestamp, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     // Paste your Firebase config keys here (all fields required)
     const firebaseConfig = {
@@ -273,7 +285,7 @@
               <option value="Can't get to it for a bit...">Can't get to it for a bit...</option>
             </select>
             <input data-msg placeholder="Message" />
-            <button data-send>Send</button>
+            <button data-send>Post</button>
           `;
           const messagesDiv = document.createElement('div');
           messagesDiv.className = 'chat-messages';
@@ -287,7 +299,6 @@
             const role = controls.querySelector('[data-role]').value;
             const status = controls.querySelector('[data-status]').value;
             const text = msgInput.value.trim();
-            if (!text) return;
             sendBtn.disabled = true;
             try {
               await addDoc(collection(db, "task_messages"), {
@@ -431,10 +442,21 @@
           const created = data.created?.toDate ? data.created.toDate() : data.created;
           const msgDiv = document.createElement('div');
           msgDiv.className = `chat-msg ${roleClass}`;
+          msgDiv.dataset.docId = change.doc.id;
           msgDiv.innerHTML = `
-            <div><strong>${data.role || 'Role'}${data.status ? ` [${data.status}]` : ''}:</strong> ${data.text || ''}</div>
+            <div>
+              <strong>${data.role || 'Role'}${data.status ? ` [${data.status}]` : ''}:</strong> ${data.text || ''}
+              <button class="delete-msg-btn" data-doc-id="${change.doc.id}" title="Delete">✕</button>
+            </div>
             <div class="msg-meta">${created ? fmtDate(created) : ''}</div>
           `;
+          const deleteBtn = msgDiv.querySelector('.delete-msg-btn');
+          deleteBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            if (!confirm('Delete this message?')) return;
+            await deleteDoc(doc(db, "task_messages", change.doc.id));
+            msgDiv.remove();
+          });
           container.appendChild(msgDiv);
           container.scrollTop = container.scrollHeight;
         }
