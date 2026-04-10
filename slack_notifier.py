@@ -23,15 +23,16 @@ def load_tasks() -> Dict:
     return raw.get("tasks") or {}
 
 
-def collect_tasks(tasks: Dict[str, List[Dict]]) -> Tuple[Dict[str, List[Tuple[str, str]]], int, int]:
+def collect_tasks(tasks: Dict[str, List[Dict]]) -> Tuple[Dict[str, List[Tuple[str, str, Optional[int]]]], int, int]:
     buckets = ("Requests", "Open")
-    grouped: Dict[str, List[Tuple[str, str]]] = {}
+    grouped: Dict[str, List[Tuple[str, str, Optional[int]]]] = {}
     total_req = total_open = 0
     for bucket in buckets:
         for task in tasks.get(bucket, []) or []:
             addr = (task.get("property_address") or {}).get("street1") or "Unknown"
             desc = task.get("details") or task.get("description") or "(no description)"
-            grouped.setdefault(addr, []).append((bucket, desc))
+            room_number: Optional[int] = task.get("room_number")
+            grouped.setdefault(addr, []).append((bucket, desc, room_number))
             if bucket == "Requests":
                 total_req += 1
             elif bucket == "Open":
@@ -39,7 +40,7 @@ def collect_tasks(tasks: Dict[str, List[Dict]]) -> Tuple[Dict[str, List[Tuple[st
     return grouped, total_req, total_open
 
 
-def format_message(grouped: Dict[str, List[Tuple[str, str]]], total_req: int, total_open: int) -> str:
+def format_message(grouped: Dict[str, List[Tuple[str, str, Optional[int]]]], total_req: int, total_open: int) -> str:
     today = datetime.now().strftime("%Y-%m-%d")
     if total_req + total_open == 0:
         return f"Tasks Digest ({today}): ✅ No open or pending tasks."
@@ -47,8 +48,9 @@ def format_message(grouped: Dict[str, List[Tuple[str, str]]], total_req: int, to
     lines = [f"Tasks Digest ({today}):"]
     for addr in sorted(grouped.keys()):
         lines.append(f"{addr}:")
-        for bucket, desc in grouped[addr]:
-            lines.append(f"[{bucket}] {desc}")
+        for bucket, desc, room_number in grouped[addr]:
+            room_str = f" (Room {room_number})" if room_number is not None else ""
+            lines.append(f"[{bucket}]{room_str} {desc}")
         lines.append("")  # blank line between properties
     lines.append(f"Total: {total_req} Requests, {total_open} Open")
     return "\n".join(lines)
