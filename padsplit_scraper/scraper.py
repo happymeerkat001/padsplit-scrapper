@@ -6,26 +6,11 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Dict, List, Optional
 
-import urllib.request
-
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from dotenv import load_dotenv
 
-
-def send_to_slack(text: str, webhook_url: Optional[str]) -> None:
-    if not webhook_url:
-        sys.stderr.write("SLACK_WEBHOOK_URL not set — skipping Slack send.\n")
-        return
-    try:
-        resp = requests.post(webhook_url, json={"text": text}, timeout=10)
-        if resp.status_code >= 400:
-            sys.stderr.write(f"Slack webhook returned {resp.status_code}: {resp.text}\n")
-        else:
-            sys.stderr.write("Sent AI summary to Slack.\n")
-    except Exception as exc:
-        sys.stderr.write(f"Failed to send to Slack: {exc}\n")
 
 # ==========================================
 # CONFIGURATION & CONSTANTS
@@ -352,15 +337,13 @@ MESSAGE_LIST_QUERY = """
 # ==========================================
 # SCRAPER FUNCTIONS
 # ==========================================
-def load_credentials() -> Dict[str, Optional[str]]:
-    # Load environment variables here so they are ready for Padsplit AND MiniMax
+def load_credentials() -> Dict[str, str]:
     load_dotenv()
     email = os.getenv("PADSPLIT_EMAIL")
     password = os.getenv("PADSPLIT_PASSWORD")
-    slack_webhook = os.getenv("SLACK_WEBHOOK_URL")
     if not email or not password:
         sys.exit("Missing PADSPLIT_EMAIL or PADSPLIT_PASSWORD in environment/.env")
-    return {"email": email, "password": password, "SLACK_WEBHOOK_URL": slack_webhook}
+    return {"email": email, "password": password}
 
 
 def create_session() -> requests.Session:
@@ -597,52 +580,6 @@ def run(messages_only: bool = False) -> None:
         out_path.write_text(json.dumps(payload, indent=2))
         latest_path.write_text(json.dumps(payload, indent=2))
         sys.stderr.write(f"# Saved raw data to {out_path}\n")
-
-        # --- 2. SEND THE DATA TO MINIMAX AI ---
-        sys.stderr.write("Sending data to MiniMax AI for processing...\n")
-        payload_string = json.dumps(payload)
-
-        if messages_only:
-            prompt = (
-                "Here is the latest PadSplit message data. Please summarize ONLY the most urgent "
-                "tenant messages. CRITICAL: For every message you summarize, you MUST explicitly "
-                "state the date and time it was sent so I know if it is outdated.\n\n"
-                + payload_string
-            )
-        else:
-            prompt = (
-                "Here is the latest data scraped from Padsplit. Please summarize the most urgent "
-                "messages and any open tasks. CRITICAL: For every message or task you summarize, "
-                "you MUST explicitly state the date and time it was submitted so I know if it is "
-                "outdated.\n\n" + payload_string
-            )
-
-        minimax_api_key = (os.getenv("MINIMAX_API_KEY") or "").strip()
-        if not minimax_api_key:
-            sys.exit("Missing MINIMAX_API_KEY in environment/.env")
-
-        body = json.dumps({
-            "model": "MiniMax-M2.5",
-            "messages": [{"role": "user", "content": prompt}],
-        }).encode()
-
-        req = urllib.request.Request(
-            "https://api.minimax.io/v1/text/chatcompletion_v2",
-            data=body,
-            headers={
-                "Authorization": f"Bearer {minimax_api_key}",
-                "Content-Type": "application/json",
-            },
-        )
-        with urllib.request.urlopen(req) as resp:
-            result = json.loads(resp.read())
-
-        full_text = result.get("choices", [{}])[0].get("message", {}).get("content", "")
-        print("\n" + "=" * 50)
-        print(f"AI Response:\n{full_text}")
-        print("=" * 50 + "\n")
-
-        send_to_slack(full_text, creds.get("SLACK_WEBHOOK_URL"))
 
 
 if __name__ == "__main__":

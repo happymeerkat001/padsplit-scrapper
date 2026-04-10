@@ -1,0 +1,22 @@
+name: Summarize Messages
+
+on:
+  schedule:
+    - cron: '47 10,18 * * *'
+  workflow_dispatch:
+
+jobs:
+  summarize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Summarize messages with MiniMax AI
+        env:
+          MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
+          SLACK_WEBHOOK_MESSAGES: ${{ secrets.SLACK_WEBHOOK_MESSAGES }}
+        run: python message_summarizer.py

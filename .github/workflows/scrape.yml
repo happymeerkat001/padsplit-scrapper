@@ -2,7 +2,7 @@ name: PadSplit Scrape
 
 on:
   schedule:
-    - cron: '47 10,18 * * *'
+    - cron: '17,47 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -27,7 +27,6 @@ jobs:
         env:
           PADSPLIT_EMAIL: ${{ secrets.PADSPLIT_EMAIL }}
           PADSPLIT_PASSWORD: ${{ secrets.PADSPLIT_PASSWORD }}
-          MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
         run: python padsplit_scraper/scraper.py
 
       - name: Copy latest snapshot for Pages
