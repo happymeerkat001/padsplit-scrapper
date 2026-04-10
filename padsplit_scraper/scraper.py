@@ -354,7 +354,7 @@ def create_session() -> requests.Session:
         total=3,
         backoff_factor=1,
         status_forcelist=[500, 502, 503, 504],
-        allowed_methods=["GET", "POST"],
+        allowed_methods=["GET", "POST", "PATCH"],
     )
     adapter = HTTPAdapter(max_retries=retry)
     session.mount("https://", adapter)
@@ -528,6 +528,22 @@ def fetch_tasks(session: requests.Session, creds: Dict[str, str]) -> Dict[str, L
 
     # Remove empty buckets for cleaner output
     return {k: v for k, v in grouped.items() if v}
+
+
+def update_task_status(
+    session: requests.Session, creds: Dict[str, str], task_id: int, new_status: str
+) -> Dict:
+    resp = _authed_request(
+        session,
+        "PATCH",
+        f"{BASE_URL}/api/admin-new/property/maintenance/tickets/{task_id}/",
+        creds=creds,
+        login_fn=login,
+        json={"status": new_status},
+        timeout=DEFAULT_TIMEOUT,
+    )
+    resp.raise_for_status()
+    return resp.json()
 
 
 # ==========================================

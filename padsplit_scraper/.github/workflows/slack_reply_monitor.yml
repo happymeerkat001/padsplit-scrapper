@@ -1,0 +1,49 @@
+name: Slack Reply Monitor
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/15 * * * *'
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  monitor-replies:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Process Slack replies
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          PADSPLIT_EMAIL: ${{ secrets.PADSPLIT_EMAIL }}
+          PADSPLIT_PASSWORD: ${{ secrets.PADSPLIT_PASSWORD }}
+        run: python slack_reply_monitor.py
+
+      - name: Commit reply processing state
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/data/processed_replies.json
+          if git diff --cached --quiet; then
+            echo "No reply state changes to commit."
+          else
+            git commit -m "chore: update processed Slack replies"
+            git push
+          fi
+
+      - name: Trigger scraper refresh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run scrape.yml

@@ -1,0 +1,42 @@
+name: Post Slack Daily Digest
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '5 13 * * *'
+
+permissions:
+  contents: write
+
+jobs:
+  post-digest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Post digest thread
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+        run: python slack_notifier.py
+
+      - name: Commit digest metadata
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/data/slack_digest_meta.json
+          if git diff --cached --quiet; then
+            echo "No metadata changes to commit."
+          else
+            git commit -m "chore: update slack digest metadata"
+            git push
+          fi

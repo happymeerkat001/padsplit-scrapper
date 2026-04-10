@@ -1,0 +1,49 @@
+name: Firestore Status Monitor
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '7,22,37,52 * * * *'
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  monitor-firestore:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Process Firestore status changes
+        env:
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+          PADSPLIT_EMAIL: ${{ secrets.PADSPLIT_EMAIL }}
+          PADSPLIT_PASSWORD: ${{ secrets.PADSPLIT_PASSWORD }}
+        run: python firestore_status_monitor.py
+
+      - name: Commit Firestore processing state
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/data/processed_firestore_docs.json
+          if git diff --cached --quiet; then
+            echo "No Firestore state changes to commit."
+          else
+            git commit -m "chore: update processed Firestore docs"
+            git push
+          fi
+
+      - name: Trigger scraper refresh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run scrape.yml

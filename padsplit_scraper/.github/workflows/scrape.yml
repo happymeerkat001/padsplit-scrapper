@@ -1,0 +1,47 @@
+name: Scrape PadSplit
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 * * * *'
+
+permissions:
+  contents: write
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run scraper
+        env:
+          PADSPLIT_EMAIL: ${{ secrets.PADSPLIT_EMAIL }}
+          PADSPLIT_PASSWORD: ${{ secrets.PADSPLIT_PASSWORD }}
+        run: python scraper.py
+
+      - name: Publish latest JSON for dashboard
+        run: |
+          mkdir -p docs/data
+          cp output/latest.json docs/data/latest.json
+
+      - name: Commit data files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/data/latest.json output/latest.json
+          if git diff --cached --quiet; then
+            echo "No data changes to commit."
+          else
+            git commit -m "chore: update scraped data"
+            git push
+          fi
