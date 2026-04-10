@@ -617,7 +617,7 @@ def run(messages_only: bool = False) -> None:
                 "outdated.\n\n" + payload_string
             )
 
-        minimax_api_key = os.getenv("MINIMAX_API_KEY")
+        minimax_api_key = (os.getenv("MINIMAX_API_KEY") or "").strip()
         if not minimax_api_key:
             sys.exit("Missing MINIMAX_API_KEY in environment/.env")
 
