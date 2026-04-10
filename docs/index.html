@@ -263,11 +263,16 @@
           controls.className = 'chat-controls';
           controls.innerHTML = `
             <select data-role>
-              <option value="Owner">Owner</option>
-              <option value="Manager">Manager</option>
-              <option value="Repairman">Repairman</option>
+              <option value="Don">Don</option>
+              <option value="Repairman #1">Repairman #1</option>
+              <option value="Repairman #2">Repairman #2</option>
             </select>
-            <input data-msg placeholder="Type a message" />
+            <select data-status>
+              <option value="Done">Done</option>
+              <option value="In Process">In Process</option>
+              <option value="Can't get to it for a bit...">Can't get to it for a bit...</option>
+            </select>
+            <input data-msg placeholder="Message" />
             <button data-send>Send</button>
           `;
           const messagesDiv = document.createElement('div');
@@ -280,6 +285,7 @@
 
           sendBtn.addEventListener('click', async () => {
             const role = controls.querySelector('[data-role]').value;
+            const status = controls.querySelector('[data-status]').value;
             const text = msgInput.value.trim();
             if (!text) return;
             sendBtn.disabled = true;
@@ -287,6 +293,7 @@
               await addDoc(collection(db, "task_messages"), {
                 taskId,
                 role,
+                status,
                 text,
                 created: serverTimestamp(),
               });
@@ -418,12 +425,14 @@
           const data = change.doc.data();
           const container = taskMessageContainers.get(data.taskId);
           if (!container) return;
-          const roleClass = data.role === "Manager" ? "role-manager" : data.role === "Repairman" ? "role-repairman" : "role-owner";
+          const roleClass = data.role === "Repairman #1" ? "role-repairman"
+                         : data.role === "Repairman #2" ? "role-repairman"
+                         : "role-owner";
           const created = data.created?.toDate ? data.created.toDate() : data.created;
           const msgDiv = document.createElement('div');
           msgDiv.className = `chat-msg ${roleClass}`;
           msgDiv.innerHTML = `
-            <div><strong>${data.role || 'Role'}:</strong> ${data.text || ''}</div>
+            <div><strong>${data.role || 'Role'}${data.status ? ` [${data.status}]` : ''}:</strong> ${data.text || ''}</div>
             <div class="msg-meta">${created ? fmtDate(created) : ''}</div>
           `;
           container.appendChild(msgDiv);
