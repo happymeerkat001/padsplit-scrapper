@@ -42,6 +42,20 @@
       font-size: 0.9rem;
     }
     .muted { color: var(--muted); font-size: 0.95rem; }
+    .header-meta {
+      margin-left: auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.75rem;
+    }
+    .header-link {
+      color: var(--muted);
+      text-decoration: underline;
+      font-size: 0.95rem;
+    }
+    .header-link:hover { color: var(--accent); }
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -145,8 +159,11 @@
 <body>
   <header>
     <h1>PadSplit Dashboard</h1>
-    <span class="pill" id="last-updated">Loading…</span>
-    <span class="muted" id="refresh-info">Auto-refresh in 300s</span>
+    <div class="header-meta">
+      <span class="pill" id="last-updated">Loading…</span>
+      <span class="muted" id="refresh-info">Auto-refresh in 300s</span>
+      <a href="./private-messages.html" class="header-link">Tenant Messages</a>
+    </div>
   </header>
 
   <div id="content">
@@ -163,7 +180,6 @@
 
   <footer>
     Data auto-refreshes every 5 minutes from <code>padsplit_scraper/output/latest.json</code>. Pages is public; repo history stays private.
-    <div style="margin-top:0.5rem; font-size:0.9rem;"><a href="./private-messages.html" style="color:#94a3b8; text-decoration:underline;">Message Archive</a></div>
   </footer>
 
   <script type="module">
