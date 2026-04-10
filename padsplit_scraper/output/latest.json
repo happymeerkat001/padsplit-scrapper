@@ -1,6 +1,399 @@
 {
-  "scraped_at": "2026-04-10T05:08:53Z",
+  "scraped_at": "2026-04-10T07:01:21Z",
   "messages": [
+    {
+      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6Mjg3MjYy",
+      "title": "Mike Bouwens",
+      "chatType": "HOST_SUPPORT_CHAT",
+      "isArchived": false,
+      "occupancy": {
+        "moveInDate": "2026-02-25",
+        "moveOutDate": null,
+        "conditionalEligibilityApplied": null,
+        "room": {
+          "pk": 82572,
+          "roomNumber": 2
+        },
+        "user": {
+          "picture": "img/profiles/user_552038_3140b797-0af1-4958-a1f9-50e3016a0c88.jpg",
+          "firstName": "Michael",
+          "lastName": "Bouwens",
+          "displayName": "Mike"
+        }
+      },
+      "property": {
+        "host": {
+          "firstName": "Ang",
+          "lastName": "Li",
+          "displayName": "Cyndy Manager",
+          "picture": ""
+        },
+        "description": "Your new home awaits! This comfortable Fort Worth home is waiting for you. This PadSplit has a Backyard, and it\u2019s newly-renovated and homey.\n\nThe kitchen comes equipped with a fridge, sink, oven, stovetop, as well as upgraded appliances.\n\nThe neighbourhood is near highways, which means you won\u2019t be far from all Fort Worth has to offer.",
+        "address": {
+          "street1": "5509 Burton Avenue",
+          "street2": "",
+          "zip": "76119",
+          "city": {
+            "name": "Fort Worth",
+            "state": {
+              "name": "Texas"
+            }
+          }
+        }
+      },
+      "isCancelled": false,
+      "lastMessage": {
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODQxOTYxNA==",
+        "created": "2026-04-10T05:40:57.503107",
+        "text": null,
+        "deleted": null,
+        "extra": null,
+        "messageType": "TICKET_RATING",
+        "sender": {
+          "pk": 318367,
+          "firstName": "Ang",
+          "lastName": "Li",
+          "displayName": "Cyndy Manager"
+        },
+        "attachments": [],
+        "paymentExtensionStatus": null,
+        "ticketStatus": {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czo4OTg3MzQ=",
+          "created": "2026-04-10T05:40:57.508497",
+          "status": "COMPLETED",
+          "canRate": false,
+          "ticket": {
+            "id": "380483",
+            "author": {
+              "firstName": "Michael",
+              "lastName": "Bouwens",
+              "id": "552038",
+              "displayName": "Mike"
+            },
+            "details": "My bedroom door isn't closing properly it does close but I gotta force it and it makes a loud bang when I do. I'm in room 2",
+            "location": "OTHER",
+            "status": "COMPLETED",
+            "rating": "A_5",
+            "comment": null,
+            "category": "UNCLASSIFIED",
+            "onHoldReason": null,
+            "withdrawReason": null
+          }
+        },
+        "bookingStatus": null
+      },
+      "member": {
+        "seenAt": "2026-04-09T20:18:04.687305",
+        "isPinned": false,
+        "isUnread": false
+      },
+      "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODQxOTYxNA==",
+          "text": null,
+          "created": "2026-04-10T05:40:57.503107",
+          "messageType": "TICKET_RATING",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czo4OTg3MzQ=",
+            "created": "2026-04-10T05:40:57.508497",
+            "status": "COMPLETED",
+            "canRate": false,
+            "ticket": {
+              "id": "380483",
+              "author": {
+                "firstName": "Michael",
+                "lastName": "Bouwens",
+                "id": "552038",
+                "displayName": "Mike"
+              },
+              "details": "My bedroom door isn't closing properly it does close but I gotta force it and it makes a loud bang when I do. I'm in room 2",
+              "location": "OTHER",
+              "status": "COMPLETED",
+              "rating": "A_5",
+              "comment": null,
+              "category": "UNCLASSIFIED",
+              "onHoldReason": null,
+              "withdrawReason": null
+            }
+          },
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODQxMjUzMg==",
+          "text": null,
+          "created": "2026-04-09T20:47:00.350313",
+          "messageType": "TICKET_UPDATE",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czo4OTgzMjg=",
+            "created": "2026-04-09T20:47:00.358622",
+            "status": "COMPLETED",
+            "canRate": false,
+            "ticket": {
+              "id": "380483",
+              "author": {
+                "firstName": "Michael",
+                "lastName": "Bouwens",
+                "id": "552038",
+                "displayName": "Mike"
+              },
+              "details": "My bedroom door isn't closing properly it does close but I gotta force it and it makes a loud bang when I do. I'm in room 2",
+              "location": "OTHER",
+              "status": "COMPLETED",
+              "rating": "A_5",
+              "comment": null,
+              "category": "UNCLASSIFIED",
+              "onHoldReason": null,
+              "withdrawReason": null
+            }
+          },
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODQxMTkwMA==",
+          "text": "That\u2019s great to hear",
+          "created": "2026-04-09T20:18:01.885932",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODQxMTY4MA==",
+          "text": "Hi cyndy I forgot to tell u my bedroom door has been fixed I think they came when I was on vacation ",
+          "created": "2026-04-09T20:10:15.135678",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjU1MjAzOA==",
+            "pk": 552038,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_552038_3140b797-0af1-4958-a1f9-50e3016a0c88.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_552038_3140b797-0af1-4958-a1f9-50e3016a0c88.jpg",
+            "firstName": "Michael",
+            "lastName": "Bouwens",
+            "isActive": true,
+            "displayName": "Mike",
+            "padmateProfileId": 489797
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODI1MzI2Mw==",
+          "text": "Your welcome",
+          "created": "2026-03-31T23:51:38.542528",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODI1MzE1Ng==",
+          "text": "I did they told me what to do thanks cyndy",
+          "created": "2026-03-31T23:44:41.681272",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjU1MjAzOA==",
+            "pk": 552038,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_552038_3140b797-0af1-4958-a1f9-50e3016a0c88.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_552038_3140b797-0af1-4958-a1f9-50e3016a0c88.jpg",
+            "firstName": "Michael",
+            "lastName": "Bouwens",
+            "isActive": true,
+            "displayName": "Mike",
+            "padmateProfileId": 489797
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODI1MzA5NQ==",
+          "text": "Alright Mike. For change of date just contact padsplit and they would give you a possible solution to it",
+          "created": "2026-03-31T23:42:17.202060",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODI1MTE5Ng==",
+          "text": "Ok cyndy I got paid a few seconds ago I'll make my rent payment when I get home I'm still at the airport",
+          "created": "2026-03-31T21:55:58.125193",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjU1MjAzOA==",
+            "pk": 552038,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_552038_3140b797-0af1-4958-a1f9-50e3016a0c88.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_552038_3140b797-0af1-4958-a1f9-50e3016a0c88.jpg",
+            "firstName": "Michael",
+            "lastName": "Bouwens",
+            "isActive": true,
+            "displayName": "Mike",
+            "padmateProfileId": 489797
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODI0NTA2MQ==",
+          "text": "Hi cyndy i wanted to let u know I receive my SSI check on the first of the month and I thought I was able to change my dues date but when I went in my account earlier today it wouldn't let me change my due date it said I have to have a 0 balance owed so am I not allowed to change my date or do I have to change it once I pay my weekly dues\n",
+          "created": "2026-03-31T17:45:52.408042",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjU1MjAzOA==",
+            "pk": 552038,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_552038_3140b797-0af1-4958-a1f9-50e3016a0c88.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_552038_3140b797-0af1-4958-a1f9-50e3016a0c88.jpg",
+            "firstName": "Michael",
+            "lastName": "Bouwens",
+            "isActive": true,
+            "displayName": "Mike",
+            "padmateProfileId": 489797
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODA2NjYzMQ==",
+          "text": "No you dont",
+          "created": "2026-03-20T23:25:33.367552",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        }
+      ]
+    },
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MTgxODgx",
       "title": "Marion Anderson",
@@ -4272,377 +4665,6 @@
               "withdrawReason": null
             }
           },
-          "bookingStatus": null
-        }
-      ]
-    },
-    {
-      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6Mjg3MjYy",
-      "title": "Mike Bouwens",
-      "chatType": "HOST_SUPPORT_CHAT",
-      "isArchived": false,
-      "occupancy": {
-        "moveInDate": "2026-02-25",
-        "moveOutDate": null,
-        "conditionalEligibilityApplied": null,
-        "room": {
-          "pk": 82572,
-          "roomNumber": 2
-        },
-        "user": {
-          "picture": "img/profiles/user_552038_3140b797-0af1-4958-a1f9-50e3016a0c88.jpg",
-          "firstName": "Michael",
-          "lastName": "Bouwens",
-          "displayName": "Mike"
-        }
-      },
-      "property": {
-        "host": {
-          "firstName": "Ang",
-          "lastName": "Li",
-          "displayName": "Cyndy Manager",
-          "picture": ""
-        },
-        "description": "Your new home awaits! This comfortable Fort Worth home is waiting for you. This PadSplit has a Backyard, and it\u2019s newly-renovated and homey.\n\nThe kitchen comes equipped with a fridge, sink, oven, stovetop, as well as upgraded appliances.\n\nThe neighbourhood is near highways, which means you won\u2019t be far from all Fort Worth has to offer.",
-        "address": {
-          "street1": "5509 Burton Avenue",
-          "street2": "",
-          "zip": "76119",
-          "city": {
-            "name": "Fort Worth",
-            "state": {
-              "name": "Texas"
-            }
-          }
-        }
-      },
-      "isCancelled": false,
-      "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODQxMjUzMg==",
-        "created": "2026-04-09T20:47:00.350313",
-        "text": null,
-        "deleted": null,
-        "extra": null,
-        "messageType": "TICKET_UPDATE",
-        "sender": {
-          "pk": 318367,
-          "firstName": "Ang",
-          "lastName": "Li",
-          "displayName": "Cyndy Manager"
-        },
-        "attachments": [],
-        "paymentExtensionStatus": null,
-        "ticketStatus": {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czo4OTgzMjg=",
-          "created": "2026-04-09T20:47:00.358622",
-          "status": "COMPLETED",
-          "canRate": false,
-          "ticket": {
-            "id": "380483",
-            "author": {
-              "firstName": "Michael",
-              "lastName": "Bouwens",
-              "id": "552038",
-              "displayName": "Mike"
-            },
-            "details": "My bedroom door isn't closing properly it does close but I gotta force it and it makes a loud bang when I do. I'm in room 2",
-            "location": "OTHER",
-            "status": "COMPLETED",
-            "rating": null,
-            "comment": null,
-            "category": "UNCLASSIFIED",
-            "onHoldReason": null,
-            "withdrawReason": null
-          }
-        },
-        "bookingStatus": null
-      },
-      "member": {
-        "seenAt": "2026-04-09T20:18:04.687305",
-        "isPinned": false,
-        "isUnread": false
-      },
-      "recent_messages": [
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODQxMjUzMg==",
-          "text": null,
-          "created": "2026-04-09T20:47:00.350313",
-          "messageType": "TICKET_UPDATE",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": {
-            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czo4OTgzMjg=",
-            "created": "2026-04-09T20:47:00.358622",
-            "status": "COMPLETED",
-            "canRate": false,
-            "ticket": {
-              "id": "380483",
-              "author": {
-                "firstName": "Michael",
-                "lastName": "Bouwens",
-                "id": "552038",
-                "displayName": "Mike"
-              },
-              "details": "My bedroom door isn't closing properly it does close but I gotta force it and it makes a loud bang when I do. I'm in room 2",
-              "location": "OTHER",
-              "status": "COMPLETED",
-              "rating": null,
-              "comment": null,
-              "category": "UNCLASSIFIED",
-              "onHoldReason": null,
-              "withdrawReason": null
-            }
-          },
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODQxMTkwMA==",
-          "text": "That\u2019s great to hear",
-          "created": "2026-04-09T20:18:01.885932",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODQxMTY4MA==",
-          "text": "Hi cyndy I forgot to tell u my bedroom door has been fixed I think they came when I was on vacation ",
-          "created": "2026-04-09T20:10:15.135678",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjU1MjAzOA==",
-            "pk": 552038,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_552038_3140b797-0af1-4958-a1f9-50e3016a0c88.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_552038_3140b797-0af1-4958-a1f9-50e3016a0c88.jpg",
-            "firstName": "Michael",
-            "lastName": "Bouwens",
-            "isActive": true,
-            "displayName": "Mike",
-            "padmateProfileId": 489797
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODI1MzI2Mw==",
-          "text": "Your welcome",
-          "created": "2026-03-31T23:51:38.542528",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODI1MzE1Ng==",
-          "text": "I did they told me what to do thanks cyndy",
-          "created": "2026-03-31T23:44:41.681272",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjU1MjAzOA==",
-            "pk": 552038,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_552038_3140b797-0af1-4958-a1f9-50e3016a0c88.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_552038_3140b797-0af1-4958-a1f9-50e3016a0c88.jpg",
-            "firstName": "Michael",
-            "lastName": "Bouwens",
-            "isActive": true,
-            "displayName": "Mike",
-            "padmateProfileId": 489797
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODI1MzA5NQ==",
-          "text": "Alright Mike. For change of date just contact padsplit and they would give you a possible solution to it",
-          "created": "2026-03-31T23:42:17.202060",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODI1MTE5Ng==",
-          "text": "Ok cyndy I got paid a few seconds ago I'll make my rent payment when I get home I'm still at the airport",
-          "created": "2026-03-31T21:55:58.125193",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjU1MjAzOA==",
-            "pk": 552038,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_552038_3140b797-0af1-4958-a1f9-50e3016a0c88.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_552038_3140b797-0af1-4958-a1f9-50e3016a0c88.jpg",
-            "firstName": "Michael",
-            "lastName": "Bouwens",
-            "isActive": true,
-            "displayName": "Mike",
-            "padmateProfileId": 489797
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODI0NTA2MQ==",
-          "text": "Hi cyndy i wanted to let u know I receive my SSI check on the first of the month and I thought I was able to change my dues date but when I went in my account earlier today it wouldn't let me change my due date it said I have to have a 0 balance owed so am I not allowed to change my date or do I have to change it once I pay my weekly dues\n",
-          "created": "2026-03-31T17:45:52.408042",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjU1MjAzOA==",
-            "pk": 552038,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_552038_3140b797-0af1-4958-a1f9-50e3016a0c88.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_552038_3140b797-0af1-4958-a1f9-50e3016a0c88.jpg",
-            "firstName": "Michael",
-            "lastName": "Bouwens",
-            "isActive": true,
-            "displayName": "Mike",
-            "padmateProfileId": 489797
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODA2NjYzMQ==",
-          "text": "No you dont",
-          "created": "2026-03-20T23:25:33.367552",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODA2MTY0OQ==",
-          "text": "Ok thanks I'm going to Massachusetts for a week on Mon I don't gotta be there do I ",
-          "created": "2026-03-20T18:39:41.474816",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjU1MjAzOA==",
-            "pk": 552038,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_552038_3140b797-0af1-4958-a1f9-50e3016a0c88.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_552038_3140b797-0af1-4958-a1f9-50e3016a0c88.jpg",
-            "firstName": "Michael",
-            "lastName": "Bouwens",
-            "isActive": true,
-            "displayName": "Mike",
-            "padmateProfileId": 489797
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
           "bookingStatus": null
         }
       ]
@@ -11328,6 +11350,47 @@
     ],
     "Complete": [
       {
+        "id": 380483,
+        "status": "completed",
+        "comment": null,
+        "category": "unclassified",
+        "media": [],
+        "created": "2026-03-11T18:11:56.929304",
+        "modified": "2026-04-10T05:40:57.477188",
+        "room_name": "",
+        "room_number": 2,
+        "room_status": 1,
+        "room_code": "242424",
+        "location": "Other",
+        "details": "My bedroom door isn't closing properly it does close but I gotta force it and it makes a loud bang when I do. I'm in room 2",
+        "property_id": 24516,
+        "property_address": {
+          "id": 33032,
+          "street1": "5509 Burton Avenue",
+          "street2": "",
+          "city": "Fort Worth",
+          "state": "TX",
+          "zip": "76119",
+          "city_slug": "fort-worth-tx"
+        },
+        "reported_by": {
+          "id": 552038,
+          "name": "Mike",
+          "role_id": 0,
+          "picture": "img/profiles/user_552038_3140b797-0af1-4958-a1f9-50e3016a0c88.jpg"
+        },
+        "assigned_to": null,
+        "on_hold_reason": null,
+        "update_status_at": "2026-04-09T20:47:00.312055",
+        "rating": 5,
+        "extra_data": {
+          "checklist": {}
+        },
+        "has_reused_code": true,
+        "moveout_photos_count": 0,
+        "days_to_complete": null
+      },
+      {
         "id": 393580,
         "status": "completed",
         "comment": null,
@@ -11361,47 +11424,6 @@
         "on_hold_reason": null,
         "update_status_at": "2026-04-09T20:44:55.839421",
         "rating": 5,
-        "extra_data": {
-          "checklist": {}
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null
-      },
-      {
-        "id": 380483,
-        "status": "completed",
-        "comment": null,
-        "category": "unclassified",
-        "media": [],
-        "created": "2026-03-11T18:11:56.929304",
-        "modified": "2026-04-09T20:47:00.319927",
-        "room_name": "",
-        "room_number": 2,
-        "room_status": 1,
-        "room_code": "242424",
-        "location": "Other",
-        "details": "My bedroom door isn't closing properly it does close but I gotta force it and it makes a loud bang when I do. I'm in room 2",
-        "property_id": 24516,
-        "property_address": {
-          "id": 33032,
-          "street1": "5509 Burton Avenue",
-          "street2": "",
-          "city": "Fort Worth",
-          "state": "TX",
-          "zip": "76119",
-          "city_slug": "fort-worth-tx"
-        },
-        "reported_by": {
-          "id": 552038,
-          "name": "Mike",
-          "role_id": 0,
-          "picture": "img/profiles/user_552038_3140b797-0af1-4958-a1f9-50e3016a0c88.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-04-09T20:47:00.312055",
-        "rating": null,
         "extra_data": {
           "checklist": {}
         },
