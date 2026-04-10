@@ -2,7 +2,7 @@ name: Summarize Messages
 
 on:
   schedule:
-    - cron: '47 1,10,18 * * *'
+    - cron: '17 1,10,18 * * *'
   workflow_dispatch:
 
 jobs:
