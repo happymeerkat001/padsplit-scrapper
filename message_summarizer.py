@@ -18,7 +18,8 @@ DATA_PATH = Path(__file__).parent / "padsplit_scraper" / "output" / "latest.json
 PROMPT = (
     "Here is the latest PadSplit message data. Please summarize ONLY the most urgent "
     "tenant messages. CRITICAL: For every message you summarize, you MUST explicitly "
-    "state the date and time it was sent so I know if it is outdated.\n\n"
+    "state the date and time it was sent so I know if it is outdated. "
+    "Also include the tenant's room number (from occupancy.room.roomNumber) in each summary.\n\n"
 )
 
 

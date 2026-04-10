@@ -152,6 +152,8 @@
           msg.property?.address?.city?.name,
           msg.property?.address?.city?.state?.name,
         ].filter(Boolean).join(', ') || msg.property?.name || '—';
+      const roomNumber = msg.occupancy?.room?.roomNumber;
+      const addressLine = roomNumber != null ? `${address} — Room ${roomNumber}` : address;
       const card = document.createElement('div');
       card.className = 'card' + (unread ? ' unread' : '');
       card.innerHTML = `
@@ -159,7 +161,7 @@
           <span class="tenant-name">${tenantName.trim()}</span>
           ${unread ? '<span class="badge-unread">Unread</span>' : ''}
         </div>
-        <div class="address">${address}</div>
+        <div class="address">${addressLine}</div>
       `;
 
       const threadData = Array.isArray(msg.recent_messages) ? [...msg.recent_messages] : [];
@@ -209,7 +211,8 @@
         const name = (msg.title || '').toLowerCase();
         const addr = (msg.property?.address?.street1 || '').toLowerCase();
         const text = (msg.lastMessage?.text || msg.lastMessage?.body || '').toLowerCase();
-        return name.includes(q) || addr.includes(q) || text.includes(q);
+        const room = String(msg.occupancy?.room?.roomNumber ?? '');
+        return name.includes(q) || addr.includes(q) || text.includes(q) || room.includes(q);
       }));
     });
 
