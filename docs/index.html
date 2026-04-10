@@ -170,13 +170,16 @@
     <div class="loading">Fetching latest.json …</div>
   </div>
 
-  <div id="thermostat-section">
-    <div class="loading">Fetching thermostat data…</div>
-  </div>
+  <details open id="climate-section">
+    <summary><h2>Thermostats &amp; DFW Weather Forecast</h2></summary>
+    <div id="thermostat-section">
+      <div class="loading">Fetching thermostat data…</div>
+    </div>
 
-  <div id="weather-section">
-    <div class="loading">Fetching weather…</div>
-  </div>
+    <div id="weather-section">
+      <div class="loading">Fetching weather…</div>
+    </div>
+  </details>
 
   <footer>
     Data auto-refreshes every 5 minutes from <code>padsplit_scraper/output/latest.json</code>. Pages is public; repo history stays private.
@@ -228,11 +231,10 @@
       // Tasks
       const taskSection = document.createElement('div');
       taskSection.className = 'section';
-      const taskDetails = document.createElement('details');
-      taskDetails.open = true;
-      const taskSummary = document.createElement('summary');
-      taskSummary.innerHTML = '<h2>Tasks</h2>';
-      taskDetails.appendChild(taskSummary);
+      const taskDetails = document.createElement('div');
+      const taskHeader = document.createElement('h2');
+      taskHeader.textContent = 'Tasks';
+      taskDetails.appendChild(taskHeader);
       const tasks = data.tasks || {};
       Object.keys(tasks).forEach(bucket => {
         const bucketDiv = document.createElement('div');
@@ -319,13 +321,10 @@
 
       let html = `
         <div class="section">
-          <details open>
-            <summary>
-              <div class="flex-between" style="margin-bottom:0.75rem">
-                <h2>Thermostats</h2>
-                <span class="muted" style="font-size:0.85rem">Updated ${fmtDate(data.scraped_at)}</span>
-              </div>
-            </summary>
+          <div class="flex-between" style="margin-bottom:0.75rem">
+            <h2>Thermostats</h2>
+            <span class="muted" style="font-size:0.85rem">Updated ${fmtDate(data.scraped_at)}</span>
+          </div>
           <div class="card">
             <table>
               <thead>
@@ -354,7 +353,7 @@
                 </tr>`;
       });
 
-      html += `</tbody></table></div></details></div>`;
+      html += `</tbody></table></div></div>`;
       section.innerHTML = html;
     }
 
@@ -376,7 +375,6 @@
       });
       section.innerHTML = `
         <div class="section">
-          <h2>DFW Weather Forecast</h2>
           <div class="card">
             <div class="weather-row">${days.join('')}</div>
           </div>
