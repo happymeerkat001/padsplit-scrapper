@@ -24,6 +24,13 @@ commit_and_push() {
 
 echo "[$(date)] Starting afternoon run"
 
+# --- FIX: Pull remote changes BEFORE scraping ---
+echo "[$(date)] Syncing with GitHub..."
+set +e
+git -C "$WORKSPACE" pull --rebase
+set -e
+# ------------------------------------------------
+
 echo "[$(date)] Running PadSplit scraper (messages only)..."
 cd "$WORKSPACE/padsplit_scraper"
 "$VENV" scraper.py --messages-only
