@@ -34,6 +34,10 @@ echo "[$(date)] Running PadSplit scraper (messages + tasks)..."
 cd "$WORKSPACE/padsplit_scraper"
 "$VENV" scraper.py
 
+echo "[$(date)] Writing Obsidian daily digest..."
+cd "$WORKSPACE"
+"$VENV" obsidian_daily_digest.py
+
 echo "[$(date)] Morning run complete"
 
 commit_and_push "chore: morning data $(date -u +%Y-%m-%dT%H:%M:%SZ)"
