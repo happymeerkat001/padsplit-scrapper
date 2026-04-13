@@ -26,6 +26,13 @@ commit_and_push() {
 
 echo "[$(date)] Starting morning run"
 
+# --- FIX: Pull remote changes BEFORE scraping ---
+echo "[$(date)] Syncing with GitHub..."
+set +e
+git -C "$WORKSPACE" pull --rebase
+set -e
+# ------------------------------------------------
+
 echo "[$(date)] Running thermostat scraper..."
 cd "$WORKSPACE/thermostat"
 "$VENV" scraper.py
