@@ -129,27 +129,32 @@
 
   <div class="grid" id="templates-grid"></div>
 
-  <script>
-    const STORAGE_KEY = 'padsplit_templates';
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCSWOHI6QLqugy_Fao2p4bBehg02_fu3No",
+      authDomain: "padsplit-scrapper.firebaseapp.com",
+      projectId: "padsplit-scrapper",
+      storageBucket: "padsplit-scrapper.firebasestorage.app",
+      messagingSenderId: "281696703679",
+      appId: "1:281696703679:web:f94ba04e92cb43b4f9a20a"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const TEMPLATE_DOC = doc(db, "templates", "shared");
     const COUNT = 10;
 
-    function load() {
-      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-      return Array.from({ length: COUNT }, (_, i) => saved[i] ?? '');
-    }
+    const textareas = [];
 
-    function save(index, value) {
-      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-      saved[index] = value;
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
-    }
-
-    function render() {
-      const values = load();
+    function buildGrid() {
       const grid = document.getElementById('templates-grid');
       grid.innerHTML = '';
+      textareas.length = 0;
 
-      values.forEach((text, i) => {
+      for (let i = 0; i < COUNT; i++) {
         const card = document.createElement('div');
         card.className = 'template-card';
 
@@ -158,8 +163,8 @@
         label.textContent = `Template ${i + 1}`;
 
         const textarea = document.createElement('textarea');
-        textarea.value = text;
         textarea.placeholder = `Template ${i + 1}…`;
+        textareas.push(textarea);
 
         const footer = document.createElement('div');
         footer.className = 'card-footer';
@@ -167,10 +172,18 @@
         const saveBtn = document.createElement('button');
         saveBtn.className = 'save-btn';
         saveBtn.textContent = 'Save';
-        saveBtn.addEventListener('click', () => {
-          save(i, textarea.value);
-          saveBtn.textContent = 'Saved!';
-          setTimeout(() => { saveBtn.textContent = 'Save'; }, 1500);
+        saveBtn.addEventListener('click', async () => {
+          saveBtn.textContent = 'Saving…';
+          saveBtn.disabled = true;
+          try {
+            const update = {};
+            update[`t${i}`] = textarea.value;
+            await setDoc(TEMPLATE_DOC, update, { merge: true });
+            saveBtn.textContent = 'Saved!';
+          } catch (e) {
+            saveBtn.textContent = 'Error';
+          }
+          setTimeout(() => { saveBtn.textContent = 'Save'; saveBtn.disabled = false; }, 1500);
         });
 
         const copyBtn = document.createElement('button');
@@ -190,10 +203,21 @@
         card.appendChild(textarea);
         card.appendChild(footer);
         grid.appendChild(card);
-      });
+      }
     }
 
-    render();
+    buildGrid();
+
+    // Real-time sync from Firestore
+    onSnapshot(TEMPLATE_DOC, (snap) => {
+      const data = snap.exists() ? snap.data() : {};
+      textareas.forEach((ta, i) => {
+        // Only update if not focused (don't clobber user mid-edit)
+        if (document.activeElement !== ta) {
+          ta.value = data[`t${i}`] ?? '';
+        }
+      });
+    });
   </script>
 </body>
 </html>
