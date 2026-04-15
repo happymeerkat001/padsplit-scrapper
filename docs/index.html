@@ -218,6 +218,9 @@
     let counter = REFRESH_SEC;
     const refreshInfo = document.getElementById('refresh-info');
     const taskMessageContainers = new Map();
+    const manualTaskRows = new Map();
+    let manualTasksDiv = null;
+    let manualCountBadge = null;
 
     setInterval(() => {
       counter -= 1;
@@ -234,8 +237,87 @@
       return isNaN(d.getTime()) ? s : d.toLocaleString();
     }
 
+    function buildTaskChatBox(taskId) {
+      const chatBox = document.createElement('div');
+      chatBox.className = 'chat-box';
+      const controls = document.createElement('div');
+      controls.className = 'chat-controls';
+      controls.innerHTML = `
+        <select data-role>
+          <option value="Don">Don</option>
+          <option value="Repairman #1">Repairman #1</option>
+          <option value="Repairman #2">Repairman #2</option>
+          <option value="Owner">Owner</option>
+          <option value="Manager">Manager</option>
+        </select>
+        <select data-status>
+          <option value="Done">Done</option>
+          <option value="In Process">In Process</option>
+          <option value="Can't get to it for a bit...">Can't get to it for a bit...</option>
+        </select>
+        <input data-msg placeholder="Message" />
+        <button data-send>Post</button>
+      `;
+      const messagesDiv = document.createElement('div');
+      messagesDiv.className = 'chat-messages';
+      messagesDiv.dataset.taskId = taskId;
+      taskMessageContainers.set(taskId, messagesDiv);
+
+      const sendBtn = controls.querySelector('[data-send]');
+      const msgInput = controls.querySelector('[data-msg]');
+
+      sendBtn.addEventListener('click', async () => {
+        const role = controls.querySelector('[data-role]').value;
+        const status = controls.querySelector('[data-status]').value;
+        const text = msgInput.value.trim();
+        sendBtn.disabled = true;
+        try {
+          await addDoc(collection(db, "task_messages"), {
+            taskId,
+            role,
+            status,
+            text,
+            created: serverTimestamp(),
+          });
+          msgInput.value = "";
+        } catch (err) {
+          console.error("Failed to send message", err);
+          alert("Failed to send message");
+        } finally {
+          sendBtn.disabled = false;
+        }
+      });
+
+      chatBox.appendChild(controls);
+      chatBox.appendChild(messagesDiv);
+      return chatBox;
+    }
+
+    function buildManualTaskRow(taskId, d) {
+      const row = document.createElement('div');
+      row.style.marginTop = '0.5rem';
+      row.dataset.taskId = taskId;
+      row.innerHTML = `
+        <div class="flex-between">
+          <div class="status">${d.who || 'Task'}</div>
+          <span class="chip">${d.source || 'Other'}</span>
+        </div>
+        <div class="muted">${d.notes || 'No details'}</div>
+      `;
+      row.appendChild(buildTaskChatBox(taskId));
+      return row;
+    }
+
+    function updateManualBadgeCount() {
+      if (!manualCountBadge) return;
+      manualCountBadge.textContent = manualTaskRows.size;
+    }
+
     function render(data) {
       const root = document.createElement('div');
+      taskMessageContainers.clear();
+      manualTasksDiv = null;
+      manualCountBadge = null;
 
       // Header info
       const last = document.getElementById('last-updated');
@@ -269,63 +351,73 @@
             </div>
           `;
 
-          const chatBox = document.createElement('div');
-          chatBox.className = 'chat-box';
-          const controls = document.createElement('div');
-          controls.className = 'chat-controls';
-          controls.innerHTML = `
-            <select data-role>
-              <option value="Don">Don</option>
-              <option value="Repairman #1">Repairman #1</option>
-              <option value="Repairman #2">Repairman #2</option>
-              <option value="Owner">Owner</option>
-              <option value="Manager">Manager</option>
-            </select>
-            <select data-status>
-              <option value="Done">Done</option>
-              <option value="In Process">In Process</option>
-              <option value="Can't get to it for a bit...">Can't get to it for a bit...</option>
-            </select>
-            <input data-msg placeholder="Message" />
-            <button data-send>Post</button>
-          `;
-          const messagesDiv = document.createElement('div');
-          messagesDiv.className = 'chat-messages';
-          messagesDiv.dataset.taskId = taskId;
-          taskMessageContainers.set(taskId, messagesDiv);
-
-          const sendBtn = controls.querySelector('[data-send]');
-          const msgInput = controls.querySelector('[data-msg]');
-
-          sendBtn.addEventListener('click', async () => {
-            const role = controls.querySelector('[data-role]').value;
-            const status = controls.querySelector('[data-status]').value;
-            const text = msgInput.value.trim();
-            sendBtn.disabled = true;
-            try {
-              await addDoc(collection(db, "task_messages"), {
-                taskId,
-                role,
-                status,
-                text,
-                created: serverTimestamp(),
-              });
-              msgInput.value = "";
-            } catch (err) {
-              console.error("Failed to send message", err);
-              alert("Failed to send message");
-            } finally {
-              sendBtn.disabled = false;
-            }
-          });
-
-          chatBox.appendChild(controls);
-          chatBox.appendChild(messagesDiv);
-          row.appendChild(chatBox);
+          row.appendChild(buildTaskChatBox(taskId));
           bucketDiv.appendChild(row);
         });
         taskDetails.appendChild(bucketDiv);
       });
+
+      const manualBucketDiv = document.createElement('div');
+      manualBucketDiv.className = 'card';
+      manualBucketDiv.innerHTML = `<div class="flex-between"><h3>Manual</h3><span class="badge">0</span></div>`;
+      manualCountBadge = manualBucketDiv.querySelector('.badge');
+      manualTasksDiv = document.createElement('div');
+      manualBucketDiv.appendChild(manualTasksDiv);
+      manualTaskRows.forEach((row) => manualTasksDiv.appendChild(row));
+      updateManualBadgeCount();
+      taskDetails.appendChild(manualBucketDiv);
+
+      const addCard = document.createElement('div');
+      addCard.className = 'card';
+      addCard.style.marginTop = '1rem';
+      addCard.innerHTML = `
+        <div class="flex-between">
+          <h3>Add Task</h3>
+        </div>
+        <div class="chat-box">
+          <div class="chat-controls">
+            <select data-who>
+              <option>Don</option>
+              <option>Repairman #1</option>
+              <option>Repairman #2</option>
+              <option>Owner</option>
+              <option>Manager</option>
+            </select>
+            <select data-source>
+              <option>Chat</option>
+              <option>In-Person</option>
+              <option>Other</option>
+            </select>
+            <input data-notes placeholder="Notes" style="flex:1" />
+            <button data-add>Add</button>
+          </div>
+        </div>
+      `;
+      const addBtn = addCard.querySelector('[data-add]');
+      const notesInput = addCard.querySelector('[data-notes]');
+      addBtn.addEventListener('click', async () => {
+        const who = addCard.querySelector('[data-who]').value;
+        const source = addCard.querySelector('[data-source]').value;
+        const notes = notesInput.value.trim();
+        if (!notes) return;
+        addBtn.disabled = true;
+        try {
+          await addDoc(collection(db, "manual_tasks"), {
+            who,
+            source,
+            notes,
+            created: serverTimestamp(),
+          });
+          notesInput.value = "";
+        } catch (err) {
+          console.error("Failed to add manual task", err);
+          alert("Failed to add task");
+        } finally {
+          addBtn.disabled = false;
+        }
+      });
+      taskDetails.appendChild(addCard);
+
       taskSection.appendChild(taskDetails);
       root.appendChild(taskSection);
 
@@ -461,6 +553,31 @@
           });
           container.appendChild(msgDiv);
           container.scrollTop = container.scrollHeight;
+        }
+      });
+    });
+
+    const manualQ = query(collection(db, "manual_tasks"), orderBy("created", "asc"));
+    onSnapshot(manualQ, (snapshot) => {
+      snapshot.docChanges().forEach(change => {
+        const taskId = change.doc.id;
+        if (change.type === "added") {
+          const d = change.doc.data();
+          const existing = manualTaskRows.get(taskId);
+          if (existing) existing.remove();
+          const row = buildManualTaskRow(taskId, d);
+          manualTaskRows.set(taskId, row);
+          if (manualTasksDiv) {
+            manualTasksDiv.appendChild(row);
+            updateManualBadgeCount();
+          }
+        }
+        if (change.type === "removed") {
+          const existing = manualTaskRows.get(taskId);
+          if (existing) existing.remove();
+          manualTaskRows.delete(taskId);
+          taskMessageContainers.delete(taskId);
+          updateManualBadgeCount();
         }
       });
     });
