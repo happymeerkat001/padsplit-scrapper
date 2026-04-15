@@ -1,0 +1,598 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PadSplit Codes</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --success: #22c55e;
+      --error: #f87171;
+      --text: #e2e8f0;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at 20% 20%, rgba(56,189,248,0.08), transparent 35%),
+                  radial-gradient(circle at 80% 0%, rgba(34,197,94,0.08), transparent 30%),
+                  var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem clamp(1rem, 4vw, 2.5rem);
+    }
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    h1 { margin: 0; font-size: 1.6rem; letter-spacing: 0.01em; }
+    .header-meta {
+      margin-left: auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .header-link {
+      color: var(--muted);
+      text-decoration: underline;
+      font-size: 0.95rem;
+    }
+    .header-link:hover { color: var(--accent); }
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00));
+      border: 1px solid rgba(148,163,184,0.2);
+      border-radius: 12px;
+      padding: 1rem;
+      box-shadow: 0 14px 40px rgba(15,23,42,0.4);
+    }
+    .muted { color: var(--muted); }
+    .error { color: var(--error); font-size: 0.9rem; }
+    .flex-between {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    details {
+      margin-top: 0.85rem;
+      border: 1px solid rgba(148,163,184,0.2);
+      border-radius: 10px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.015);
+    }
+    summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid rgba(148,163,184,0.14);
+      user-select: none;
+    }
+    summary::-webkit-details-marker { display: none; }
+    .property-title {
+      font-weight: 600;
+      font-size: 1rem;
+    }
+    .save-btn {
+      border: none;
+      border-radius: 8px;
+      background: var(--accent);
+      color: #0b1222;
+      font-weight: 700;
+      padding: 0.4rem 0.75rem;
+      cursor: pointer;
+      min-width: 86px;
+    }
+    .save-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .save-btn.saved {
+      background: var(--success);
+      color: #05220f;
+    }
+    .property-body {
+      padding: 0.85rem 1rem 1rem;
+    }
+    .section-label {
+      margin: 0.9rem 0 0.4rem;
+      color: var(--muted);
+      font-size: 0.86rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+      table-layout: fixed;
+    }
+    td {
+      padding: 0.35rem 0.45rem;
+      border-bottom: 1px solid rgba(148,163,184,0.08);
+      vertical-align: middle;
+    }
+    td:first-child {
+      width: 34%;
+      color: var(--muted);
+      font-weight: 500;
+    }
+    .code-input {
+      width: 100%;
+      background: #0b1222;
+      border: 1px solid rgba(148,163,184,0.35);
+      color: var(--text);
+      border-radius: 6px;
+      padding: 0.25rem 0.4rem;
+    }
+    #gate-wrap {
+      max-width: 430px;
+      margin: 12vh auto 0;
+    }
+    #app-wrap { max-width: 1200px; margin: 0 auto; }
+    .gate-title { margin-top: 0; margin-bottom: 0.35rem; }
+    .gate-form {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 0.8rem;
+    }
+    .gate-form input {
+      flex: 1;
+      min-width: 180px;
+      background: #0b1222;
+      border: 1px solid rgba(148,163,184,0.35);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 0.45rem 0.6rem;
+    }
+    .gate-form button {
+      border: none;
+      border-radius: 8px;
+      background: var(--accent);
+      color: #0b1222;
+      font-weight: 700;
+      padding: 0.45rem 0.9rem;
+      cursor: pointer;
+    }
+    .hidden { display: none; }
+    .shake {
+      animation: shake 240ms linear 2;
+    }
+    @keyframes shake {
+      0% { transform: translateX(0); }
+      25% { transform: translateX(-4px); }
+      50% { transform: translateX(4px); }
+      75% { transform: translateX(-4px); }
+      100% { transform: translateX(0); }
+    }
+  </style>
+</head>
+<body>
+  <div id="gate-wrap" class="card hidden">
+    <h2 class="gate-title">Codes Access</h2>
+    <div class="muted">Enter password to view and edit property codes.</div>
+    <form id="gate-form" class="gate-form">
+      <input id="gate-input" type="password" placeholder="Password" autocomplete="off" />
+      <button type="submit">Unlock</button>
+    </form>
+    <div id="gate-error" class="error hidden" style="margin-top:0.6rem">Incorrect password.</div>
+  </div>
+
+  <div id="app-wrap" class="hidden">
+    <header>
+      <h1>Property Codes</h1>
+      <div class="header-meta">
+        <a href="./index.html" class="header-link">Dashboard</a>
+        <a href="./templates.html" class="header-link">Templates</a>
+      </div>
+    </header>
+
+    <div class="card">
+      <div class="muted">Values in parentheses indicate known conflicting entries and can be edited.</div>
+      <div id="codes-list"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, setDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCSWOHI6QLqugy_Fao2p4bBehg02_fu3No",
+      authDomain: "padsplit-scrapper.firebaseapp.com",
+      projectId: "padsplit-scrapper",
+      storageBucket: "padsplit-scrapper.firebasestorage.app",
+      messagingSenderId: "281696703679",
+      appId: "1:281696703679:web:f94ba04e92cb43b4f9a20a"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const DEFAULTS = [
+      {
+        slug: "leana_6623",
+        address: "6623 Leana",
+        sections: [
+          { label: "Door Codes", fields: [
+            { key: "front_door", label: "Front Door", value: "3478" },
+            { key: "admin", label: "Admin", value: "662366" },
+            { key: "thermo", label: "Thermo", value: "3477" }
+          ]},
+          { label: "WiFi", fields: [
+            { key: "wifi_primary", label: "Spectrum", value: "SpectrumSetup-C1 / Unionerrand354" },
+            { key: "wifi_tmobile", label: "T-Mobile", value: "TMOBILE-14a / g4eaa7cugt5" }
+          ]},
+          { label: "Rooms", fields: [
+            { key: "r1", label: "R1", value: "2721" },
+            { key: "r2", label: "R2", value: "5410" },
+            { key: "r3", label: "R3", value: "1069" },
+            { key: "r4", label: "R4", value: "3414" },
+            { key: "r5", label: "R5", value: "7520" }
+          ]}
+        ]
+      },
+      {
+        slug: "sylvia_2516",
+        address: "2516 Sylvia",
+        sections: [
+          { label: "Door Codes", fields: [
+            { key: "front_door", label: "Front Door", value: "4306" },
+            { key: "thermo", label: "Thermo", value: "3476" }
+          ]},
+          { label: "WiFi", fields: [
+            { key: "wifi_primary", label: "WiFi", value: "TomLi / hduep3tkr77o (or hduep3tkrr77?)" },
+            { key: "wifi_tmobile", label: "T-Mobile", value: "TMOBILE-3FF9" }
+          ]},
+          { label: "Rooms", fields: [
+            { key: "r1", label: "R1", value: "7653" },
+            { key: "r2", label: "R2", value: "6512" },
+            { key: "r3", label: "R3", value: "1069" },
+            { key: "r4", label: "R4", value: "1304" },
+            { key: "r5", label: "R5", value: "5410" },
+            { key: "r6", label: "R6", value: "2024" }
+          ]}
+        ]
+      },
+      {
+        slug: "ridge_oak_10235",
+        address: "10235 Ridge Oak",
+        sections: [
+          { label: "Door Codes", fields: [
+            { key: "front_door", label: "Front", value: "4301" },
+            { key: "back_door", label: "Back", value: "4302" },
+            { key: "front_master", label: "Front Master", value: "174530" },
+            { key: "back_master", label: "Back Master", value: "373430" },
+            { key: "room_master", label: "Room Master", value: "102351" },
+            { key: "thermo", label: "Thermo", value: "3477" }
+          ]},
+          { label: "WiFi", fields: [
+            { key: "wifi_primary", label: "Spectrum", value: "SpectrumSetup-BEE8 / simplestate018" },
+            { key: "tenant_login", label: "Tenant Login", value: "TomLi / Lemming6623" }
+          ]},
+          { label: "Rooms", fields: [
+            { key: "r1", label: "R1", value: "6510" },
+            { key: "r2", label: "R2", value: "1304" },
+            { key: "r3", label: "R3", value: "7653" },
+            { key: "r4", label: "R4", value: "5410" },
+            { key: "r5", label: "R5", value: "1069" },
+            { key: "r6", label: "R6", value: "3414" }
+          ]}
+        ]
+      },
+      {
+        slug: "pebbleshores_3414",
+        address: "3414 Pebbleshores",
+        sections: [
+          { label: "Door Codes", fields: [
+            { key: "front_back", label: "Front/Back Door", value: "0961 (or 8338?)" },
+            { key: "outside_master", label: "Outside Master", value: "341434" },
+            { key: "room_master", label: "Room Master", value: "34143414" },
+            { key: "thermo", label: "Thermo", value: "3743" }
+          ]},
+          { label: "WiFi", fields: [
+            { key: "wifi_primary", label: "WiFi", value: "Tomli / Jilingma123" }
+          ]},
+          { label: "Rooms", fields: [
+            { key: "r1", label: "R1", value: "7845 (or 5613?)" },
+            { key: "r2", label: "R2", value: "4590" },
+            { key: "r3", label: "R3", value: "3506" },
+            { key: "r4", label: "R4", value: "1314" },
+            { key: "r5", label: "R5", value: "2398" },
+            { key: "r6", label: "R6", value: "6510" }
+          ]}
+        ]
+      },
+      {
+        slug: "greenhill_3406",
+        address: "3406 Greenhill",
+        sections: [
+          { label: "Door Codes", fields: [
+            { key: "front_door", label: "Front", value: "6530" },
+            { key: "thermo", label: "Thermo", value: "3739" }
+          ]},
+          { label: "WiFi", fields: [
+            { key: "wifi_tmobile", label: "T-Mobile", value: "T-Mobile9B46 / cp4x2gk3chf" },
+            { key: "wifi_alt", label: "Alt", value: "Tom3406 / greenhill3406" },
+            { key: "tmobile_line", label: "T-Mobile Line", value: "2144039718" }
+          ]},
+          { label: "Rooms", fields: [
+            { key: "r1", label: "R1", value: "1604" },
+            { key: "r2", label: "R2", value: "2406" },
+            { key: "r3", label: "R3", value: "3604" },
+            { key: "r4", label: "R4", value: "4406" },
+            { key: "r5", label: "R5", value: "5604" },
+            { key: "r6", label: "R6", value: "5006" },
+            { key: "r7", label: "R7", value: "7503" }
+          ]}
+        ]
+      },
+      {
+        slug: "parker_4351",
+        address: "4351 Parker Rd E, Haltom City",
+        sections: [
+          { label: "Door Codes", fields: [
+            { key: "front_door", label: "Front", value: "1670" },
+            { key: "back_door", label: "Back", value: "8464" }
+          ]},
+          { label: "WiFi", fields: [
+            { key: "wifi_primary", label: "Spectrum", value: "SpectrumSetup-35 / choicesystem718" }
+          ]},
+          { label: "Rooms", fields: [
+            { key: "r1", label: "R1", value: "1587" },
+            { key: "r2", label: "R2", value: "0411" },
+            { key: "r3", label: "R3", value: "9239" },
+            { key: "r4", label: "R4", value: "3454" },
+            { key: "r5", label: "R5", value: "2523" },
+            { key: "r6", label: "R6", value: "6584" },
+            { key: "r7", label: "R7", value: "9012" },
+            { key: "r8", label: "R8", value: "0629" }
+          ]},
+          { label: "Lockboxes", fields: [
+            { key: "lockbox_1", label: "1", value: "1244" },
+            { key: "lockbox_2", label: "2", value: "3344" },
+            { key: "lockbox_3", label: "3", value: "4011" },
+            { key: "lockbox_4", label: "4", value: "5312" },
+            { key: "lockbox_5", label: "5", value: "7233" },
+            { key: "lockbox_6", label: "6", value: "5168" },
+            { key: "lockbox_7", label: "7", value: "0228" },
+            { key: "lockbox_8", label: "8", value: "3211" }
+          ]}
+        ]
+      },
+      {
+        slug: "pioneer_1404",
+        address: "1404 Pioneer Lane",
+        sections: [
+          { label: "Door Codes", fields: [
+            { key: "front_door", label: "Front", value: "1371" },
+            { key: "back_door", label: "Back", value: "4194" }
+          ]},
+          { label: "WiFi", fields: [
+            { key: "wifi_primary", label: "Pioneer (Frontier)", value: "Pioneer (Frontier) / 9452413070" }
+          ]},
+          { label: "Rooms", fields: [
+            { key: "r1", label: "R1", value: "3450" },
+            { key: "r2", label: "R2", value: "9011" },
+            { key: "r3", label: "R3", value: "7712" },
+            { key: "r4", label: "R4", value: "0328 (or 1755?)" },
+            { key: "r5", label: "R5", value: "2846" },
+            { key: "r6", label: "R6", value: "8950" },
+            { key: "r7", label: "R7", value: "5252" }
+          ]},
+          { label: "Other", fields: [
+            { key: "keys_1", label: "Keys 1", value: "1111" },
+            { key: "keys_2", label: "Keys 2", value: "2010" },
+            { key: "keys_3", label: "Keys 3", value: "3111" },
+            { key: "keys_4", label: "Keys 4", value: "0400" },
+            { key: "keys_5", label: "Keys 5", value: "5115" },
+            { key: "keys_6", label: "Keys 6", value: "6330" },
+            { key: "keys_7", label: "Keys 7", value: "7222" }
+          ]}
+        ]
+      },
+      {
+        slug: "burton_5509",
+        address: "5509 Burton Ave, Fort Worth",
+        sections: [
+          { label: "Door Codes", fields: [
+            { key: "front_door", label: "Front", value: "4125" },
+            { key: "thermo", label: "Thermo", value: "3746 (or 3477?)" },
+            { key: "spectrum_code", label: "Spectrum Code", value: "4639" }
+          ]},
+          { label: "WiFi", fields: [
+            { key: "wifi_primary", label: "Spectrum", value: "SpectrumSetup-354C / parkingworth923" }
+          ]},
+          { label: "Rooms", fields: [
+            { key: "r1", label: "R1", value: "232323" },
+            { key: "r2", label: "R2", value: "242424" },
+            { key: "r3", label: "R3", value: "141414" },
+            { key: "r4", label: "R4", value: "456090" },
+            { key: "r5", label: "R5", value: "504530" },
+            { key: "r6", label: "R6", value: "313131" },
+            { key: "r7", label: "R7", value: "121212" }
+          ]},
+          { label: "Lockboxes", fields: [
+            { key: "lockbox_1", label: "1", value: "1100" },
+            { key: "lockbox_2", label: "2", value: "2110" },
+            { key: "lockbox_3", label: "3", value: "3000" },
+            { key: "lockbox_4", label: "4", value: "4321" },
+            { key: "lockbox_5", label: "5", value: "5220" },
+            { key: "lockbox_6", label: "6", value: "6111" },
+            { key: "lockbox_7", label: "7", value: "7222" }
+          ]}
+        ]
+      },
+      {
+        slug: "broken_crest_1025",
+        address: "1025 Broken Crest, Desoto",
+        sections: [
+          { label: "Door Codes", fields: [
+            { key: "front_door", label: "Front", value: "225577 (format: 22-55-77?)" },
+            { key: "thermo", label: "Thermo", value: "3838" }
+          ]},
+          { label: "WiFi", fields: [
+            { key: "wifi_primary", label: "Spectrum", value: "SpectrumSetup-A402 / distinctbase477" }
+          ]},
+          { label: "Rooms", fields: [
+            { key: "r1", label: "R1", value: "9119 (lockbox)" },
+            { key: "r2", label: "R2", value: "0079 (lockbox)" },
+            { key: "r3", label: "R3", value: "7633 (lockbox)" },
+            { key: "r4", label: "R4", value: "1717" },
+            { key: "r5", label: "R5", value: "6964" },
+            { key: "r6", label: "R6", value: "5376" },
+            { key: "r7", label: "R7", value: "2573" },
+            { key: "r8", label: "R8", value: "6553" },
+            { key: "r9", label: "R9", value: "4554" }
+          ]}
+        ]
+      }
+    ];
+
+    const gateWrap = document.getElementById('gate-wrap');
+    const appWrap = document.getElementById('app-wrap');
+    const gateForm = document.getElementById('gate-form');
+    const gateInput = document.getElementById('gate-input');
+    const gateError = document.getElementById('gate-error');
+    const list = document.getElementById('codes-list');
+
+    function showApp() {
+      gateWrap.classList.add('hidden');
+      appWrap.classList.remove('hidden');
+      initCodes().catch((err) => {
+        console.error(err);
+        list.innerHTML = '<div class="error" style="margin-top:1rem">Failed to load codes from Firestore.</div>';
+      });
+    }
+
+    function showGate() {
+      gateWrap.classList.remove('hidden');
+      appWrap.classList.add('hidden');
+      gateInput.focus();
+    }
+
+    gateForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (gateInput.value === '9999') {
+        sessionStorage.setItem('codes_auth', '1');
+        gateError.classList.add('hidden');
+        showApp();
+        return;
+      }
+      gateError.classList.remove('hidden');
+      gateWrap.classList.remove('shake');
+      void gateWrap.offsetWidth;
+      gateWrap.classList.add('shake');
+      gateInput.select();
+    });
+
+    function renderProperty(property, savedValues = {}) {
+      const details = document.createElement('details');
+      details.open = true;
+      const summary = document.createElement('summary');
+      summary.innerHTML = `
+        <div class="flex-between">
+          <div class="property-title">${property.address}</div>
+          <button type="button" class="save-btn" data-save="${property.slug}">Save</button>
+        </div>
+      `;
+      details.appendChild(summary);
+
+      const body = document.createElement('div');
+      body.className = 'property-body';
+
+      property.sections.forEach((section) => {
+        const label = document.createElement('div');
+        label.className = 'section-label';
+        label.textContent = section.label;
+        body.appendChild(label);
+
+        const table = document.createElement('table');
+        const tbody = document.createElement('tbody');
+
+        section.fields.forEach((field) => {
+          const tr = document.createElement('tr');
+          const tdLabel = document.createElement('td');
+          tdLabel.textContent = field.label;
+          const tdInput = document.createElement('td');
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.className = 'code-input';
+          input.dataset.prop = property.slug;
+          input.dataset.field = field.key;
+          input.value = Object.prototype.hasOwnProperty.call(savedValues, field.key)
+            ? savedValues[field.key]
+            : field.value;
+          tdInput.appendChild(input);
+          tr.appendChild(tdLabel);
+          tr.appendChild(tdInput);
+          tbody.appendChild(tr);
+        });
+
+        table.appendChild(tbody);
+        body.appendChild(table);
+      });
+
+      details.appendChild(body);
+      return details;
+    }
+
+    async function initCodes() {
+      const snapshot = await getDocs(collection(db, 'property_codes'));
+      const docsBySlug = new Map();
+      snapshot.forEach((d) => docsBySlug.set(d.id, d.data()));
+
+      list.innerHTML = '';
+      DEFAULTS.forEach((property) => {
+        const node = renderProperty(property, docsBySlug.get(property.slug) || {});
+        list.appendChild(node);
+      });
+
+      list.querySelectorAll('.save-btn').forEach((btn) => {
+        btn.addEventListener('click', async (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const slug = btn.dataset.save;
+          const inputs = list.querySelectorAll(`input[data-prop="${slug}"]`);
+          const payload = {};
+          inputs.forEach((input) => {
+            payload[input.dataset.field] = input.value.trim();
+          });
+          btn.disabled = true;
+          const oldText = btn.textContent;
+          try {
+            await setDoc(doc(db, 'property_codes', slug), {
+              ...payload,
+              updatedAt: serverTimestamp()
+            }, { merge: true });
+            btn.textContent = 'Saved ✓';
+            btn.classList.add('saved');
+            setTimeout(() => {
+              btn.textContent = 'Save';
+              btn.classList.remove('saved');
+            }, 1500);
+          } catch (err) {
+            console.error('Failed to save codes', err);
+            btn.textContent = 'Error';
+            setTimeout(() => {
+              btn.textContent = oldText;
+            }, 1500);
+          } finally {
+            setTimeout(() => { btn.disabled = false; }, 200);
+          }
+        });
+      });
+    }
+
+    if (sessionStorage.getItem('codes_auth') === '1') {
+      showApp();
+    } else {
+      showGate();
+    }
+  </script>
+</body>
+</html>
