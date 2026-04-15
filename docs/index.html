@@ -302,9 +302,15 @@
         <div class="flex-between">
           <div class="status">${d.who || 'Task'}</div>
           <span class="chip">${d.source || 'Other'}</span>
+          <button class="delete-msg-btn" title="Delete task">✕</button>
         </div>
         <div class="muted">${d.notes || 'No details'}</div>
       `;
+      row.querySelector('.delete-msg-btn').addEventListener('click', async (e) => {
+        e.stopPropagation();
+        if (!confirm('Delete this task?')) return;
+        await deleteDoc(doc(db, "manual_tasks", taskId));
+      });
       row.appendChild(buildTaskChatBox(taskId));
       return row;
     }
