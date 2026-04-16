@@ -67,6 +67,20 @@
       letter-spacing: 0.05em;
       text-transform: uppercase;
     }
+    .template-label[contenteditable] {
+      cursor: text;
+      border-radius: 4px;
+      padding: 1px 3px;
+      margin: -1px -3px;
+      outline: none;
+      transition: background 0.15s;
+    }
+    .template-label[contenteditable]:hover {
+      background: rgba(148,163,184,0.1);
+    }
+    .template-label[contenteditable]:focus {
+      background: rgba(56,189,248,0.08);
+    }
     textarea {
       width: 100%;
       min-height: 120px;
@@ -148,11 +162,13 @@
     const COUNT = 10;
 
     const textareas = [];
+    const labels = [];
 
     function buildGrid() {
       const grid = document.getElementById('templates-grid');
       grid.innerHTML = '';
       textareas.length = 0;
+      labels.length = 0;
 
       for (let i = 0; i < COUNT; i++) {
         const card = document.createElement('div');
@@ -160,7 +176,24 @@
 
         const label = document.createElement('div');
         label.className = 'template-label';
+        label.contentEditable = 'true';
+        label.spellcheck = false;
+        label.dataset.index = i;
         label.textContent = `Template ${i + 1}`;
+        labels.push(label);
+
+        label.addEventListener('blur', async () => {
+          const update = {};
+          update[`n${i}`] = label.textContent.trim();
+          await setDoc(TEMPLATE_DOC, update, { merge: true });
+        });
+
+        label.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            label.blur();
+          }
+        });
 
         const textarea = document.createElement('textarea');
         textarea.placeholder = `Template ${i + 1}…`;
@@ -215,6 +248,11 @@
         // Only update if not focused (don't clobber user mid-edit)
         if (document.activeElement !== ta) {
           ta.value = data[`t${i}`] ?? '';
+        }
+      });
+      labels.forEach((lbl, i) => {
+        if (document.activeElement !== lbl) {
+          lbl.textContent = data[`n${i}`] || `Template ${i + 1}`;
         }
       });
     });
