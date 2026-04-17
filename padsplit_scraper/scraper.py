@@ -18,6 +18,7 @@ from dotenv import load_dotenv
 BASE_URL = "https://www.padsplit.com"
 LOGIN_URL = f"{BASE_URL}/api/auth/login"
 GRAPHQL_URL = f"{BASE_URL}/api/graphql/"
+PARTNER_PROPERTIES_URL = f"{BASE_URL}/api/partner/properties/"
 USER_AGENT = (
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
     "AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -530,6 +531,29 @@ def fetch_tasks(session: requests.Session, creds: Dict[str, str]) -> Dict[str, L
     return {k: v for k, v in grouped.items() if v}
 
 
+def fetch_properties_stats(session: requests.Session, creds: Dict[str, str]) -> List[Dict]:
+    """Fetch per-property occupancy stats used by the dashboard stats page."""
+
+    headers = {
+        "Accept": "application/json",
+        "Referer": f"{BASE_URL}/host/dashboard",
+    }
+    resp = _authed_request(
+        session,
+        "GET",
+        PARTNER_PROPERTIES_URL,
+        creds=creds,
+        login_fn=login,
+        headers=headers,
+        timeout=DEFAULT_TIMEOUT,
+    )
+    resp.raise_for_status()
+    payload = resp.json()
+    if not isinstance(payload, list):
+        return []
+    return payload
+
+
 def update_task_status(
     session: requests.Session, creds: Dict[str, str], task_id: int, new_status: str
 ) -> Dict:
@@ -587,14 +611,20 @@ def run(messages_only: bool = False) -> None:
             sys.stderr.write("Fetching tasks...\n")
             payload["tasks"] = fetch_tasks(session, creds)
 
+        sys.stderr.write("Fetching property stats...\n")
+        properties = fetch_properties_stats(session, creds)
+        stats_payload: Dict = {"scraped_at": scraped_at, "properties": properties}
+
         # --- 1. SAVE THE RAW DATA LOCALLY ---
         output_dir = base_dir / "output"
         output_dir.mkdir(parents=True, exist_ok=True)
         filename = scraped_at.replace(":", "-") + ".json"
         out_path = output_dir / filename
         latest_path = output_dir / "latest.json"
+        stats_path = output_dir / "stats.json"
         out_path.write_text(json.dumps(payload, indent=2))
         latest_path.write_text(json.dumps(payload, indent=2))
+        stats_path.write_text(json.dumps(stats_payload, indent=2))
         sys.stderr.write(f"# Saved raw data to {out_path}\n")
 
 

@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PadSplit Stats</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --text: #e2e8f0;
+      --warn: #fbbf24;
+      --error: #f87171;
+      --line: rgba(148,163,184,0.2);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at 20% 20%, rgba(56,189,248,0.08), transparent 35%),
+                  radial-gradient(circle at 80% 0%, rgba(34,197,94,0.08), transparent 30%),
+                  var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem clamp(1rem, 4vw, 2.5rem);
+    }
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.2rem;
+    }
+    h1 { margin: 0; font-size: 1.6rem; letter-spacing: 0.01em; }
+    .header-meta {
+      margin-left: auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .header-link {
+      color: var(--muted);
+      text-decoration: underline;
+      font-size: 0.95rem;
+    }
+    .header-link:hover { color: var(--accent); }
+    .muted { color: var(--muted); }
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00));
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 1rem;
+      box-shadow: 0 14px 40px rgba(15,23,42,0.4);
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    .stat {
+      border: 1px solid rgba(148,163,184,0.16);
+      border-radius: 10px;
+      padding: 0.75rem;
+      background: rgba(15,23,42,0.3);
+    }
+    .stat-label {
+      color: var(--muted);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.25rem;
+    }
+    .stat-value { font-size: 1.25rem; font-weight: 700; }
+    .table-wrap {
+      margin-top: 1rem;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 820px;
+    }
+    th, td {
+      padding: 0.6rem 0.7rem;
+      border-bottom: 1px solid rgba(148,163,184,0.12);
+      font-size: 0.92rem;
+      text-align: right;
+      white-space: nowrap;
+    }
+    th {
+      color: var(--muted);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: rgba(15,23,42,0.5);
+    }
+    th:first-child, td:first-child {
+      text-align: left;
+      white-space: normal;
+      min-width: 260px;
+    }
+    tr:last-child td { border-bottom: none; }
+    .loading { color: var(--muted); }
+    .error { color: var(--error); }
+    .warn { color: var(--warn); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Property Occupancy Stats</h1>
+    <div class="header-meta">
+      <span class="muted" id="updated">Loading…</span>
+      <a href="./index.html" class="header-link">Dashboard</a>
+      <a href="./templates.html" class="header-link">Templates</a>
+      <a href="./codes.html" class="header-link">Codes</a>
+    </div>
+  </header>
+
+  <div class="card">
+    <div class="stats-grid" id="aggregate-cards">
+      <div class="loading">Loading stats…</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Property</th>
+            <th>Rooms</th>
+            <th>Occupied</th>
+            <th>Vacant</th>
+            <th>Inactive+Flip</th>
+            <th>Move-ins</th>
+            <th>Occupancy %</th>
+          </tr>
+        </thead>
+        <tbody id="stats-body">
+          <tr><td colspan="7" class="loading">Loading properties…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    function toNum(v) {
+      const n = Number(v);
+      return Number.isFinite(n) ? n : 0;
+    }
+
+    function pct(occupied, rooms) {
+      if (!rooms) return '0.0%';
+      return `${((occupied / rooms) * 100).toFixed(1)}%`;
+    }
+
+    function fmtDate(s) {
+      if (!s) return '—';
+      const d = new Date(s);
+      if (Number.isNaN(d.getTime())) return s;
+      return d.toLocaleString();
+    }
+
+    function aggregateProperties(properties) {
+      return properties.reduce((acc, p) => {
+        const rooms = Array.isArray(p.rooms) ? p.rooms.length : toNum(p.rooms);
+        const occupied = toNum(p.occupied);
+        const vacant = toNum(p.vacant);
+        const inactivePlusFlip = toNum(p.inactive) + toNum(p.needs_flip);
+        const moveIns = toNum(p.move_in);
+
+        acc.rooms += rooms;
+        acc.occupied += occupied;
+        acc.vacant += vacant;
+        acc.inactivePlusFlip += inactivePlusFlip;
+        acc.moveIns += moveIns;
+        return acc;
+      }, {
+        rooms: 0,
+        occupied: 0,
+        vacant: 0,
+        inactivePlusFlip: 0,
+        moveIns: 0
+      });
+    }
+
+    function renderAggregate(agg) {
+      const cards = document.getElementById('aggregate-cards');
+      cards.innerHTML = '';
+      const occupancyPct = pct(agg.occupied, agg.rooms);
+      const items = [
+        ['Total Rooms', agg.rooms],
+        ['Occupancy', occupancyPct],
+        ['Occupied', agg.occupied],
+        ['Vacant', agg.vacant],
+        ['Inactive+Flip', agg.inactivePlusFlip],
+        ['Move-ins', agg.moveIns]
+      ];
+      for (const [label, value] of items) {
+        const div = document.createElement('div');
+        div.className = 'stat';
+        div.innerHTML = `<div class="stat-label">${label}</div><div class="stat-value">${value}</div>`;
+        cards.appendChild(div);
+      }
+    }
+
+    function renderTable(properties) {
+      const body = document.getElementById('stats-body');
+      body.innerHTML = '';
+      if (!properties.length) {
+        body.innerHTML = '<tr><td colspan="7" class="warn">No properties found in stats.json.</td></tr>';
+        return;
+      }
+
+      for (const p of properties) {
+        const rooms = Array.isArray(p.rooms) ? p.rooms.length : toNum(p.rooms);
+        const occupied = toNum(p.occupied);
+        const vacant = toNum(p.vacant);
+        const inactivePlusFlip = toNum(p.inactive) + toNum(p.needs_flip);
+        const moveIns = toNum(p.move_in);
+        const address = [p.address, p.location].filter(Boolean).join(', ');
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${address || '—'}</td>
+          <td>${rooms}</td>
+          <td>${occupied}</td>
+          <td>${vacant}</td>
+          <td>${inactivePlusFlip}</td>
+          <td>${moveIns}</td>
+          <td>${pct(occupied, rooms)}</td>
+        `;
+        body.appendChild(tr);
+      }
+    }
+
+    async function init() {
+      try {
+        const res = await fetch('./data/stats.json', { cache: 'no-cache' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        const properties = Array.isArray(data.properties) ? data.properties : [];
+        const agg = aggregateProperties(properties);
+
+        document.getElementById('updated').textContent = `Updated ${fmtDate(data.scraped_at)}`;
+        renderAggregate(agg);
+        renderTable(properties);
+      } catch (err) {
+        document.getElementById('updated').textContent = 'Failed to load stats';
+        document.getElementById('aggregate-cards').innerHTML =
+          `<div class="error">Failed to load data/stats.json: ${err.message}</div>`;
+        document.getElementById('stats-body').innerHTML =
+          `<tr><td colspan="7" class="error">Failed to load data/stats.json: ${err.message}</td></tr>`;
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>

@@ -8,7 +8,9 @@ commit_and_push() {
   msg=$1
   git -C "$WORKSPACE" add \
     padsplit_scraper/output/latest.json \
-    docs/data/latest.json 2>/dev/null || true
+    padsplit_scraper/output/stats.json \
+    docs/data/latest.json \
+    docs/data/stats.json 2>/dev/null || true
 
   if git -C "$WORKSPACE" diff --cached --quiet; then
     echo "[$(date)] Nothing to commit"
