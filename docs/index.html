@@ -628,7 +628,7 @@
           const row = buildManualTaskRow(taskId, d);
           manualTaskRows.set(taskId, row);
           if (manualTasksDiv) {
-            manualTasksDiv.appendChild(row);
+            manualTasksDiv.prepend(row);
             updateManualBadgeCount();
           }
         }
