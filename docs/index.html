@@ -239,6 +239,33 @@
       return isNaN(d.getTime()) ? s : d.toLocaleString();
     }
 
+    function getImportantIds() {
+      return new Set(JSON.parse(localStorage.getItem('important_task_ids') || '[]'));
+    }
+    function buildImportantBtn(taskId) {
+      const important = getImportantIds();
+      const isImportant = important.has(taskId);
+      const btn = document.createElement('button');
+      btn.textContent = '!';
+      btn.title = 'Mark as important';
+      btn.style.cssText = `background:none;border:none;cursor:pointer;font-weight:bold;font-size:1rem;line-height:1;padding:0 0.3rem 0 0;color:#ef4444;opacity:${isImportant ? '1' : '0.15'};transition:opacity 0.15s;`;
+      btn.addEventListener('mouseenter', () => { if (btn.style.opacity === '0.15') btn.style.opacity = '0.5'; });
+      btn.addEventListener('mouseleave', () => { if (btn.style.opacity === '0.5') btn.style.opacity = '0.15'; });
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const ids = getImportantIds();
+        if (ids.has(taskId)) {
+          ids.delete(taskId);
+          btn.style.opacity = '0.15';
+        } else {
+          ids.add(taskId);
+          btn.style.opacity = '1';
+        }
+        localStorage.setItem('important_task_ids', JSON.stringify([...ids]));
+      });
+      return btn;
+    }
+
     function buildTaskChatBox(taskId) {
       const chatBox = document.createElement('div');
       chatBox.className = 'chat-box';
@@ -307,6 +334,7 @@
         </div>
         <div class="muted">${d.notes || 'No details'}</div>
       `;
+      row.querySelector('.flex-between').prepend(buildImportantBtn(taskId));
       row.querySelector('.delete-msg-btn').addEventListener('click', async (e) => {
         e.stopPropagation();
         if (!confirm('Delete this task?')) return;
@@ -381,6 +409,7 @@
               ${t.location ? `<span class="chip">${t.location}${t.room_number != null ? ` #${t.room_number}` : ''}</span>` : ''}
             </div>
           `;
+          row.querySelector('.flex-between').prepend(buildImportantBtn(taskId));
 
           row.appendChild(buildTaskChatBox(taskId));
           bucketDiv.appendChild(row);
