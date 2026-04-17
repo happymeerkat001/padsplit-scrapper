@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-04-17T05:54:16Z",
+  "scraped_at": "2026-04-17T08:04:01Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzE4NDQy",
@@ -723,7 +723,7 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-04-16T23:20:40.275228",
+        "seenAt": "2026-04-17T07:38:53.340377",
         "isPinned": false,
         "isUnread": false
       },
@@ -1135,7 +1135,7 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-04-16T23:09:27.782008",
+        "seenAt": "2026-04-17T07:39:13.249129",
         "isPinned": false,
         "isUnread": false
       },
@@ -3953,7 +3953,7 @@
               },
               "details": "Collections",
               "location": "ROOM",
-              "status": "WITHDRAWN",
+              "status": "ARCHIVED",
               "rating": null,
               "comment": null,
               "category": "ROOM_TURN",
@@ -4079,7 +4079,7 @@
               },
               "details": "Collections",
               "location": "ROOM",
-              "status": "WITHDRAWN",
+              "status": "ARCHIVED",
               "rating": null,
               "comment": null,
               "category": "ROOM_TURN",
@@ -6833,7 +6833,7 @@
             },
             "details": "My bedroom door isn't closing properly it does close but I gotta force it and it makes a loud bang when I do. I'm in room 2",
             "location": "OTHER",
-            "status": "COMPLETED",
+            "status": "ARCHIVED",
             "rating": "A_5",
             "comment": null,
             "category": "UNCLASSIFIED",
@@ -9158,88 +9158,6 @@
         },
         "has_reused_code": true,
         "moveout_photos_count": 6,
-        "days_to_complete": null
-      },
-      {
-        "id": 380483,
-        "status": "completed",
-        "comment": null,
-        "category": "unclassified",
-        "media": [],
-        "created": "2026-03-11T18:11:56.929304",
-        "modified": "2026-04-10T05:40:57.477188",
-        "room_name": "",
-        "room_number": 2,
-        "room_status": 1,
-        "room_code": "242424",
-        "location": "Other",
-        "details": "My bedroom door isn't closing properly it does close but I gotta force it and it makes a loud bang when I do. I'm in room 2",
-        "property_id": 24516,
-        "property_address": {
-          "id": 33032,
-          "street1": "5509 Burton Avenue",
-          "street2": "",
-          "city": "Fort Worth",
-          "state": "TX",
-          "zip": "76119",
-          "city_slug": "fort-worth-tx"
-        },
-        "reported_by": {
-          "id": 552038,
-          "name": "Mike",
-          "role_id": 0,
-          "picture": "img/profiles/user_552038_3140b797-0af1-4958-a1f9-50e3016a0c88.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-04-09T20:47:00.312055",
-        "rating": 5,
-        "extra_data": {
-          "checklist": {}
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null
-      },
-      {
-        "id": 393580,
-        "status": "completed",
-        "comment": null,
-        "category": "unclassified",
-        "media": [],
-        "created": "2026-04-09T00:35:45.856316",
-        "modified": "2026-04-09T20:48:41.971409",
-        "room_name": "",
-        "room_number": 4,
-        "room_status": 1,
-        "room_code": "1234",
-        "location": "Internet",
-        "details": "The internet out.",
-        "property_id": 9369,
-        "property_address": {
-          "id": 12545,
-          "street1": "3406 Green Hill Drive",
-          "street2": "",
-          "city": "Arlington",
-          "state": "TX",
-          "zip": "76014",
-          "city_slug": "arlington-tx"
-        },
-        "reported_by": {
-          "id": 1013051,
-          "name": "Dre",
-          "role_id": 0,
-          "picture": "img/profiles/user_1013051_95630ae3-f5e1-4abb-8aec-85e69c6805eb.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-04-09T20:44:55.839421",
-        "rating": 5,
-        "extra_data": {
-          "checklist": {}
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
         "days_to_complete": null
       }
     ]
