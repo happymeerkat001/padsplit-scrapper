@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-04-18T17:22:11Z",
+  "scraped_at": "2026-04-18T18:24:54Z",
   "properties": [
     {
       "id": 31523,
@@ -11,22 +11,7 @@
       "bathrooms_count": "2.5",
       "rooms": [
         {
-          "id": 99246,
-          "is_occupied": false,
-          "status": 1
-        },
-        {
-          "id": 99247,
-          "is_occupied": false,
-          "status": 1
-        },
-        {
-          "id": 99240,
-          "is_occupied": false,
-          "status": 1
-        },
-        {
-          "id": 99241,
+          "id": 99243,
           "is_occupied": true,
           "status": 1
         },
@@ -36,8 +21,23 @@
           "status": 1
         },
         {
-          "id": 99243,
+          "id": 99241,
           "is_occupied": true,
+          "status": 1
+        },
+        {
+          "id": 99240,
+          "is_occupied": false,
+          "status": 1
+        },
+        {
+          "id": 99246,
+          "is_occupied": false,
+          "status": 1
+        },
+        {
+          "id": 99247,
+          "is_occupied": false,
           "status": 1
         },
         {
@@ -112,7 +112,7 @@
         "service_fee": 8.0,
         "booking_fee_days": 10,
         "effective_date": "2026-03-23",
-        "lease_document": "https://s3.us-east-2.amazonaws.com/www.padsplit.com/img/signed_document/user_701127/1774289159.779642.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA23F63FIXMM2U5YNS%2F20260418%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260418T172212Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=f4f631af894622cff6adcd872c40d82207bee4792d6565e9801f632caf5813f2"
+        "lease_document": "https://s3.us-east-2.amazonaws.com/www.padsplit.com/img/signed_document/user_701127/1774289159.779642.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA23F63FIXMM2U5YNS%2F20260418%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260418T182456Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=0e1b5acd6c610c0e069ffccf24181107287a4547901b92d371725639a47b0026"
       },
       "latest_fee_structure": {
         "id": 8259,
@@ -130,7 +130,7 @@
         "service_fee": 8.0,
         "booking_fee_days": 10,
         "effective_date": "2026-03-23",
-        "lease_document": "https://s3.us-east-2.amazonaws.com/www.padsplit.com/img/signed_document/user_701127/1774289159.779642.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA23F63FIXMM2U5YNS%2F20260418%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260418T172212Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=f4f631af894622cff6adcd872c40d82207bee4792d6565e9801f632caf5813f2"
+        "lease_document": "https://s3.us-east-2.amazonaws.com/www.padsplit.com/img/signed_document/user_701127/1774289159.779642.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA23F63FIXMM2U5YNS%2F20260418%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260418T182456Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=0e1b5acd6c610c0e069ffccf24181107287a4547901b92d371725639a47b0026"
       },
       "stay_reward_config": {
         "is_enabled": true,
@@ -153,13 +153,18 @@
           "status": 3
         },
         {
+          "id": 82572,
+          "is_occupied": true,
+          "status": 1
+        },
+        {
           "id": 82573,
           "is_occupied": true,
           "status": 1
         },
         {
-          "id": 82572,
-          "is_occupied": true,
+          "id": 82571,
+          "is_occupied": false,
           "status": 1
         },
         {
@@ -175,11 +180,6 @@
         {
           "id": 82576,
           "is_occupied": true,
-          "status": 1
-        },
-        {
-          "id": 82571,
-          "is_occupied": false,
           "status": 1
         }
       ],
@@ -239,7 +239,7 @@
         "service_fee": 8.0,
         "booking_fee_days": 10,
         "effective_date": "2025-12-26",
-        "lease_document": "https://s3.us-east-2.amazonaws.com/www.padsplit.com/img/signed_document/user_701127/1767732735.516412.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA23F63FIXMM2U5YNS%2F20260418%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260418T172212Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=4bdb96a20692d66f48f8002a40531f2c4e62e2162ca8b603027381d4b47a7093"
+        "lease_document": "https://s3.us-east-2.amazonaws.com/www.padsplit.com/img/signed_document/user_701127/1767732735.516412.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA23F63FIXMM2U5YNS%2F20260418%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260418T182456Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=eef86b8f0b2c06e9e8b22ea9cd9a739aa8a6d25e9831f29db4fcf8ec265cabd9"
       },
       "latest_fee_structure": {
         "id": 7241,
@@ -257,7 +257,7 @@
         "service_fee": 8.0,
         "booking_fee_days": 10,
         "effective_date": "2025-12-26",
-        "lease_document": "https://s3.us-east-2.amazonaws.com/www.padsplit.com/img/signed_document/user_701127/1767732735.516412.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA23F63FIXMM2U5YNS%2F20260418%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260418T172212Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=4bdb96a20692d66f48f8002a40531f2c4e62e2162ca8b603027381d4b47a7093"
+        "lease_document": "https://s3.us-east-2.amazonaws.com/www.padsplit.com/img/signed_document/user_701127/1767732735.516412.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA23F63FIXMM2U5YNS%2F20260418%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260418T182456Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=eef86b8f0b2c06e9e8b22ea9cd9a739aa8a6d25e9831f29db4fcf8ec265cabd9"
       },
       "stay_reward_config": {
         "is_enabled": true,
@@ -275,28 +275,13 @@
       "bathrooms_count": "3.0",
       "rooms": [
         {
-          "id": 71405,
-          "is_occupied": false,
-          "status": 1
-        },
-        {
-          "id": 71402,
-          "is_occupied": false,
-          "status": 1
-        },
-        {
-          "id": 71403,
-          "is_occupied": true,
-          "status": 1
-        },
-        {
-          "id": 71404,
-          "is_occupied": true,
-          "status": 1
-        },
-        {
           "id": 71400,
           "is_occupied": false,
+          "status": 1
+        },
+        {
+          "id": 71401,
+          "is_occupied": true,
           "status": 1
         },
         {
@@ -305,8 +290,23 @@
           "status": 1
         },
         {
-          "id": 71401,
+          "id": 71403,
           "is_occupied": true,
+          "status": 1
+        },
+        {
+          "id": 71402,
+          "is_occupied": false,
+          "status": 1
+        },
+        {
+          "id": 71404,
+          "is_occupied": true,
+          "status": 1
+        },
+        {
+          "id": 71405,
+          "is_occupied": false,
           "status": 1
         }
       ],
@@ -366,7 +366,7 @@
         "service_fee": 8.0,
         "booking_fee_days": 10,
         "effective_date": "2025-10-27",
-        "lease_document": "https://s3.us-east-2.amazonaws.com/www.padsplit.com/img/signed_document/user_339595/1761566020.129684.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA23F63FIXMM2U5YNS%2F20260418%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260418T172212Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=3a7fc2a0cf8774abb60652f1f3c4b7d96142d355048361b96d9f45e96bad44ed"
+        "lease_document": "https://s3.us-east-2.amazonaws.com/www.padsplit.com/img/signed_document/user_339595/1761566020.129684.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA23F63FIXMM2U5YNS%2F20260418%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260418T182456Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=57aaafdb943357be8b72ebbc70632cbd2db7b9153ce0338a6d7868378f74e4c8"
       },
       "latest_fee_structure": {
         "id": 6244,
@@ -384,7 +384,7 @@
         "service_fee": 8.0,
         "booking_fee_days": 10,
         "effective_date": "2025-10-27",
-        "lease_document": "https://s3.us-east-2.amazonaws.com/www.padsplit.com/img/signed_document/user_339595/1761566020.129684.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA23F63FIXMM2U5YNS%2F20260418%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260418T172212Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=3a7fc2a0cf8774abb60652f1f3c4b7d96142d355048361b96d9f45e96bad44ed"
+        "lease_document": "https://s3.us-east-2.amazonaws.com/www.padsplit.com/img/signed_document/user_339595/1761566020.129684.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA23F63FIXMM2U5YNS%2F20260418%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260418T182456Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=57aaafdb943357be8b72ebbc70632cbd2db7b9153ce0338a6d7868378f74e4c8"
       },
       "stay_reward_config": {
         "is_enabled": true,
@@ -402,17 +402,22 @@
       "bathrooms_count": "2.0",
       "rooms": [
         {
-          "id": 55037,
-          "is_occupied": true,
-          "status": 1
-        },
-        {
           "id": 55030,
           "is_occupied": true,
           "status": 1
         },
         {
           "id": 55032,
+          "is_occupied": true,
+          "status": 1
+        },
+        {
+          "id": 55034,
+          "is_occupied": true,
+          "status": 1
+        },
+        {
+          "id": 55031,
           "is_occupied": true,
           "status": 1
         },
@@ -427,12 +432,7 @@
           "status": 1
         },
         {
-          "id": 55034,
-          "is_occupied": true,
-          "status": 1
-        },
-        {
-          "id": 55031,
+          "id": 55037,
           "is_occupied": true,
           "status": 1
         },
@@ -498,7 +498,7 @@
         "service_fee": 8.0,
         "booking_fee_days": 10,
         "effective_date": "2025-08-02",
-        "lease_document": "https://s3.us-east-2.amazonaws.com/www.padsplit.com/img/signed_document/user_339595/1754139237.587591.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA23F63FIXMM2U5YNS%2F20260418%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260418T172212Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=cd4ff545e3bfa980dad2391842cbc21bca9c9316ccae9bf781db5a8ad632e44a"
+        "lease_document": "https://s3.us-east-2.amazonaws.com/www.padsplit.com/img/signed_document/user_339595/1754139237.587591.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA23F63FIXMM2U5YNS%2F20260418%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260418T182456Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=166457a2bc6bf1b47b4c0b18f2a4c68643e281fbc08e1d63c57de6f090c29d69"
       },
       "latest_fee_structure": {
         "id": 4922,
@@ -516,7 +516,7 @@
         "service_fee": 8.0,
         "booking_fee_days": 10,
         "effective_date": "2025-08-02",
-        "lease_document": "https://s3.us-east-2.amazonaws.com/www.padsplit.com/img/signed_document/user_339595/1754139237.587591.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA23F63FIXMM2U5YNS%2F20260418%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260418T172212Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=cd4ff545e3bfa980dad2391842cbc21bca9c9316ccae9bf781db5a8ad632e44a"
+        "lease_document": "https://s3.us-east-2.amazonaws.com/www.padsplit.com/img/signed_document/user_339595/1754139237.587591.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA23F63FIXMM2U5YNS%2F20260418%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260418T182456Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=166457a2bc6bf1b47b4c0b18f2a4c68643e281fbc08e1d63c57de6f090c29d69"
       },
       "stay_reward_config": {
         "is_enabled": true,
@@ -534,17 +534,17 @@
       "bathrooms_count": "2.0",
       "rooms": [
         {
+          "id": 32867,
+          "is_occupied": true,
+          "status": 1
+        },
+        {
           "id": 32868,
           "is_occupied": true,
           "status": 1
         },
         {
           "id": 32869,
-          "is_occupied": true,
-          "status": 1
-        },
-        {
-          "id": 32867,
           "is_occupied": true,
           "status": 1
         },
@@ -625,7 +625,7 @@
         "service_fee": 8.0,
         "booking_fee_days": 10,
         "effective_date": "2024-09-26",
-        "lease_document": "https://s3.us-east-2.amazonaws.com/www.padsplit.com/img/signed_document/user_339595/1727380063.59872.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA23F63FIXMM2U5YNS%2F20260418%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260418T172212Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=3a1a4e273b2d028d9b2175ad6a8d82dd94380117100a89d4196693afedf22d93"
+        "lease_document": "https://s3.us-east-2.amazonaws.com/www.padsplit.com/img/signed_document/user_339595/1727380063.59872.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA23F63FIXMM2U5YNS%2F20260418%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260418T182456Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=862765e989acc1fb3bb912d448269995a685054cdbdaa0b64946f61523905457"
       },
       "latest_fee_structure": {
         "id": 2022,
@@ -643,7 +643,7 @@
         "service_fee": 8.0,
         "booking_fee_days": 10,
         "effective_date": "2024-09-26",
-        "lease_document": "https://s3.us-east-2.amazonaws.com/www.padsplit.com/img/signed_document/user_339595/1727380063.59872.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA23F63FIXMM2U5YNS%2F20260418%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260418T172213Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=ea8008c9f97edd7168c2c73d1b55f5a5706ffef6a93506a982d326d9c7e86be2"
+        "lease_document": "https://s3.us-east-2.amazonaws.com/www.padsplit.com/img/signed_document/user_339595/1727380063.59872.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA23F63FIXMM2U5YNS%2F20260418%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260418T182456Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=862765e989acc1fb3bb912d448269995a685054cdbdaa0b64946f61523905457"
       },
       "stay_reward_config": {
         "is_enabled": true,
@@ -676,12 +676,12 @@
           "status": 1
         },
         {
-          "id": 31132,
+          "id": 31131,
           "is_occupied": true,
           "status": 1
         },
         {
-          "id": 31131,
+          "id": 31132,
           "is_occupied": true,
           "status": 1
         },
@@ -747,7 +747,7 @@
         "service_fee": 8.0,
         "booking_fee_days": 10,
         "effective_date": "2024-08-21",
-        "lease_document": "https://s3.us-east-2.amazonaws.com/www.padsplit.com/img/signed_document/user_339595/1724263435.625671.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA23F63FIXMM2U5YNS%2F20260418%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260418T172213Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=ae9bc586170460d4b2fe21aaa3fc767ccec48cfb2920d40737a05fa119386823"
+        "lease_document": "https://s3.us-east-2.amazonaws.com/www.padsplit.com/img/signed_document/user_339595/1724263435.625671.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA23F63FIXMM2U5YNS%2F20260418%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260418T182456Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=47fc0599191b6865bb8d7552f61f03d3182d0c601776e61bed1aae61cf734a3e"
       },
       "latest_fee_structure": {
         "id": 1665,
@@ -765,7 +765,7 @@
         "service_fee": 8.0,
         "booking_fee_days": 10,
         "effective_date": "2024-08-21",
-        "lease_document": "https://s3.us-east-2.amazonaws.com/www.padsplit.com/img/signed_document/user_339595/1724263435.625671.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA23F63FIXMM2U5YNS%2F20260418%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260418T172213Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=ae9bc586170460d4b2fe21aaa3fc767ccec48cfb2920d40737a05fa119386823"
+        "lease_document": "https://s3.us-east-2.amazonaws.com/www.padsplit.com/img/signed_document/user_339595/1724263435.625671.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA23F63FIXMM2U5YNS%2F20260418%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260418T182456Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=47fc0599191b6865bb8d7552f61f03d3182d0c601776e61bed1aae61cf734a3e"
       },
       "stay_reward_config": {
         "is_enabled": true,
@@ -788,7 +788,7 @@
           "status": 2
         },
         {
-          "id": 29912,
+          "id": 28750,
           "is_occupied": true,
           "status": 1
         },
@@ -798,12 +798,12 @@
           "status": 1
         },
         {
-          "id": 28750,
+          "id": 28754,
           "is_occupied": true,
           "status": 1
         },
         {
-          "id": 28754,
+          "id": 29912,
           "is_occupied": true,
           "status": 1
         },
@@ -869,7 +869,7 @@
         "service_fee": 8.0,
         "booking_fee_days": 10,
         "effective_date": "2024-06-21",
-        "lease_document": "https://s3.us-east-2.amazonaws.com/www.padsplit.com/img/signed_document/user_339595/1718997348.155949.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA23F63FIXMM2U5YNS%2F20260418%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260418T172213Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=b241dd7cd928dab36522bbc04fea5183ed7eb39d4c9eecd5876865c0dc4c7540"
+        "lease_document": "https://s3.us-east-2.amazonaws.com/www.padsplit.com/img/signed_document/user_339595/1718997348.155949.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA23F63FIXMM2U5YNS%2F20260418%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260418T182456Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=cb1c79beee435d9cba302911913f2ffba6c789f3f7bc5a52b0d1d14dfd7eae3f"
       },
       "latest_fee_structure": {
         "id": 1045,
@@ -887,7 +887,7 @@
         "service_fee": 8.0,
         "booking_fee_days": 10,
         "effective_date": "2024-06-21",
-        "lease_document": "https://s3.us-east-2.amazonaws.com/www.padsplit.com/img/signed_document/user_339595/1718997348.155949.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA23F63FIXMM2U5YNS%2F20260418%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260418T172213Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=b241dd7cd928dab36522bbc04fea5183ed7eb39d4c9eecd5876865c0dc4c7540"
+        "lease_document": "https://s3.us-east-2.amazonaws.com/www.padsplit.com/img/signed_document/user_339595/1718997348.155949.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA23F63FIXMM2U5YNS%2F20260418%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260418T182456Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=cb1c79beee435d9cba302911913f2ffba6c789f3f7bc5a52b0d1d14dfd7eae3f"
       },
       "stay_reward_config": {
         "is_enabled": true,
@@ -920,12 +920,12 @@
           "status": 1
         },
         {
-          "id": 25339,
+          "id": 25340,
           "is_occupied": true,
           "status": 1
         },
         {
-          "id": 25340,
+          "id": 25339,
           "is_occupied": true,
           "status": 1
         }
@@ -986,7 +986,7 @@
         "service_fee": 8.0,
         "booking_fee_days": 10,
         "effective_date": "2025-03-28",
-        "lease_document": "https://s3.us-east-2.amazonaws.com/www.padsplit.com/img/signed_document/user_339595/1736279897.981675.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA23F63FIXMM2U5YNS%2F20260418%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260418T172213Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=8008d6316be826edec34f62728a198de04435b41b0829118a495df670f72f2cb"
+        "lease_document": "https://s3.us-east-2.amazonaws.com/www.padsplit.com/img/signed_document/user_339595/1736279897.981675.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA23F63FIXMM2U5YNS%2F20260418%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260418T182456Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=3f0775c02f3b5b970907119751a6ffbde2f405af2687cd87421140abfbad5f28"
       },
       "latest_fee_structure": {
         "id": 327,
@@ -1004,7 +1004,7 @@
         "service_fee": 8.0,
         "booking_fee_days": 10,
         "effective_date": "2025-03-28",
-        "lease_document": "https://s3.us-east-2.amazonaws.com/www.padsplit.com/img/signed_document/user_339595/1736279897.981675.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA23F63FIXMM2U5YNS%2F20260418%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260418T172213Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=8008d6316be826edec34f62728a198de04435b41b0829118a495df670f72f2cb"
+        "lease_document": "https://s3.us-east-2.amazonaws.com/www.padsplit.com/img/signed_document/user_339595/1736279897.981675.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA23F63FIXMM2U5YNS%2F20260418%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260418T182456Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=3f0775c02f3b5b970907119751a6ffbde2f405af2687cd87421140abfbad5f28"
       },
       "stay_reward_config": {
         "is_enabled": true,
@@ -1022,22 +1022,17 @@
       "bathrooms_count": "2.0",
       "rooms": [
         {
-          "id": 21180,
-          "is_occupied": true,
-          "status": 1
-        },
-        {
-          "id": 21174,
-          "is_occupied": true,
-          "status": 1
-        },
-        {
           "id": 21175,
           "is_occupied": true,
           "status": 1
         },
         {
           "id": 21176,
+          "is_occupied": true,
+          "status": 1
+        },
+        {
+          "id": 21174,
           "is_occupied": true,
           "status": 1
         },
@@ -1053,6 +1048,11 @@
         },
         {
           "id": 21179,
+          "is_occupied": true,
+          "status": 1
+        },
+        {
+          "id": 21180,
           "is_occupied": true,
           "status": 1
         }
@@ -1113,7 +1113,7 @@
         "service_fee": 8.0,
         "booking_fee_days": 10,
         "effective_date": "2024-12-11",
-        "lease_document": "https://s3.us-east-2.amazonaws.com/www.padsplit.com/img/signed_document/user_339595/1726239216.980072.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA23F63FIXMM2U5YNS%2F20260418%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260418T172213Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=ddc891a4a59a39e915bc9e61a8b3ef131492d0210a13feaa61d4469a07b3770c"
+        "lease_document": "https://s3.us-east-2.amazonaws.com/www.padsplit.com/img/signed_document/user_339595/1726239216.980072.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA23F63FIXMM2U5YNS%2F20260418%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260418T182456Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=e5c1aa2ab92ca2cfed582449aafdcfeadc8039019a0011a6f73cae4ed52a7269"
       },
       "latest_fee_structure": {
         "id": 1893,
@@ -1131,7 +1131,7 @@
         "service_fee": 8.0,
         "booking_fee_days": 10,
         "effective_date": "2024-12-11",
-        "lease_document": "https://s3.us-east-2.amazonaws.com/www.padsplit.com/img/signed_document/user_339595/1726239216.980072.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA23F63FIXMM2U5YNS%2F20260418%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260418T172213Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=ddc891a4a59a39e915bc9e61a8b3ef131492d0210a13feaa61d4469a07b3770c"
+        "lease_document": "https://s3.us-east-2.amazonaws.com/www.padsplit.com/img/signed_document/user_339595/1726239216.980072.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA23F63FIXMM2U5YNS%2F20260418%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260418T182456Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=e5c1aa2ab92ca2cfed582449aafdcfeadc8039019a0011a6f73cae4ed52a7269"
       },
       "stay_reward_config": {
         "is_enabled": true,
