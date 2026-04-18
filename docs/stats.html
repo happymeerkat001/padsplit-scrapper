@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PadSplit Stats</title>
+  <title>Manager KPI Dashboard</title>
   <style>
     :root {
       --bg: #0f172a;
@@ -13,7 +13,8 @@
       --text: #e2e8f0;
       --warn: #fbbf24;
       --error: #f87171;
-      --line: rgba(148,163,184,0.2);
+      --success: #22c55e;
+      --line: rgba(148, 163, 184, 0.2);
     }
     * { box-sizing: border-box; }
     body {
@@ -31,9 +32,10 @@
       flex-wrap: wrap;
       align-items: center;
       gap: 1rem;
-      margin-bottom: 1.2rem;
+      margin-bottom: 1.1rem;
     }
-    h1 { margin: 0; font-size: 1.6rem; letter-spacing: 0.01em; }
+    h1 { margin: 0; font-size: 1.55rem; letter-spacing: 0.01em; }
+    h2 { margin: 0 0 0.8rem; font-size: 1.1rem; }
     .header-meta {
       margin-left: auto;
       display: flex;
@@ -48,18 +50,77 @@
     }
     .header-link:hover { color: var(--accent); }
     .muted { color: var(--muted); }
+    .error { color: var(--error); }
+
     .card {
-      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00));
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
       border: 1px solid var(--line);
       border-radius: 12px;
       padding: 1rem;
       box-shadow: 0 14px 40px rgba(15,23,42,0.4);
     }
+    .stack { display: grid; gap: 0.9rem; }
+    .score-grid {
+      display: grid;
+      grid-template-columns: minmax(220px, 280px) 1fr;
+      gap: 0.9rem;
+    }
+    .score-pill {
+      border: 1px solid rgba(148,163,184,0.25);
+      border-radius: 12px;
+      padding: 0.8rem;
+      display: grid;
+      gap: 0.25rem;
+      align-content: center;
+      justify-items: center;
+      text-align: center;
+      background: rgba(15, 23, 42, 0.35);
+    }
+    .score-pill .label {
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    .score-pill .value {
+      font-size: 2.3rem;
+      line-height: 1;
+      font-weight: 800;
+    }
+    .score-pill .sub {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .score-green { color: var(--success); }
+    .score-yellow { color: var(--warn); }
+    .score-red { color: var(--error); }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.8rem;
+    }
+    .mini-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 0.35rem;
+      font-size: 0.9rem;
+    }
+    .mini-list li {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      border-bottom: 1px solid rgba(148,163,184,0.12);
+      padding-bottom: 0.3rem;
+    }
+    .mini-list li:last-child { border-bottom: none; }
+
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
       gap: 0.75rem;
-      margin-bottom: 1rem;
     }
     .stat {
       border: 1px solid rgba(148,163,184,0.16);
@@ -69,80 +130,216 @@
     }
     .stat-label {
       color: var(--muted);
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      margin-bottom: 0.25rem;
+      margin-bottom: 0.2rem;
     }
-    .stat-value { font-size: 1.25rem; font-weight: 700; }
+    .stat-value { font-size: 1.2rem; font-weight: 700; }
+
     .table-wrap {
-      margin-top: 1rem;
       overflow-x: auto;
       border: 1px solid var(--line);
       border-radius: 10px;
+      background: rgba(15,23,42,0.25);
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 820px;
+      min-width: 760px;
     }
     th, td {
-      padding: 0.6rem 0.7rem;
+      padding: 0.55rem 0.65rem;
       border-bottom: 1px solid rgba(148,163,184,0.12);
-      font-size: 0.92rem;
+      font-size: 0.9rem;
       text-align: right;
       white-space: nowrap;
     }
     th {
-      color: var(--muted);
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      background: rgba(15,23,42,0.5);
+      color: var(--muted);
+      background: rgba(15,23,42,0.55);
     }
     th:first-child, td:first-child {
       text-align: left;
       white-space: normal;
-      min-width: 260px;
+      min-width: 220px;
     }
     tr:last-child td { border-bottom: none; }
-    .loading { color: var(--muted); }
-    .error { color: var(--error); }
-    .warn { color: var(--warn); }
+    .warn-row { background: rgba(248,113,113,0.12); }
+
+    .histogram {
+      display: grid;
+      gap: 0.5rem;
+    }
+    .hist-row {
+      display: grid;
+      grid-template-columns: 80px 1fr 44px;
+      gap: 0.6rem;
+      align-items: center;
+      font-size: 0.9rem;
+    }
+    .hist-track {
+      height: 0.72rem;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.25);
+      background: rgba(148,163,184,0.12);
+      overflow: hidden;
+    }
+    .hist-fill {
+      height: 100%;
+      background: linear-gradient(90deg, rgba(56,189,248,0.8), rgba(34,197,94,0.8));
+    }
+
+    .spark-wrap {
+      display: grid;
+      gap: 0.45rem;
+    }
+    #sparkline {
+      width: 100%;
+      height: 110px;
+      border: 1px solid rgba(148,163,184,0.2);
+      border-radius: 8px;
+      background: rgba(15,23,42,0.25);
+    }
+    .section-grid {
+      display: grid;
+      gap: 0.9rem;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    }
+    .empty { color: var(--muted); font-size: 0.92rem; }
+
+    @media (max-width: 900px) {
+      .score-grid { grid-template-columns: 1fr; }
+      .two-col { grid-template-columns: 1fr; }
+      .section-grid { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
   <header>
-    <h1>Property Occupancy Stats</h1>
+    <h1>Manager KPI Dashboard</h1>
     <div class="header-meta">
-      <span class="muted" id="updated">Loading…</span>
+      <span class="muted" id="updated">Loading...</span>
       <a href="./index.html" class="header-link">Dashboard</a>
       <a href="./templates.html" class="header-link">Templates</a>
       <a href="./codes.html" class="header-link">Codes</a>
     </div>
   </header>
 
-  <div class="card">
-    <div class="stats-grid" id="aggregate-cards">
-      <div class="loading">Loading stats…</div>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Property</th>
-            <th>Rooms</th>
-            <th>Occupied</th>
-            <th>Vacant</th>
-            <th>Inactive+Flip</th>
-            <th>Move-ins</th>
-            <th>Occupancy %</th>
-          </tr>
-        </thead>
-        <tbody id="stats-body">
-          <tr><td colspan="7" class="loading">Loading properties…</td></tr>
-        </tbody>
-      </table>
+  <div class="stack">
+    <section class="card">
+      <h2>Manager Score Card</h2>
+      <div class="score-grid">
+        <div class="score-pill">
+          <div class="label">Score</div>
+          <div class="value" id="score-value">--</div>
+          <div class="sub" id="score-sub">Base 100 +/- KPI adjustments</div>
+        </div>
+        <div class="two-col">
+          <div>
+            <div class="muted" style="margin-bottom:0.35rem">Bonuses</div>
+            <ul class="mini-list" id="bonus-list"><li><span class="empty">No data</span><span></span></li></ul>
+          </div>
+          <div>
+            <div class="muted" style="margin-bottom:0.35rem">Penalties</div>
+            <ul class="mini-list" id="penalty-list"><li><span class="empty">No data</span><span></span></li></ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Occupancy Summary</h2>
+      <div class="stats-grid" id="occupancy-cards"></div>
+    </section>
+
+    <div class="section-grid">
+      <section class="card">
+        <h2>Vacancy Detail (Listed Rooms)</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Property</th>
+                <th>Room</th>
+                <th>Days Listed</th>
+                <th>Base Price</th>
+                <th>Last Price</th>
+              </tr>
+            </thead>
+            <tbody id="vacancy-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Tenant Retention</h2>
+        <div class="stats-grid" id="retention-cards"></div>
+        <div class="histogram" id="retention-hist" style="margin-top:0.8rem"></div>
+      </section>
+
+      <section class="card">
+        <h2>Room Turn (Flip-Room)</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Property</th>
+                <th>Room</th>
+                <th>Days In Flip</th>
+              </tr>
+            </thead>
+            <tbody id="flip-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Maintenance Tickets (Open)</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Property</th>
+                <th>Category</th>
+                <th>Status</th>
+                <th>Age (days)</th>
+              </tr>
+            </thead>
+            <tbody id="tickets-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Monthly Revenue (Net)</h2>
+        <div class="spark-wrap">
+          <canvas id="sparkline" width="900" height="110"></canvas>
+          <div class="muted" id="spark-meta">No revenue data yet.</div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Per-Property Scorecard</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Property</th>
+                <th>Rooms</th>
+                <th>Occ %</th>
+                <th>Listed</th>
+                <th>Flip</th>
+                <th>Mini Score</th>
+              </tr>
+            </thead>
+            <tbody id="property-body"></tbody>
+          </table>
+        </div>
+      </section>
     </div>
   </div>
 
@@ -152,86 +349,253 @@
       return Number.isFinite(n) ? n : 0;
     }
 
-    function pct(occupied, rooms) {
-      if (!rooms) return '0.0%';
-      return `${((occupied / rooms) * 100).toFixed(1)}%`;
+    function money(v) {
+      return `$${toNum(v).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+    }
+
+    function pct(v) {
+      return `${toNum(v).toFixed(1)}%`;
     }
 
     function fmtDate(s) {
-      if (!s) return '—';
+      if (!s) return "-";
       const d = new Date(s);
-      if (Number.isNaN(d.getTime())) return s;
-      return d.toLocaleString();
+      return Number.isNaN(d.getTime()) ? s : d.toLocaleString();
     }
 
-    function aggregateProperties(properties) {
-      return properties.reduce((acc, p) => {
-        const rooms = Array.isArray(p.rooms) ? p.rooms.length : toNum(p.rooms);
-        const occupied = toNum(p.occupied);
-        const vacant = toNum(p.vacant);
-        const inactivePlusFlip = toNum(p.inactive) + toNum(p.needs_flip);
-        const moveIns = toNum(p.move_in);
-
-        acc.rooms += rooms;
-        acc.occupied += occupied;
-        acc.vacant += vacant;
-        acc.inactivePlusFlip += inactivePlusFlip;
-        acc.moveIns += moveIns;
-        return acc;
-      }, {
-        rooms: 0,
-        occupied: 0,
-        vacant: 0,
-        inactivePlusFlip: 0,
-        moveIns: 0
-      });
+    function scoreClass(score) {
+      if (score >= 90) return "score-green";
+      if (score >= 70) return "score-yellow";
+      return "score-red";
     }
 
-    function renderAggregate(agg) {
-      const cards = document.getElementById('aggregate-cards');
-      cards.innerHTML = '';
-      const occupancyPct = pct(agg.occupied, agg.rooms);
-      const items = [
-        ['Total Rooms', agg.rooms],
-        ['Occupancy', occupancyPct],
-        ['Occupied', agg.occupied],
-        ['Vacant', agg.vacant],
-        ['Inactive+Flip', agg.inactivePlusFlip],
-        ['Move-ins', agg.moveIns]
+    function setScoreCard(kpis) {
+      const score = toNum(kpis.score);
+      const el = document.getElementById("score-value");
+      el.textContent = Math.round(score);
+      el.classList.remove("score-green", "score-yellow", "score-red");
+      el.classList.add(scoreClass(score));
+
+      document.getElementById("score-sub").textContent = `Base 100 +${toNum(kpis.bonus_points)} ${toNum(kpis.penalty_points)} adjustments`;
+
+      const bonusList = document.getElementById("bonus-list");
+      const penaltyList = document.getElementById("penalty-list");
+      bonusList.innerHTML = "";
+      penaltyList.innerHTML = "";
+
+      const bonuses = Array.isArray(kpis.bonuses) ? kpis.bonuses : [];
+      const penalties = Array.isArray(kpis.penalties) ? kpis.penalties : [];
+
+      if (!bonuses.length) {
+        bonusList.innerHTML = '<li><span class="empty">No bonus triggers</span><span></span></li>';
+      } else {
+        for (const b of bonuses) {
+          const li = document.createElement("li");
+          li.innerHTML = `<span>${b.label || "bonus"}</span><span class="score-green">+${toNum(b.points)}</span>`;
+          bonusList.appendChild(li);
+        }
+      }
+
+      if (!penalties.length) {
+        penaltyList.innerHTML = '<li><span class="empty">No penalty triggers</span><span></span></li>';
+      } else {
+        for (const p of penalties) {
+          const li = document.createElement("li");
+          const count = p.count ? ` (${p.count})` : "";
+          li.innerHTML = `<span>${p.label || "penalty"}${count}</span><span class="score-red">${toNum(p.points)}</span>`;
+          penaltyList.appendChild(li);
+        }
+      }
+    }
+
+    function setOccupancyCards(kpis) {
+      const cards = document.getElementById("occupancy-cards");
+      const rows = [
+        ["Occupancy", pct(kpis.occupancy_pct)],
+        ["Total Rooms", Math.round(toNum(kpis.total_rooms))],
+        ["Occupied", Math.round(toNum(kpis.occupied))],
+        ["Listed", Math.round(toNum(kpis.listed))],
+        ["Flip", Math.round(toNum(kpis.flip))],
+        ["Move-in", Math.round(toNum(kpis.move_in))],
+        ["Avg Listed Days", toNum(kpis.avg_listed_days).toFixed(1)],
+        ["Rooms >14d", Math.round(toNum(kpis.rooms_over_14d))],
       ];
-      for (const [label, value] of items) {
-        const div = document.createElement('div');
-        div.className = 'stat';
+      cards.innerHTML = "";
+      for (const [label, value] of rows) {
+        const div = document.createElement("div");
+        div.className = "stat";
         div.innerHTML = `<div class="stat-label">${label}</div><div class="stat-value">${value}</div>`;
         cards.appendChild(div);
       }
     }
 
-    function renderTable(properties) {
-      const body = document.getElementById('stats-body');
-      body.innerHTML = '';
-      if (!properties.length) {
-        body.innerHTML = '<tr><td colspan="7" class="warn">No properties found in stats.json.</td></tr>';
+    function renderVacancy(kpis) {
+      const body = document.getElementById("vacancy-body");
+      body.innerHTML = "";
+      const rooms = Array.isArray(kpis.vacancy_rooms) ? kpis.vacancy_rooms : [];
+      if (!rooms.length) {
+        body.innerHTML = '<tr><td colspan="5" class="empty">No listed rooms.</td></tr>';
+        return;
+      }
+      for (const room of rooms) {
+        const days = toNum(room.days_listed);
+        const tr = document.createElement("tr");
+        if (days > 14) tr.className = "warn-row";
+        tr.innerHTML = `
+          <td>${room.property || "-"}</td>
+          <td>${room.room_number ?? "-"}</td>
+          <td>${days.toFixed(1)}</td>
+          <td>${money(room.base_price)}</td>
+          <td>${money(room.last_room_price)}</td>
+        `;
+        body.appendChild(tr);
+      }
+    }
+
+    function renderRetention(kpis) {
+      const cards = document.getElementById("retention-cards");
+      cards.innerHTML = "";
+      const rows = [
+        ["Avg Tenure (days)", toNum(kpis.avg_tenure_days).toFixed(1)],
+        ["Median Tenure", Math.round(toNum(kpis.median_tenure_days))],
+        ["Avg Flip Days", toNum(kpis.avg_flip_days).toFixed(1)],
+        ["Max Flip Days", Math.round(toNum(kpis.max_flip_days))],
+      ];
+      for (const [label, value] of rows) {
+        const div = document.createElement("div");
+        div.className = "stat";
+        div.innerHTML = `<div class="stat-label">${label}</div><div class="stat-value">${value}</div>`;
+        cards.appendChild(div);
+      }
+
+      const hist = document.getElementById("retention-hist");
+      hist.innerHTML = "";
+      const bins = kpis.retention_histogram && typeof kpis.retention_histogram === "object"
+        ? kpis.retention_histogram
+        : { "0-30": 0, "31-90": 0, "91-180": 0, "181+": 0 };
+      const maxVal = Math.max(1, ...Object.values(bins).map(toNum));
+      for (const [label, valueRaw] of Object.entries(bins)) {
+        const value = toNum(valueRaw);
+        const width = (value / maxVal) * 100;
+        const row = document.createElement("div");
+        row.className = "hist-row";
+        row.innerHTML = `
+          <div class="muted">${label}</div>
+          <div class="hist-track"><div class="hist-fill" style="width:${width}%"></div></div>
+          <div>${Math.round(value)}</div>
+        `;
+        hist.appendChild(row);
+      }
+    }
+
+    function renderFlipRooms(kpis) {
+      const body = document.getElementById("flip-body");
+      body.innerHTML = "";
+      const rooms = Array.isArray(kpis.flip_rooms) ? kpis.flip_rooms : [];
+      if (!rooms.length) {
+        body.innerHTML = '<tr><td colspan="3" class="empty">No flip-room items.</td></tr>';
+        return;
+      }
+      for (const room of rooms) {
+        const days = toNum(room.days_in_flip);
+        const tr = document.createElement("tr");
+        if (days > 5) tr.className = "warn-row";
+        tr.innerHTML = `
+          <td>${room.property || "-"}</td>
+          <td>${room.room_number ?? "-"}</td>
+          <td>${days.toFixed(1)}</td>
+        `;
+        body.appendChild(tr);
+      }
+    }
+
+    function renderTickets(kpis) {
+      const body = document.getElementById("tickets-body");
+      body.innerHTML = "";
+      const tickets = Array.isArray(kpis.open_ticket_items) ? kpis.open_ticket_items : [];
+      if (!tickets.length) {
+        body.innerHTML = '<tr><td colspan="4" class="empty">No open tickets.</td></tr>';
+        return;
+      }
+      for (const t of tickets) {
+        const age = toNum(t.age_days);
+        const tr = document.createElement("tr");
+        if (age > 7) tr.className = "warn-row";
+        tr.innerHTML = `
+          <td>${t.property_address || "-"}</td>
+          <td>${t.category || "-"}</td>
+          <td>${t.status || "-"}</td>
+          <td>${age.toFixed(1)}</td>
+        `;
+        body.appendChild(tr);
+      }
+    }
+
+    function renderSparkline(kpis) {
+      const series = Array.isArray(kpis.monthly_revenue_series) ? kpis.monthly_revenue_series.slice(-6) : [];
+      const canvas = document.getElementById("sparkline");
+      const ctx = canvas.getContext("2d");
+      const meta = document.getElementById("spark-meta");
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (!series.length) {
+        meta.textContent = "No revenue data yet.";
         return;
       }
 
-      for (const p of properties) {
-        const rooms = Array.isArray(p.rooms) ? p.rooms.length : toNum(p.rooms);
-        const occupied = toNum(p.occupied);
-        const vacant = toNum(p.vacant);
-        const inactivePlusFlip = toNum(p.inactive) + toNum(p.needs_flip);
-        const moveIns = toNum(p.move_in);
-        const address = [p.address, p.location].filter(Boolean).join(', ');
+      const values = series.map((x) => toNum(x.net_revenue));
+      const minV = Math.min(...values);
+      const maxV = Math.max(...values);
+      const range = Math.max(maxV - minV, 1);
+      const padX = 24;
+      const padY = 18;
+      const w = canvas.width - padX * 2;
+      const h = canvas.height - padY * 2;
 
-        const tr = document.createElement('tr');
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = "#38bdf8";
+      ctx.beginPath();
+      values.forEach((v, i) => {
+        const x = padX + (w * i) / Math.max(values.length - 1, 1);
+        const y = padY + (1 - (v - minV) / range) * h;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+
+      ctx.fillStyle = "rgba(56,189,248,0.18)";
+      ctx.lineTo(padX + w, padY + h);
+      ctx.lineTo(padX, padY + h);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = "12px Inter, sans-serif";
+      ctx.fillText(series[0].label || "start", 8, canvas.height - 6);
+      ctx.fillText(series[series.length - 1].label || "latest", canvas.width - 60, canvas.height - 6);
+
+      meta.textContent = `Latest net revenue: ${money(kpis.monthly_net_revenue)} | Revenue per room: ${money(kpis.revenue_per_room)}`;
+    }
+
+    function renderPerProperty(kpis) {
+      const body = document.getElementById("property-body");
+      body.innerHTML = "";
+      const rows = Array.isArray(kpis.per_property) ? kpis.per_property : [];
+      if (!rows.length) {
+        body.innerHTML = '<tr><td colspan="6" class="empty">No per-property rows.</td></tr>';
+        return;
+      }
+      for (const row of rows) {
+        const mini = toNum(row.mini_score);
+        const tr = document.createElement("tr");
+        if (mini < 70) tr.className = "warn-row";
         tr.innerHTML = `
-          <td>${address || '—'}</td>
-          <td>${rooms}</td>
-          <td>${occupied}</td>
-          <td>${vacant}</td>
-          <td>${inactivePlusFlip}</td>
-          <td>${moveIns}</td>
-          <td>${pct(occupied, rooms)}</td>
+          <td>${row.property || "-"}</td>
+          <td>${Math.round(toNum(row.rooms))}</td>
+          <td>${pct(row.occupancy_pct)}</td>
+          <td>${Math.round(toNum(row.listed))}</td>
+          <td>${Math.round(toNum(row.flip))}</td>
+          <td>${mini.toFixed(1)}</td>
         `;
         body.appendChild(tr);
       }
@@ -239,21 +603,23 @@
 
     async function init() {
       try {
-        const res = await fetch('./data/stats.json', { cache: 'no-cache' });
+        const res = await fetch("./data/stats.json", { cache: "no-cache" });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
-        const properties = Array.isArray(data.properties) ? data.properties : [];
-        const agg = aggregateProperties(properties);
+        const kpis = data && typeof data.kpis === "object" ? data.kpis : {};
 
-        document.getElementById('updated').textContent = `Updated ${fmtDate(data.scraped_at)}`;
-        renderAggregate(agg);
-        renderTable(properties);
+        document.getElementById("updated").textContent = `Updated ${fmtDate(data.scraped_at)}`;
+        setScoreCard(kpis);
+        setOccupancyCards(kpis);
+        renderVacancy(kpis);
+        renderRetention(kpis);
+        renderFlipRooms(kpis);
+        renderTickets(kpis);
+        renderSparkline(kpis);
+        renderPerProperty(kpis);
       } catch (err) {
-        document.getElementById('updated').textContent = 'Failed to load stats';
-        document.getElementById('aggregate-cards').innerHTML =
-          `<div class="error">Failed to load data/stats.json: ${err.message}</div>`;
-        document.getElementById('stats-body').innerHTML =
-          `<tr><td colspan="7" class="error">Failed to load data/stats.json: ${err.message}</td></tr>`;
+        document.getElementById("updated").textContent = "Failed to load stats";
+        document.body.insertAdjacentHTML("beforeend", `<div class="error" style="margin-top:1rem">Failed to load data/stats.json: ${err.message}</div>`);
       }
     }
 
