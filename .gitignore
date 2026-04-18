@@ -7,10 +7,11 @@
 # Scraped Data Output (Ignores timestamped files, keeps latest.json)
 padsplit_scraper/output/202*.json
 thermostat/output/202*.json
+padsplit_scraper/output/latest.json
 
 # Python Virtual Environment & Cache
 venv/
 __pycache__/
 *.pyc
 
-master_cron.log 
+master_cron.log padsplit_scraper/output/latest.json

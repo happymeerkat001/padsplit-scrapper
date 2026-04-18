@@ -193,17 +193,6 @@
       background: linear-gradient(90deg, rgba(56,189,248,0.8), rgba(34,197,94,0.8));
     }
 
-    .spark-wrap {
-      display: grid;
-      gap: 0.45rem;
-    }
-    #sparkline {
-      width: 100%;
-      height: 110px;
-      border: 1px solid rgba(148,163,184,0.2);
-      border-radius: 8px;
-      background: rgba(15,23,42,0.25);
-    }
     .section-grid {
       display: grid;
       gap: 0.9rem;
@@ -311,14 +300,6 @@
             </thead>
             <tbody id="tickets-body"></tbody>
           </table>
-        </div>
-      </section>
-
-      <section class="card">
-        <h2>Monthly Revenue (Net)</h2>
-        <div class="spark-wrap">
-          <canvas id="sparkline" width="900" height="110"></canvas>
-          <div class="muted" id="spark-meta">No revenue data yet.</div>
         </div>
       </section>
 
@@ -531,52 +512,6 @@
       }
     }
 
-    function renderSparkline(kpis) {
-      const series = Array.isArray(kpis.monthly_revenue_series) ? kpis.monthly_revenue_series.slice(-6) : [];
-      const canvas = document.getElementById("sparkline");
-      const ctx = canvas.getContext("2d");
-      const meta = document.getElementById("spark-meta");
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      if (!series.length) {
-        meta.textContent = "No revenue data yet.";
-        return;
-      }
-
-      const values = series.map((x) => toNum(x.net_revenue));
-      const minV = Math.min(...values);
-      const maxV = Math.max(...values);
-      const range = Math.max(maxV - minV, 1);
-      const padX = 24;
-      const padY = 18;
-      const w = canvas.width - padX * 2;
-      const h = canvas.height - padY * 2;
-
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = "#38bdf8";
-      ctx.beginPath();
-      values.forEach((v, i) => {
-        const x = padX + (w * i) / Math.max(values.length - 1, 1);
-        const y = padY + (1 - (v - minV) / range) * h;
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      });
-      ctx.stroke();
-
-      ctx.fillStyle = "rgba(56,189,248,0.18)";
-      ctx.lineTo(padX + w, padY + h);
-      ctx.lineTo(padX, padY + h);
-      ctx.closePath();
-      ctx.fill();
-
-      ctx.fillStyle = "#94a3b8";
-      ctx.font = "12px Inter, sans-serif";
-      ctx.fillText(series[0].label || "start", 8, canvas.height - 6);
-      ctx.fillText(series[series.length - 1].label || "latest", canvas.width - 60, canvas.height - 6);
-
-      meta.textContent = `Latest net revenue: ${money(kpis.monthly_net_revenue)} | Revenue per room: ${money(kpis.revenue_per_room)}`;
-    }
-
     function renderPerProperty(kpis) {
       const body = document.getElementById("property-body");
       body.innerHTML = "";
@@ -615,7 +550,6 @@
         renderRetention(kpis);
         renderFlipRooms(kpis);
         renderTickets(kpis);
-        renderSparkline(kpis);
         renderPerProperty(kpis);
       } catch (err) {
         document.getElementById("updated").textContent = "Failed to load stats";
