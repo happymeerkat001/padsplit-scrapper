@@ -111,6 +111,18 @@
     .loading { text-align: center; padding: 3rem; color: var(--muted); }
     .error { color: #f87171; padding: 1rem; }
     footer { margin-top: 2.5rem; color: var(--muted); font-size: 0.82rem; }
+    .notes-section { margin-top: 2rem; padding: 0 clamp(1rem,4vw,2.5rem); }
+    .notes-section h2 { margin: 0 0 0.75rem; font-size: 1.2rem; }
+    .notes-card { background: linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0)); border: 1px solid rgba(148,163,184,.15); border-radius: 12px; padding: 1rem; }
+    .notes-textarea { width: 100%; min-height: 120px; background: rgba(255,255,255,.04); border: 1px solid rgba(148,163,184,.2); border-radius: 8px; color: var(--text); font-family: inherit; font-size: .9rem; line-height: 1.5; padding: .65rem .75rem; resize: vertical; outline: none; transition: border-color .15s; box-sizing: border-box; }
+    .notes-textarea:focus { border-color: var(--accent); }
+    .notes-footer { display: flex; align-items: center; justify-content: flex-end; gap: .5rem; margin-top: .5rem; }
+    .notes-save-btn { background: none; border: 1px solid rgba(148,163,184,.25); border-radius: 6px; color: var(--muted); cursor: pointer; font-size: .8rem; padding: .3rem .65rem; transition: color .15s, border-color .15s; }
+    .notes-save-btn:hover { color: #22c55e; border-color: #22c55e; }
+    .notes-copy-btn { background: none; border: 1px solid rgba(148,163,184,.25); border-radius: 6px; color: var(--muted); cursor: pointer; padding: .3rem .5rem; display: flex; align-items: center; transition: color .15s, border-color .15s; }
+    .notes-copy-btn:hover { color: #38bdf8; border-color: #38bdf8; }
+    .notes-copy-btn.copied { color: #22c55e; border-color: #22c55e; }
+    .notes-copy-btn svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
   </style>
 </head>
 <body>
@@ -134,6 +146,17 @@
   <div id="list" class="list">
     <div class="loading">Loading…</div>
   </div>
+
+  <section class="notes-section">
+    <h2>Notes</h2>
+    <div class="notes-card">
+      <textarea class="notes-textarea" id="notes-textarea" placeholder="Add shared notes…"></textarea>
+      <div class="notes-footer">
+        <button class="notes-save-btn" id="notes-save-btn">Save</button>
+        <button class="notes-copy-btn" id="notes-copy-btn" title="Copy notes"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+      </div>
+    </div>
+  </section>
 
   <footer>Private view — not indexed by search engines. Source: <code>data/latest.json</code></footer>
 
@@ -250,6 +273,29 @@
         document.getElementById('list').innerHTML =
           `<div class="error">Failed to load latest.json: ${err.message}</div>`;
       });
+  </script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    const db = getFirestore(initializeApp({
+      apiKey:"AIzaSyCSWOHI6QLqugy_Fao2p4bBehg02_fu3No",authDomain:"padsplit-scrapper.firebaseapp.com",
+      projectId:"padsplit-scrapper",storageBucket:"padsplit-scrapper.firebasestorage.app",
+      messagingSenderId:"281696703679",appId:"1:281696703679:web:f94ba04e92cb43b4f9a20a"
+    }, 'notes-msgs'));
+    const NOTES_DOC = doc(db, 'notes', 'messages');
+    const ta = document.getElementById('notes-textarea');
+    const saveBtn = document.getElementById('notes-save-btn');
+    const copyBtn = document.getElementById('notes-copy-btn');
+    onSnapshot(NOTES_DOC, snap => { if (snap.exists() && document.activeElement !== ta) ta.value = snap.data().text || ''; });
+    saveBtn.addEventListener('click', async () => {
+      saveBtn.textContent = 'Saving…'; saveBtn.disabled = true;
+      try { await setDoc(NOTES_DOC, { text: ta.value }, { merge: true }); saveBtn.textContent = 'Saved!'; }
+      catch { saveBtn.textContent = 'Error'; }
+      setTimeout(() => { saveBtn.textContent = 'Save'; saveBtn.disabled = false; }, 1500);
+    });
+    copyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(ta.value).then(() => { copyBtn.classList.add('copied'); setTimeout(() => copyBtn.classList.remove('copied'), 1500); });
+    });
   </script>
 </body>
 </html>

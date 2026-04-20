@@ -130,6 +130,18 @@
     .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
     .copy-btn svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
     .copy-btn.copied { color: var(--success); border-color: var(--success); }
+    .notes-section { margin-top: 2rem; }
+    .notes-section h2 { margin: 0 0 0.75rem; font-size: 1.2rem; }
+    .notes-card { background: var(--card); border: 1px solid rgba(148,163,184,.15); border-radius: 12px; padding: 1rem; }
+    .notes-textarea { width: 100%; min-height: 120px; background: rgba(255,255,255,.04); border: 1px solid rgba(148,163,184,.2); border-radius: 8px; color: var(--text); font-family: inherit; font-size: .9rem; line-height: 1.5; padding: .65rem .75rem; resize: vertical; outline: none; transition: border-color .15s; box-sizing: border-box; }
+    .notes-textarea:focus { border-color: var(--accent); }
+    .notes-footer { display: flex; align-items: center; justify-content: flex-end; gap: .5rem; margin-top: .5rem; }
+    .notes-save-btn { background: none; border: 1px solid rgba(148,163,184,.25); border-radius: 6px; color: var(--muted); cursor: pointer; font-size: .8rem; padding: .3rem .65rem; transition: color .15s, border-color .15s; }
+    .notes-save-btn:hover { color: var(--success); border-color: var(--success); }
+    .notes-copy-btn { background: none; border: 1px solid rgba(148,163,184,.25); border-radius: 6px; color: var(--muted); cursor: pointer; padding: .3rem .5rem; display: flex; align-items: center; transition: color .15s, border-color .15s; }
+    .notes-copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+    .notes-copy-btn.copied { color: var(--success); border-color: var(--success); }
+    .notes-copy-btn svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
   </style>
 </head>
 <body>
@@ -144,6 +156,17 @@
   </header>
 
   <div class="grid" id="templates-grid"></div>
+
+  <section class="notes-section">
+    <h2>Notes</h2>
+    <div class="notes-card">
+      <textarea class="notes-textarea" id="notes-textarea" placeholder="Add shared notes…"></textarea>
+      <div class="notes-footer">
+        <button class="notes-save-btn" id="notes-save-btn">Save</button>
+        <button class="notes-copy-btn" id="notes-copy-btn" title="Copy notes"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+      </div>
+    </div>
+  </section>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -256,6 +279,28 @@
         if (document.activeElement !== lbl) {
           lbl.textContent = data[`n${i}`] || `Template ${i + 1}`;
         }
+      });
+    });
+
+    // ── Notes ────────────────────────────────────────────────────────────────
+    const NOTES_DOC = doc(db, 'notes', 'templates');
+    const notesTA = document.getElementById('notes-textarea');
+    const notesSave = document.getElementById('notes-save-btn');
+    const notesCopy = document.getElementById('notes-copy-btn');
+    onSnapshot(NOTES_DOC, snap => {
+      if (snap.exists() && document.activeElement !== notesTA)
+        notesTA.value = snap.data().text || '';
+    });
+    notesSave.addEventListener('click', async () => {
+      notesSave.textContent = 'Saving…'; notesSave.disabled = true;
+      try { await setDoc(NOTES_DOC, { text: notesTA.value }, { merge: true }); notesSave.textContent = 'Saved!'; }
+      catch { notesSave.textContent = 'Error'; }
+      setTimeout(() => { notesSave.textContent = 'Save'; notesSave.disabled = false; }, 1500);
+    });
+    notesCopy.addEventListener('click', () => {
+      navigator.clipboard.writeText(notesTA.value).then(() => {
+        notesCopy.classList.add('copied');
+        setTimeout(() => notesCopy.classList.remove('copied'), 1500);
       });
     });
   </script>

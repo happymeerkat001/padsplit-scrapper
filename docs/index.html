@@ -289,6 +289,17 @@
     <div class="vendor-grid" id="vendor-grid"></div>
   </div>
 
+  <section class="notes-section">
+    <h2>Notes</h2>
+    <div class="notes-card">
+      <textarea class="notes-textarea" id="notes-textarea" placeholder="Add shared notes…"></textarea>
+      <div class="notes-footer">
+        <button class="notes-save-btn" id="notes-save-btn">Save</button>
+        <button class="notes-copy-btn" id="notes-copy-btn" title="Copy notes"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+      </div>
+    </div>
+  </section>
+
   <footer>
     Data auto-refreshes every 5 minutes from <code>padsplit_scraper/output/latest.json</code>. Pages is public; repo history stays private.
   </footer>
@@ -813,6 +824,30 @@
         name: '', specialty: '', contact: '', location: '',
       });
     });
+
+    // ── Notes ────────────────────────────────────────────────────────────────
+    (function initNotes(pageId) {
+      const NOTES_DOC = doc(db, 'notes', pageId);
+      const ta = document.getElementById('notes-textarea');
+      const saveBtn = document.getElementById('notes-save-btn');
+      const copyBtn = document.getElementById('notes-copy-btn');
+      onSnapshot(NOTES_DOC, snap => {
+        if (snap.exists() && document.activeElement !== ta)
+          ta.value = snap.data().text || '';
+      });
+      saveBtn.addEventListener('click', async () => {
+        saveBtn.textContent = 'Saving…'; saveBtn.disabled = true;
+        try { await setDoc(NOTES_DOC, { text: ta.value }, { merge: true }); saveBtn.textContent = 'Saved!'; }
+        catch { saveBtn.textContent = 'Error'; }
+        setTimeout(() => { saveBtn.textContent = 'Save'; saveBtn.disabled = false; }, 1500);
+      });
+      copyBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(ta.value).then(() => {
+          copyBtn.classList.add('copied');
+          setTimeout(() => copyBtn.classList.remove('copied'), 1500);
+        });
+      });
+    })('dashboard');
 
     const manualQ = query(collection(db, "manual_tasks"), orderBy("created", "asc"));
     onSnapshot(manualQ, (snapshot) => {
