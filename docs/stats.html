@@ -282,6 +282,11 @@
       <h2>Manager Score Card</h2>
       <div class="score-grid">
         <div class="score-pill">
+          <div class="label">Month Avg</div>
+          <div class="value" id="score-avg-value">--</div>
+          <div class="sub">Rolling average this month</div>
+        </div>
+        <div class="score-pill">
           <div class="label">Avg Days to Flip</div>
           <div class="value" id="avg-flip-value">--</div>
           <div class="sub">Current flip-room avg</div>
@@ -420,6 +425,10 @@
     }
 
     function setScoreCard(kpis) {
+      const avgEl = document.getElementById("score-avg-value");
+      avgEl.textContent = toNum(kpis.avg_score_30d).toFixed(1);
+      avgEl.classList.remove("score-green", "score-yellow", "score-red");
+      avgEl.classList.add(scoreClass(toNum(kpis.avg_score_30d)));
       document.getElementById("avg-flip-value").textContent = `${toNum(kpis.avg_flip_days).toFixed(1)}d`;
 
       const bonusList = document.getElementById("bonus-list");

@@ -1204,8 +1204,8 @@ def run(messages_only: bool = False) -> None:
         today = scraped_at[:10]
         score_history = [e for e in score_history if e.get("date") != today]
         score_history.append({"date": today, "score": kpis["score"]})
-        cutoff_30d = (datetime.now(timezone.utc) - timedelta(days=30)).strftime("%Y-%m-%d")
-        score_history = [e for e in score_history if e.get("date", "") >= cutoff_30d]
+        current_month = today[:7]
+        score_history = [e for e in score_history if e.get("date", "")[:7] == current_month]
         score_history.sort(key=lambda e: e.get("date", ""))
 
         avg_score_30d = round(sum(e["score"] for e in score_history) / len(score_history), 1) if score_history else kpis["score"]
