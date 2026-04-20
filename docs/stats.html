@@ -239,6 +239,16 @@
           <div class="value" id="score-value">--</div>
           <div class="sub" id="score-sub">Base 100 +/- KPI adjustments</div>
         </div>
+        <div class="score-pill">
+          <div class="label">30d Avg</div>
+          <div class="value" id="score-avg-value">--</div>
+          <div class="sub">Rolling 30-day average</div>
+        </div>
+        <div class="score-pill">
+          <div class="label">Avg Days to Flip</div>
+          <div class="value" id="avg-flip-value">--</div>
+          <div class="sub">Current flip-room avg</div>
+        </div>
         <div class="two-col">
           <div>
             <div class="muted" style="margin-bottom:0.35rem">Bonuses</div>
@@ -305,6 +315,7 @@
             <thead>
               <tr>
                 <th>Property</th>
+                <th>Room</th>
                 <th>Category</th>
                 <th>Status</th>
                 <th>Age (days)</th>
@@ -368,6 +379,12 @@
       el.textContent = Math.round(score);
       el.classList.remove("score-green", "score-yellow", "score-red");
       el.classList.add(scoreClass(score));
+
+      const avgEl = document.getElementById("score-avg-value");
+      avgEl.textContent = toNum(kpis.avg_score_30d).toFixed(1);
+      avgEl.classList.remove("score-green", "score-yellow", "score-red");
+      avgEl.classList.add(scoreClass(toNum(kpis.avg_score_30d)));
+      document.getElementById("avg-flip-value").textContent = `${toNum(kpis.avg_flip_days).toFixed(1)}d`;
 
       document.getElementById("score-sub").textContent = `Base 100 +${toNum(kpis.bonus_points)} ${toNum(kpis.penalty_points)} adjustments`;
 
@@ -507,7 +524,7 @@
       body.innerHTML = "";
       const tickets = Array.isArray(kpis.open_ticket_items) ? kpis.open_ticket_items : [];
       if (!tickets.length) {
-        body.innerHTML = '<tr><td colspan="4" class="empty">No open tickets.</td></tr>';
+        body.innerHTML = '<tr><td colspan="5" class="empty">No open tickets.</td></tr>';
         return;
       }
       for (const t of tickets) {
@@ -516,6 +533,7 @@
         if (age > 7) tr.className = "warn-row";
         tr.innerHTML = `
           <td>${t.property_address || "-"}</td>
+          <td>${t.room_number ?? "-"}</td>
           <td>${t.category || "-"}</td>
           <td>${t.status || "-"}</td>
           <td>${age.toFixed(1)}</td>

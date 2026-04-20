@@ -774,6 +774,7 @@ def compute_kpis(
                 "status": ticket.get("status"),
                 "category": ticket.get("category"),
                 "location": ticket.get("location"),
+                "room_number": ticket.get("room_number"),
                 "details": ticket.get("details"),
                 "property_id": ticket.get("property_id"),
                 "property_address": (ticket.get("property_address") or {}).get("street1")
@@ -1059,6 +1060,27 @@ def run(messages_only: bool = False) -> None:
         sys.stderr.write("Fetching earnings stats...\n")
         earnings_payload = fetch_earnings(session, creds)
         kpis = compute_kpis(rooms, properties, earnings_payload, tasks_for_kpis, datetime.now(timezone.utc))
+
+        docs_stats = base_dir.parent / "docs" / "data" / "stats.json"
+        score_history: List[Dict[str, Any]] = []
+        if docs_stats.exists():
+            try:
+                prev = json.loads(docs_stats.read_text())
+                score_history = (prev.get("kpis") or {}).get("score_history", [])
+            except Exception:
+                score_history = []
+
+        today = scraped_at[:10]
+        score_history = [e for e in score_history if e.get("date") != today]
+        score_history.append({"date": today, "score": kpis["score"]})
+        cutoff_30d = (datetime.now(timezone.utc) - timedelta(days=30)).strftime("%Y-%m-%d")
+        score_history = [e for e in score_history if e.get("date", "") >= cutoff_30d]
+        score_history.sort(key=lambda e: e.get("date", ""))
+
+        avg_score_30d = round(sum(e["score"] for e in score_history) / len(score_history), 1) if score_history else kpis["score"]
+        kpis["score_history"] = score_history
+        kpis["avg_score_30d"] = avg_score_30d
+
         stats_payload: Dict[str, Any] = {
             "scraped_at": scraped_at,
             "rooms": rooms,
