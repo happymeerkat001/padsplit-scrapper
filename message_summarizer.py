@@ -13,7 +13,14 @@ import urllib.request
 from pathlib import Path
 
 
-DATA_PATH = Path(__file__).parent / "padsplit_scraper" / "output" / "latest.json"
+_BASE = Path(__file__).parent
+DATA_PATH = next(
+    (p for p in [
+        _BASE / "padsplit_scraper" / "output" / "latest.json",
+        _BASE / "docs" / "data" / "latest.json",
+    ] if p.exists()),
+    _BASE / "padsplit_scraper" / "output" / "latest.json",  # keep original for error message
+)
 
 PROMPT = (
     "Here is the latest PadSplit message data. Please summarize ONLY the most urgent "

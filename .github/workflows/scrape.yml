@@ -33,7 +33,7 @@ jobs:
         run: |
           mkdir -p docs/data
           cp padsplit_scraper/output/latest.json docs/data/latest.json
-          cp padsplit_scraper/output/stats.json docs/data/stats.json
+          cp padsplit_scraper/output/stats.json docs/data/stats.json || echo "stats.json not found, skipping"
 
       - name: Commit snapshot
         run: |
