@@ -22,6 +22,9 @@ GRAPHQL_URL = f"{BASE_URL}/api/graphql/"
 PARTNER_PROPERTIES_URL = f"{BASE_URL}/api/partner/properties/"
 PARTNER_ROOMS_URL = f"{BASE_URL}/api/partner/rooms/"
 PARTNER_EARNINGS_URL = f"{BASE_URL}/api/partner/earnings/"
+PARTNER_MONTHLY_FLIP_URL = f"{BASE_URL}/api/partner/metrics/properties/monthly-average-days-to-flip/"
+PARTNER_MONTHLY_OCCUPANCY_URL = f"{BASE_URL}/api/partner/metrics/properties/monthly-average-occupancy/"
+PARTNER_TENURE_SUMMARY_URL = f"{BASE_URL}/api/partner/metrics/properties/total-average-tenure-days/"
 USER_AGENT = (
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
     "AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -612,6 +615,129 @@ def fetch_earnings(session: requests.Session, creds: Dict[str, str]) -> Dict[str
     return payload
 
 
+def fetch_performance_history(session: requests.Session, creds: Dict[str, str]) -> Dict[str, Dict[str, Any]]:
+    """Fetch portfolio-level monthly performance history from host performance endpoints."""
+
+    headers = {
+        "Accept": "application/json",
+        "Referer": f"{BASE_URL}/host/performance/timetoflip",
+    }
+
+    flip_resp = _authed_request(
+        session,
+        "GET",
+        PARTNER_MONTHLY_FLIP_URL,
+        creds=creds,
+        login_fn=login,
+        headers=headers,
+        timeout=DEFAULT_TIMEOUT,
+    )
+    flip_resp.raise_for_status()
+    flip_data = flip_resp.json() if flip_resp.content else {}
+
+    occ_resp = _authed_request(
+        session,
+        "GET",
+        PARTNER_MONTHLY_OCCUPANCY_URL,
+        creds=creds,
+        login_fn=login,
+        headers=headers,
+        timeout=DEFAULT_TIMEOUT,
+    )
+    occ_resp.raise_for_status()
+    occ_data = occ_resp.json() if occ_resp.content else {}
+
+    tenure_resp = _authed_request(
+        session,
+        "GET",
+        PARTNER_TENURE_SUMMARY_URL,
+        creds=creds,
+        login_fn=login,
+        headers=headers,
+        timeout=DEFAULT_TIMEOUT,
+    )
+    tenure_resp.raise_for_status()
+    tenure_data = tenure_resp.json() if tenure_resp.content else {}
+
+    months: Dict[str, Dict[str, Any]] = {}
+
+    for row in (flip_data.get("monthly_averages") if isinstance(flip_data, dict) else []) or []:
+        if not isinstance(row, dict):
+            continue
+        year = int(_to_num(row.get("year")))
+        month = int(_to_num(row.get("month")))
+        if year <= 0 or month <= 0:
+            continue
+        key = f"{year:04d}-{month:02d}"
+        months.setdefault(key, {})["avg_flip_days"] = round(_to_num(row.get("average_days_to_flip")), 1)
+
+    for row in (occ_data.get("monthly_averages") if isinstance(occ_data, dict) else []) or []:
+        if not isinstance(row, dict):
+            continue
+        year = int(_to_num(row.get("year")))
+        month = int(_to_num(row.get("month")))
+        if year <= 0 or month <= 0:
+            continue
+        key = f"{year:04d}-{month:02d}"
+        months.setdefault(key, {})["occupancy_pct"] = round(_to_num(row.get("occupancy")), 1)
+
+    # Tenure endpoint is currently portfolio-level summary (not monthly), keep as context only.
+    avg_tenure_summary = (
+        round(_to_num(tenure_data.get("average_portfolio_tenure")), 1)
+        if isinstance(tenure_data, dict)
+        else 0.0
+    )
+    for key in months:
+        months[key]["avg_tenure_days"] = avg_tenure_summary
+
+    return months
+
+
+def compute_monthly_kpis(month_data: Dict[str, Any]) -> Dict[str, Any]:
+    """Approximate monthly bonuses/penalties using historical metrics that are available."""
+
+    occupancy_pct = round(_to_num(month_data.get("occupancy_pct")), 1)
+    avg_flip_days = round(_to_num(month_data.get("avg_flip_days")), 1)
+    avg_tenure_days = round(_to_num(month_data.get("avg_tenure_days")), 1)
+
+    bonus_items: List[Dict[str, Any]] = []
+    penalty_items: List[Dict[str, Any]] = []
+    score = 100
+
+    if occupancy_pct >= 95:
+        score += 10
+        bonus_items.append({"label": "occupancy >= 95%", "points": 10})
+    elif occupancy_pct >= 88:
+        score += 5
+        bonus_items.append({"label": "occupancy 88-94%", "points": 5})
+
+    # Historical endpoint currently exposes only a portfolio tenure summary, not true per-month tenure.
+    if avg_tenure_days > 120:
+        score += 10
+        bonus_items.append({"label": "avg tenure > 120d", "points": 10})
+
+    if occupancy_pct < 75:
+        score -= 20
+        penalty_items.append({"label": "occupancy < 75%", "points": -20, "count": 1})
+    elif occupancy_pct < 88:
+        score -= 8
+        penalty_items.append({"label": "occupancy 75-87%", "points": -8, "count": 1})
+
+    # Approximation: if monthly average is above threshold, count as one trigger.
+    if avg_flip_days > 5:
+        score -= 5
+        penalty_items.append({"label": "flip rooms > 5d (approx)", "points": -5, "count": 1})
+
+    score = max(0, min(125, int(round(score))))
+    return {
+        "score": score,
+        "bonuses": bonus_items,
+        "penalties": penalty_items,
+        "partial": True,
+        "note": "ticket penalties not available for historical months",
+    }
+
+
 def _parse_iso(value: Any) -> Optional[datetime]:
     if not value or not isinstance(value, str):
         return None
@@ -1060,8 +1186,13 @@ def run(messages_only: bool = False) -> None:
         sys.stderr.write("Fetching earnings stats...\n")
         earnings_payload = fetch_earnings(session, creds)
         kpis = compute_kpis(rooms, properties, earnings_payload, tasks_for_kpis, datetime.now(timezone.utc))
+        sys.stderr.write("Fetching performance history stats...\n")
+        performance_history = fetch_performance_history(session, creds)
 
         docs_stats = base_dir.parent / "docs" / "data" / "stats.json"
+        docs_data_dir = base_dir.parent / "docs" / "data"
+        docs_data_dir.mkdir(parents=True, exist_ok=True)
+        docs_monthly_history = docs_data_dir / "monthly_history.json"
         score_history: List[Dict[str, Any]] = []
         if docs_stats.exists():
             try:
@@ -1081,6 +1212,56 @@ def run(messages_only: bool = False) -> None:
         kpis["score_history"] = score_history
         kpis["avg_score_30d"] = avg_score_30d
 
+        existing_months_map: Dict[str, Dict[str, Any]] = {}
+        if docs_monthly_history.exists():
+            try:
+                monthly_prev = json.loads(docs_monthly_history.read_text())
+                monthly_prev_list = monthly_prev.get("months", []) if isinstance(monthly_prev, dict) else []
+                for item in monthly_prev_list:
+                    if isinstance(item, dict) and item.get("month"):
+                        existing_months_map[str(item["month"])] = item
+            except Exception:
+                existing_months_map = {}
+
+        months_map: Dict[str, Dict[str, Any]] = dict(existing_months_map)
+        for month_key, raw in performance_history.items():
+            if month_key < "2025-04":
+                continue
+            monthly_kpis = compute_monthly_kpis(raw)
+            months_map[month_key] = {
+                "month": month_key,
+                "avg_flip_days": round(_to_num(raw.get("avg_flip_days")), 1),
+                "occupancy_pct": round(_to_num(raw.get("occupancy_pct")), 1),
+                "avg_tenure_days": round(_to_num(raw.get("avg_tenure_days")), 1),
+                "partial": monthly_kpis["partial"],
+                "bonuses": monthly_kpis["bonuses"],
+                "penalties": monthly_kpis["penalties"],
+                "score": monthly_kpis["score"],
+                "note": monthly_kpis["note"],
+            }
+
+        current_month = scraped_at[:7]
+        months_map[current_month] = {
+            "month": current_month,
+            "avg_flip_days": round(_to_num(kpis.get("avg_flip_days")), 1),
+            "occupancy_pct": round(_to_num(kpis.get("occupancy_pct")), 1),
+            "avg_tenure_days": round(_to_num(kpis.get("avg_tenure_days")), 1),
+            "partial": False,
+            "bonuses": kpis.get("bonuses", []),
+            "penalties": kpis.get("penalties", []),
+            "score": int(_to_num(kpis.get("score"))),
+        }
+
+        monthly_history_months = [
+            months_map[m]
+            for m in sorted(months_map.keys())
+            if isinstance(months_map[m], dict) and m >= "2025-04"
+        ]
+        monthly_history_payload: Dict[str, Any] = {
+            "updated_at": scraped_at,
+            "months": monthly_history_months,
+        }
+
         stats_payload: Dict[str, Any] = {
             "scraped_at": scraped_at,
             "rooms": rooms,
@@ -1099,6 +1280,7 @@ def run(messages_only: bool = False) -> None:
         out_path.write_text(json.dumps(payload, indent=2))
         latest_path.write_text(json.dumps(payload, indent=2))
         stats_path.write_text(json.dumps(stats_payload, indent=2))
+        docs_monthly_history.write_text(json.dumps(monthly_history_payload, indent=2))
         sys.stderr.write(f"# Saved raw data to {out_path}\n")
 
 
