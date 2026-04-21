@@ -286,7 +286,9 @@
       <h2>Vendors</h2>
       <button class="add-vendor-btn" id="add-vendor-btn">+ Add Vendor</button>
     </div>
-    <div class="vendor-grid" id="vendor-grid"></div>
+    <div class="vendor-grid" id="vendor-grid">
+      <p id="vendor-status" style="color:var(--muted);font-size:0.85rem">Loading vendors…</p>
+    </div>
   </div>
 
   <section class="notes-section">
@@ -794,30 +796,54 @@
 
     const vendorGrid = document.getElementById('vendor-grid');
     const vendorCards = new Map(); // docId → card element
+    function upsertVendorStatus(message, colorVar = 'var(--muted)') {
+      let status = document.getElementById('vendor-status');
+      if (!status) {
+        status = document.createElement('p');
+        status.id = 'vendor-status';
+        status.style.fontSize = '0.85rem';
+        vendorGrid.appendChild(status);
+      }
+      status.textContent = message;
+      status.style.color = colorVar;
+    }
 
-    onSnapshot(query(collection(db, 'vendors'), orderBy('name')), (snapshot) => {
-      snapshot.docChanges().forEach(change => {
-        const docId = change.doc.id;
-        if (change.type === 'removed') {
-          vendorCards.get(docId)?.remove();
-          vendorCards.delete(docId);
-          return;
+    onSnapshot(
+      query(collection(db, 'vendors'), orderBy('name')),
+      (snapshot) => {
+        if (!snapshot.empty || vendorCards.size > 0) {
+          document.getElementById('vendor-status')?.remove();
         }
-        const data = change.doc.data();
-        if (change.type === 'added') {
-          const card = buildVendorCard(docId, data);
-          vendorCards.set(docId, card);
-          vendorGrid.appendChild(card);
-        } else if (change.type === 'modified') {
-          const card = vendorCards.get(docId);
-          if (!card) return;
-          const keys = ['name', 'specialty', 'contact', 'location'];
-          card.querySelectorAll('.vendor-input').forEach((inp, i) => {
-            if (document.activeElement !== inp) inp.value = data[keys[i]] || '';
-          });
+        snapshot.docChanges().forEach(change => {
+          const docId = change.doc.id;
+          if (change.type === 'removed') {
+            vendorCards.get(docId)?.remove();
+            vendorCards.delete(docId);
+            return;
+          }
+          const data = change.doc.data();
+          if (change.type === 'added') {
+            const card = buildVendorCard(docId, data);
+            vendorCards.set(docId, card);
+            vendorGrid.appendChild(card);
+          } else if (change.type === 'modified') {
+            const card = vendorCards.get(docId);
+            if (!card) return;
+            const keys = ['name', 'specialty', 'contact', 'location'];
+            card.querySelectorAll('.vendor-input').forEach((inp, i) => {
+              if (document.activeElement !== inp) inp.value = data[keys[i]] || '';
+            });
+          }
+        });
+        if (snapshot.empty && vendorCards.size === 0) {
+          upsertVendorStatus('No vendors yet. Click + Add Vendor to create one.');
         }
-      });
-    });
+      },
+      (err) => {
+        console.error('Vendors listener failed:', err);
+        upsertVendorStatus(`Vendors failed to load: ${err.message}`, 'var(--error)');
+      }
+    );
 
     document.getElementById('add-vendor-btn').addEventListener('click', async () => {
       await addDoc(collection(db, 'vendors'), {
