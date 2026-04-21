@@ -1,3 +1,4 @@
+ source /Users/leon/Documents/Code/padsplit-scraper/venv/bin/activate
 name: PadSplit Scrape
 
 on:
@@ -39,9 +40,9 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add padsplit_scraper/output/ docs/data/latest.json docs/data/stats.json
+          git pull --rebase --autostash
+          git add docs/data/latest.json docs/data/stats.json
           git diff --cached --quiet || git commit -m "chore: scrape $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          git pull --rebase
           git push
 
       - name: Notify Slack on failure
