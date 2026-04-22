@@ -257,6 +257,9 @@
             { key: "r3", label: "R3", value: "1069" },
             { key: "r4", label: "R4", value: "3414" },
             { key: "r5", label: "R5", value: "7520" }
+          ]},
+          { label: "Contact", fields: [
+            { key: "responsible_tenant", label: "Responsible Tenant", value: "", placeholder: "Name, Phone" }
           ]}
         ]
       },
@@ -279,6 +282,9 @@
             { key: "r4", label: "R4", value: "1304" },
             { key: "r5", label: "R5", value: "5410" },
             { key: "r6", label: "R6", value: "2024" }
+          ]},
+          { label: "Contact", fields: [
+            { key: "responsible_tenant", label: "Responsible Tenant", value: "", placeholder: "Name, Phone" }
           ]}
         ]
       },
@@ -305,6 +311,9 @@
             { key: "r4", label: "R4", value: "5410" },
             { key: "r5", label: "R5", value: "1069" },
             { key: "r6", label: "R6", value: "3414" }
+          ]},
+          { label: "Contact", fields: [
+            { key: "responsible_tenant", label: "Responsible Tenant", value: "", placeholder: "Name, Phone" }
           ]}
         ]
       },
@@ -328,6 +337,9 @@
             { key: "r4", label: "R4", value: "1314" },
             { key: "r5", label: "R5", value: "2398" },
             { key: "r6", label: "R6", value: "6510" }
+          ]},
+          { label: "Contact", fields: [
+            { key: "responsible_tenant", label: "Responsible Tenant", value: "", placeholder: "Name, Phone" }
           ]}
         ]
       },
@@ -352,6 +364,9 @@
             { key: "r5", label: "R5", value: "5604" },
             { key: "r6", label: "R6", value: "5006" },
             { key: "r7", label: "R7", value: "7503" }
+          ]},
+          { label: "Contact", fields: [
+            { key: "responsible_tenant", label: "Responsible Tenant", value: "", placeholder: "Name, Phone" }
           ]}
         ]
       },
@@ -385,6 +400,9 @@
             { key: "lockbox_6", label: "6", value: "5168" },
             { key: "lockbox_7", label: "7", value: "0228" },
             { key: "lockbox_8", label: "8", value: "3211" }
+          ]},
+          { label: "Contact", fields: [
+            { key: "responsible_tenant", label: "Responsible Tenant", value: "", placeholder: "Name, Phone" }
           ]}
         ]
       },
@@ -416,6 +434,9 @@
             { key: "keys_5", label: "Keys 5", value: "5115" },
             { key: "keys_6", label: "Keys 6", value: "6330" },
             { key: "keys_7", label: "Keys 7", value: "7222" }
+          ]},
+          { label: "Contact", fields: [
+            { key: "responsible_tenant", label: "Responsible Tenant", value: "", placeholder: "Name, Phone" }
           ]}
         ]
       },
@@ -448,6 +469,9 @@
             { key: "lockbox_5", label: "5", value: "5220" },
             { key: "lockbox_6", label: "6", value: "6111" },
             { key: "lockbox_7", label: "7", value: "7222" }
+          ]},
+          { label: "Contact", fields: [
+            { key: "responsible_tenant", label: "Responsible Tenant", value: "", placeholder: "Name, Phone" }
           ]}
         ]
       },
@@ -472,6 +496,9 @@
             { key: "r7", label: "R7", value: "2573" },
             { key: "r8", label: "R8", value: "6553" },
             { key: "r9", label: "R9", value: "4554" }
+          ]},
+          { label: "Contact", fields: [
+            { key: "responsible_tenant", label: "Responsible Tenant", value: "", placeholder: "Name, Phone" }
           ]}
         ]
       }
@@ -551,6 +578,7 @@
           input.value = Object.prototype.hasOwnProperty.call(savedValues, field.key)
             ? savedValues[field.key]
             : field.value;
+          if (field.placeholder) input.placeholder = field.placeholder;
           tdInput.appendChild(input);
           tr.appendChild(tdLabel);
           tr.appendChild(tdInput);
