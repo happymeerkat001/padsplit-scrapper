@@ -100,53 +100,6 @@
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 0.8rem;
     }
-    .history-toggle {
-      width: 100%;
-      text-align: left;
-      background: rgba(15, 23, 42, 0.35);
-      color: var(--text);
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      padding: 0.75rem 0.9rem;
-      cursor: pointer;
-      font-size: 0.95rem;
-    }
-    .history-toggle:hover { border-color: rgba(56,189,248,0.5); }
-    .history-months {
-      margin-top: 0.8rem;
-      display: grid;
-      gap: 0.55rem;
-    }
-    .history-month {
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      background: rgba(15,23,42,0.22);
-      overflow: hidden;
-    }
-    .history-month-btn {
-      width: 100%;
-      border: none;
-      background: transparent;
-      color: var(--text);
-      text-align: left;
-      padding: 0.65rem 0.8rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.5rem;
-      font-size: 0.9rem;
-    }
-    .history-month-body {
-      border-top: 1px solid rgba(148,163,184,0.15);
-      padding: 0.65rem 0.8rem 0.75rem;
-      display: grid;
-      gap: 0.45rem;
-    }
-    .history-note {
-      font-size: 0.84rem;
-      color: var(--muted);
-    }
     .mini-list {
       margin: 0;
       padding: 0;
@@ -304,13 +257,11 @@
       </div>
     </section>
 
-    <section class="card" id="history-section">
-      <button class="history-toggle" id="history-toggle" onclick="toggleHistory()">
-        Previous History ▶
-      </button>
-      <div id="history-panel" hidden>
-        <div id="history-months" class="history-months"></div>
-      </div>
+    <section class="card" id="history-section" style="padding:0.75rem 1rem">
+      <a href="./kpi-history.html" style="display:flex;align-items:center;justify-content:space-between;text-decoration:none;color:var(--text);">
+        <span style="font-size:0.95rem">Previous History &amp; KPI Trends</span>
+        <span style="color:var(--accent);font-size:0.9rem">View Charts →</span>
+      </a>
     </section>
 
     <section class="card">
@@ -461,83 +412,7 @@
       }
     }
 
-    function toggleHistory() {
-      const panel = document.getElementById("history-panel");
-      const btn = document.getElementById("history-toggle");
-      const open = panel.hasAttribute("hidden");
-      if (open) {
-        panel.removeAttribute("hidden");
-        btn.textContent = "Previous History ▼";
-      } else {
-        panel.setAttribute("hidden", "");
-        btn.textContent = "Previous History ▶";
-      }
-    }
-
-    function toggleMonth(elId, arrowId) {
-      const body = document.getElementById(elId);
-      const arrow = document.getElementById(arrowId);
-      const open = body.hasAttribute("hidden");
-      if (open) {
-        body.removeAttribute("hidden");
-        arrow.textContent = "▼";
-      } else {
-        body.setAttribute("hidden", "");
-        arrow.textContent = "▶";
-      }
-    }
-
-    function renderHistory(months) {
-      const root = document.getElementById("history-months");
-      root.innerHTML = "";
-      const list = Array.isArray(months) ? [...months] : [];
-      list.sort((a, b) => String(b.month || "").localeCompare(String(a.month || "")));
-
-      if (!list.length) {
-        root.innerHTML = '<div class="empty">No monthly history available.</div>';
-        return;
-      }
-
-      for (let idx = 0; idx < list.length; idx += 1) {
-        const m = list[idx] || {};
-        const row = document.createElement("div");
-        row.className = "history-month";
-        const bodyId = `history-month-body-${idx}`;
-        const arrowId = `history-month-arrow-${idx}`;
-        const bonuses = Array.isArray(m.bonuses) ? m.bonuses : [];
-        const penalties = Array.isArray(m.penalties) ? m.penalties : [];
-        const bonusHtml = bonuses.length
-          ? bonuses.map((b) => `<li><span>${b.label || "bonus"}</span><span class="score-green">+${toNum(b.points)}</span></li>`).join("")
-          : '<li><span class="empty">No bonus triggers</span><span></span></li>';
-        const penaltyHtml = penalties.length
-          ? penalties.map((p) => `<li><span>${p.label || "penalty"}${p.count ? ` (${p.count})` : ""}</span><span class="score-red">${toNum(p.points)}</span></li>`).join("")
-          : '<li><span class="empty">No penalty triggers</span><span></span></li>';
-
-        row.innerHTML = `
-          <button class="history-month-btn" onclick="toggleMonth('${bodyId}','${arrowId}')">
-            <span>${m.month || "-"}</span>
-            <span id="${arrowId}">▶</span>
-          </button>
-          <div class="history-month-body" id="${bodyId}" hidden>
-            <div><strong>Avg Days to Flip:</strong> ${toNum(m.avg_flip_days).toFixed(1)}d</div>
-            <div class="two-col">
-              <div>
-                <div class="muted" style="margin-bottom:0.35rem">Bonuses</div>
-                <ul class="mini-list">${bonusHtml}</ul>
-              </div>
-              <div>
-                <div class="muted" style="margin-bottom:0.35rem">Penalties</div>
-                <ul class="mini-list">${penaltyHtml}</ul>
-              </div>
-            </div>
-            ${m.partial ? '<div class="history-note">* ticket penalties not available for historical months</div>' : ""}
-          </div>
-        `;
-        root.appendChild(row);
-      }
-    }
-
-    function setOccupancyCards(kpis) {
+function setOccupancyCards(kpis) {
       const cards = document.getElementById("occupancy-cards");
       const rows = [
         ["Occupancy", pct(kpis.occupancy_pct)],
@@ -691,18 +566,8 @@
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         const kpis = data && typeof data.kpis === "object" ? data.kpis : {};
-        let monthlyHistory = [];
-        try {
-          const histRes = await fetch("./data/monthly_history.json", { cache: "no-cache" });
-          if (histRes.ok) {
-            const histData = await histRes.json();
-            monthlyHistory = Array.isArray(histData.months) ? histData.months : [];
-          }
-        } catch (_) {}
-
         document.getElementById("updated").textContent = `Updated ${fmtDate(data.scraped_at)}`;
         setScoreCard(kpis);
-        renderHistory(monthlyHistory);
         setOccupancyCards(kpis);
         renderVacancy(kpis);
         renderRetention(kpis);

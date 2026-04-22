@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KPI History</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --success: #22c55e;
+      --warn: #fbbf24;
+      --error: #f87171;
+      --text: #e2e8f0;
+      --line: rgba(148,163,184,0.2);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at 20% 20%, rgba(56,189,248,0.08), transparent 35%),
+                  radial-gradient(circle at 80% 0%, rgba(34,197,94,0.08), transparent 30%),
+                  var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem clamp(1rem,4vw,2.5rem);
+    }
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    h1 { margin: 0; font-size: 1.55rem; letter-spacing: 0.01em; }
+    h2 { margin: 0 0 0.75rem; font-size: 1.05rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+    .header-meta {
+      margin-left: auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .header-link { color: var(--muted); text-decoration: underline; font-size: 0.95rem; }
+    .header-link:hover { color: var(--accent); }
+    .pill {
+      padding: 0.3rem 0.7rem;
+      border-radius: 999px;
+      background: rgba(56,189,248,0.12);
+      color: var(--accent);
+      font-size: 0.85rem;
+    }
+    .stack { display: grid; gap: 1.2rem; }
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 1.2rem;
+      box-shadow: 0 14px 40px rgba(15,23,42,0.4);
+    }
+    .chart-wrap {
+      position: relative;
+      width: 100%;
+      height: 220px;
+    }
+    .charts-2col {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      gap: 1.2rem;
+    }
+    /* Score cards at top */
+    .kpi-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 0.75rem;
+    }
+    .kpi-tile {
+      border: 1px solid rgba(148,163,184,0.18);
+      border-radius: 10px;
+      padding: 0.85rem;
+      background: rgba(15,23,42,0.35);
+      text-align: center;
+    }
+    .kpi-tile .kt-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--muted);
+      margin-bottom: 0.3rem;
+    }
+    .kpi-tile .kt-val {
+      font-size: 1.7rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+    .kpi-tile .kt-sub {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 0.2rem;
+    }
+    .green { color: var(--success); }
+    .yellow { color: var(--warn); }
+    .red { color: var(--error); }
+
+    /* Table */
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 700px;
+      font-size: 0.88rem;
+    }
+    th, td {
+      padding: 0.5rem 0.7rem;
+      border-bottom: 1px solid rgba(148,163,184,0.1);
+      text-align: right;
+      white-space: nowrap;
+    }
+    th {
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      background: rgba(15,23,42,0.55);
+      position: sticky;
+      top: 0;
+    }
+    th:first-child, td:first-child { text-align: left; }
+    tr:last-child td { border-bottom: none; }
+    .row-good { background: rgba(34,197,94,0.06); }
+    .row-warn { background: rgba(251,191,36,0.07); }
+    .row-bad  { background: rgba(248,113,113,0.1); }
+    .score-badge {
+      display: inline-block;
+      padding: 0.15rem 0.45rem;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
+    .badge-green { background: rgba(34,197,94,0.15); color: var(--success); }
+    .badge-yellow { background: rgba(251,191,36,0.15); color: var(--warn); }
+    .badge-red { background: rgba(248,113,113,0.15); color: var(--error); }
+    .partial-dot {
+      display: inline-block;
+      width: 6px; height: 6px;
+      background: var(--muted);
+      border-radius: 50%;
+      margin-left: 4px;
+      vertical-align: middle;
+      title: "partial data";
+    }
+    footer { margin-top: 2rem; color: var(--muted); font-size: 0.85rem; }
+    @media (max-width: 640px) {
+      .charts-2col { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>KPI History</h1>
+      <div class="header-link" style="font-size:0.85rem;color:var(--muted);margin-top:0.2rem" id="updated-label">Loading…</div>
+    </div>
+    <div class="header-meta">
+      <a href="./stats.html" class="header-link">← Stats</a>
+      <a href="./index.html" class="header-link">Dashboard</a>
+    </div>
+  </header>
+
+  <div class="stack">
+    <!-- Latest snapshot KPIs -->
+    <section class="card">
+      <h2>Latest Snapshot</h2>
+      <div class="kpi-strip" id="kpi-strip">
+        <div class="kpi-tile"><div class="kt-label">Occupancy</div><div class="kt-val" id="snap-occ">--</div></div>
+        <div class="kpi-tile"><div class="kt-label">Avg Flip Days</div><div class="kt-val" id="snap-flip">--</div></div>
+        <div class="kpi-tile"><div class="kt-label">Avg Tenure</div><div class="kt-val" id="snap-tenure">--</div></div>
+        <div class="kpi-tile"><div class="kt-label">Score</div><div class="kt-val" id="snap-score">--</div></div>
+        <div class="kpi-tile"><div class="kt-label">Months Tracked</div><div class="kt-val" id="snap-months">--</div></div>
+        <div class="kpi-tile"><div class="kt-label">Best Occupancy</div><div class="kt-val green" id="snap-best-occ">--</div></div>
+      </div>
+    </section>
+
+    <!-- Occupancy & Score charts -->
+    <div class="charts-2col">
+      <section class="card">
+        <h2>Occupancy % Over Time</h2>
+        <div class="chart-wrap"><canvas id="chart-occ"></canvas></div>
+      </section>
+      <section class="card">
+        <h2>Manager Score Over Time</h2>
+        <div class="chart-wrap"><canvas id="chart-score"></canvas></div>
+      </section>
+    </div>
+
+    <!-- Flip Days & Tenure charts -->
+    <div class="charts-2col">
+      <section class="card">
+        <h2>Avg Flip Days Over Time</h2>
+        <div class="chart-wrap"><canvas id="chart-flip"></canvas></div>
+      </section>
+      <section class="card">
+        <h2>Avg Tenant Tenure (days)</h2>
+        <div class="chart-wrap"><canvas id="chart-tenure"></canvas></div>
+      </section>
+    </div>
+
+    <!-- Full history table -->
+    <section class="card">
+      <h2>All Months</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Month</th>
+              <th>Occ %</th>
+              <th>Flip Days</th>
+              <th>Avg Tenure</th>
+              <th>Score</th>
+              <th>Bonuses</th>
+              <th>Penalties</th>
+            </tr>
+          </thead>
+          <tbody id="history-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <footer id="footer-note">* Dot (·) = partial data month</footer>
+
+  <script>
+    const CHART_DEFAULTS = {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 400 },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1e293b',
+          borderColor: 'rgba(148,163,184,0.3)',
+          borderWidth: 1,
+          titleColor: '#e2e8f0',
+          bodyColor: '#94a3b8',
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color: '#94a3b8', font: { size: 11 }, maxRotation: 45 },
+          grid: { color: 'rgba(148,163,184,0.1)' }
+        },
+        y: {
+          ticks: { color: '#94a3b8', font: { size: 11 } },
+          grid: { color: 'rgba(148,163,184,0.1)' }
+        }
+      }
+    };
+
+    function makeLineDataset(data, color) {
+      return {
+        data,
+        borderColor: color,
+        backgroundColor: color.replace(')', ', 0.1)').replace('rgb', 'rgba'),
+        borderWidth: 2,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        fill: true,
+        tension: 0.35
+      };
+    }
+
+    function makeThresholdDataset(value, length, color, label) {
+      return {
+        data: Array(length).fill(value),
+        borderColor: color,
+        borderWidth: 1,
+        borderDash: [5, 4],
+        pointRadius: 0,
+        fill: false,
+        tension: 0,
+        label
+      };
+    }
+
+    function scoreColor(s) {
+      if (s >= 90) return 'green';
+      if (s >= 70) return 'yellow';
+      return 'red';
+    }
+    function scoreBadge(s) {
+      const cls = s >= 90 ? 'badge-green' : s >= 70 ? 'badge-yellow' : 'badge-red';
+      return `<span class="score-badge ${cls}">${s}</span>`;
+    }
+
+    async function init() {
+      const res = await fetch('./data/monthly_history.json', { cache: 'no-cache' });
+      if (!res.ok) { document.getElementById('updated-label').textContent = 'Failed to load data'; return; }
+      const data = await res.json();
+
+      const months = [...(data.months || [])].sort((a, b) =>
+        String(a.month).localeCompare(String(b.month))
+      );
+
+      if (!months.length) {
+        document.getElementById('updated-label').textContent = 'No history data available.';
+        return;
+      }
+
+      document.getElementById('updated-label').textContent =
+        `Updated ${new Date(data.updated_at).toLocaleString()} · ${months.length} months`;
+
+      const labels  = months.map(m => m.month);
+      const occs    = months.map(m => m.occupancy_pct ?? null);
+      const flips   = months.map(m => m.avg_flip_days ?? null);
+      const tenures = months.map(m => m.avg_tenure_days ?? null);
+      const scores  = months.map(m => m.score ?? null);
+      const n       = months.length;
+
+      // Latest snapshot
+      const latest = months[n - 1];
+      const snap = (id, val) => { document.getElementById(id).textContent = val; };
+      const snapEl = document.getElementById('snap-occ');
+      snapEl.textContent = `${(latest.occupancy_pct ?? 0).toFixed(1)}%`;
+      snapEl.className = `kt-val ${scoreColor(latest.occupancy_pct >= 87.5 ? 90 : latest.occupancy_pct >= 75 ? 75 : 60)}`;
+      snap('snap-flip', `${(latest.avg_flip_days ?? 0).toFixed(1)}d`);
+      snap('snap-tenure', `${Math.round(latest.avg_tenure_days ?? 0)}d`);
+      const scoreEl = document.getElementById('snap-score');
+      scoreEl.textContent = latest.score ?? '--';
+      scoreEl.className = `kt-val ${scoreColor(latest.score ?? 0)}`;
+      snap('snap-months', n);
+      const bestOcc = Math.max(...occs.filter(Boolean));
+      snap('snap-best-occ', `${bestOcc.toFixed(1)}%`);
+
+      // Chart: Occupancy
+      new Chart(document.getElementById('chart-occ'), {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            makeLineDataset(occs, 'rgb(56,189,248)'),
+            makeThresholdDataset(87.5, n, 'rgba(34,197,94,0.7)', 'Target 87.5%'),
+            makeThresholdDataset(75, n, 'rgba(251,191,36,0.7)', 'Warn 75%'),
+          ]
+        },
+        options: {
+          ...CHART_DEFAULTS,
+          plugins: {
+            ...CHART_DEFAULTS.plugins,
+            legend: { display: true, labels: { color: '#94a3b8', boxWidth: 16, font: { size: 11 } } }
+          },
+          scales: {
+            ...CHART_DEFAULTS.scales,
+            y: {
+              ...CHART_DEFAULTS.scales.y,
+              min: 0,
+              max: 100,
+              ticks: { ...CHART_DEFAULTS.scales.y.ticks, callback: v => `${v}%` }
+            }
+          }
+        }
+      });
+
+      // Chart: Score
+      new Chart(document.getElementById('chart-score'), {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            data: scores,
+            backgroundColor: scores.map(s =>
+              s == null ? 'rgba(148,163,184,0.2)'
+              : s >= 90 ? 'rgba(34,197,94,0.55)'
+              : s >= 70 ? 'rgba(251,191,36,0.55)'
+              : 'rgba(248,113,113,0.55)'
+            ),
+            borderColor: scores.map(s =>
+              s == null ? 'rgba(148,163,184,0.4)'
+              : s >= 90 ? 'rgba(34,197,94,0.9)'
+              : s >= 70 ? 'rgba(251,191,36,0.9)'
+              : 'rgba(248,113,113,0.9)'
+            ),
+            borderWidth: 1,
+            borderRadius: 4
+          }]
+        },
+        options: {
+          ...CHART_DEFAULTS,
+          scales: {
+            ...CHART_DEFAULTS.scales,
+            y: { ...CHART_DEFAULTS.scales.y, min: 0, max: 100 }
+          }
+        }
+      });
+
+      // Chart: Flip Days
+      new Chart(document.getElementById('chart-flip'), {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            makeLineDataset(flips, 'rgb(251,191,36)'),
+            makeThresholdDataset(5, n, 'rgba(248,113,113,0.7)', 'Warn >5d'),
+          ]
+        },
+        options: {
+          ...CHART_DEFAULTS,
+          plugins: {
+            ...CHART_DEFAULTS.plugins,
+            legend: { display: true, labels: { color: '#94a3b8', boxWidth: 16, font: { size: 11 } } }
+          },
+          scales: {
+            ...CHART_DEFAULTS.scales,
+            y: {
+              ...CHART_DEFAULTS.scales.y,
+              min: 0,
+              ticks: { ...CHART_DEFAULTS.scales.y.ticks, callback: v => `${v}d` }
+            }
+          }
+        }
+      });
+
+      // Chart: Tenure
+      new Chart(document.getElementById('chart-tenure'), {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            makeLineDataset(tenures, 'rgb(34,197,94)'),
+            makeThresholdDataset(120, n, 'rgba(56,189,248,0.6)', 'Bonus >120d'),
+          ]
+        },
+        options: {
+          ...CHART_DEFAULTS,
+          plugins: {
+            ...CHART_DEFAULTS.plugins,
+            legend: { display: true, labels: { color: '#94a3b8', boxWidth: 16, font: { size: 11 } } }
+          },
+          scales: {
+            ...CHART_DEFAULTS.scales,
+            y: {
+              ...CHART_DEFAULTS.scales.y,
+              min: 0,
+              ticks: { ...CHART_DEFAULTS.scales.y.ticks, callback: v => `${v}d` }
+            }
+          }
+        }
+      });
+
+      // Table
+      const tbody = document.getElementById('history-tbody');
+      const reversed = [...months].reverse();
+      for (const m of reversed) {
+        const occ = m.occupancy_pct ?? 0;
+        const rowCls = m.score >= 90 ? 'row-good' : m.score >= 70 ? 'row-warn' : 'row-bad';
+        const bonusTotal = (m.bonuses || []).reduce((s, b) => s + (b.points || 0), 0);
+        const penaltyTotal = (m.penalties || []).reduce((s, p) => s + (p.points || 0), 0);
+        const bonusTip = (m.bonuses || []).map(b => `${b.label}: +${b.points}`).join('\n') || '';
+        const penaltyTip = (m.penalties || []).map(p => `${p.label}${p.count ? ` (${p.count})` : ''}: ${p.points}`).join('\n') || '';
+        const tr = document.createElement('tr');
+        tr.className = rowCls;
+        tr.innerHTML = `
+          <td>${m.month}${m.partial ? '<span class="partial-dot" title="partial data"></span>' : ''}</td>
+          <td>${occ.toFixed(1)}%</td>
+          <td>${(m.avg_flip_days ?? 0).toFixed(1)}d</td>
+          <td>${Math.round(m.avg_tenure_days ?? 0)}d</td>
+          <td>${m.score != null ? scoreBadge(m.score) : '--'}</td>
+          <td title="${bonusTip}" style="color:var(--success);cursor:${bonusTip ? 'help' : 'default'}">${bonusTotal > 0 ? '+' + bonusTotal : '--'}</td>
+          <td title="${penaltyTip}" style="color:var(--error);cursor:${penaltyTip ? 'help' : 'default'}">${penaltyTotal < 0 ? penaltyTotal : '--'}</td>
+        `;
+        tbody.appendChild(tr);
+      }
+    }
+
+    init().catch(err => {
+      document.getElementById('updated-label').textContent = `Error: ${err.message}`;
+    });
+  </script>
+</body>
+</html>
