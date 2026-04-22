@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PadSplit Vendors</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --success: #22c55e;
+      --warn: #fbbf24;
+      --error: #f87171;
+      --text: #e2e8f0;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at 20% 20%, rgba(56,189,248,0.08), transparent 35%),
+                  radial-gradient(circle at 80% 0%, rgba(34,197,94,0.08), transparent 30%),
+                  var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem clamp(1rem, 4vw, 2.5rem);
+    }
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    h1 { margin: 0; font-size: 1.6rem; letter-spacing: 0.01em; }
+    .header-meta {
+      margin-left: auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.75rem;
+    }
+    .header-link {
+      color: var(--muted);
+      text-decoration: underline;
+      font-size: 0.95rem;
+    }
+    .header-link:hover { color: var(--accent); }
+
+    /* Vendors */
+    .vendor-section { margin-top: 0; }
+    .vendor-section-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+    .vendor-section-header h2 { margin: 0; font-size: 1.2rem; }
+    .add-vendor-btn {
+      background: none;
+      border: 1px solid rgba(56,189,248,0.4);
+      border-radius: 6px;
+      color: var(--accent);
+      cursor: pointer;
+      font-size: 0.8rem;
+      padding: 0.3rem 0.65rem;
+      transition: background 0.15s;
+    }
+    .add-vendor-btn:hover { background: rgba(56,189,248,0.1); }
+    .vendor-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
+    .vendor-card {
+      background: var(--card);
+      border: 1px solid rgba(148,163,184,0.15);
+      border-radius: 12px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .vendor-field-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.15rem;
+    }
+    .vendor-input {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(148,163,184,0.2);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.9rem;
+      padding: 0.4rem 0.6rem;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .vendor-input:focus { border-color: var(--accent); }
+    .vendor-card-footer { display: flex; align-items: center; justify-content: flex-end; gap: 0.5rem; margin-top: 0.25rem; }
+    .v-save-btn {
+      background: none;
+      border: 1px solid rgba(148,163,184,0.25);
+      border-radius: 6px;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 0.8rem;
+      padding: 0.3rem 0.65rem;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .v-save-btn:hover { color: var(--success); border-color: var(--success); }
+    .v-copy-btn {
+      background: none;
+      border: 1px solid rgba(148,163,184,0.25);
+      border-radius: 6px;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 0.3rem 0.5rem;
+      display: flex;
+      align-items: center;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .v-copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+    .v-copy-btn.copied { color: var(--success); border-color: var(--success); }
+    .v-copy-btn svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .v-del-btn {
+      background: none;
+      border: none;
+      color: rgba(248,113,113,0.5);
+      cursor: pointer;
+      font-size: 0.85rem;
+      margin-right: auto;
+      padding: 0.2rem 0.3rem;
+      transition: color 0.15s;
+    }
+    .v-del-btn:hover { color: var(--error); }
+    footer {
+      margin-top: 2rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Vendors</h1>
+    <div class="header-meta">
+      <a href="./index.html" class="header-link">Dashboard</a>
+      <a href="./private-messages.html" class="header-link">Tenant Messages</a>
+      <a href="./templates.html" class="header-link">Templates</a>
+      <a href="./codes.html" class="header-link">Codes</a>
+      <a href="./stats.html" class="header-link">Stats</a>
+    </div>
+  </header>
+
+  <div class="vendor-section">
+    <div class="vendor-section-header">
+      <h2>Vendors</h2>
+      <button class="add-vendor-btn" id="add-vendor-btn">+ Add Vendor</button>
+    </div>
+    <div class="vendor-grid" id="vendor-grid">
+      <p id="vendor-status" style="color:var(--muted);font-size:0.85rem">Loading vendors…</p>
+    </div>
+  </div>
+
+  <footer>
+    Vendor data stored in Firestore. Changes sync in real-time.
+  </footer>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, deleteDoc, doc, setDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCSWOHI6QLqugy_Fao2p4bBehg02_fu3No",
+      authDomain: "padsplit-scrapper.firebaseapp.com",
+      projectId: "padsplit-scrapper",
+      storageBucket: "padsplit-scrapper.firebasestorage.app",
+      messagingSenderId: "281696703679",
+      appId: "1:281696703679:web:f94ba04e92cb43b4f9a20a"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // ── Vendors ──────────────────────────────────────────────────────────────
+    const COPY_ICON = `<svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+
+    function buildVendorCard(docId, data = {}) {
+      const card = document.createElement('div');
+      card.className = 'vendor-card';
+      card.dataset.docId = docId;
+
+      const fields = [
+        { key: 'name',      label: 'Name',             placeholder: 'e.g. John Smith' },
+        { key: 'specialty', label: 'Specialty',         placeholder: 'e.g. Plumbing' },
+        { key: 'contact',   label: 'Contact',           placeholder: 'Phone or email' },
+        { key: 'location',  label: 'Location / Area',   placeholder: 'e.g. Dallas, TX' },
+      ];
+
+      const inputs = {};
+      fields.forEach(({ key, label, placeholder }) => {
+        const lbl = document.createElement('div');
+        lbl.className = 'vendor-field-label';
+        lbl.textContent = label;
+        const inp = document.createElement('input');
+        inp.className = 'vendor-input';
+        inp.placeholder = placeholder;
+        inp.value = data[key] || '';
+        inputs[key] = inp;
+        card.appendChild(lbl);
+        card.appendChild(inp);
+      });
+
+      const footer = document.createElement('div');
+      footer.className = 'vendor-card-footer';
+
+      const delBtn = document.createElement('button');
+      delBtn.className = 'v-del-btn';
+      delBtn.title = 'Delete vendor';
+      delBtn.textContent = '✕';
+      delBtn.addEventListener('click', async () => {
+        if (!confirm('Delete this vendor?')) return;
+        await deleteDoc(doc(db, 'vendors', docId));
+      });
+
+      const saveBtn = document.createElement('button');
+      saveBtn.className = 'v-save-btn';
+      saveBtn.textContent = 'Save';
+      saveBtn.addEventListener('click', async () => {
+        saveBtn.textContent = 'Saving…';
+        saveBtn.disabled = true;
+        try {
+          await setDoc(doc(db, 'vendors', docId), {
+            name:      inputs.name.value.trim(),
+            specialty: inputs.specialty.value.trim(),
+            contact:   inputs.contact.value.trim(),
+            location:  inputs.location.value.trim(),
+          }, { merge: true });
+          saveBtn.textContent = 'Saved!';
+        } catch {
+          saveBtn.textContent = 'Error';
+        }
+        setTimeout(() => { saveBtn.textContent = 'Save'; saveBtn.disabled = false; }, 1500);
+      });
+
+      const copyBtn = document.createElement('button');
+      copyBtn.className = 'v-copy-btn';
+      copyBtn.title = 'Copy to clipboard';
+      copyBtn.innerHTML = COPY_ICON;
+      copyBtn.addEventListener('click', () => {
+        const text = [
+          inputs.name.value,
+          inputs.specialty.value,
+          inputs.contact.value,
+          inputs.location.value,
+        ].filter(Boolean).join(' | ');
+        navigator.clipboard.writeText(text).then(() => {
+          copyBtn.classList.add('copied');
+          setTimeout(() => copyBtn.classList.remove('copied'), 1500);
+        });
+      });
+
+      footer.appendChild(delBtn);
+      footer.appendChild(saveBtn);
+      footer.appendChild(copyBtn);
+      card.appendChild(footer);
+      return card;
+    }
+
+    const vendorGrid = document.getElementById('vendor-grid');
+    const vendorCards = new Map(); // docId → card element
+    function upsertVendorStatus(message, colorVar = 'var(--muted)') {
+      let status = document.getElementById('vendor-status');
+      if (!status) {
+        status = document.createElement('p');
+        status.id = 'vendor-status';
+        status.style.fontSize = '0.85rem';
+        vendorGrid.appendChild(status);
+      }
+      status.textContent = message;
+      status.style.color = colorVar;
+    }
+
+    onSnapshot(
+      query(collection(db, 'vendors'), orderBy('name')),
+      (snapshot) => {
+        if (!snapshot.empty || vendorCards.size > 0) {
+          document.getElementById('vendor-status')?.remove();
+        }
+        snapshot.docChanges().forEach(change => {
+          const docId = change.doc.id;
+          if (change.type === 'removed') {
+            vendorCards.get(docId)?.remove();
+            vendorCards.delete(docId);
+            return;
+          }
+          const data = change.doc.data();
+          if (change.type === 'added') {
+            const card = buildVendorCard(docId, data);
+            vendorCards.set(docId, card);
+            vendorGrid.appendChild(card);
+          } else if (change.type === 'modified') {
+            const card = vendorCards.get(docId);
+            if (!card) return;
+            const keys = ['name', 'specialty', 'contact', 'location'];
+            card.querySelectorAll('.vendor-input').forEach((inp, i) => {
+              if (document.activeElement !== inp) inp.value = data[keys[i]] || '';
+            });
+          }
+        });
+        if (snapshot.empty && vendorCards.size === 0) {
+          upsertVendorStatus('No vendors yet. Click + Add Vendor to create one.');
+        }
+      },
+      (err) => {
+        console.error('Vendors listener failed:', err);
+        upsertVendorStatus(`Vendors failed to load: ${err.message}`, 'var(--error)');
+      }
+    );
+
+    document.getElementById('add-vendor-btn').addEventListener('click', async () => {
+      await addDoc(collection(db, 'vendors'), {
+        name: '', specialty: '', contact: '', location: '',
+      });
+    });
+  </script>
+</body>
+</html>
