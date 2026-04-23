@@ -91,6 +91,12 @@
       font-size: 0.85rem;
       color: var(--muted);
     }
+    .score-pill .formula {
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.35;
+      max-width: 22rem;
+    }
     .score-green { color: var(--success); }
     .score-yellow { color: var(--warn); }
     .score-red { color: var(--error); }
@@ -237,6 +243,7 @@
         <div class="score-pill">
           <div class="label">Month Avg</div>
           <div class="value" id="score-avg-value">--</div>
+          <div class="formula" id="score-avg-formula">Current: --</div>
           <div class="sub">Rolling average this month</div>
         </div>
         <div class="score-pill">
@@ -375,11 +382,20 @@
       return "score-red";
     }
 
+    function formatScoreFormula(kpis) {
+      const base = toNum(kpis.base_score);
+      const bonus = toNum(kpis.bonus_points);
+      const penalty = Math.abs(toNum(kpis.penalty_points));
+      const score = toNum(kpis.score);
+      return `Current: ${base} base + ${bonus} bonus - ${penalty} penalties = ${score}`;
+    }
+
     function setScoreCard(kpis) {
       const avgEl = document.getElementById("score-avg-value");
       avgEl.textContent = toNum(kpis.avg_score_30d).toFixed(1);
       avgEl.classList.remove("score-green", "score-yellow", "score-red");
       avgEl.classList.add(scoreClass(toNum(kpis.avg_score_30d)));
+      document.getElementById("score-avg-formula").textContent = formatScoreFormula(kpis);
       document.getElementById("avg-flip-value").textContent = `${toNum(kpis.avg_flip_days).toFixed(1)}d`;
 
       const bonusList = document.getElementById("bonus-list");
