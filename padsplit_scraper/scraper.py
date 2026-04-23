@@ -702,35 +702,47 @@ def compute_monthly_kpis(month_data: Dict[str, Any]) -> Dict[str, Any]:
 
     bonus_items: List[Dict[str, Any]] = []
     penalty_items: List[Dict[str, Any]] = []
-    score = 100
+    score = 80
 
-    if occupancy_pct >= 95:
+    if occupancy_pct >= 90:
+        score += 20
+        bonus_items.append({"label": "occupancy >= 90%", "points": 20})
+    elif occupancy_pct >= 80:
         score += 10
-        bonus_items.append({"label": "occupancy >= 95%", "points": 10})
-    elif occupancy_pct >= 88:
-        score += 5
-        bonus_items.append({"label": "occupancy 88-94%", "points": 5})
+        bonus_items.append({"label": "occupancy 80-89%", "points": 10})
 
     # Historical endpoint currently exposes only a portfolio tenure summary, not true per-month tenure.
-    if avg_tenure_days > 120:
+    if avg_tenure_days >= 180:
+        score += 20
+        bonus_items.append({"label": "avg tenure >= 180d", "points": 20})
+    elif avg_tenure_days >= 160:
         score += 10
-        bonus_items.append({"label": "avg tenure > 120d", "points": 10})
-
-    if occupancy_pct < 75:
+        bonus_items.append({"label": "avg tenure 160-179d", "points": 10})
+    elif avg_tenure_days >= 152:
+        pass
+    elif avg_tenure_days >= 140:
+        score -= 10
+        penalty_items.append({"label": "avg tenure 140-151d", "points": -10, "count": 1})
+    else:
         score -= 20
-        penalty_items.append({"label": "occupancy < 75%", "points": -20, "count": 1})
-    elif occupancy_pct < 88:
-        score -= 8
-        penalty_items.append({"label": "occupancy 75-87%", "points": -8, "count": 1})
+        penalty_items.append({"label": "avg tenure < 140d", "points": -20, "count": 1})
+
+    if occupancy_pct < 70:
+        score -= 20
+        penalty_items.append({"label": "occupancy < 70%", "points": -20, "count": 1})
+    elif occupancy_pct < 75:
+        score -= 10
+        penalty_items.append({"label": "occupancy 70-74%", "points": -10, "count": 1})
 
     # Approximation: if monthly average is above threshold, count as one trigger.
     if avg_flip_days > 5:
-        score -= 5
-        penalty_items.append({"label": "flip rooms > 5d (approx)", "points": -5, "count": 1})
+        score -= 2
+        penalty_items.append({"label": "flip rooms > 5d (approx)", "points": -2, "count": 1})
 
     score = max(0, min(125, int(round(score))))
     return {
         "score": score,
+        "base_score": 80,
         "bonuses": bonus_items,
         "penalties": penalty_items,
         "partial": True,
@@ -849,6 +861,7 @@ def compute_kpis(
     earnings_payload: Dict[str, Any],
     tasks_by_bucket: Dict[str, List[Dict[str, Any]]],
     now: datetime,
+    subjective_score: int = 0,
 ) -> Dict[str, Any]:
     listed_rooms = [r for r in rooms if str(r.get("detailed_status", "")).lower() == "listed"]
     occupied_rooms = [r for r in rooms if str(r.get("detailed_status", "")).lower() == "occupied"]
@@ -991,58 +1004,67 @@ def compute_kpis(
     max_flip_days = int(max(flip_days)) if flip_days else 0
     avg_ticket_age_days = round(sum(open_ticket_ages) / len(open_ticket_ages), 1) if open_ticket_ages else 0.0
 
-    score = 100
+    score = 80
     bonus_items = []
     penalty_items = []
 
-    if occupancy_pct >= 95:
+    if occupancy_pct >= 90:
+        score += 20
+        bonus_items.append({"label": "occupancy >= 90%", "points": 20})
+    elif occupancy_pct >= 80:
         score += 10
-        bonus_items.append({"label": "occupancy >= 95%", "points": 10})
-    elif occupancy_pct >= 88:
-        score += 5
-        bonus_items.append({"label": "occupancy 88-94%", "points": 5})
-
-    if avg_tenure_days > 120:
-        score += 10
-        bonus_items.append({"label": "avg tenure > 120d", "points": 10})
-
-    if len(listed_over_21) == 0 and listed_count > 0:
-        score += 5
-        bonus_items.append({"label": "no rooms listed > 21d", "points": 5})
-
-    if open_tickets and tickets_over_7d == 0:
-        score += 5
-        bonus_items.append({"label": "all open tickets < 7d", "points": 5})
-
-    if occupancy_pct < 75:
+        bonus_items.append({"label": "occupancy 80-89%", "points": 10})
+    elif occupancy_pct >= 75:
+        pass
+    elif occupancy_pct >= 70:
+        score -= 10
+        penalty_items.append({"label": "occupancy 70-74%", "points": -10, "count": 1})
+    else:
         score -= 20
-        penalty_items.append({"label": "occupancy < 75%", "points": -20, "count": 1})
-    elif occupancy_pct < 88:
-        score -= 8
-        penalty_items.append({"label": "occupancy 75-87%", "points": -8, "count": 1})
+        penalty_items.append({"label": "occupancy < 70%", "points": -20, "count": 1})
 
-    listed_penalty = len(listed_over_14) * 3
+    if avg_tenure_days >= 180:
+        score += 20
+        bonus_items.append({"label": "avg tenure >= 180d", "points": 20})
+    elif avg_tenure_days >= 160:
+        score += 10
+        bonus_items.append({"label": "avg tenure 160-179d", "points": 10})
+    elif avg_tenure_days >= 152:
+        pass
+    elif avg_tenure_days >= 140:
+        score -= 10
+        penalty_items.append({"label": "avg tenure 140-151d", "points": -10, "count": 1})
+    else:
+        score -= 20
+        penalty_items.append({"label": "avg tenure < 140d", "points": -20, "count": 1})
+
+    clamped_subj = max(0, min(20, int(round(_to_num(subjective_score)))))
+    if clamped_subj:
+        score += clamped_subj
+        bonus_items.append({"label": "daily hustle (subjective)", "points": clamped_subj})
+
+    listed_penalty = len(listed_over_21) * 1
     if listed_penalty:
         score -= listed_penalty
         penalty_items.append(
-            {"label": "rooms listed > 14d", "points": -listed_penalty, "count": len(listed_over_14)}
+            {"label": "rooms listed > 21d", "points": -listed_penalty, "count": len(listed_over_21)}
         )
 
-    flip_penalty = len(flip_over_5) * 5
+    flip_penalty = len(flip_over_5) * 2
     if flip_penalty:
         score -= flip_penalty
         penalty_items.append(
             {"label": "flip rooms > 5d", "points": -flip_penalty, "count": len(flip_over_5)}
         )
 
-    ticket_penalty = (tickets_over_7d * 2) + (tickets_over_14d * 5)
+    ticket_penalty = tickets_over_14d * 2
     if ticket_penalty:
         score -= ticket_penalty
         penalty_items.append(
             {
-                "label": "open tickets > 7d / >14d",
+                "label": "open tickets > 14d",
                 "points": -ticket_penalty,
-                "count": tickets_over_7d + tickets_over_14d,
+                "count": tickets_over_14d,
             }
         )
 
@@ -1086,9 +1108,10 @@ def compute_kpis(
 
     return {
         "score": score,
-        "base_score": 100,
+        "base_score": 80,
         "bonus_points": sum(item["points"] for item in bonus_items),
         "penalty_points": -sum(abs(item["points"]) for item in penalty_items),
+        "subjective_score": clamped_subj,
         "bonuses": bonus_items,
         "penalties": penalty_items,
         "occupancy_pct": occupancy_pct,
