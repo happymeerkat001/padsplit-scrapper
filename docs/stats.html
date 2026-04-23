@@ -101,6 +101,87 @@
       line-height: 1.35;
       max-width: 22rem;
     }
+    .manual-entry {
+      margin-top: 1rem;
+      border-top: 1px solid rgba(148,163,184,0.15);
+      padding-top: 1rem;
+      display: grid;
+      gap: 0.9rem;
+    }
+    .manual-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.6rem;
+    }
+    .manual-header h3 {
+      margin: 0;
+      font-size: 0.95rem;
+    }
+    .manual-status {
+      font-size: 0.8rem;
+      color: var(--muted);
+      padding: 0.25rem 0.55rem;
+      border: 1px solid rgba(148,163,184,0.18);
+      border-radius: 999px;
+      background: rgba(15,23,42,0.3);
+    }
+    .manual-status.active {
+      color: var(--warn);
+      border-color: rgba(251,191,36,0.35);
+      background: rgba(251,191,36,0.08);
+    }
+    .manual-form {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 0.75rem;
+    }
+    .manual-field {
+      display: grid;
+      gap: 0.3rem;
+    }
+    .manual-field label {
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+    .manual-field input {
+      width: 100%;
+      padding: 0.55rem 0.65rem;
+      border-radius: 8px;
+      border: 1px solid rgba(148,163,184,0.18);
+      background: rgba(15,23,42,0.45);
+      color: var(--text);
+      font: inherit;
+    }
+    .manual-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      align-items: center;
+    }
+    .manual-btn {
+      border-radius: 8px;
+      border: 1px solid rgba(148,163,184,0.2);
+      background: rgba(15,23,42,0.45);
+      color: var(--text);
+      font: inherit;
+      font-size: 0.88rem;
+      padding: 0.55rem 0.8rem;
+      cursor: pointer;
+    }
+    .manual-btn:hover {
+      border-color: rgba(56,189,248,0.4);
+      color: var(--accent);
+    }
+    .manual-btn.secondary:hover {
+      border-color: rgba(34,197,94,0.45);
+      color: var(--success);
+    }
+    .manual-help {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
     .score-green { color: var(--success); }
     .score-yellow { color: var(--warn); }
     .score-red { color: var(--error); }
@@ -245,10 +326,10 @@
       <h2>Manager Score Card</h2>
       <div class="score-grid">
         <div class="score-pill">
-          <div class="label">Month Avg Score</div>
+          <div class="label" id="score-avg-label">Month Avg Score</div>
           <div class="value" id="score-avg-value">--</div>
           <div class="formula" id="score-avg-formula">Current: --</div>
-          <div class="sub">Score (Naira payout)</div>
+          <div class="sub" id="score-avg-sub">Score (Naira payout)</div>
         </div>
         <div class="score-pill">
           <div class="label">Avg Days to Flip</div>
@@ -264,6 +345,31 @@
             <div class="muted" style="margin-bottom:0.35rem">Penalties</div>
             <ul class="mini-list" id="penalty-list"><li><span class="empty">No data</span><span></span></li></ul>
           </div>
+        </div>
+      </div>
+      <div class="manual-entry">
+        <div class="manual-header">
+          <div>
+            <h3>Manual Today Inputs</h3>
+            <div class="manual-help">Temporary calculator only. Does not save or change scraped data.</div>
+          </div>
+          <div class="manual-status" id="manual-status">Using scraped values</div>
+        </div>
+        <form class="manual-form" id="manual-score-form">
+          <div class="manual-field"><label for="manual-occupancy_pct">Occupancy %</label><input id="manual-occupancy_pct" name="occupancy_pct" type="number" step="0.1" min="0"></div>
+          <div class="manual-field"><label for="manual-avg_tenure_days">Avg tenure days</label><input id="manual-avg_tenure_days" name="avg_tenure_days" type="number" step="0.1" min="0"></div>
+          <div class="manual-field"><label for="manual-rooms_over_14d">Rooms listed &gt;14d</label><input id="manual-rooms_over_14d" name="rooms_over_14d" type="number" step="1" min="0"></div>
+          <div class="manual-field"><label for="manual-listed_count">Listed rooms total</label><input id="manual-listed_count" name="listed_count" type="number" step="1" min="0"></div>
+          <div class="manual-field"><label for="manual-rooms_over_21d">Rooms listed &gt;21d</label><input id="manual-rooms_over_21d" name="rooms_over_21d" type="number" step="1" min="0"></div>
+          <div class="manual-field"><label for="manual-avg_flip_days">Avg flip days</label><input id="manual-avg_flip_days" name="avg_flip_days" type="number" step="0.1" min="0"></div>
+          <div class="manual-field"><label for="manual-flip_rooms_over_5d">Flip rooms &gt;5d</label><input id="manual-flip_rooms_over_5d" name="flip_rooms_over_5d" type="number" step="1" min="0"></div>
+          <div class="manual-field"><label for="manual-open_tickets">Open tickets</label><input id="manual-open_tickets" name="open_tickets" type="number" step="1" min="0"></div>
+          <div class="manual-field"><label for="manual-tickets_over_7d">Tickets &gt;7d</label><input id="manual-tickets_over_7d" name="tickets_over_7d" type="number" step="1" min="0"></div>
+          <div class="manual-field"><label for="manual-tickets_over_14d">Tickets &gt;14d</label><input id="manual-tickets_over_14d" name="tickets_over_14d" type="number" step="1" min="0"></div>
+        </form>
+        <div class="manual-actions">
+          <button class="manual-btn" id="manual-apply-btn" type="button">Apply manual inputs</button>
+          <button class="manual-btn secondary" id="manual-reset-btn" type="button">Reset to scraped values</button>
         </div>
       </div>
     </section>
@@ -361,6 +467,22 @@
   </div>
 
   <script>
+    const MANUAL_SCORE_FIELDS = [
+      "occupancy_pct",
+      "avg_tenure_days",
+      "rooms_over_14d",
+      "listed_count",
+      "rooms_over_21d",
+      "avg_flip_days",
+      "flip_rooms_over_5d",
+      "open_tickets",
+      "tickets_over_7d",
+      "tickets_over_14d",
+    ];
+
+    let scrapedKpis = null;
+    let manualModeActive = false;
+
     function toNum(v) {
       const n = Number(v);
       return Number.isFinite(n) ? n : 0;
@@ -417,15 +539,27 @@
       return `Current: ${score.toFixed(0)} (${naira(payoutForScore(score))}) from ${base} base + ${bonus} bonus - ${penalty} penalties`;
     }
 
-    function setScoreCard(kpis) {
-      const avgScore = normalizeScore(kpis.avg_score_30d);
+    function setManualStatus(active) {
+      const statusEl = document.getElementById("manual-status");
+      statusEl.textContent = active ? "Manual mode active" : "Using scraped values";
+      statusEl.classList.toggle("active", active);
+    }
+
+    function setScoreCard(kpis, options = {}) {
+      const active = Boolean(options.manualActive);
+      const displayScore = active ? normalizeScore(kpis.score) : normalizeScore(kpis.avg_score_30d);
       const avgEl = document.getElementById("score-avg-value");
-      avgEl.textContent = formatScorePayout(avgScore, 1);
+      avgEl.textContent = formatScorePayout(displayScore, active ? 0 : 1);
       avgEl.classList.add("compact");
       avgEl.classList.remove("score-green", "score-yellow", "score-red");
-      avgEl.classList.add(scoreClass(avgScore));
-      document.getElementById("score-avg-formula").textContent = formatScoreFormula(kpis);
+      avgEl.classList.add(scoreClass(displayScore));
+      document.getElementById("score-avg-label").textContent = active ? "Today's Manual Score" : "Month Avg Score";
+      document.getElementById("score-avg-sub").textContent = active ? "Manual score (not saved)" : "Score (Naira payout)";
+      document.getElementById("score-avg-formula").textContent = active
+        ? `Manual: ${formatScoreFormula(kpis).replace(/^Current:\s*/, "")}`
+        : formatScoreFormula(kpis);
       document.getElementById("avg-flip-value").textContent = `${toNum(kpis.avg_flip_days).toFixed(1)}d`;
+      setManualStatus(active);
 
       const bonusList = document.getElementById("bonus-list");
       const penaltyList = document.getElementById("penalty-list");
@@ -457,7 +591,132 @@
       }
     }
 
-function setOccupancyCards(kpis) {
+    function deriveManualDefaults(kpis) {
+      const vacancyRooms = Array.isArray(kpis.vacancy_rooms) ? kpis.vacancy_rooms : [];
+      const flipRooms = Array.isArray(kpis.flip_rooms) ? kpis.flip_rooms : [];
+      return {
+        occupancy_pct: toNum(kpis.occupancy_pct),
+        avg_tenure_days: toNum(kpis.avg_tenure_days),
+        rooms_over_14d: Math.round(toNum(kpis.rooms_over_14d)),
+        listed_count: Math.round(toNum(kpis.listed)),
+        rooms_over_21d: vacancyRooms.filter(room => toNum(room.days_listed) > 21).length,
+        avg_flip_days: toNum(kpis.avg_flip_days),
+        flip_rooms_over_5d: flipRooms.filter(room => toNum(room.days_in_flip) > 5).length,
+        open_tickets: Math.round(toNum(kpis.open_tickets)),
+        tickets_over_7d: Math.round(toNum(kpis.tickets_over_7d)),
+        tickets_over_14d: Math.round(toNum(kpis.tickets_over_14d)),
+      };
+    }
+
+    function fillManualForm(values) {
+      for (const field of MANUAL_SCORE_FIELDS) {
+        const input = document.getElementById(`manual-${field}`);
+        if (input) input.value = values[field] ?? 0;
+      }
+    }
+
+    function readManualForm() {
+      const values = {};
+      for (const field of MANUAL_SCORE_FIELDS) {
+        const input = document.getElementById(`manual-${field}`);
+        values[field] = input ? toNum(input.value) : 0;
+      }
+      return values;
+    }
+
+    function computeManualKpis(baseKpis, values) {
+      let score = 100;
+      const bonuses = [];
+      const penalties = [];
+
+      if (values.occupancy_pct >= 95) {
+        score += 10;
+        bonuses.push({ label: "occupancy >= 95%", points: 10 });
+      } else if (values.occupancy_pct >= 88) {
+        score += 5;
+        bonuses.push({ label: "occupancy 88-94%", points: 5 });
+      }
+
+      if (values.avg_tenure_days > 120) {
+        score += 10;
+        bonuses.push({ label: "avg tenure > 120d", points: 10 });
+      }
+
+      if (values.rooms_over_21d === 0 && values.listed_count > 0) {
+        score += 5;
+        bonuses.push({ label: "no rooms listed > 21d", points: 5 });
+      }
+
+      if (values.open_tickets > 0 && values.tickets_over_7d === 0) {
+        score += 5;
+        bonuses.push({ label: "all open tickets < 7d", points: 5 });
+      }
+
+      if (values.occupancy_pct < 75) {
+        score -= 20;
+        penalties.push({ label: "occupancy < 75%", points: -20, count: 1 });
+      } else if (values.occupancy_pct < 88) {
+        score -= 8;
+        penalties.push({ label: "occupancy 75-87%", points: -8, count: 1 });
+      }
+
+      const listedPenalty = Math.max(0, Math.round(values.rooms_over_14d)) * 3;
+      if (listedPenalty) {
+        score -= listedPenalty;
+        penalties.push({ label: "rooms listed > 14d", points: -listedPenalty, count: Math.round(values.rooms_over_14d) });
+      }
+
+      const flipPenalty = Math.max(0, Math.round(values.flip_rooms_over_5d)) * 5;
+      if (flipPenalty) {
+        score -= flipPenalty;
+        penalties.push({ label: "flip rooms > 5d", points: -flipPenalty, count: Math.round(values.flip_rooms_over_5d) });
+      }
+
+      const ticketPenalty = (Math.max(0, Math.round(values.tickets_over_7d)) * 2) + (Math.max(0, Math.round(values.tickets_over_14d)) * 5);
+      if (ticketPenalty) {
+        score -= ticketPenalty;
+        penalties.push({
+          label: "open tickets > 7d / >14d",
+          points: -ticketPenalty,
+          count: Math.round(values.tickets_over_7d) + Math.round(values.tickets_over_14d),
+        });
+      }
+
+      const rawScore = Math.max(0, Math.min(125, Math.round(score)));
+      return {
+        ...baseKpis,
+        occupancy_pct: values.occupancy_pct,
+        avg_tenure_days: values.avg_tenure_days,
+        avg_flip_days: values.avg_flip_days,
+        listed: Math.round(values.listed_count),
+        rooms_over_14d: Math.round(values.rooms_over_14d),
+        open_tickets: Math.round(values.open_tickets),
+        tickets_over_7d: Math.round(values.tickets_over_7d),
+        tickets_over_14d: Math.round(values.tickets_over_14d),
+        score: rawScore,
+        avg_score_30d: rawScore,
+        base_score: 100,
+        bonus_points: bonuses.reduce((sum, item) => sum + toNum(item.points), 0),
+        penalty_points: -penalties.reduce((sum, item) => sum + Math.abs(toNum(item.points)), 0),
+        bonuses,
+        penalties,
+      };
+    }
+
+    function applyManualInputs() {
+      if (!scrapedKpis) return;
+      manualModeActive = true;
+      setScoreCard(computeManualKpis(scrapedKpis, readManualForm()), { manualActive: true });
+    }
+
+    function resetManualInputs() {
+      if (!scrapedKpis) return;
+      manualModeActive = false;
+      fillManualForm(deriveManualDefaults(scrapedKpis));
+      setScoreCard(scrapedKpis, { manualActive: false });
+    }
+
+    function setOccupancyCards(kpis) {
       const cards = document.getElementById("occupancy-cards");
       const rows = [
         ["Occupancy", pct(kpis.occupancy_pct)],
@@ -611,14 +870,18 @@ function setOccupancyCards(kpis) {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         const kpis = data && typeof data.kpis === "object" ? data.kpis : {};
+        scrapedKpis = kpis;
         document.getElementById("updated").textContent = `Updated ${fmtDate(data.scraped_at)}`;
-        setScoreCard(kpis);
+        fillManualForm(deriveManualDefaults(kpis));
+        setScoreCard(kpis, { manualActive: false });
         setOccupancyCards(kpis);
         renderVacancy(kpis);
         renderRetention(kpis);
         renderFlipRooms(kpis);
         renderTickets(kpis);
         renderPerProperty(kpis);
+        document.getElementById("manual-apply-btn").addEventListener("click", applyManualInputs);
+        document.getElementById("manual-reset-btn").addEventListener("click", resetManualInputs);
       } catch (err) {
         document.getElementById("updated").textContent = "Failed to load stats";
         document.body.insertAdjacentHTML("beforeend", `<div class="error" style="margin-top:1rem">Failed to load data/stats.json: ${err.message}</div>`);
