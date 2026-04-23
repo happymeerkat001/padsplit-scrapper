@@ -96,6 +96,10 @@
       font-weight: 800;
       line-height: 1;
     }
+    .kpi-tile .kt-val.compact {
+      font-size: 1.15rem;
+      line-height: 1.3;
+    }
     .kpi-tile .kt-sub {
       font-size: 0.78rem;
       color: var(--muted);
@@ -182,7 +186,7 @@
         <div class="kpi-tile"><div class="kt-label">Occupancy</div><div class="kt-val" id="snap-occ">--</div></div>
         <div class="kpi-tile"><div class="kt-label">Avg Flip Days</div><div class="kt-val" id="snap-flip">--</div></div>
         <div class="kpi-tile"><div class="kt-label">Avg Tenure</div><div class="kt-val" id="snap-tenure">--</div></div>
-        <div class="kpi-tile"><div class="kt-label">Score</div><div class="kt-val" id="snap-score">--</div></div>
+        <div class="kpi-tile"><div class="kt-label">Score (NGN)</div><div class="kt-val compact" id="snap-score">--</div></div>
         <div class="kpi-tile"><div class="kt-label">Months Tracked</div><div class="kt-val" id="snap-months">--</div></div>
         <div class="kpi-tile"><div class="kt-label">Best Occupancy</div><div class="kt-val green" id="snap-best-occ">--</div></div>
       </div>
@@ -195,7 +199,7 @@
         <div class="chart-wrap"><canvas id="chart-occ"></canvas></div>
       </section>
       <section class="card">
-        <h2>Manager Score Over Time</h2>
+        <h2>Manager Payout Over Time</h2>
         <div class="chart-wrap"><canvas id="chart-score"></canvas></div>
       </section>
     </div>
@@ -223,7 +227,7 @@
               <th>Occ %</th>
               <th>Flip Days</th>
               <th>Avg Tenure</th>
-              <th>Score</th>
+              <th>Score (NGN)</th>
               <th>Bonuses</th>
               <th>Penalties</th>
             </tr>
@@ -294,9 +298,29 @@
       if (s >= 70) return 'yellow';
       return 'red';
     }
+    function naira(v) {
+      return new Intl.NumberFormat('en-NG', {
+        style: 'currency',
+        currency: 'NGN',
+        maximumFractionDigits: 0,
+      }).format(Number(v) || 0);
+    }
+    function normalizeScore(rawScore) {
+      return Math.max(0, Math.min(100, Number(rawScore) || 0));
+    }
+    function payoutForScore(rawScore) {
+      const score = normalizeScore(rawScore);
+      if (score <= 80) return score * 1000;
+      return 80000 + ((score - 80) * 11000);
+    }
+    function formatScoreWithPayout(rawScore, digits = 0) {
+      const score = normalizeScore(rawScore);
+      return `${score.toFixed(digits)} (${naira(payoutForScore(score))})`;
+    }
     function scoreBadge(s) {
-      const cls = s >= 90 ? 'badge-green' : s >= 70 ? 'badge-yellow' : 'badge-red';
-      return `<span class="score-badge ${cls}">${s}</span>`;
+      const score = normalizeScore(s);
+      const cls = score >= 90 ? 'badge-green' : score >= 70 ? 'badge-yellow' : 'badge-red';
+      return `<span class="score-badge ${cls}">${formatScoreWithPayout(score)}</span>`;
     }
 
     async function init() {
@@ -320,7 +344,8 @@
       const occs    = months.map(m => m.occupancy_pct ?? null);
       const flips   = months.map(m => m.avg_flip_days ?? null);
       const tenures = months.map(m => m.avg_tenure_days ?? null);
-      const scores  = months.map(m => m.score ?? null);
+      const scores  = months.map(m => normalizeScore(m.score));
+      const payouts = months.map(m => payoutForScore(m.score));
       const n       = months.length;
 
       // Latest snapshot
@@ -332,8 +357,9 @@
       snap('snap-flip', `${(latest.avg_flip_days ?? 0).toFixed(1)}d`);
       snap('snap-tenure', `${Math.round(latest.avg_tenure_days ?? 0)}d`);
       const scoreEl = document.getElementById('snap-score');
-      scoreEl.textContent = latest.score ?? '--';
-      scoreEl.className = `kt-val ${scoreColor(latest.score ?? 0)}`;
+      const latestScore = normalizeScore(latest.score);
+      scoreEl.textContent = formatScoreWithPayout(latestScore);
+      scoreEl.className = `kt-val compact ${scoreColor(latestScore)}`;
       snap('snap-months', n);
       const bestOcc = Math.max(...occs.filter(Boolean));
       snap('snap-best-occ', `${bestOcc.toFixed(1)}%`);
@@ -373,7 +399,7 @@
         data: {
           labels,
           datasets: [{
-            data: scores,
+            data: payouts,
             backgroundColor: scores.map(s =>
               s == null ? 'rgba(148,163,184,0.2)'
               : s >= 90 ? 'rgba(34,197,94,0.55)'
@@ -392,9 +418,26 @@
         },
         options: {
           ...CHART_DEFAULTS,
+          plugins: {
+            ...CHART_DEFAULTS.plugins,
+            tooltip: {
+              ...CHART_DEFAULTS.plugins.tooltip,
+              callbacks: {
+                label: ctx => ` ${formatScoreWithPayout(scores[ctx.dataIndex])}`
+              }
+            }
+          },
           scales: {
             ...CHART_DEFAULTS.scales,
-            y: { ...CHART_DEFAULTS.scales.y, min: 0, max: 100 }
+            y: {
+              ...CHART_DEFAULTS.scales.y,
+              min: 0,
+              max: 300000,
+              ticks: {
+                ...CHART_DEFAULTS.scales.y.ticks,
+                callback: v => naira(v)
+              }
+            }
           }
         }
       });
@@ -458,7 +501,8 @@
       const reversed = [...months].reverse();
       for (const m of reversed) {
         const occ = m.occupancy_pct ?? 0;
-        const rowCls = m.score >= 90 ? 'row-good' : m.score >= 70 ? 'row-warn' : 'row-bad';
+        const normalizedScore = normalizeScore(m.score);
+        const rowCls = normalizedScore >= 90 ? 'row-good' : normalizedScore >= 70 ? 'row-warn' : 'row-bad';
         const bonusTotal = (m.bonuses || []).reduce((s, b) => s + (b.points || 0), 0);
         const penaltyTotal = (m.penalties || []).reduce((s, p) => s + (p.points || 0), 0);
         const bonusTip = (m.bonuses || []).map(b => `${b.label}: +${b.points}`).join('\n') || '';
@@ -470,7 +514,7 @@
           <td>${occ.toFixed(1)}%</td>
           <td>${(m.avg_flip_days ?? 0).toFixed(1)}d</td>
           <td>${Math.round(m.avg_tenure_days ?? 0)}d</td>
-          <td>${m.score != null ? scoreBadge(m.score) : '--'}</td>
+          <td>${m.score != null ? scoreBadge(normalizedScore) : '--'}</td>
           <td title="${bonusTip}" style="color:var(--success);cursor:${bonusTip ? 'help' : 'default'}">${bonusTotal > 0 ? '+' + bonusTotal : '--'}</td>
           <td title="${penaltyTip}" style="color:var(--error);cursor:${penaltyTip ? 'help' : 'default'}">${penaltyTotal < 0 ? penaltyTotal : '--'}</td>
         `;

@@ -87,6 +87,10 @@
       line-height: 1;
       font-weight: 800;
     }
+    .score-pill .value.compact {
+      font-size: 1.7rem;
+      line-height: 1.2;
+    }
     .score-pill .sub {
       font-size: 0.85rem;
       color: var(--muted);
@@ -241,10 +245,10 @@
       <h2>Manager Score Card</h2>
       <div class="score-grid">
         <div class="score-pill">
-          <div class="label">Month Avg</div>
+          <div class="label">Month Avg Score</div>
           <div class="value" id="score-avg-value">--</div>
           <div class="formula" id="score-avg-formula">Current: --</div>
-          <div class="sub">Rolling average this month</div>
+          <div class="sub">Score (Naira payout)</div>
         </div>
         <div class="score-pill">
           <div class="label">Avg Days to Flip</div>
@@ -366,6 +370,14 @@
       return `$${toNum(v).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
     }
 
+    function naira(v) {
+      return new Intl.NumberFormat("en-NG", {
+        style: "currency",
+        currency: "NGN",
+        maximumFractionDigits: 0,
+      }).format(toNum(v));
+    }
+
     function pct(v) {
       return `${toNum(v).toFixed(1)}%`;
     }
@@ -382,19 +394,36 @@
       return "score-red";
     }
 
+    function normalizeScore(rawScore) {
+      return Math.max(0, Math.min(100, toNum(rawScore)));
+    }
+
+    function payoutForScore(rawScore) {
+      const score = normalizeScore(rawScore);
+      if (score <= 80) return score * 1000;
+      return 80000 + ((score - 80) * 11000);
+    }
+
+    function formatScorePayout(rawScore, digits = 0) {
+      const score = normalizeScore(rawScore);
+      return `${score.toFixed(digits)} (${naira(payoutForScore(score))})`;
+    }
+
     function formatScoreFormula(kpis) {
       const base = toNum(kpis.base_score);
       const bonus = toNum(kpis.bonus_points);
       const penalty = Math.abs(toNum(kpis.penalty_points));
-      const score = toNum(kpis.score);
-      return `Current: ${base} base + ${bonus} bonus - ${penalty} penalties = ${score}`;
+      const score = normalizeScore(kpis.score);
+      return `Current: ${score.toFixed(0)} (${naira(payoutForScore(score))}) from ${base} base + ${bonus} bonus - ${penalty} penalties`;
     }
 
     function setScoreCard(kpis) {
+      const avgScore = normalizeScore(kpis.avg_score_30d);
       const avgEl = document.getElementById("score-avg-value");
-      avgEl.textContent = toNum(kpis.avg_score_30d).toFixed(1);
+      avgEl.textContent = formatScorePayout(avgScore, 1);
+      avgEl.classList.add("compact");
       avgEl.classList.remove("score-green", "score-yellow", "score-red");
-      avgEl.classList.add(scoreClass(toNum(kpis.avg_score_30d)));
+      avgEl.classList.add(scoreClass(avgScore));
       document.getElementById("score-avg-formula").textContent = formatScoreFormula(kpis);
       document.getElementById("avg-flip-value").textContent = `${toNum(kpis.avg_flip_days).toFixed(1)}d`;
 
