@@ -173,14 +173,13 @@
       gap: 0.55rem 0.8rem;
     }
     .manual-check {
-      display: flex;
-      gap: 0.55rem;
-      align-items: flex-start;
+      display: grid;
+      gap: 0.35rem;
       font-size: 0.88rem;
     }
     .manual-check input {
-      width: auto;
-      margin: 0.15rem 0 0;
+      width: 100%;
+      margin: 0;
       accent-color: var(--accent);
     }
     .manual-actions {
@@ -388,12 +387,12 @@
           <div class="manual-field"><label for="manual-occupancy_pct">Occupancy %</label><input id="manual-occupancy_pct" name="occupancy_pct" type="number" step="0.1" min="0"></div>
           <div class="manual-field"><label for="manual-avg_tenure_days">Avg tenure days</label><input id="manual-avg_tenure_days" name="avg_tenure_days" type="number" step="0.1" min="0"></div>
           <div class="manual-checklist">
-            <div class="manual-checklist-title">Daily Hustle: 5 points each, 20 max</div>
+            <div class="manual-checklist-title">Daily Hustle: rate each category from 0 to 5, 20 max total</div>
             <div class="manual-checklist-grid">
-              <label class="manual-check" for="manual-daily_calls"><input id="manual-daily_calls" name="daily_calls" type="checkbox"><span>Daily phone call/text</span></label>
-              <label class="manual-check" for="manual-todo_completion"><input id="manual-todo_completion" name="todo_completion" type="checkbox"><span>Transfer and completion of todo</span></label>
-              <label class="manual-check" for="manual-ownership"><input id="manual-ownership" name="ownership" type="checkbox"><span>Ownership (emergencies, vendors, etc.)</span></label>
-              <label class="manual-check" for="manual-other_hustle"><input id="manual-other_hustle" name="other_hustle" type="checkbox"><span>Others (communication, tenant satisfaction, etc.)</span></label>
+              <label class="manual-check" for="manual-daily_calls"><span>Daily phone call/text</span><input id="manual-daily_calls" name="daily_calls" type="number" step="1" min="0" max="5"></label>
+              <label class="manual-check" for="manual-todo_completion"><span>Transfer and completion of todo</span><input id="manual-todo_completion" name="todo_completion" type="number" step="1" min="0" max="5"></label>
+              <label class="manual-check" for="manual-ownership"><span>Ownership (emergencies, vendors, etc.)</span><input id="manual-ownership" name="ownership" type="number" step="1" min="0" max="5"></label>
+              <label class="manual-check" for="manual-other_hustle"><span>Others (communication, tenant satisfaction, etc.)</span><input id="manual-other_hustle" name="other_hustle" type="number" step="1" min="0" max="5"></label>
             </div>
           </div>
           <div class="manual-field"><label for="manual-rooms_over_14d">Rooms listed &gt;14d</label><input id="manual-rooms_over_14d" name="rooms_over_14d" type="number" step="1" min="0"></div>
@@ -640,7 +639,7 @@
     function deriveManualDefaults(kpis) {
       const vacancyRooms = Array.isArray(kpis.vacancy_rooms) ? kpis.vacancy_rooms : [];
       const flipRooms = Array.isArray(kpis.flip_rooms) ? kpis.flip_rooms : [];
-      const hustleCount = Math.min(4, Math.max(0, Math.round(toNum(kpis.subjective_score) / 5)));
+      let remainingHustle = Math.min(20, Math.max(0, Math.round(toNum(kpis.subjective_score))));
       return {
         occupancy_pct: toNum(kpis.occupancy_pct),
         avg_tenure_days: toNum(kpis.avg_tenure_days),
@@ -652,10 +651,10 @@
         open_tickets: Math.round(toNum(kpis.open_tickets)),
         tickets_over_7d: Math.round(toNum(kpis.tickets_over_7d)),
         tickets_over_14d: Math.round(toNum(kpis.tickets_over_14d)),
-        daily_calls: hustleCount >= 1,
-        todo_completion: hustleCount >= 2,
-        ownership: hustleCount >= 3,
-        other_hustle: hustleCount >= 4,
+        daily_calls: Math.min(5, remainingHustle),
+        todo_completion: Math.min(5, Math.max(0, remainingHustle - 5)),
+        ownership: Math.min(5, Math.max(0, remainingHustle - 10)),
+        other_hustle: Math.min(5, Math.max(0, remainingHustle - 15)),
       };
     }
 
@@ -663,11 +662,7 @@
       for (const field of MANUAL_SCORE_FIELDS) {
         const input = document.getElementById(`manual-${field}`);
         if (!input) continue;
-        if (input.type === "checkbox") {
-          input.checked = Boolean(values[field]);
-        } else {
-          input.value = values[field] ?? 0;
-        }
+        input.value = values[field] ?? 0;
       }
     }
 
@@ -675,13 +670,7 @@
       const values = {};
       for (const field of MANUAL_SCORE_FIELDS) {
         const input = document.getElementById(`manual-${field}`);
-        if (!input) {
-          values[field] = 0;
-        } else if (input.type === "checkbox") {
-          values[field] = input.checked;
-        } else {
-          values[field] = toNum(input.value);
-        }
+        values[field] = input ? toNum(input.value) : 0;
       }
       return values;
     }
@@ -723,7 +712,7 @@
         penalties.push({ label: "avg tenure < 140d", points: -20, count: 1 });
       }
 
-      const clampedSubj = 5 * HUSTLE_FIELDS.reduce((sum, field) => sum + (values[field] ? 1 : 0), 0);
+      const clampedSubj = Math.min(20, HUSTLE_FIELDS.reduce((sum, field) => sum + Math.max(0, Math.min(5, Math.round(toNum(values[field])))), 0));
       if (clampedSubj) {
         score += clampedSubj;
         bonuses.push({ label: "daily hustle (subjective)", points: clampedSubj });
