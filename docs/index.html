@@ -234,6 +234,8 @@
     let counter = REFRESH_SEC;
     const refreshInfo = document.getElementById('refresh-info');
     const taskMessageContainers = new Map();
+    const taskMessagesById = new Map();
+    const taskMessagesByTaskId = new Map();
     const manualTaskRows = new Map();
     let manualTasksDiv = null;
     let manualCountBadge = null;
@@ -255,6 +257,91 @@
 
     function getImportantIds() {
       return new Set(JSON.parse(localStorage.getItem('important_task_ids') || '[]'));
+    }
+    function getMessageCreatedValue(created) {
+      if (!created) return 0;
+      if (created?.toMillis) return created.toMillis();
+      const date = created?.toDate ? created.toDate() : new Date(created);
+      return Number.isNaN(date.getTime()) ? 0 : date.getTime();
+    }
+    function sortTaskMessages(taskId) {
+      const messages = taskMessagesByTaskId.get(taskId) || [];
+      messages.sort((a, b) => {
+        const createdDiff = getMessageCreatedValue(a.created) - getMessageCreatedValue(b.created);
+        return createdDiff || a.id.localeCompare(b.id);
+      });
+      taskMessagesByTaskId.set(taskId, messages);
+      return messages;
+    }
+    function removeTaskMessageFromTask(taskId, messageId) {
+      const messages = taskMessagesByTaskId.get(taskId) || [];
+      const next = messages.filter((message) => message.id !== messageId);
+      if (next.length) {
+        taskMessagesByTaskId.set(taskId, next);
+      } else {
+        taskMessagesByTaskId.delete(taskId);
+      }
+    }
+    function buildTaskMessageRow(message) {
+      const roleClass = message.role === "Repairman #1" ? "role-repairman"
+                     : message.role === "Repairman #2" ? "role-repairman"
+                     : "role-owner";
+      const created = message.created?.toDate ? message.created.toDate() : message.created;
+      const msgDiv = document.createElement('div');
+      msgDiv.className = `chat-msg ${roleClass}`;
+      msgDiv.dataset.docId = message.id;
+      msgDiv.innerHTML = `
+        <div>
+          <strong>${message.role || 'Role'}${message.status ? ` [${message.status}]` : ''}:</strong> ${message.text || ''}
+          <button class="delete-msg-btn" data-doc-id="${message.id}" title="Delete">✕</button>
+        </div>
+        <div class="msg-meta">${created ? fmtDate(created) : ''}</div>
+      `;
+      const deleteBtn = msgDiv.querySelector('.delete-msg-btn');
+      deleteBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        if (!confirm('Delete this message?')) return;
+        await deleteDoc(doc(db, "task_messages", message.id));
+      });
+      return msgDiv;
+    }
+    function renderTaskMessages(taskId) {
+      const container = taskMessageContainers.get(taskId);
+      if (!container) return;
+      container.innerHTML = '';
+      const messages = sortTaskMessages(taskId);
+      messages.forEach((message) => {
+        container.appendChild(buildTaskMessageRow(message));
+      });
+      container.scrollTop = container.scrollHeight;
+    }
+    function upsertTaskMessage(messageId, data) {
+      const previous = taskMessagesById.get(messageId);
+      if (previous && previous.taskId !== data.taskId) {
+        removeTaskMessageFromTask(previous.taskId, messageId);
+        renderTaskMessages(previous.taskId);
+      }
+
+      const message = { ...data, id: messageId };
+      taskMessagesById.set(messageId, message);
+
+      const taskId = data.taskId;
+      const messages = taskMessagesByTaskId.get(taskId) || [];
+      const existingIndex = messages.findIndex((entry) => entry.id === messageId);
+      if (existingIndex >= 0) {
+        messages[existingIndex] = message;
+      } else {
+        messages.push(message);
+      }
+      taskMessagesByTaskId.set(taskId, messages);
+      renderTaskMessages(taskId);
+    }
+    function removeTaskMessage(messageId) {
+      const previous = taskMessagesById.get(messageId);
+      if (!previous) return;
+      taskMessagesById.delete(messageId);
+      removeTaskMessageFromTask(previous.taskId, messageId);
+      renderTaskMessages(previous.taskId);
     }
     function buildImportantBtn(taskId) {
       const important = getImportantIds();
@@ -305,6 +392,7 @@
       messagesDiv.className = 'chat-messages';
       messagesDiv.dataset.taskId = taskId;
       taskMessageContainers.set(taskId, messagesDiv);
+      renderTaskMessages(taskId);
 
       const sendBtn = controls.querySelector('[data-send]');
       const msgInput = controls.querySelector('[data-msg]');
@@ -413,6 +501,7 @@
 
           row.appendChild(buildTaskChatBox(taskId));
           bucketDiv.appendChild(row);
+          renderTaskMessages(taskId);
         });
         taskDetails.appendChild(bucketDiv);
       });
@@ -423,7 +512,10 @@
       manualCountBadge = manualBucketDiv.querySelector('.badge');
       manualTasksDiv = document.createElement('div');
       manualBucketDiv.appendChild(manualTasksDiv);
-      manualTaskRows.forEach((row) => manualTasksDiv.appendChild(row));
+      manualTaskRows.forEach((row, taskId) => {
+        manualTasksDiv.appendChild(row);
+        renderTaskMessages(taskId);
+      });
       updateManualBadgeCount();
       taskDetails.appendChild(manualBucketDiv);
 
@@ -586,33 +678,11 @@
     const q = query(collection(db, "task_messages"), orderBy("created", "asc"));
     onSnapshot(q, (snapshot) => {
       snapshot.docChanges().forEach(change => {
-        if (change.type === "added") {
-          const data = change.doc.data();
-          const container = taskMessageContainers.get(data.taskId);
-          if (!container) return;
-          const roleClass = data.role === "Repairman #1" ? "role-repairman"
-                         : data.role === "Repairman #2" ? "role-repairman"
-                         : "role-owner";
-          const created = data.created?.toDate ? data.created.toDate() : data.created;
-          const msgDiv = document.createElement('div');
-          msgDiv.className = `chat-msg ${roleClass}`;
-          msgDiv.dataset.docId = change.doc.id;
-          msgDiv.innerHTML = `
-            <div>
-              <strong>${data.role || 'Role'}${data.status ? ` [${data.status}]` : ''}:</strong> ${data.text || ''}
-              <button class="delete-msg-btn" data-doc-id="${change.doc.id}" title="Delete">✕</button>
-            </div>
-            <div class="msg-meta">${created ? fmtDate(created) : ''}</div>
-          `;
-          const deleteBtn = msgDiv.querySelector('.delete-msg-btn');
-          deleteBtn.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            if (!confirm('Delete this message?')) return;
-            await deleteDoc(doc(db, "task_messages", change.doc.id));
-            msgDiv.remove();
-          });
-          container.appendChild(msgDiv);
-          container.scrollTop = container.scrollHeight;
+        if (change.type === "added" || change.type === "modified") {
+          upsertTaskMessage(change.doc.id, change.doc.data());
+        }
+        if (change.type === "removed") {
+          removeTaskMessage(change.doc.id);
         }
       });
     });
