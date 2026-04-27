@@ -8,6 +8,7 @@ for summarization, and posts the result to Slack via SLACK_WEBHOOK_MESSAGES.
 import json
 import os
 import sys
+import time
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -48,15 +49,43 @@ def call_minimax(prompt: str) -> str:
             "Content-Type": "application/json",
         },
     )
-    try:
-        with urllib.request.urlopen(req) as resp:
-            result = json.loads(resp.read())
-    except urllib.error.HTTPError as exc:
-        sys.exit(f"MiniMax API error: {exc.code} {exc.reason}")
-    except urllib.error.URLError as exc:
-        sys.exit(f"MiniMax request failed: {exc}")
-
-    return result.get("choices", [{}])[0].get("message", {}).get("content", "")
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            with urllib.request.urlopen(req) as resp:
+                result = json.loads(resp.read())
+            return result.get("choices", [{}])[0].get("message", {}).get("content", "")
+        except urllib.error.HTTPError as exc:
+            if exc.code in (429, 529) and attempt < max_retries - 1:
+                wait = 10 * (attempt + 1)
+                print(f"MiniMax returned {exc.code}, retrying in {wait}s... (attempt {attempt + 1}/{max_retries})")
+                time.sleep(wait)
+                req = urllib.request.Request(
+                    "https://api.minimax.io/v1/text/chatcompletion_v2",
+                    data=body,
+                    headers={
+                        "Authorization": f"Bearer {api_key}",
+                        "Content-Type": "application/json",
+                    },
+                )
+                continue
+            sys.exit(f"MiniMax API error: {exc.code} {exc.reason}")
+        except urllib.error.URLError as exc:
+            if attempt < max_retries - 1:
+                wait = 10 * (attempt + 1)
+                print(f"MiniMax request failed, retrying in {wait}s... (attempt {attempt + 1}/{max_retries})")
+                time.sleep(wait)
+                req = urllib.request.Request(
+                    "https://api.minimax.io/v1/text/chatcompletion_v2",
+                    data=body,
+                    headers={
+                        "Authorization": f"Bearer {api_key}",
+                        "Content-Type": "application/json",
+                    },
+                )
+                continue
+            sys.exit(f"MiniMax request failed: {exc}")
+    sys.exit("MiniMax API: all retries exhausted")
 
 
 def send_to_slack(message: str) -> None:
