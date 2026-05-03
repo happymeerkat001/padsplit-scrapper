@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-05-03T20:26:38Z",
+  "scraped_at": "2026-05-03T21:28:49Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzQyMTEw",
@@ -43,38 +43,64 @@
       },
       "isCancelled": false,
       "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODg1MzkzMg==",
-        "created": "2026-05-03T18:04:02.271096",
-        "text": "Here is my last two stubs",
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODg1NjkzNQ==",
+        "created": "2026-05-03T21:08:04.596150",
+        "text": null,
         "deleted": null,
         "extra": null,
-        "messageType": "TEXT",
+        "messageType": "BOOKING_STATUS",
         "sender": {
-          "pk": 964337,
-          "firstName": "Eric",
-          "lastName": "Lattimore",
+          "pk": 701127,
+          "firstName": "Ang",
+          "lastName": "Li",
           "displayName": null
         },
-        "attachments": [
-          {
-            "mediaType": "PICTURE",
-            "deleted": null
-          },
-          {
-            "mediaType": "PICTURE",
-            "deleted": null
-          }
-        ],
+        "attachments": [],
         "paymentExtensionStatus": null,
         "ticketStatus": null,
-        "bookingStatus": null
+        "bookingStatus": {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZUJvb2tpbmdTdGF0dXM6MjcwNzU2",
+          "created": "2026-05-03T21:08:04.608522",
+          "status": "APPROVED"
+        }
       },
       "member": {
-        "seenAt": "2026-05-03T17:58:23.377515",
+        "seenAt": "2026-05-03T20:46:20.538969",
         "isPinned": false,
         "isUnread": true
       },
       "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODg1NjkzNQ==",
+          "text": null,
+          "created": "2026-05-03T21:08:04.596150",
+          "messageType": "BOOKING_STATUS",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjcwMTEyNw==",
+            "pk": 701127,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 638709
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZUJvb2tpbmdTdGF0dXM6MjcwNzU2",
+            "created": "2026-05-03T21:08:04.608522",
+            "status": "APPROVED",
+            "verificationTimeInHours": 24
+          }
+        },
         {
           "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODg1MzkzMg==",
           "text": "Here is my last two stubs",
