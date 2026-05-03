@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-05-03T12:36:43Z",
+  "scraped_at": "2026-05-03T14:02:12Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzM4MDQz",
@@ -43,12 +43,12 @@
       },
       "isCancelled": false,
       "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODg0NjY5MA==",
-        "created": "2026-05-03T12:31:19.761136",
-        "text": null,
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODg0NzY2NQ==",
+        "created": "2026-05-03T13:18:40.602475",
+        "text": "Good morning Legacy, please submit two move out photos",
         "deleted": null,
         "extra": null,
-        "messageType": "TICKET_UPDATE",
+        "messageType": "TEXT",
         "sender": {
           "pk": 318367,
           "firstName": "Ang",
@@ -57,37 +57,41 @@
         },
         "attachments": [],
         "paymentExtensionStatus": null,
-        "ticketStatus": {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czo5MzE2NzQ=",
-          "created": "2026-05-03T12:31:19.770648",
-          "status": "SUBMITTED",
-          "canRate": false,
-          "ticket": {
-            "id": "404771",
-            "author": {
-              "firstName": "Legacy",
-              "lastName": "McNeill",
-              "id": "937258",
-              "displayName": null
-            },
-            "details": "safety-concern",
-            "location": "ROOM",
-            "status": "SUBMITTED",
-            "rating": null,
-            "comment": null,
-            "category": "ROOM_TURN",
-            "onHoldReason": null,
-            "withdrawReason": null
-          }
-        },
+        "ticketStatus": null,
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-04-30T08:47:50.213112",
+        "seenAt": "2026-05-03T13:18:42.622058",
         "isPinned": false,
         "isUnread": false
       },
       "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODg0NzY2NQ==",
+          "text": "Good morning Legacy, please submit two move out photos",
+          "created": "2026-05-03T13:18:40.602475",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
         {
           "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODg0NjY5MA==",
           "text": null,
@@ -395,32 +399,6 @@
           "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODc3OTA2Mg==",
           "text": "Reason for the $40 is because we have to change the lock code for new tenant for security purpose.",
           "created": "2026-04-29T23:07:36.155313",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODc3OTA0NA==",
-          "text": "Yes you can switch rooms but that would cost $80. $40 for change of code and $40 for clean. If you can leave the room clean and move in ready then it would be $40.",
-          "created": "2026-04-29T23:06:33.511123",
           "messageType": "TEXT",
           "deleted": null,
           "isBroadcast": false,
@@ -9017,93 +8995,6 @@
       }
     },
     {
-      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MjI3NTA5",
-      "title": "Chris Jones",
-      "chatType": "HOST_SUPPORT_CHAT",
-      "isArchived": false,
-      "occupancy": {
-        "moveInDate": "2025-11-06",
-        "moveOutDate": "2026-04-24",
-        "conditionalEligibilityApplied": null,
-        "room": {
-          "pk": 71399,
-          "roomNumber": 1
-        },
-        "user": {
-          "picture": "img/profiles/user_600027_c9e6d3eb-95af-49ab-8812-529348e0b19f.jpg",
-          "firstName": "Chris",
-          "lastName": "Jones",
-          "displayName": null
-        }
-      },
-      "property": {
-        "host": {
-          "firstName": "Tinghui",
-          "lastName": "Li",
-          "displayName": "",
-          "picture": ""
-        },
-        "description": "Enjoy living in a cozy House. This comfortable home is decorated with modern touches while providing the basic necessities. All that\u2019s missing is you!\n\nThe kitchen is equipped with a fridge, sink, oven, stovetop, as well as upgraded appliances. It\u2019s the perfect spot for you to cook at home and save money.\n\nThe surrounding location is near grocery stores, making it the perfect place to call home.",
-        "address": {
-          "street1": "1404 Pioneer Lane",
-          "street2": "",
-          "zip": "75023",
-          "city": {
-            "name": "Plano",
-            "state": {
-              "name": "Texas"
-            }
-          }
-        }
-      },
-      "isCancelled": false,
-      "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODY3ODI1Ng==",
-        "created": "2026-04-24T12:30:53.792279",
-        "text": null,
-        "deleted": null,
-        "extra": null,
-        "messageType": "TICKET_UPDATE",
-        "sender": {
-          "pk": 339595,
-          "firstName": "Tinghui",
-          "lastName": "Li",
-          "displayName": ""
-        },
-        "attachments": [],
-        "paymentExtensionStatus": null,
-        "ticketStatus": {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czo5MTkwNjY=",
-          "created": "2026-04-24T12:30:53.798952",
-          "status": "SUBMITTED",
-          "canRate": false,
-          "ticket": {
-            "id": "400550",
-            "author": {
-              "firstName": "Chris",
-              "lastName": "Jones",
-              "id": "600027",
-              "displayName": null
-            },
-            "details": "moving-to-a-new-home",
-            "location": "ROOM",
-            "status": "SUBMITTED",
-            "rating": null,
-            "comment": null,
-            "category": "ROOM_TURN",
-            "onHoldReason": null,
-            "withdrawReason": null
-          }
-        },
-        "bookingStatus": null
-      },
-      "member": {
-        "seenAt": "2026-04-23T23:23:23.893470",
-        "isPinned": false,
-        "isUnread": true
-      }
-    },
-    {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6Mjk4NjI5",
       "title": "Maurice Young",
       "chatType": "HOST_SUPPORT_CHAT",
@@ -10079,49 +9970,6 @@
         "days_to_complete": null
       },
       {
-        "id": 400550,
-        "status": "submitted",
-        "comment": null,
-        "category": "room-turn",
-        "media": [],
-        "created": "2026-04-24T12:30:53.731847",
-        "modified": "2026-04-24T12:30:53.731847",
-        "room_name": "",
-        "room_number": 1,
-        "room_status": 3,
-        "room_code": "12345",
-        "location": "Room",
-        "details": "moving-to-a-new-home",
-        "property_id": 20021,
-        "property_address": {
-          "id": 27496,
-          "street1": "1404 Pioneer Lane",
-          "street2": "",
-          "city": "Plano",
-          "state": "TX",
-          "zip": "75023",
-          "city_slug": "plano-tx"
-        },
-        "reported_by": {
-          "id": 600027,
-          "name": "Chris Jones",
-          "role_id": 0,
-          "picture": "img/profiles/user_600027_c9e6d3eb-95af-49ab-8812-529348e0b19f.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-04-24T12:30:53.732135",
-        "rating": null,
-        "extra_data": {
-          "user_id": 600027,
-          "occupancy_id": 229698,
-          "move_out_date": "2026-04-24"
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null
-      },
-      {
         "id": 396220,
         "status": "submitted",
         "comment": null,
@@ -10169,6 +10017,50 @@
       }
     ],
     "Complete": [
+      {
+        "id": 400550,
+        "status": "completed",
+        "comment": null,
+        "category": "room-turn",
+        "media": [],
+        "created": "2026-04-24T12:30:53.731847",
+        "modified": "2026-05-03T13:19:18.908707",
+        "room_name": "",
+        "room_number": 1,
+        "room_status": 1,
+        "room_code": "12345",
+        "location": "Room",
+        "details": "moving-to-a-new-home",
+        "property_id": 20021,
+        "property_address": {
+          "id": 27496,
+          "street1": "1404 Pioneer Lane",
+          "street2": "",
+          "city": "Plano",
+          "state": "TX",
+          "zip": "75023",
+          "city_slug": "plano-tx"
+        },
+        "reported_by": {
+          "id": 600027,
+          "name": "Chris Jones",
+          "role_id": 0,
+          "picture": "img/profiles/user_600027_c9e6d3eb-95af-49ab-8812-529348e0b19f.jpg"
+        },
+        "assigned_to": null,
+        "on_hold_reason": null,
+        "update_status_at": "2026-04-24T12:30:53.732135",
+        "rating": null,
+        "extra_data": {
+          "user_id": 600027,
+          "checklist": {},
+          "occupancy_id": 229698,
+          "move_out_date": "2026-04-24"
+        },
+        "has_reused_code": true,
+        "moveout_photos_count": 0,
+        "days_to_complete": null
+      },
       {
         "id": 403220,
         "status": "completed",
