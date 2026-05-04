@@ -2,7 +2,7 @@ import json
 import os
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import requests
 
@@ -55,15 +55,11 @@ def _build_digest(payload: Dict) -> str:
     return "\n".join(lines)
 
 
-def main() -> None:
-    token = os.getenv("SLACK_BOT_TOKEN")
-    channel = os.getenv("SLACK_CHANNEL_ID")
+def post_slack_message(text: str, *, token: Optional[str] = None, channel: Optional[str] = None) -> Dict:
+    token = token or os.getenv("SLACK_BOT_TOKEN")
+    channel = channel or os.getenv("SLACK_CHANNEL_ID")
     if not token or not channel:
         raise RuntimeError("Missing SLACK_BOT_TOKEN or SLACK_CHANNEL_ID")
-
-    base_dir = Path(__file__).resolve().parent
-    payload = _load_latest_payload(base_dir)
-    text = _build_digest(payload)
 
     headers = {
         "Authorization": f"Bearer {token}",
@@ -77,8 +73,17 @@ def main() -> None:
     if not data.get("ok"):
         raise RuntimeError(f"Slack API error: {data}")
 
+    return data
+
+
+def main() -> None:
+    base_dir = Path(__file__).resolve().parent
+    payload = _load_latest_payload(base_dir)
+    text = _build_digest(payload)
+    data = post_slack_message(text)
+
     meta = {
-        "channel": data.get("channel", channel),
+        "channel": data.get("channel", os.getenv("SLACK_CHANNEL_ID")),
         "thread_ts": data.get("ts"),
         "date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
     }

@@ -47,6 +47,6 @@ echo "[$(date)] Writing Obsidian daily digest..."
 cd "$WORKSPACE"
 "$VENV" obsidian_daily_digest.py
 
-echo "[$(date)] Morning run complete"
+echo "[$(date)] Morning run complete"4
 
 commit_and_push "chore: morning data $(date -u +%Y-%m-%dT%H:%M:%SZ)"

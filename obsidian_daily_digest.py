@@ -22,9 +22,7 @@ TASKS_PER_ADDRESS_LIMIT = 3
 THERMOSTAT_LIMIT = 10
 
 def load_environment() -> None:
-    # Fixed the spelling to match your root folder structure
-    env_path = Path("/Users/leon/Documents/Code/padsplit-scraper/padsplit_scraper/.env")
-    
+    env_path = Path(__file__).resolve().parent / ".env"
     load_dotenv(env_path)
 
 

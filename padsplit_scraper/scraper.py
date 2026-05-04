@@ -345,11 +345,12 @@ MESSAGE_LIST_QUERY = """
 # SCRAPER FUNCTIONS
 # ==========================================
 def load_credentials() -> Dict[str, str]:
-    load_dotenv()
+    env_path = Path(__file__).resolve().parent.parent / ".env"
+    load_dotenv(env_path)
     email = os.getenv("PADSPLIT_EMAIL")
     password = os.getenv("PADSPLIT_PASSWORD")
     if not email or not password:
-        sys.exit("Missing PADSPLIT_EMAIL or PADSPLIT_PASSWORD in environment/.env")
+        sys.exit("Missing PADSPLIT_EMAIL or PADSPLIT_PASSWORD in environment or root .env")
     return {"email": email, "password": password}
 
 
