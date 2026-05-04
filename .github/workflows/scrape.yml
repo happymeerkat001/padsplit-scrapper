@@ -5,6 +5,10 @@ on:
     - cron: '17,47 * * * *'
   workflow_dispatch:
 
+concurrency:
+  group: padsplit-scrape
+  cancel-in-progress: false
+
 permissions:
   contents: write
 
@@ -29,6 +33,34 @@ jobs:
           PADSPLIT_PASSWORD: ${{ secrets.PADSPLIT_PASSWORD }}
         run: python padsplit_scraper/scraper.py
 
+      - name: Inspect scrape status
+        id: scrape_status
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          from pathlib import Path
+
+          latest_path = Path("padsplit_scraper/output/latest.json")
+          state = "missing"
+          mode = ""
+          failed_phase = ""
+          if latest_path.exists():
+              payload = json.loads(latest_path.read_text())
+              run_status = payload.get("run_status") or {}
+              state = run_status.get("state") or "ok"
+              mode = run_status.get("mode") or ""
+              failed_phase = run_status.get("failed_phase") or ""
+
+          print(f"state={state}")
+          print(f"mode={mode}")
+          print(f"failed_phase={failed_phase}")
+          PY
+
+      - name: Warn on degraded scrape
+        if: steps.scrape_status.outputs.state == 'degraded'
+        run: |
+          echo "::warning title=PadSplit scrape degraded::Mode=${{ steps.scrape_status.outputs.mode }} failed_phase=${{ steps.scrape_status.outputs.failed_phase }}. Fresh messages were saved and prior stats were reused."
+
       - name: Copy latest snapshot for Pages
         run: |
           mkdir -p docs/data
@@ -40,7 +72,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git pull --rebase --autostash
-          git add docs/data/latest.json docs/data/stats.json
+          git add docs/data/latest.json docs/data/stats.json docs/data/monthly_history.json
           git diff --cached --quiet || git commit -m "chore: scrape $(date -u +%Y-%m-%dT%H:%M:%SZ)"
           git push
 

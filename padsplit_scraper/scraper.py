@@ -32,6 +32,8 @@ USER_AGENT = (
 )
 DEFAULT_TIMEOUT = (10, 30)  # (connect, read)
 RECENT_DAYS = 5
+OUTPUT_DIR = Path(__file__).resolve().parent / "output"
+DOCS_DATA_DIR = Path(__file__).resolve().parent.parent / "docs" / "data"
 
 # ==========================================
 # GRAPHQL QUERIES
@@ -370,6 +372,25 @@ def create_session() -> requests.Session:
     return session
 
 
+class ScrapePhaseError(RuntimeError):
+    def __init__(
+        self,
+        phase: str,
+        message: str,
+        *,
+        endpoint: Optional[str] = None,
+        original: Optional[BaseException] = None,
+    ) -> None:
+        self.phase = phase
+        self.endpoint = endpoint
+        self.original = original
+        detail = f"{phase} failed"
+        if endpoint:
+            detail += f" ({endpoint})"
+        detail += f": {message}"
+        super().__init__(detail)
+
+
 def _authed_request(
     session: requests.Session,
     method: str,
@@ -381,19 +402,22 @@ def _authed_request(
 ) -> requests.Response:
     resp = session.request(method, url, **kwargs)
     if resp.status_code in (401, 403):
-        login_fn(session, creds["email"], creds["password"])
+        login_fn(session, creds["email"], creds["password"], force=False)
+        resp = session.request(method, url, **kwargs)
+    if resp.status_code in (401, 403):
+        login_fn(session, creds["email"], creds["password"], force=True)
         resp = session.request(method, url, **kwargs)
         if resp.status_code in (401, 403):
             raise RuntimeError("Session could not be refreshed — check credentials")
     return resp
 
 
-def login(session: requests.Session, email: str, password: str) -> None:
+def login(session: requests.Session, email: str, password: str, force: bool = False) -> None:
     payload = {
         "email": email,
         "password": password,
         "mfa_code": "",
-        "force_login": True,
+        "force_login": force,
     }
     headers = {
         "Content-Type": "application/json",
@@ -1162,164 +1186,335 @@ def update_task_status(
 # ==========================================
 # MAIN EXECUTION
 # ==========================================
-def run(messages_only: bool = False) -> None:
+def _latest_output_path() -> Path:
+    return OUTPUT_DIR / "latest.json"
+
+
+def _stats_output_path() -> Path:
+    return OUTPUT_DIR / "stats.json"
+
+
+def _timestamped_output_path(scraped_at: str) -> Path:
+    return OUTPUT_DIR / f"{scraped_at.replace(':', '-')}.json"
+
+
+def _monthly_history_path() -> Path:
+    return DOCS_DATA_DIR / "monthly_history.json"
+
+
+def _write_json(path: Path, payload: Dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, indent=2))
+
+
+def _load_json_if_exists(path: Path) -> Optional[Dict[str, Any]]:
+    if not path.exists():
+        return None
+    try:
+        data = json.loads(path.read_text())
+    except (OSError, ValueError):
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def _build_run_status(
+    *,
+    state: str,
+    mode: str,
+    run_scraped_at: str,
+    failed_phase: Optional[str] = None,
+    error_type: Optional[str] = None,
+    error_message: Optional[str] = None,
+    fallback_used: bool = False,
+) -> Dict[str, Any]:
+    return {
+        "state": state,
+        "mode": mode,
+        "failed_phase": failed_phase,
+        "error_type": error_type,
+        "error_message": error_message,
+        "fallback_used": fallback_used,
+        "run_scraped_at": run_scraped_at,
+    }
+
+
+def _attach_run_status(payload: Dict[str, Any], run_status: Dict[str, Any]) -> Dict[str, Any]:
+    next_payload = dict(payload)
+    next_payload["run_status"] = run_status
+    return next_payload
+
+
+def _persist_latest_payload(
+    payload: Dict[str, Any],
+    *,
+    scraped_at: str,
+    run_status: Optional[Dict[str, Any]] = None,
+    write_timestamped: bool = False,
+) -> Path:
+    latest_payload = _attach_run_status(payload, run_status) if run_status else payload
+    latest_path = _latest_output_path()
+    _write_json(latest_path, latest_payload)
+    out_path = _timestamped_output_path(scraped_at)
+    if write_timestamped:
+        _write_json(out_path, latest_payload)
+        return out_path
+    return out_path
+
+
+def _describe_exception(exc: BaseException) -> str:
+    if isinstance(exc, requests.exceptions.HTTPError):
+        response = exc.response
+        if response is not None:
+            return f"HTTP {response.status_code}"
+        return "HTTP request failed"
+    return str(exc) or exc.__class__.__name__
+
+
+def _run_phase(label: str, phase: str, fn):
+    sys.stderr.write(f"{label}\n")
+    try:
+        return fn()
+    except ScrapePhaseError:
+        raise
+    except requests.exceptions.RequestException as exc:
+        endpoint = None
+        request = getattr(exc, "request", None)
+        if request is not None:
+            endpoint = getattr(request, "url", None)
+        raise ScrapePhaseError(phase, _describe_exception(exc), endpoint=endpoint, original=exc) from exc
+    except RuntimeError as exc:
+        raise ScrapePhaseError(phase, str(exc), original=exc) from exc
+
+
+def _enrich_recent_threads(session: requests.Session, creds: Dict[str, str], messages: List[Dict]) -> None:
+    cutoff = datetime.now(timezone.utc) - timedelta(days=RECENT_DAYS)
+    for thread in messages:
+        created_str = (thread.get("lastMessage") or {}).get("created", "")
+        if not created_str:
+            continue
+        try:
+            last_dt = datetime.fromisoformat(created_str)
+            if last_dt.tzinfo is None:
+                last_dt = last_dt.replace(tzinfo=timezone.utc)
+        except ValueError:
+            continue
+        if last_dt < cutoff:
+            continue
+        chat_id = thread.get("id", "")
+        if not chat_id:
+            continue
+        sys.stderr.write(f"# Fetching context for thread {chat_id} (last active {created_str})\n")
+        thread["recent_messages"] = _run_phase(
+            "Fetching recent thread context...",
+            "message_context",
+            lambda: fetch_thread_messages(session, creds, chat_id),
+        )
+
+
+def _load_score_history() -> List[Dict[str, Any]]:
+    previous_stats = _load_json_if_exists(_stats_output_path()) or {}
+    score_history = (previous_stats.get("kpis") or {}).get("score_history", [])
+    return score_history if isinstance(score_history, list) else []
+
+
+def _build_monthly_history_payload(
+    *,
+    performance_history: Dict[str, Dict[str, Any]],
+    kpis: Dict[str, Any],
+    scraped_at: str,
+) -> Dict[str, Any]:
+    existing_months_map: Dict[str, Dict[str, Any]] = {}
+    monthly_prev = _load_json_if_exists(_monthly_history_path()) or {}
+    monthly_prev_list = monthly_prev.get("months", []) if isinstance(monthly_prev, dict) else []
+    for item in monthly_prev_list:
+        if isinstance(item, dict) and item.get("month"):
+            existing_months_map[str(item["month"])] = item
+
+    months_map: Dict[str, Dict[str, Any]] = dict(existing_months_map)
+    for month_key, raw in performance_history.items():
+        if month_key < "2025-04":
+            continue
+        monthly_kpis = compute_monthly_kpis(raw)
+        months_map[month_key] = {
+            "month": month_key,
+            "avg_flip_days": round(_to_num(raw.get("avg_flip_days")), 1),
+            "occupancy_pct": round(_to_num(raw.get("occupancy_pct")), 1),
+            "avg_tenure_days": round(_to_num(raw.get("avg_tenure_days")), 1),
+            "partial": monthly_kpis["partial"],
+            "bonuses": monthly_kpis["bonuses"],
+            "penalties": monthly_kpis["penalties"],
+            "score": monthly_kpis["score"],
+            "note": monthly_kpis["note"],
+        }
+
+    current_month = scraped_at[:7]
+    months_map[current_month] = {
+        "month": current_month,
+        "avg_flip_days": round(_to_num(kpis.get("avg_flip_days")), 1),
+        "occupancy_pct": round(_to_num(kpis.get("occupancy_pct")), 1),
+        "avg_tenure_days": round(_to_num(kpis.get("avg_tenure_days")), 1),
+        "partial": False,
+        "bonuses": kpis.get("bonuses", []),
+        "penalties": kpis.get("penalties", []),
+        "score": int(_to_num(kpis.get("score"))),
+    }
+
+    monthly_history_months = [
+        months_map[month_key]
+        for month_key in sorted(months_map.keys())
+        if isinstance(months_map[month_key], dict) and month_key >= "2025-04"
+    ]
+    return {
+        "updated_at": scraped_at,
+        "months": monthly_history_months,
+    }
+
+
+def _build_stats_payload(
+    *,
+    scraped_at: str,
+    rooms: List[Dict[str, Any]],
+    properties: List[Dict[str, Any]],
+    earnings_payload: Dict[str, Any],
+    kpis: Dict[str, Any],
+    run_status: Dict[str, Any],
+) -> Dict[str, Any]:
+    return {
+        "scraped_at": scraped_at,
+        "rooms": rooms,
+        "properties": properties,
+        "earnings": _extract_earnings_rows(earnings_payload),
+        "kpis": kpis,
+        "run_status": run_status,
+    }
+
+
+def run(messages_only: bool = False) -> int:
     creds = load_credentials()
-    base_dir = Path(__file__).resolve().parent
+    mode = "messages_only" if messages_only else "full"
 
     with create_session() as session:
-        sys.stderr.write("Logging in to Padsplit...\n")
-        login(session, creds["email"], creds["password"])
+        _run_phase(
+            "Logging in to Padsplit...",
+            "login",
+            lambda: login(session, creds["email"], creds["password"], force=False),
+        )
 
-        sys.stderr.write("Fetching messages...\n")
-        messages = fetch_messages(session, creds)
-
-        # Enrich threads active in the last RECENT_DAYS days with full message context
-        cutoff = datetime.now(timezone.utc) - timedelta(days=RECENT_DAYS)
-        for thread in messages:
-            created_str = (thread.get("lastMessage") or {}).get("created", "")
-            if not created_str:
-                continue
-            try:
-                last_dt = datetime.fromisoformat(created_str)
-                if last_dt.tzinfo is None:
-                    last_dt = last_dt.replace(tzinfo=timezone.utc)
-            except ValueError:
-                continue
-            if last_dt < cutoff:
-                continue
-            chat_id = thread.get("id", "")
-            if not chat_id:
-                continue
-            sys.stderr.write(f"# Fetching context for thread {chat_id} (last active {created_str})\n")
-            thread["recent_messages"] = fetch_thread_messages(session, creds, chat_id)
+        messages = _run_phase("Fetching messages...", "messages", lambda: fetch_messages(session, creds))
+        _enrich_recent_threads(session, creds, messages)
 
         scraped_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-        payload: Dict = {"scraped_at": scraped_at, "messages": messages}
+        payload: Dict[str, Any] = {"scraped_at": scraped_at, "messages": messages}
+        out_path = _persist_latest_payload(payload, scraped_at=scraped_at)
         tasks_for_kpis: Dict[str, List[Dict[str, Any]]] = {}
 
-        if not messages_only:
-            sys.stderr.write("Fetching tasks...\n")
-            fetched_tasks = fetch_tasks(session, creds)
-            payload["tasks"] = fetched_tasks
-            tasks_for_kpis = fetched_tasks
+        if messages_only:
+            run_status = _build_run_status(state="ok", mode=mode, run_scraped_at=scraped_at)
+            _persist_latest_payload(payload, scraped_at=scraped_at, run_status=run_status, write_timestamped=True)
+            sys.stderr.write(f"# Saved raw data to {out_path}\n")
+            return 0
 
-        sys.stderr.write("Fetching room stats...\n")
-        rooms = fetch_rooms(session, creds)
-        sys.stderr.write("Fetching property stats...\n")
-        properties = fetch_properties_stats(session, creds)
-        sys.stderr.write("Fetching earnings stats...\n")
-        earnings_payload = fetch_earnings(session, creds)
-        kpis = compute_kpis(rooms, properties, earnings_payload, tasks_for_kpis, datetime.now(timezone.utc))
-        sys.stderr.write("Fetching performance history stats...\n")
-        performance_history = fetch_performance_history(session, creds)
+        fetched_tasks = _run_phase("Fetching tasks...", "tasks", lambda: fetch_tasks(session, creds))
+        payload["tasks"] = fetched_tasks
+        tasks_for_kpis = fetched_tasks
+        out_path = _persist_latest_payload(payload, scraped_at=scraped_at, write_timestamped=True)
 
-        docs_stats = base_dir.parent / "docs" / "data" / "stats.json"
-        docs_data_dir = base_dir.parent / "docs" / "data"
-        docs_data_dir.mkdir(parents=True, exist_ok=True)
-        docs_monthly_history = docs_data_dir / "monthly_history.json"
-        score_history: List[Dict[str, Any]] = []
-        if docs_stats.exists():
-            try:
-                prev = json.loads(docs_stats.read_text())
-                score_history = (prev.get("kpis") or {}).get("score_history", [])
-            except Exception:
-                score_history = []
+        try:
+            rooms = _run_phase("Fetching room stats...", "room_stats", lambda: fetch_rooms(session, creds))
+            properties = _run_phase(
+                "Fetching property stats...",
+                "property_stats",
+                lambda: fetch_properties_stats(session, creds),
+            )
+            earnings_payload = _run_phase(
+                "Fetching earnings stats...",
+                "earnings_stats",
+                lambda: fetch_earnings(session, creds),
+            )
+            kpis = compute_kpis(
+                rooms,
+                properties,
+                earnings_payload,
+                tasks_for_kpis,
+                datetime.now(timezone.utc),
+            )
+            score_history = _load_score_history()
+            today = scraped_at[:10]
+            score_history = [entry for entry in score_history if entry.get("date") != today]
+            score_history.append({"date": today, "score": kpis["score"]})
+            current_month = today[:7]
+            score_history = [entry for entry in score_history if entry.get("date", "")[:7] == current_month]
+            score_history.sort(key=lambda entry: entry.get("date", ""))
+            avg_score_30d = (
+                round(sum(entry["score"] for entry in score_history) / len(score_history), 1)
+                if score_history
+                else kpis["score"]
+            )
+            kpis["score_history"] = score_history
+            kpis["avg_score_30d"] = avg_score_30d
+            performance_history = _run_phase(
+                "Fetching performance history stats...",
+                "performance_history",
+                lambda: fetch_performance_history(session, creds),
+            )
+        except ScrapePhaseError as exc:
+            run_status = _build_run_status(
+                state="degraded",
+                mode=mode,
+                failed_phase=exc.phase,
+                error_type=exc.original.__class__.__name__ if exc.original else exc.__class__.__name__,
+                error_message=str(exc),
+                fallback_used=_stats_output_path().exists(),
+                run_scraped_at=scraped_at,
+            )
+            _persist_latest_payload(payload, scraped_at=scraped_at, run_status=run_status, write_timestamped=True)
 
-        today = scraped_at[:10]
-        score_history = [e for e in score_history if e.get("date") != today]
-        score_history.append({"date": today, "score": kpis["score"]})
-        current_month = today[:7]
-        score_history = [e for e in score_history if e.get("date", "")[:7] == current_month]
-        score_history.sort(key=lambda e: e.get("date", ""))
+            fallback_stats = _load_json_if_exists(_stats_output_path())
+            if fallback_stats is not None:
+                fallback_stats["run_status"] = run_status
+                _write_json(_stats_output_path(), fallback_stats)
+                sys.stderr.write(f"# Degraded stats run; re-used prior stats from {_stats_output_path()}\n")
+            else:
+                sys.stderr.write(f"# Degraded stats run; no prior stats fallback at {_stats_output_path()}\n")
 
-        avg_score_30d = round(sum(e["score"] for e in score_history) / len(score_history), 1) if score_history else kpis["score"]
-        kpis["score_history"] = score_history
-        kpis["avg_score_30d"] = avg_score_30d
+            sys.stderr.write(f"{exc}\n")
+            sys.stderr.write(f"# Saved raw data to {out_path}\n")
+            return 0
 
-        existing_months_map: Dict[str, Dict[str, Any]] = {}
-        if docs_monthly_history.exists():
-            try:
-                monthly_prev = json.loads(docs_monthly_history.read_text())
-                monthly_prev_list = monthly_prev.get("months", []) if isinstance(monthly_prev, dict) else []
-                for item in monthly_prev_list:
-                    if isinstance(item, dict) and item.get("month"):
-                        existing_months_map[str(item["month"])] = item
-            except Exception:
-                existing_months_map = {}
-
-        months_map: Dict[str, Dict[str, Any]] = dict(existing_months_map)
-        for month_key, raw in performance_history.items():
-            if month_key < "2025-04":
-                continue
-            monthly_kpis = compute_monthly_kpis(raw)
-            months_map[month_key] = {
-                "month": month_key,
-                "avg_flip_days": round(_to_num(raw.get("avg_flip_days")), 1),
-                "occupancy_pct": round(_to_num(raw.get("occupancy_pct")), 1),
-                "avg_tenure_days": round(_to_num(raw.get("avg_tenure_days")), 1),
-                "partial": monthly_kpis["partial"],
-                "bonuses": monthly_kpis["bonuses"],
-                "penalties": monthly_kpis["penalties"],
-                "score": monthly_kpis["score"],
-                "note": monthly_kpis["note"],
-            }
-
-        current_month = scraped_at[:7]
-        months_map[current_month] = {
-            "month": current_month,
-            "avg_flip_days": round(_to_num(kpis.get("avg_flip_days")), 1),
-            "occupancy_pct": round(_to_num(kpis.get("occupancy_pct")), 1),
-            "avg_tenure_days": round(_to_num(kpis.get("avg_tenure_days")), 1),
-            "partial": False,
-            "bonuses": kpis.get("bonuses", []),
-            "penalties": kpis.get("penalties", []),
-            "score": int(_to_num(kpis.get("score"))),
-        }
-
-        monthly_history_months = [
-            months_map[m]
-            for m in sorted(months_map.keys())
-            if isinstance(months_map[m], dict) and m >= "2025-04"
-        ]
-        monthly_history_payload: Dict[str, Any] = {
-            "updated_at": scraped_at,
-            "months": monthly_history_months,
-        }
-
-        stats_payload: Dict[str, Any] = {
-            "scraped_at": scraped_at,
-            "rooms": rooms,
-            "properties": properties,
-            "earnings": _extract_earnings_rows(earnings_payload),
-            "kpis": kpis,
-        }
-
-        # --- 1. SAVE THE RAW DATA LOCALLY ---
-        output_dir = base_dir / "output"
-        output_dir.mkdir(parents=True, exist_ok=True)
-        filename = scraped_at.replace(":", "-") + ".json"
-        out_path = output_dir / filename
-        latest_path = output_dir / "latest.json"
-        stats_path = output_dir / "stats.json"
-        out_path.write_text(json.dumps(payload, indent=2))
-        latest_path.write_text(json.dumps(payload, indent=2))
-        stats_path.write_text(json.dumps(stats_payload, indent=2))
-        docs_monthly_history.write_text(json.dumps(monthly_history_payload, indent=2))
+        run_status = _build_run_status(state="ok", mode=mode, run_scraped_at=scraped_at)
+        _persist_latest_payload(payload, scraped_at=scraped_at, run_status=run_status, write_timestamped=True)
+        stats_payload = _build_stats_payload(
+            scraped_at=scraped_at,
+            rooms=rooms,
+            properties=properties,
+            earnings_payload=earnings_payload,
+            kpis=kpis,
+            run_status=run_status,
+        )
+        monthly_history_payload = _build_monthly_history_payload(
+            performance_history=performance_history,
+            kpis=kpis,
+            scraped_at=scraped_at,
+        )
+        _write_json(_stats_output_path(), stats_payload)
+        _write_json(_monthly_history_path(), monthly_history_payload)
         sys.stderr.write(f"# Saved raw data to {out_path}\n")
+        return 0
+
+
+def main(argv: Optional[List[str]] = None) -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--messages-only", action="store_true", help="Skip tasks; summarize messages only")
+    args = parser.parse_args(argv)
+    try:
+        return run(messages_only=args.messages_only)
+    except ScrapePhaseError as exc:
+        sys.stderr.write(f"{exc}\n")
+        return 1
+    except RuntimeError as exc:
+        sys.stderr.write(f"{exc}\n")
+        return 1
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--messages-only", action="store_true", help="Skip tasks; summarize messages only")
-    args = parser.parse_args()
-    try:
-        run(messages_only=args.messages_only)
-    except requests.exceptions.ConnectionError:
-        sys.stderr.write("Network error: could not reach padsplit.com\n")
-        sys.exit(1)
-    except requests.exceptions.Timeout:
-        sys.stderr.write("Request timed out — PadSplit may be slow\n")
-        sys.exit(1)
-    except RuntimeError as exc:
-        sys.stderr.write(f"{exc}\n")
-        sys.exit(1)
+    sys.exit(main())
