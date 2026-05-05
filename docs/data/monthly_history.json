@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-05-05T14:29:21Z",
+  "updated_at": "2026-05-05T16:15:50Z",
   "months": [
     {
       "month": "2025-04",
@@ -192,7 +192,7 @@
     },
     {
       "month": "2025-11",
-      "avg_flip_days": 38.0,
+      "avg_flip_days": 39.0,
       "occupancy_pct": 60.0,
       "avg_tenure_days": 146.0,
       "partial": true,
@@ -345,8 +345,8 @@
     {
       "month": "2026-05",
       "avg_flip_days": 3.0,
-      "occupancy_pct": 82.0,
-      "avg_tenure_days": 150.5,
+      "occupancy_pct": 80.3,
+      "avg_tenure_days": 153.4,
       "partial": false,
       "bonuses": [
         {
@@ -355,11 +355,6 @@
         }
       ],
       "penalties": [
-        {
-          "label": "avg tenure 140-151d",
-          "points": -10,
-          "count": 1
-        },
         {
           "label": "rooms listed > 21d",
           "points": -5,
@@ -371,7 +366,7 @@
           "count": 1
         }
       ],
-      "score": 73
+      "score": 83
     }
   ]
 }
