@@ -1,6 +1,390 @@
 {
-  "scraped_at": "2026-05-07T19:19:47Z",
+  "scraped_at": "2026-05-07T20:51:27Z",
   "messages": [
+    {
+      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzQzMzg3",
+      "title": "Ahmed Hamoud",
+      "chatType": "HOST_SUPPORT_CHAT",
+      "isArchived": false,
+      "occupancy": {
+        "moveInDate": "2026-05-06",
+        "moveOutDate": "2026-05-07",
+        "conditionalEligibilityApplied": null,
+        "room": {
+          "pk": 71399,
+          "roomNumber": 1
+        },
+        "user": {
+          "picture": "img/profiles/user_632366_d7a83134-d895-4227-8ce9-f6c628320134.jpg",
+          "firstName": "Ahmed",
+          "lastName": "Hamoud",
+          "displayName": null
+        }
+      },
+      "property": {
+        "host": {
+          "firstName": "Tinghui",
+          "lastName": "Li",
+          "displayName": "",
+          "picture": ""
+        },
+        "description": "Enjoy living in a cozy House. This comfortable home is decorated with modern touches while providing the basic necessities. All that\u2019s missing is you!\n\nThe kitchen is equipped with a fridge, sink, oven, stovetop, as well as upgraded appliances. It\u2019s the perfect spot for you to cook at home and save money.\n\nThe surrounding location is near grocery stores, making it the perfect place to call home.",
+        "address": {
+          "street1": "1404 Pioneer Lane",
+          "street2": "",
+          "zip": "75023",
+          "city": {
+            "name": "Plano",
+            "state": {
+              "name": "Texas"
+            }
+          }
+        }
+      },
+      "isCancelled": false,
+      "lastMessage": {
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODkzNTIxMw==",
+        "created": "2026-05-07T19:45:39.000689",
+        "text": null,
+        "deleted": null,
+        "extra": null,
+        "messageType": "MOVE_OUT_PHOTOS",
+        "sender": {
+          "pk": 632366,
+          "firstName": "Ahmed",
+          "lastName": "Hamoud",
+          "displayName": null
+        },
+        "attachments": [
+          {
+            "mediaType": "PICTURE",
+            "deleted": null
+          }
+        ],
+        "paymentExtensionStatus": null,
+        "ticketStatus": null,
+        "bookingStatus": null
+      },
+      "member": {
+        "seenAt": "2026-05-06T20:21:20.751347",
+        "isPinned": false,
+        "isUnread": true
+      },
+      "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODkzNTIxMw==",
+          "text": null,
+          "created": "2026-05-07T19:45:39.000689",
+          "messageType": "MOVE_OUT_PHOTOS",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjYzMjM2Ng==",
+            "pk": 632366,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_632366_d7a83134-d895-4227-8ce9-f6c628320134.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_632366_d7a83134-d895-4227-8ce9-f6c628320134.jpg",
+            "firstName": "Ahmed",
+            "lastName": "Hamoud",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 570042
+          },
+          "attachments": [
+            {
+              "id": "TWVzc2VuZ2VyQXR0YWNobWVudFR5cGU6NjY4MTUz",
+              "deleted": null,
+              "mediaType": "PICTURE",
+              "location": "img/chat/message/attachments/message_8935213_4796b8dd-f35e-4217-8466-326ec7026bd8.jpg",
+              "filename": "a5846842-17d0-48c2-8576-bbe953662e22.jpg"
+            }
+          ],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODkyNTcxNQ==",
+          "text": null,
+          "created": "2026-05-07T12:31:03.456188",
+          "messageType": "TICKET_UPDATE",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
+            "pk": 339595,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Tinghui",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "",
+            "padmateProfileId": 278216
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czo5Mzc5MTI=",
+            "created": "2026-05-07T12:31:03.462501",
+            "status": "SUBMITTED",
+            "canRate": false,
+            "ticket": {
+              "id": "406796",
+              "author": {
+                "firstName": "Ahmed",
+                "lastName": "Hamoud",
+                "id": "632366",
+                "displayName": null
+              },
+              "details": "Room transfer",
+              "location": "ROOM",
+              "status": "SUBMITTED",
+              "rating": null,
+              "comment": null,
+              "category": "ROOM_TURN",
+              "onHoldReason": null,
+              "withdrawReason": null
+            }
+          },
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODkxNDM4Ng==",
+          "text": "I have related this to the maintenance guy and he would come fix it",
+          "created": "2026-05-06T19:25:18.000613",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODkxMjM5MQ==",
+          "text": null,
+          "created": "2026-05-06T17:42:04.089071",
+          "messageType": "TICKET_UPDATE",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
+            "pk": 339595,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Tinghui",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "",
+            "padmateProfileId": 278216
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czo5MzY4ODY=",
+            "created": "2026-05-06T17:42:04.096164",
+            "status": "SUBMITTED",
+            "canRate": false,
+            "ticket": {
+              "id": "406486",
+              "author": {
+                "firstName": "Ahmed",
+                "lastName": "Hamoud",
+                "id": "632366",
+                "displayName": null
+              },
+              "details": "Door lock not properly locked",
+              "location": "DOORLOCK",
+              "status": "SUBMITTED",
+              "rating": null,
+              "comment": null,
+              "category": "UNCLASSIFIED",
+              "onHoldReason": null,
+              "withdrawReason": null
+            }
+          },
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODkxMjM2Mw==",
+          "text": "I did press the lock sign as I mentioned i waited it did the noise as trying to lock but it didn't and the lock sign trunk red at the end and when I checked it it STILL OPEN and idiot that for then last hour this is horrible experience ",
+          "created": "2026-05-06T17:40:42.571907",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjYzMjM2Ng==",
+            "pk": 632366,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_632366_d7a83134-d895-4227-8ce9-f6c628320134.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_632366_d7a83134-d895-4227-8ce9-f6c628320134.jpg",
+            "firstName": "Ahmed",
+            "lastName": "Hamoud",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 570042
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODkxMjE2OQ==",
+          "text": "I\u2019m so sorry about that. I would schedule cleaning for the common areas immediately",
+          "created": "2026-05-06T17:31:24.204092",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODkxMjE2Mg==",
+          "text": "Press the lock sign leave it for few minutes then check if it\u2019s locked",
+          "created": "2026-05-06T17:30:50.852007",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODkxMTgwNg==",
+          "text": "Please I need to l eave to work and the door don't get locked ",
+          "created": "2026-05-06T17:15:10.683720",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjYzMjM2Ng==",
+            "pk": 632366,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_632366_d7a83134-d895-4227-8ce9-f6c628320134.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_632366_d7a83134-d895-4227-8ce9-f6c628320134.jpg",
+            "firstName": "Ahmed",
+            "lastName": "Hamoud",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 570042
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODkxMTQ2Nw==",
+          "text": "Hi Cyndy\nI have just arrived to the house \nI like the room but I don't like the common area it's felthy and I have to manage to do my showers at the gym.\nAlso how to lock the room i have tried to press the lock sign on the lock keyboard but it doesn't lock it.\nPlease advise ",
+          "created": "2026-05-06T17:01:46.617489",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjYzMjM2Ng==",
+            "pk": 632366,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_632366_d7a83134-d895-4227-8ce9-f6c628320134.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_632366_d7a83134-d895-4227-8ce9-f6c628320134.jpg",
+            "firstName": "Ahmed",
+            "lastName": "Hamoud",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 570042
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODkwNzA3OQ==",
+          "text": "Thank you Cyndy ",
+          "created": "2026-05-06T14:14:35.870547",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjYzMjM2Ng==",
+            "pk": 632366,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_632366_d7a83134-d895-4227-8ce9-f6c628320134.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_632366_d7a83134-d895-4227-8ce9-f6c628320134.jpg",
+            "firstName": "Ahmed",
+            "lastName": "Hamoud",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 570042
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        }
+      ]
+    },
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6OTA1MDg=",
       "title": "Matthew Strode",
@@ -43,42 +427,107 @@
       },
       "isCancelled": false,
       "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODkzNDE2Ng==",
-        "created": "2026-05-07T18:51:06.339356",
-        "text": "",
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODkzNTE3MA==",
+        "created": "2026-05-07T19:42:02.006179",
+        "text": "Thank you pictures seen",
         "deleted": null,
         "extra": null,
         "messageType": "TEXT",
         "sender": {
-          "pk": 526387,
-          "firstName": "Matthew",
-          "lastName": "Strode",
-          "displayName": null
+          "pk": 318367,
+          "firstName": "Ang",
+          "lastName": "Li",
+          "displayName": "Cyndy Manager"
         },
-        "attachments": [
-          {
-            "mediaType": "PICTURE",
-            "deleted": null
-          },
-          {
-            "mediaType": "PICTURE",
-            "deleted": null
-          },
-          {
-            "mediaType": "PICTURE",
-            "deleted": null
-          }
-        ],
+        "attachments": [],
         "paymentExtensionStatus": null,
         "ticketStatus": null,
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-05-07T16:15:42.601155",
+        "seenAt": "2026-05-07T19:42:04.206532",
         "isPinned": false,
-        "isUnread": true
+        "isUnread": false
       },
       "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODkzNTE3MA==",
+          "text": "Thank you pictures seen",
+          "created": "2026-05-07T19:42:02.006179",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODkzNTE0OA==",
+          "text": "Refunded for?",
+          "created": "2026-05-07T19:40:40.185944",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODkzNDc0MQ==",
+          "text": "A response would be appreciated because I do need to get refunded ASAP",
+          "created": "2026-05-07T19:21:52.422009",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjUyNjM4Nw==",
+            "pk": 526387,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_526387_b7b89226-8341-4a62-9fcc-a47d417e81c8.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_526387_b7b89226-8341-4a62-9fcc-a47d417e81c8.jpg",
+            "firstName": "Matthew",
+            "lastName": "Strode",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 464164
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
         {
           "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODkzNDE2Ng==",
           "text": "",
@@ -282,26 +731,93 @@
           "paymentExtensionStatus": null,
           "ticketStatus": null,
           "bookingStatus": null
+        }
+      ]
+    },
+    {
+      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MTE5MDky",
+      "title": "Roc Smith",
+      "chatType": "HOST_SUPPORT_CHAT",
+      "isArchived": false,
+      "occupancy": {
+        "moveInDate": "2025-02-20",
+        "moveOutDate": null,
+        "conditionalEligibilityApplied": null,
+        "room": {
+          "pk": 31128,
+          "roomNumber": 1
         },
+        "user": {
+          "picture": "img/profiles/user_631481_a7afc2a3-d5ff-4049-bffe-4c1b0cfcbbf6.jpg",
+          "firstName": "Roc",
+          "lastName": "Smith",
+          "displayName": null
+        }
+      },
+      "property": {
+        "host": {
+          "firstName": "Tinghui",
+          "lastName": "Li",
+          "displayName": "",
+          "picture": ""
+        },
+        "description": "Enjoy living in a comfortable House. This beautiful home is decorated with modern touches while providing the basic necessities. All that\u2019s missing is you!\n\nThe kitchen is equipped with a fridge, sink, oven, stovetop, as well as upgraded appliances. It\u2019s the perfect spot for you to cook at home and save money.\n\nThe surrounding location is near grocery stores, making it the perfect place to call home.",
+        "address": {
+          "street1": "2516 Sylvia Street",
+          "street2": "",
+          "zip": "75241",
+          "city": {
+            "name": "Dallas",
+            "state": {
+              "name": "Texas"
+            }
+          }
+        }
+      },
+      "isCancelled": false,
+      "lastMessage": {
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODkzNTE0Mw==",
+        "created": "2026-05-07T19:40:20.632199",
+        "text": "No I didn\u2019t",
+        "deleted": null,
+        "extra": null,
+        "messageType": "TEXT",
+        "sender": {
+          "pk": 318367,
+          "firstName": "Ang",
+          "lastName": "Li",
+          "displayName": "Cyndy Manager"
+        },
+        "attachments": [],
+        "paymentExtensionStatus": null,
+        "ticketStatus": null,
+        "bookingStatus": null
+      },
+      "member": {
+        "seenAt": "2026-05-07T19:40:21.660492",
+        "isPinned": false,
+        "isUnread": false
+      },
+      "recent_messages": [
         {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODc5NTMzMw==",
-          "text": "Did you ask why he didn\u2019t respond in any of the group chats? I told PadSplit the issue and after I pay my balance I\u2019ll see if I can get out before the 14th. The ball is your court I\u2019m done! ",
-          "created": "2026-04-30T20:28:59.123128",
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODkzNTE0Mw==",
+          "text": "No I didn\u2019t",
+          "created": "2026-05-07T19:40:20.632199",
           "messageType": "TEXT",
           "deleted": null,
           "isBroadcast": false,
           "extra": null,
           "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjUyNjM4Nw==",
-            "pk": 526387,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_526387_b7b89226-8341-4a62-9fcc-a47d417e81c8.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_526387_b7b89226-8341-4a62-9fcc-a47d417e81c8.jpg",
-            "firstName": "Matthew",
-            "lastName": "Strode",
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
             "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 464164
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
           },
           "attachments": [],
           "reactions": [],
@@ -310,24 +826,24 @@
           "bookingStatus": null
         },
         {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODc5NTIxNg==",
-          "text": "He\u2019s lying ",
-          "created": "2026-04-30T20:24:12.092155",
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODkzNDc0Mg==",
+          "text": "Did you change the code to my room?",
+          "created": "2026-05-07T19:21:59.471042",
           "messageType": "TEXT",
           "deleted": null,
           "isBroadcast": false,
           "extra": null,
           "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjUyNjM4Nw==",
-            "pk": 526387,
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjYzMTQ4MQ==",
+            "pk": 631481,
             "roleId": "A_0",
-            "picture": "img/profiles/user_526387_b7b89226-8341-4a62-9fcc-a47d417e81c8.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_526387_b7b89226-8341-4a62-9fcc-a47d417e81c8.jpg",
-            "firstName": "Matthew",
-            "lastName": "Strode",
+            "picture": "img/profiles/user_631481_a7afc2a3-d5ff-4049-bffe-4c1b0cfcbbf6.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_631481_a7afc2a3-d5ff-4049-bffe-4c1b0cfcbbf6.jpg",
+            "firstName": "Roc",
+            "lastName": "Smith",
             "isActive": true,
             "displayName": null,
-            "padmateProfileId": 464164
+            "padmateProfileId": 569157
           },
           "attachments": [],
           "reactions": [],
@@ -336,12 +852,194 @@
           "bookingStatus": null
         },
         {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODc5NDk5MQ==",
-          "text": "I understand, he responded saying he didn\u2019t take it",
-          "created": "2026-04-30T20:14:03.276923",
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODc3NDUwMg==",
+          "text": "Hi everyone, a refrigerator belonging to the home is missing and no authorized removal was approved. This is a serious matter involving shared house property. Please reply in the group today to confirm whether you have any information about its whereabouts. If the refrigerator was moved or removed, it needs to be returned immediately. If no information is provided, this incident will be escalated for further action. Thank you.",
+          "created": "2026-04-29T19:44:28.050715",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": true,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODY2NTgyMg==",
+          "text": "Hi everyone, does anyone have a reliable repair person or handyman they\u2019d recommend who knows how to change or reprogram electronic door codes? I\u2019m also open to cleaner recommendations if you have one. Looking for someone trustworthy and reasonably priced. Please send any contacts my way. Thank you!",
+          "created": "2026-04-23T17:41:41.145539",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": true,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODYwODcwNA==",
+          "text": "Hi everyone, just a quick note from a routine walkthrough earlier today. I noticed a lingering odor in the shared bathroom that shouldn\u2019t be present in the home.\n\nPlease remember that smoking or any related activities are not permitted inside the property or shared spaces. Let\u2019s all be mindful of keeping common areas clean, fresh, and comfortable for everyone.\n\nThanks for your cooperation!",
+          "created": "2026-04-20T16:10:16.703330",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": true,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6NzA4MDQ2NA==",
+          "text": "Hi everyone, with the extreme cold and wind chill expected, please monitor the weather closely and take precautions to protect the home. Please drip sinks, keep cabinets under sinks open, and wrap exposed plumbing where possible to prevent frozen pipes. Power outages are possible, so have non-perishable food, water, flashlights, phone chargers, and keep your gas tank at least half full. For safety, please avoid walking or parking under the large pecan tree behind the house due to falling branches\u2014use the grassy side of the driveway when possible. Thank you for helping keep all houses safe.",
+          "created": "2026-01-22T16:08:48.591979",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": true,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6Njk5NzY4MA==",
+          "text": "Hi everyone, just a quick update: we have a  new member joining the house . Please welcome Kenneth occupying room 6 and let\u2019s all continue to keep the home respectful and peaceful for everyone. Thank you! Also familiarize yourselves with this FAQ, thank you.\n\nhttps://docs.google.com/document/d/1-2BVIZslEu_AL2zjUYzAXDcTnrBbjOGZpLZSauvrvHk/edit?usp=drivesdk",
+          "created": "2026-01-16T21:20:53.420561",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": true,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6NjI4MDMzMA==",
+          "text": "Good day Roc, Sure!!! Someone would come check it out.",
+          "created": "2025-11-27T22:02:23.917265",
           "messageType": "TEXT",
           "deleted": null,
           "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6NjI3OTgwNQ==",
+          "text": "Housemate says fire alarm in my room, room 1, is chirping. I'm out of town during the holidays, so could you please check this out.",
+          "created": "2025-11-27T21:10:26.337107",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjYzMTQ4MQ==",
+            "pk": 631481,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_631481_a7afc2a3-d5ff-4049-bffe-4c1b0cfcbbf6.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_631481_a7afc2a3-d5ff-4049-bffe-4c1b0cfcbbf6.jpg",
+            "firstName": "Roc",
+            "lastName": "Smith",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 569157
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6NTA3OTk1NQ==",
+          "text": "Hi everyone,\n\nThis is a reminder that keeping our shared spaces (kitchen, bathrooms, and common areas) clean is a collective responsibility. Please make sure to wash your dishes after use, wipe down counters, take out trash when needed, and leave the shared spaces the way you\u2019d like to find them.\n\nA clean home makes it more comfortable for everyone, and your cooperation is appreciated. Let\u2019s all do our part to keep the space tidy.\n\nThank you",
+          "created": "2025-08-29T15:49:32.869013",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": true,
           "extra": null,
           "sender": {
             "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
@@ -427,7 +1125,7 @@
         }
       },
       "member": {
-        "seenAt": "2026-05-06T20:49:48.492994",
+        "seenAt": "2026-05-07T19:42:14.408039",
         "isPinned": false,
         "isUnread": false
       },
@@ -1609,399 +2307,6 @@
             "isActive": true,
             "displayName": null,
             "padmateProfileId": 977550
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        }
-      ]
-    },
-    {
-      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzQzMzg3",
-      "title": "Ahmed Hamoud",
-      "chatType": "HOST_SUPPORT_CHAT",
-      "isArchived": false,
-      "occupancy": {
-        "moveInDate": "2026-05-06",
-        "moveOutDate": "2026-05-07",
-        "conditionalEligibilityApplied": null,
-        "room": {
-          "pk": 71399,
-          "roomNumber": 1
-        },
-        "user": {
-          "picture": "img/profiles/user_632366_d7a83134-d895-4227-8ce9-f6c628320134.jpg",
-          "firstName": "Ahmed",
-          "lastName": "Hamoud",
-          "displayName": null
-        }
-      },
-      "property": {
-        "host": {
-          "firstName": "Tinghui",
-          "lastName": "Li",
-          "displayName": "",
-          "picture": ""
-        },
-        "description": "Enjoy living in a cozy House. This comfortable home is decorated with modern touches while providing the basic necessities. All that\u2019s missing is you!\n\nThe kitchen is equipped with a fridge, sink, oven, stovetop, as well as upgraded appliances. It\u2019s the perfect spot for you to cook at home and save money.\n\nThe surrounding location is near grocery stores, making it the perfect place to call home.",
-        "address": {
-          "street1": "1404 Pioneer Lane",
-          "street2": "",
-          "zip": "75023",
-          "city": {
-            "name": "Plano",
-            "state": {
-              "name": "Texas"
-            }
-          }
-        }
-      },
-      "isCancelled": false,
-      "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODkyNTcxNQ==",
-        "created": "2026-05-07T12:31:03.456188",
-        "text": null,
-        "deleted": null,
-        "extra": null,
-        "messageType": "TICKET_UPDATE",
-        "sender": {
-          "pk": 339595,
-          "firstName": "Tinghui",
-          "lastName": "Li",
-          "displayName": ""
-        },
-        "attachments": [],
-        "paymentExtensionStatus": null,
-        "ticketStatus": {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czo5Mzc5MTI=",
-          "created": "2026-05-07T12:31:03.462501",
-          "status": "SUBMITTED",
-          "canRate": false,
-          "ticket": {
-            "id": "406796",
-            "author": {
-              "firstName": "Ahmed",
-              "lastName": "Hamoud",
-              "id": "632366",
-              "displayName": null
-            },
-            "details": "Room transfer",
-            "location": "ROOM",
-            "status": "SUBMITTED",
-            "rating": null,
-            "comment": null,
-            "category": "ROOM_TURN",
-            "onHoldReason": null,
-            "withdrawReason": null
-          }
-        },
-        "bookingStatus": null
-      },
-      "member": {
-        "seenAt": "2026-05-06T20:21:20.751347",
-        "isPinned": false,
-        "isUnread": true
-      },
-      "recent_messages": [
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODkyNTcxNQ==",
-          "text": null,
-          "created": "2026-05-07T12:31:03.456188",
-          "messageType": "TICKET_UPDATE",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
-            "pk": 339595,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Tinghui",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "",
-            "padmateProfileId": 278216
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": {
-            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czo5Mzc5MTI=",
-            "created": "2026-05-07T12:31:03.462501",
-            "status": "SUBMITTED",
-            "canRate": false,
-            "ticket": {
-              "id": "406796",
-              "author": {
-                "firstName": "Ahmed",
-                "lastName": "Hamoud",
-                "id": "632366",
-                "displayName": null
-              },
-              "details": "Room transfer",
-              "location": "ROOM",
-              "status": "SUBMITTED",
-              "rating": null,
-              "comment": null,
-              "category": "ROOM_TURN",
-              "onHoldReason": null,
-              "withdrawReason": null
-            }
-          },
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODkxNDM4Ng==",
-          "text": "I have related this to the maintenance guy and he would come fix it",
-          "created": "2026-05-06T19:25:18.000613",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODkxMjM5MQ==",
-          "text": null,
-          "created": "2026-05-06T17:42:04.089071",
-          "messageType": "TICKET_UPDATE",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
-            "pk": 339595,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Tinghui",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "",
-            "padmateProfileId": 278216
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": {
-            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czo5MzY4ODY=",
-            "created": "2026-05-06T17:42:04.096164",
-            "status": "SUBMITTED",
-            "canRate": false,
-            "ticket": {
-              "id": "406486",
-              "author": {
-                "firstName": "Ahmed",
-                "lastName": "Hamoud",
-                "id": "632366",
-                "displayName": null
-              },
-              "details": "Door lock not properly locked",
-              "location": "DOORLOCK",
-              "status": "SUBMITTED",
-              "rating": null,
-              "comment": null,
-              "category": "UNCLASSIFIED",
-              "onHoldReason": null,
-              "withdrawReason": null
-            }
-          },
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODkxMjM2Mw==",
-          "text": "I did press the lock sign as I mentioned i waited it did the noise as trying to lock but it didn't and the lock sign trunk red at the end and when I checked it it STILL OPEN and idiot that for then last hour this is horrible experience ",
-          "created": "2026-05-06T17:40:42.571907",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjYzMjM2Ng==",
-            "pk": 632366,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_632366_d7a83134-d895-4227-8ce9-f6c628320134.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_632366_d7a83134-d895-4227-8ce9-f6c628320134.jpg",
-            "firstName": "Ahmed",
-            "lastName": "Hamoud",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 570042
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODkxMjE2OQ==",
-          "text": "I\u2019m so sorry about that. I would schedule cleaning for the common areas immediately",
-          "created": "2026-05-06T17:31:24.204092",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODkxMjE2Mg==",
-          "text": "Press the lock sign leave it for few minutes then check if it\u2019s locked",
-          "created": "2026-05-06T17:30:50.852007",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODkxMTgwNg==",
-          "text": "Please I need to l eave to work and the door don't get locked ",
-          "created": "2026-05-06T17:15:10.683720",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjYzMjM2Ng==",
-            "pk": 632366,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_632366_d7a83134-d895-4227-8ce9-f6c628320134.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_632366_d7a83134-d895-4227-8ce9-f6c628320134.jpg",
-            "firstName": "Ahmed",
-            "lastName": "Hamoud",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 570042
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODkxMTQ2Nw==",
-          "text": "Hi Cyndy\nI have just arrived to the house \nI like the room but I don't like the common area it's felthy and I have to manage to do my showers at the gym.\nAlso how to lock the room i have tried to press the lock sign on the lock keyboard but it doesn't lock it.\nPlease advise ",
-          "created": "2026-05-06T17:01:46.617489",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjYzMjM2Ng==",
-            "pk": 632366,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_632366_d7a83134-d895-4227-8ce9-f6c628320134.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_632366_d7a83134-d895-4227-8ce9-f6c628320134.jpg",
-            "firstName": "Ahmed",
-            "lastName": "Hamoud",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 570042
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODkwNzA3OQ==",
-          "text": "Thank you Cyndy ",
-          "created": "2026-05-06T14:14:35.870547",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjYzMjM2Ng==",
-            "pk": 632366,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_632366_d7a83134-d895-4227-8ce9-f6c628320134.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_632366_d7a83134-d895-4227-8ce9-f6c628320134.jpg",
-            "firstName": "Ahmed",
-            "lastName": "Hamoud",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 570042
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODkwNjUxMQ==",
-          "text": "We wish to welcome you to our home. Front door code 1371, back door code 4194. WiFi Pioneer, password 9452413070.\nRoom 1 3450",
-          "created": "2026-05-06T13:38:17.379696",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
           },
           "attachments": [],
           "reactions": [],
@@ -8362,71 +8667,6 @@
       }
     },
     {
-      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MTE5MDky",
-      "title": "Roc Smith",
-      "chatType": "HOST_SUPPORT_CHAT",
-      "isArchived": false,
-      "occupancy": {
-        "moveInDate": "2025-02-20",
-        "moveOutDate": null,
-        "conditionalEligibilityApplied": null,
-        "room": {
-          "pk": 31128,
-          "roomNumber": 1
-        },
-        "user": {
-          "picture": "img/profiles/user_631481_a7afc2a3-d5ff-4049-bffe-4c1b0cfcbbf6.jpg",
-          "firstName": "Roc",
-          "lastName": "Smith",
-          "displayName": null
-        }
-      },
-      "property": {
-        "host": {
-          "firstName": "Tinghui",
-          "lastName": "Li",
-          "displayName": "",
-          "picture": ""
-        },
-        "description": "Enjoy living in a comfortable House. This beautiful home is decorated with modern touches while providing the basic necessities. All that\u2019s missing is you!\n\nThe kitchen is equipped with a fridge, sink, oven, stovetop, as well as upgraded appliances. It\u2019s the perfect spot for you to cook at home and save money.\n\nThe surrounding location is near grocery stores, making it the perfect place to call home.",
-        "address": {
-          "street1": "2516 Sylvia Street",
-          "street2": "",
-          "zip": "75241",
-          "city": {
-            "name": "Dallas",
-            "state": {
-              "name": "Texas"
-            }
-          }
-        }
-      },
-      "isCancelled": false,
-      "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODc3NDUwMg==",
-        "created": "2026-04-29T19:44:28.050715",
-        "text": "Hi everyone, a refrigerator belonging to the home is missing and no authorized removal was approved. This is a serious matter involving shared house property. Please reply in the group today to confirm whether you have any information about its whereabouts. If the refrigerator was moved or removed, it needs to be returned immediately. If no information is provided, this incident will be escalated for further action. Thank you.",
-        "deleted": null,
-        "extra": null,
-        "messageType": "TEXT",
-        "sender": {
-          "pk": 318367,
-          "firstName": "Ang",
-          "lastName": "Li",
-          "displayName": "Cyndy Manager"
-        },
-        "attachments": [],
-        "paymentExtensionStatus": null,
-        "ticketStatus": null,
-        "bookingStatus": null
-      },
-      "member": {
-        "seenAt": "2026-04-30T19:18:12.560394",
-        "isPinned": false,
-        "isUnread": false
-      }
-    },
-    {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzM3ODk0",
       "title": "Zakir Kadwa",
       "chatType": "HOST_SUPPORT_CHAT",
@@ -10055,7 +10295,7 @@
           "move_out_date": "2026-05-07"
         },
         "has_reused_code": true,
-        "moveout_photos_count": 0,
+        "moveout_photos_count": 1,
         "days_to_complete": null
       },
       {
@@ -10094,7 +10334,7 @@
         "rating": null,
         "extra_data": {},
         "has_reused_code": true,
-        "moveout_photos_count": 0,
+        "moveout_photos_count": 1,
         "days_to_complete": null
       },
       {
@@ -10365,6 +10605,6 @@
     "error_type": null,
     "error_message": null,
     "fallback_used": false,
-    "run_scraped_at": "2026-05-07T19:19:47Z"
+    "run_scraped_at": "2026-05-07T20:51:27Z"
   }
 }
