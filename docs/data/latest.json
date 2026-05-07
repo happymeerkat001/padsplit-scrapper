@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-05-07T22:18:31Z",
+  "scraped_at": "2026-05-07T23:37:22Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzQzMzg3",
@@ -59,6 +59,10 @@
           {
             "mediaType": "PICTURE",
             "deleted": null
+          },
+          {
+            "mediaType": "PICTURE",
+            "deleted": null
           }
         ],
         "paymentExtensionStatus": null,
@@ -92,6 +96,13 @@
             "padmateProfileId": 570042
           },
           "attachments": [
+            {
+              "id": "TWVzc2VuZ2VyQXR0YWNobWVudFR5cGU6NjY5OTcz",
+              "deleted": null,
+              "mediaType": "PICTURE",
+              "location": "img/chat/message/attachments/message_8935213_bbd1e18c-c0ab-4690-9b3b-5511464c6db3.jpg",
+              "filename": "520ae2ad-dad9-49f1-8c5a-221ece6bf52d.jpg"
+            },
             {
               "id": "TWVzc2VuZ2VyQXR0YWNobWVudFR5cGU6NjY4MTUz",
               "deleted": null,
@@ -10262,7 +10273,7 @@
         "category": "room-turn",
         "media": [],
         "created": "2026-05-07T12:31:03.432901",
-        "modified": "2026-05-07T12:31:03.432901",
+        "modified": "2026-05-07T23:23:57.342473",
         "room_name": "",
         "room_number": 1,
         "room_status": 3,
@@ -10292,10 +10303,13 @@
         "extra_data": {
           "user_id": 632366,
           "occupancy_id": 300551,
-          "move_out_date": "2026-05-07"
+          "move_out_date": "2026-05-07",
+          "move_out_quiz": {
+            "Do you have a physical key to your room?": "No, I don\u2019t have a key to my room"
+          }
         },
         "has_reused_code": true,
-        "moveout_photos_count": 1,
+        "moveout_photos_count": 2,
         "days_to_complete": null
       },
       {
@@ -10334,7 +10348,7 @@
         "rating": null,
         "extra_data": {},
         "has_reused_code": true,
-        "moveout_photos_count": 1,
+        "moveout_photos_count": 2,
         "days_to_complete": null
       },
       {
@@ -10605,6 +10619,6 @@
     "error_type": null,
     "error_message": null,
     "fallback_used": false,
-    "run_scraped_at": "2026-05-07T22:18:31Z"
+    "run_scraped_at": "2026-05-07T23:37:22Z"
   }
 }
