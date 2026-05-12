@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-05-12T12:30:43Z",
+  "updated_at": "2026-05-12T15:34:10Z",
   "months": [
     {
       "month": "2025-04",
@@ -295,7 +295,7 @@
     },
     {
       "month": "2026-03",
-      "avg_flip_days": 10.0,
+      "avg_flip_days": 11.0,
       "occupancy_pct": 65.0,
       "avg_tenure_days": 144.0,
       "partial": true,
@@ -344,16 +344,11 @@
     },
     {
       "month": "2026-05",
-      "avg_flip_days": 5.0,
-      "occupancy_pct": 82.0,
-      "avg_tenure_days": 145.4,
+      "avg_flip_days": 0.0,
+      "occupancy_pct": 78.7,
+      "avg_tenure_days": 150.7,
       "partial": false,
-      "bonuses": [
-        {
-          "label": "occupancy 80-89%",
-          "points": 10
-        }
-      ],
+      "bonuses": [],
       "penalties": [
         {
           "label": "avg tenure 140-151d",
@@ -366,7 +361,7 @@
           "count": 5
         }
       ],
-      "score": 75
+      "score": 65
     }
   ]
 }
