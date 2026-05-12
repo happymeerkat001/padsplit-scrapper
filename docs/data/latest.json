@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-05-12T10:43:15Z",
+  "scraped_at": "2026-05-12T12:30:43Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzQ4MjMz",
@@ -43,12 +43,12 @@
       },
       "isCancelled": false,
       "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTAwOTQ5NA==",
-        "created": "2026-05-12T01:01:19.873145",
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTAxMjg2NQ==",
+        "created": "2026-05-12T11:18:35.649506",
         "text": null,
         "deleted": null,
         "extra": null,
-        "messageType": "BOOKING_STATUS",
+        "messageType": "CHAT_OPENED",
         "sender": {
           "pk": 318367,
           "firstName": "Ang",
@@ -58,18 +58,66 @@
         "attachments": [],
         "paymentExtensionStatus": null,
         "ticketStatus": null,
-        "bookingStatus": {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZUJvb2tpbmdTdGF0dXM6Mjc1NDE0",
-          "created": "2026-05-12T01:01:19.882323",
-          "status": "PENDING"
-        }
+        "bookingStatus": null
       },
       "member": {
-        "seenAt": null,
+        "seenAt": "2026-05-12T11:18:36.669371",
         "isPinned": false,
         "isUnread": false
       },
       "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTAxMjg2NQ==",
+          "text": null,
+          "created": "2026-05-12T11:18:35.649506",
+          "messageType": "CHAT_OPENED",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTAxMjg2NA==",
+          "text": "Hi, Thank you for considering our home. Please use the link below as a sample to make an introductory video of yourself explaining why you\u2019re a best fit for our property. Copy link and paste on your browser and should be submitted on time. \n\nhttps://app.hirevire.com/applications/977d344b-8592-4fc5-bd41-38717d6fa90a?lang=EN",
+          "created": "2026-05-12T11:18:35.557138",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
         {
           "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTAwOTQ5NA==",
           "text": null,
@@ -8115,6 +8163,6 @@
     "error_type": null,
     "error_message": null,
     "fallback_used": false,
-    "run_scraped_at": "2026-05-12T10:43:15Z"
+    "run_scraped_at": "2026-05-12T12:30:43Z"
   }
 }
