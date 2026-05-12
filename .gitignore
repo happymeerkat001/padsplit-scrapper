@@ -1,8 +1,9 @@
 # Environment Variables (CRITICAL: Keeps your passwords and API keys safe)
 .env
 
-# AI Coding Assistant Settings
-.claude/
+# AI Coding Assistant Settings (keep commands/ for project slash commands)
+.claude/*
+!.claude/commands/
 
 # Scraped Data Output (Ignores timestamped files, keeps latest.json)
 padsplit_scraper/output/202*.json
