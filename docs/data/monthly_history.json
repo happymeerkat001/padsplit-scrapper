@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-05-13T15:37:54Z",
+  "updated_at": "2026-05-13T17:51:31Z",
   "months": [
     {
       "month": "2025-04",
@@ -322,7 +322,7 @@
     },
     {
       "month": "2026-04",
-      "avg_flip_days": 5.0,
+      "avg_flip_days": 6.0,
       "occupancy_pct": 71.0,
       "avg_tenure_days": 145.0,
       "partial": true,
@@ -337,9 +337,14 @@
           "label": "occupancy 70-74%",
           "points": -10,
           "count": 1
+        },
+        {
+          "label": "flip rooms > 5d (approx)",
+          "points": -2,
+          "count": 1
         }
       ],
-      "score": 60,
+      "score": 58,
       "note": "ticket penalties not available for historical months"
     },
     {
