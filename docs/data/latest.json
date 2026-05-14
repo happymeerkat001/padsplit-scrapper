@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-05-14T07:35:17Z",
+  "scraped_at": "2026-05-14T10:01:04Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzQ5Njk1",
@@ -61,9 +61,9 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": null,
+        "seenAt": "2026-05-14T08:05:22.224242",
         "isPinned": false,
-        "isUnread": true
+        "isUnread": false
       },
       "recent_messages": [
         {
@@ -3064,7 +3064,7 @@
               },
               "details": "Collections",
               "location": "ROOM",
-              "status": "WITHDRAWN",
+              "status": "ARCHIVED",
               "rating": null,
               "comment": null,
               "category": "ROOM_TURN",
@@ -9913,54 +9913,6 @@
         "has_reused_code": true,
         "moveout_photos_count": 2,
         "days_to_complete": null
-      },
-      {
-        "id": 396220,
-        "status": "completed",
-        "comment": null,
-        "category": "unclassified",
-        "media": [
-          {
-            "id": 135912,
-            "location": "img/tickets/ticket_396220_0.jpg",
-            "category": "default",
-            "media_type": "image"
-          }
-        ],
-        "created": "2026-04-14T18:49:10.580842",
-        "modified": "2026-05-06T13:35:41.104799",
-        "room_name": "",
-        "room_number": 2,
-        "room_status": 1,
-        "room_code": "2516",
-        "location": "Outdoor",
-        "details": "Roof paneling coming off/damaged",
-        "property_id": 8840,
-        "property_address": {
-          "id": 11718,
-          "street1": "2516 Sylvia Street",
-          "street2": "",
-          "city": "Dallas",
-          "state": "TX",
-          "zip": "75241",
-          "city_slug": "dallas-tx"
-        },
-        "reported_by": {
-          "id": 546342,
-          "name": "James Shiley",
-          "role_id": 0,
-          "picture": "img/profiles/user_546342_ec6f5232-71e7-4ea4-ac08-adbf2518a22e"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-05-06T13:35:41.098581",
-        "rating": null,
-        "extra_data": {
-          "checklist": {}
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null
       }
     ]
   },
@@ -9971,6 +9923,6 @@
     "error_type": null,
     "error_message": null,
     "fallback_used": false,
-    "run_scraped_at": "2026-05-14T07:35:17Z"
+    "run_scraped_at": "2026-05-14T10:01:04Z"
   }
 }
