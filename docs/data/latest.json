@@ -1,6 +1,130 @@
 {
-  "scraped_at": "2026-05-14T00:17:37Z",
+  "scraped_at": "2026-05-14T04:34:01Z",
   "messages": [
+    {
+      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzQ5Njk1",
+      "title": "Qualandas Wray",
+      "chatType": "HOST_SUPPORT_CHAT",
+      "isArchived": false,
+      "occupancy": {
+        "moveInDate": "2026-05-17",
+        "moveOutDate": null,
+        "conditionalEligibilityApplied": null,
+        "room": {
+          "pk": 71399,
+          "roomNumber": 1
+        },
+        "user": {
+          "picture": "img/profiles/user_938244_ac4e84e2-c07c-4c1e-ba69-05f3b25014ca.jpg",
+          "firstName": "Qualandas",
+          "lastName": "Wray",
+          "displayName": null
+        }
+      },
+      "property": {
+        "host": {
+          "firstName": "Tinghui",
+          "lastName": "Li",
+          "displayName": "",
+          "picture": ""
+        },
+        "description": "Enjoy living in a cozy House. This comfortable home is decorated with modern touches while providing the basic necessities. All that\u2019s missing is you!\n\nThe kitchen is equipped with a fridge, sink, oven, stovetop, as well as upgraded appliances. It\u2019s the perfect spot for you to cook at home and save money.\n\nThe surrounding location is near grocery stores, making it the perfect place to call home.",
+        "address": {
+          "street1": "1404 Pioneer Lane",
+          "street2": "",
+          "zip": "75023",
+          "city": {
+            "name": "Plano",
+            "state": {
+              "name": "Texas"
+            }
+          }
+        }
+      },
+      "isCancelled": false,
+      "lastMessage": {
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTA0OTE1MA==",
+        "created": "2026-05-14T03:46:30.947133",
+        "text": "Hi, I love using padsplit and want to continue! just need a change that gets me closer to work and your room available is right in the direction i need!",
+        "deleted": null,
+        "extra": null,
+        "messageType": "TEXT",
+        "sender": {
+          "pk": 938244,
+          "firstName": "Qualandas",
+          "lastName": "Wray",
+          "displayName": null
+        },
+        "attachments": [],
+        "paymentExtensionStatus": null,
+        "ticketStatus": null,
+        "bookingStatus": null
+      },
+      "member": {
+        "seenAt": null,
+        "isPinned": false,
+        "isUnread": true
+      },
+      "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTA0OTE1MA==",
+          "text": "Hi, I love using padsplit and want to continue! just need a change that gets me closer to work and your room available is right in the direction i need!",
+          "created": "2026-05-14T03:46:30.947133",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkzODI0NA==",
+            "pk": 938244,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_938244_ac4e84e2-c07c-4c1e-ba69-05f3b25014ca.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_938244_ac4e84e2-c07c-4c1e-ba69-05f3b25014ca.jpg",
+            "firstName": "Qualandas",
+            "lastName": "Wray",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 875712
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTA0OTE0NA==",
+          "text": null,
+          "created": "2026-05-14T03:45:20.253441",
+          "messageType": "BOOKING_STATUS",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
+            "pk": 339595,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Tinghui",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "",
+            "padmateProfileId": 278216
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZUJvb2tpbmdTdGF0dXM6Mjc2NzMz",
+            "created": "2026-05-14T03:45:20.260237",
+            "status": "APPROVED",
+            "verificationTimeInHours": 24
+          }
+        }
+      ]
+    },
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzQ2Mzg0",
       "title": "Kay Jackson",
@@ -9847,6 +9971,6 @@
     "error_type": null,
     "error_message": null,
     "fallback_used": false,
-    "run_scraped_at": "2026-05-14T00:17:37Z"
+    "run_scraped_at": "2026-05-14T04:34:01Z"
   }
 }
