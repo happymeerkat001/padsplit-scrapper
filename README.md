@@ -51,6 +51,8 @@ Run tests:
 ```bash
 python3 test_padsplit_scraper.py
 python3 test_thermostat_scraper.py
+python3 test_thermostat_set_temps.py
+python3 test_thermostat_schedule.py
 python3 test_obsidian_daily_digest.py
 ```
 
@@ -107,6 +109,8 @@ python3 thermostat/schedule.py install \
   --slot 6:00pm 78 68
 ```
 
+Re-running `install` for same target replaces that target's existing schedule.
+
 Install same schedule for all houses:
 
 ```bash
@@ -136,7 +140,14 @@ Show installed thermostat schedules:
 python3 thermostat/schedule.py status
 ```
 
+`status` shows configured schedule time, cool, heat, target, and LaunchAgent label from installed plist files.
+
 Time format:
 
 - Use 12-hour input with `am` or `pm`, such as `7am`, `7:00am`, or `6:30pm`.
 - `19:30`, `1700`, and `7:00` are rejected.
+
+Generated files:
+
+- LaunchAgents are written under `~/Library/LaunchAgents/` as `com.padsplit.thermostat.<target>.<hhmm>.plist`.
+- Slot logs are written to `thermostat/schedule-<target>-<hhmm>.stdout.log` and `.stderr.log`.
