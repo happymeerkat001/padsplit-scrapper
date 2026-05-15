@@ -1,6 +1,21 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    match /property_codes/{slug} {
+      allow read, write: if true;
+    }
+    match /notes/{document} {
+      allow read, write: if true;
+    }
+    match /task_messages/{id} {
+      allow read, write: if true;
+    }
+    match /manual_tasks/{id} {
+      allow read, write: if true;
+    }
+    match /vendors/{id} {
+      allow read, write: if true;
+    }
     match /{document=**} {
       allow read, write: if false;
     }

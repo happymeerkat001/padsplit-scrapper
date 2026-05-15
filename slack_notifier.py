@@ -1,26 +1,31 @@
 #!/usr/bin/env python3
 """Simple Slack task digest for PadSplit data.
 
-Reads docs/data/latest.json, summarizes Requests/Open tasks by property,
-and posts to a Slack webhook if SLACK_WEBHOOK_TASKS is set.
+Reads tasks from docs/data/latest.json and KPI stats from docs/data/stats.json,
+then posts a combined digest to Slack if SLACK_WEBHOOK_TASKS is set.
 """
 
 import json
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional
+from typing import Any, Dict, List, Tuple, Optional
 from zoneinfo import ZoneInfo
 import urllib.request
 import urllib.error
 
 
-DATA_PATH = Path(__file__).parent / "docs" / "data" / "latest.json"
+DATA_DIR = Path(__file__).parent / "docs" / "data"
+LATEST_PATH = DATA_DIR / "latest.json"
+STATS_PATH = DATA_DIR / "stats.json"
 
 
-def load_tasks() -> Dict:
-    raw = json.loads(DATA_PATH.read_text())
-    return raw.get("tasks") or {}
+def load_data() -> Dict[str, Any]:
+    latest = json.loads(LATEST_PATH.read_text())
+    stats = json.loads(STATS_PATH.read_text())
+    merged = dict(latest)
+    merged["kpis"] = stats.get("kpis") or {}
+    return merged
 
 
 def collect_tasks(tasks: Dict[str, List[Dict]]) -> Tuple[Dict[str, List[Tuple[str, str, Optional[int]]]], int, int]:
@@ -53,6 +58,22 @@ def format_message(grouped: Dict[str, List[Tuple[str, str, Optional[int]]]], tot
             lines.append(f"[{bucket}]{room_str} {desc}")
         lines.append("")  # blank line between properties
     lines.append(f"Total: {total_req} Requests, {total_open} Open")
+    return "\n".join(lines)
+
+
+def format_vacancy_alert(vacancy_rooms: List[Dict[str, Any]]) -> Optional[str]:
+    stale_rooms = [room for room in vacancy_rooms if float(room.get("days_listed") or 0) > 30]
+    if not stale_rooms:
+        return None
+
+    lines = [f"Vacancy Alert ({len(stale_rooms)} rooms 30+ days):"]
+    for room in stale_rooms:
+        property_name = room.get("property") or "Unknown Property"
+        room_number = room.get("room_number")
+        room_label = f"Room {room_number}" if room_number not in (None, "") else "Room ?"
+        days_listed = int(round(float(room.get("days_listed") or 0)))
+        base_price = float(room.get("base_price") or 0)
+        lines.append(f"{property_name} — {room_label} — {days_listed} days (listed ${base_price:.0f}/mo)")
     return "\n".join(lines)
 
 
@@ -120,10 +141,13 @@ def fetch_weather() -> Optional[str]:
 
 def main() -> None:
     weather_block = fetch_weather()
-    tasks = load_tasks()
+    payload = load_data()
+    tasks = payload.get("tasks") or {}
+    vacancy_rooms = ((payload.get("kpis") or {}).get("vacancy_rooms") or [])
+    vacancy_block = format_vacancy_alert(vacancy_rooms)
     grouped, total_req, total_open = collect_tasks(tasks)
     task_block = format_message(grouped, total_req, total_open)
-    message = "\n\n".join(filter(None, [weather_block, task_block]))
+    message = "\n\n".join(filter(None, [weather_block, vacancy_block, task_block]))
     print(message)
     send_to_slack(message)
 

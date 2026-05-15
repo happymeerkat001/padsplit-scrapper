@@ -899,6 +899,7 @@ def compute_kpis(
 
     listed_over_14 = [r for r in listed_rooms if _to_num(r.get("days_in_current_status")) > 14]
     listed_over_21 = [r for r in listed_rooms if _to_num(r.get("days_in_current_status")) > 21]
+    listed_over_30 = [r for r in listed_rooms if _to_num(r.get("days_in_current_status")) > 30]
     flip_over_5 = [r for r in flip_rooms if _to_num(r.get("days_in_current_status")) > 5]
 
     total_rooms = sum(len(p.get("rooms", [])) for p in properties if isinstance(p.get("rooms"), list))
@@ -1148,6 +1149,7 @@ def compute_kpis(
         "avg_listed_days": avg_listed_days,
         "max_listed_days": max_listed_days,
         "rooms_over_14d": len(listed_over_14),
+        "rooms_over_30d": len(listed_over_30),
         "avg_tenure_days": avg_tenure_days,
         "median_tenure_days": median_tenure_days,
         "avg_flip_days": avg_flip_days,

@@ -48,6 +48,61 @@ def sample_kpis(score: int = 92) -> dict:
 
 
 class PadSplitScraperTests(unittest.TestCase):
+    def test_compute_kpis_includes_rooms_over_30d(self) -> None:
+        now = datetime(2026, 5, 15, tzinfo=timezone.utc)
+        rooms = [
+            {
+                "id": 1,
+                "detailed_status": "listed",
+                "days_in_current_status": 31,
+                "room_number": 1,
+                "base_price": 720,
+                "property_id": 100,
+                "property_name": "456 Oak St, Dallas, TX",
+            },
+            {
+                "id": 2,
+                "detailed_status": "listed",
+                "days_in_current_status": 14,
+                "room_number": 2,
+                "base_price": 800,
+                "property_id": 100,
+                "property_name": "456 Oak St, Dallas, TX",
+            },
+            {
+                "id": 3,
+                "detailed_status": "occupied",
+                "days_in_current_status": 200,
+                "room_number": 3,
+                "property_id": 100,
+                "property_name": "456 Oak St, Dallas, TX",
+            },
+        ]
+        properties = [
+            {
+                "id": 100,
+                "address": "456 Oak St",
+                "location": "Dallas, TX",
+                "rooms": [{"id": 1}, {"id": 2}, {"id": 3}],
+                "occupied": 1,
+                "vacant": 2,
+                "inactive": 0,
+                "needs_flip": 0,
+                "move_in": 0,
+            }
+        ]
+
+        kpis = scraper.compute_kpis(
+            rooms=rooms,
+            properties=properties,
+            earnings_payload={"results": []},
+            tasks_by_bucket={},
+            now=now,
+        )
+
+        self.assertIn("rooms_over_30d", kpis)
+        self.assertEqual(kpis["rooms_over_30d"], 1)
+
     def test_full_success_writes_latest_stats_and_monthly_history(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
