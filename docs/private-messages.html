@@ -126,6 +126,18 @@
   </style>
 </head>
 <body>
+  <div id="gate-overlay" style="position:fixed;inset:0;z-index:100;background:#0f172a;display:flex;align-items:center;justify-content:center;padding:2rem">
+    <div style="max-width:380px;width:100%;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0));border:1px solid rgba(148,163,184,0.2);border-radius:12px;padding:1.5rem;box-shadow:0 14px 40px rgba(15,23,42,0.4)">
+      <h2 style="margin:0 0 0.35rem;font-size:1.2rem;color:#e2e8f0">Sign In</h2>
+      <p style="margin:0 0 1rem;color:#94a3b8;font-size:0.9rem">PadSplit Dashboard</p>
+      <form id="gate-form" style="display:flex;flex-direction:column;gap:0.5rem">
+        <input id="gate-email" type="email" placeholder="Email" autocomplete="email" style="background:#0b1222;border:1px solid rgba(148,163,184,0.35);color:#e2e8f0;border-radius:8px;padding:0.45rem 0.6rem;font-size:0.95rem;outline:none;font-family:inherit"/>
+        <input id="gate-password" type="password" placeholder="Password" autocomplete="current-password" style="background:#0b1222;border:1px solid rgba(148,163,184,0.35);color:#e2e8f0;border-radius:8px;padding:0.45rem 0.6rem;font-size:0.95rem;outline:none;font-family:inherit"/>
+        <button type="submit" style="border:none;border-radius:8px;background:#38bdf8;color:#0b1222;font-weight:700;padding:0.45rem 0.9rem;cursor:pointer;margin-top:0.25rem;font-family:inherit">Sign In</button>
+      </form>
+      <div id="gate-error" style="color:#f87171;font-size:0.9rem;margin-top:0.6rem;display:none">Incorrect email or password.</div>
+    </div>
+  </div>
   <header>
     <h1>Tenant Messages</h1>
     <span class="pill">PRIVATE</span>
@@ -135,6 +147,7 @@
       <a href="./templates.html" class="header-link">Templates</a>
       <a href="./codes.html" class="header-link">Codes</a>
       <a href="./stats.html" class="header-link">Stats</a>
+      <button id="signout-btn" class="header-link" style="background:none;border:none;cursor:pointer;padding:0">Sign out</button>
     </div>
   </header>
 
@@ -160,13 +173,22 @@
 
   <footer>Private view — not indexed by search engines. Source: <code>data/latest.json</code></footer>
 
-  <script>
-    const pin = prompt("Enter PIN to view messages:");
-    if (pin !== "9999") {
-      document.body.innerHTML = "<h1 style='text-align:center;margin-top:2rem;'>Access Denied</h1>";
-      // Abort further script execution
-      throw new Error("Access denied");
-    }
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCSWOHI6QLqugy_Fao2p4bBehg02_fu3No",
+      authDomain: "padsplit-scrapper.firebaseapp.com",
+      projectId: "padsplit-scrapper",
+      storageBucket: "padsplit-scrapper.firebasestorage.app",
+      messagingSenderId: "281696703679",
+      appId: "1:281696703679:web:f94ba04e92cb43b4f9a20a"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
 
     function fmtDate(s) {
       if (!s) return '—';
@@ -194,108 +216,129 @@
           msg.property?.address?.city?.name,
           msg.property?.address?.city?.state?.name,
         ].filter(Boolean).join(', ') || msg.property?.name || '—';
-      const roomNumber = msg.occupancy?.room?.roomNumber;
-      const addressLine = roomNumber != null ? `${address} — Room ${roomNumber}` : address;
-      const card = document.createElement('div');
-      card.className = 'card' + (unread ? ' unread' : '');
-      card.innerHTML = `
-        <div class="card-header">
-          <span class="tenant-name">${tenantName.trim()}</span>
-          ${unread ? '<span class="badge-unread">Unread</span>' : ''}
-        </div>
-        <div class="address">${addressLine}</div>
-      `;
+        const roomNumber = msg.occupancy?.room?.roomNumber;
+        const addressLine = roomNumber != null ? `${address} — Room ${roomNumber}` : address;
+        const card = document.createElement('div');
+        card.className = 'card' + (unread ? ' unread' : '');
+        card.innerHTML = `
+          <div class="card-header">
+            <span class="tenant-name">${tenantName.trim()}</span>
+            ${unread ? '<span class="badge-unread">Unread</span>' : ''}
+          </div>
+          <div class="address">${addressLine}</div>
+        `;
 
-      const threadData = Array.isArray(msg.recent_messages) ? [...msg.recent_messages] : [];
-      const filtered = threadData
-        .filter(m => m && !m.deleted && (m.text ?? '').toString().trim() !== '')
-        .sort((a, b) => new Date(a.created) - new Date(b.created));
+        const threadData = Array.isArray(msg.recent_messages) ? [...msg.recent_messages] : [];
+        const filtered = threadData
+          .filter(m => m && !m.deleted && (m.text ?? '').toString().trim() !== '')
+          .sort((a, b) => new Date(a.created) - new Date(b.created));
 
-      if (filtered.length) {
-        const thread = document.createElement('div');
-        thread.className = 'thread';
-        filtered.forEach(m => {
-          const senderLabel = (m.sender?.displayName || `${m.sender?.firstName || ''} ${m.sender?.lastName || ''}`).trim();
-          const msgDiv = document.createElement('div');
-          msgDiv.className = 'thread-msg';
-          msgDiv.innerHTML = `
-            <div><strong>${senderLabel || 'Unknown'}:</strong> ${m.text}</div>
-            <div class="t-meta">${fmtDate(m.created)}</div>
-          `;
-          thread.appendChild(msgDiv);
-        });
-        card.appendChild(thread);
-      } else {
-        const lastText = msg.lastMessage?.text || msg.lastMessage?.body || '(no text)';
-        const lastDate = msg.lastMessage?.created || msg.lastMessage?.createdAt;
-        const senderFirst = msg.lastMessage?.sender?.firstName || '';
-        const senderDisplay = msg.lastMessage?.sender?.displayName || '';
-        const senderLabel = senderDisplay || senderFirst || '';
-        const msgTextDiv = document.createElement('div');
-        msgTextDiv.className = 'message-text';
-        msgTextDiv.textContent = lastText;
-        card.appendChild(msgTextDiv);
+        if (filtered.length) {
+          const thread = document.createElement('div');
+          thread.className = 'thread';
+          filtered.forEach(m => {
+            const senderLabel = (m.sender?.displayName || `${m.sender?.firstName || ''} ${m.sender?.lastName || ''}`).trim();
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'thread-msg';
+            msgDiv.innerHTML = `
+              <div><strong>${senderLabel || 'Unknown'}:</strong> ${m.text}</div>
+              <div class="t-meta">${fmtDate(m.created)}</div>
+            `;
+            thread.appendChild(msgDiv);
+          });
+          card.appendChild(thread);
+        } else {
+          const lastText = msg.lastMessage?.text || msg.lastMessage?.body || '(no text)';
+          const lastDate = msg.lastMessage?.created || msg.lastMessage?.createdAt;
+          const senderFirst = msg.lastMessage?.sender?.firstName || '';
+          const senderDisplay = msg.lastMessage?.sender?.displayName || '';
+          const senderLabel = senderDisplay || senderFirst || '';
+          const msgTextDiv = document.createElement('div');
+          msgTextDiv.className = 'message-text';
+          msgTextDiv.textContent = lastText;
+          card.appendChild(msgTextDiv);
 
-        const metaDiv = document.createElement('div');
-        metaDiv.className = 'meta';
-        metaDiv.innerHTML = `${senderLabel ? `<span class="sender">${senderLabel} · </span>` : ''}${fmtDate(lastDate)}`;
-        card.appendChild(metaDiv);
-      }
+          const metaDiv = document.createElement('div');
+          metaDiv.className = 'meta';
+          metaDiv.innerHTML = `${senderLabel ? `<span class="sender">${senderLabel} · </span>` : ''}${fmtDate(lastDate)}`;
+          card.appendChild(metaDiv);
+        }
 
-      list.appendChild(card);
-    });
-  }
-
-    document.getElementById('search').addEventListener('input', e => {
-      const q = e.target.value.toLowerCase();
-      if (!q) { renderList(allMessages); return; }
-      renderList(allMessages.filter(msg => {
-        const name = (msg.title || '').toLowerCase();
-        const addr = (msg.property?.address?.street1 || '').toLowerCase();
-        const text = (msg.lastMessage?.text || msg.lastMessage?.body || '').toLowerCase();
-        const room = String(msg.occupancy?.room?.roomNumber ?? '');
-        return name.includes(q) || addr.includes(q) || text.includes(q) || room.includes(q);
-      }));
-    });
-
-    fetch('./data/latest.json', { cache: 'no-cache' })
-      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
-      .then(data => {
-        document.getElementById('updated').textContent = `Updated ${fmtDate(data.scraped_at)}`;
-        allMessages = (data.messages || []).sort((a, b) => {
-          const ta = new Date(a.lastMessage?.created || 0);
-          const tb = new Date(b.lastMessage?.created || 0);
-          return tb - ta;
-        });
-        renderList(allMessages);
-      })
-      .catch(err => {
-        document.getElementById('list').innerHTML =
-          `<div class="error">Failed to load latest.json: ${err.message}</div>`;
+        list.appendChild(card);
       });
-  </script>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-    const db = getFirestore(initializeApp({
-      apiKey:"AIzaSyCSWOHI6QLqugy_Fao2p4bBehg02_fu3No",authDomain:"padsplit-scrapper.firebaseapp.com",
-      projectId:"padsplit-scrapper",storageBucket:"padsplit-scrapper.firebasestorage.app",
-      messagingSenderId:"281696703679",appId:"1:281696703679:web:f94ba04e92cb43b4f9a20a"
-    }, 'notes-msgs'));
-    const NOTES_DOC = doc(db, 'notes', 'messages');
-    const ta = document.getElementById('notes-textarea');
-    const saveBtn = document.getElementById('notes-save-btn');
-    const copyBtn = document.getElementById('notes-copy-btn');
-    onSnapshot(NOTES_DOC, snap => { if (snap.exists() && document.activeElement !== ta) ta.value = snap.data().text || ''; });
-    saveBtn.addEventListener('click', async () => {
-      saveBtn.textContent = 'Saving…'; saveBtn.disabled = true;
-      try { await setDoc(NOTES_DOC, { text: ta.value }, { merge: true }); saveBtn.textContent = 'Saved!'; }
-      catch { saveBtn.textContent = 'Error'; }
-      setTimeout(() => { saveBtn.textContent = 'Save'; saveBtn.disabled = false; }, 1500);
+    }
+
+    function initApp() {
+      document.getElementById('search').addEventListener('input', e => {
+        const q = e.target.value.toLowerCase();
+        if (!q) { renderList(allMessages); return; }
+        renderList(allMessages.filter(msg => {
+          const name = (msg.title || '').toLowerCase();
+          const addr = (msg.property?.address?.street1 || '').toLowerCase();
+          const text = (msg.lastMessage?.text || msg.lastMessage?.body || '').toLowerCase();
+          const room = String(msg.occupancy?.room?.roomNumber ?? '');
+          return name.includes(q) || addr.includes(q) || text.includes(q) || room.includes(q);
+        }));
+      });
+
+      fetch('./data/latest.json', { cache: 'no-cache' })
+        .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+        .then(data => {
+          document.getElementById('updated').textContent = `Updated ${fmtDate(data.scraped_at)}`;
+          allMessages = (data.messages || []).sort((a, b) => {
+            const ta = new Date(a.lastMessage?.created || 0);
+            const tb = new Date(b.lastMessage?.created || 0);
+            return tb - ta;
+          });
+          renderList(allMessages);
+        })
+        .catch(err => {
+          document.getElementById('list').innerHTML =
+            `<div class="error">Failed to load latest.json: ${err.message}</div>`;
+        });
+
+      const NOTES_DOC = doc(db, 'notes', 'messages');
+      const ta = document.getElementById('notes-textarea');
+      const saveBtn = document.getElementById('notes-save-btn');
+      const copyBtn = document.getElementById('notes-copy-btn');
+      onSnapshot(NOTES_DOC, snap => { if (snap.exists() && document.activeElement !== ta) ta.value = snap.data().text || ''; });
+      saveBtn.addEventListener('click', async () => {
+        saveBtn.textContent = 'Saving…'; saveBtn.disabled = true;
+        try { await setDoc(NOTES_DOC, { text: ta.value }, { merge: true }); saveBtn.textContent = 'Saved!'; }
+        catch { saveBtn.textContent = 'Error'; }
+        setTimeout(() => { saveBtn.textContent = 'Save'; saveBtn.disabled = false; }, 1500);
+      });
+      copyBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(ta.value).then(() => { copyBtn.classList.add('copied'); setTimeout(() => copyBtn.classList.remove('copied'), 1500); });
+      });
+    }
+
+    const gateOverlay = document.getElementById('gate-overlay');
+    const gateForm = document.getElementById('gate-form');
+    const gateError = document.getElementById('gate-error');
+
+    gateForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        await signInWithEmailAndPassword(auth, document.getElementById('gate-email').value.trim(), document.getElementById('gate-password').value);
+        gateError.style.display = 'none';
+      } catch (err) {
+        console.error(err);
+        gateError.style.display = 'block';
+      }
     });
-    copyBtn.addEventListener('click', () => {
-      navigator.clipboard.writeText(ta.value).then(() => { copyBtn.classList.add('copied'); setTimeout(() => copyBtn.classList.remove('copied'), 1500); });
+
+    let appInited = false;
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        gateOverlay.style.display = 'none';
+        if (!appInited) { appInited = true; initApp(); }
+      } else {
+        gateOverlay.style.display = 'flex';
+      }
     });
+
+    document.getElementById('signout-btn').addEventListener('click', () => signOut(auth));
   </script>
 </body>
 </html>
