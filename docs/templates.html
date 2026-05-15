@@ -145,6 +145,18 @@
   </style>
 </head>
 <body>
+  <div id="gate-overlay" style="position:fixed;inset:0;z-index:100;background:#0f172a;display:flex;align-items:center;justify-content:center;padding:2rem">
+    <div style="max-width:380px;width:100%;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0));border:1px solid rgba(148,163,184,0.2);border-radius:12px;padding:1.5rem;box-shadow:0 14px 40px rgba(15,23,42,0.4)">
+      <h2 style="margin:0 0 0.35rem;font-size:1.2rem;color:#e2e8f0">Sign In</h2>
+      <p style="margin:0 0 1rem;color:#94a3b8;font-size:0.9rem">PadSplit Dashboard</p>
+      <form id="gate-form" style="display:flex;flex-direction:column;gap:0.5rem">
+        <input id="gate-email" type="email" placeholder="Email" autocomplete="email" style="background:#0b1222;border:1px solid rgba(148,163,184,0.35);color:#e2e8f0;border-radius:8px;padding:0.45rem 0.6rem;font-size:0.95rem;outline:none;font-family:inherit"/>
+        <input id="gate-password" type="password" placeholder="Password" autocomplete="current-password" style="background:#0b1222;border:1px solid rgba(148,163,184,0.35);color:#e2e8f0;border-radius:8px;padding:0.45rem 0.6rem;font-size:0.95rem;outline:none;font-family:inherit"/>
+        <button type="submit" style="border:none;border-radius:8px;background:#38bdf8;color:#0b1222;font-weight:700;padding:0.45rem 0.9rem;cursor:pointer;margin-top:0.25rem;font-family:inherit">Sign In</button>
+      </form>
+      <div id="gate-error" style="color:#f87171;font-size:0.9rem;margin-top:0.6rem;display:none">Incorrect email or password.</div>
+    </div>
+  </div>
   <header>
     <h1>Templates</h1>
     <div class="header-meta">
@@ -152,6 +164,7 @@
       <a href="./private-messages.html" class="header-link">Tenant Messages</a>
       <a href="./codes.html" class="header-link">Codes</a>
       <a href="./stats.html" class="header-link">Stats</a>
+      <button id="signout-btn" class="header-link" style="background:none;border:none;cursor:pointer;padding:0">Sign out</button>
     </div>
   </header>
 
@@ -170,6 +183,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -183,6 +197,7 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app);
     const TEMPLATE_DOC = doc(db, "templates", "shared");
     const COUNT = 9;
 
@@ -264,6 +279,7 @@
       }
     }
 
+    function initApp() {
     buildGrid();
 
     // Real-time sync from Firestore
@@ -303,6 +319,34 @@
         setTimeout(() => notesCopy.classList.remove('copied'), 1500);
       });
     });
+    } // end initApp
+
+    const gateOverlay = document.getElementById('gate-overlay');
+    const gateForm = document.getElementById('gate-form');
+    const gateError = document.getElementById('gate-error');
+
+    gateForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        await signInWithEmailAndPassword(auth, document.getElementById('gate-email').value.trim(), document.getElementById('gate-password').value);
+        gateError.style.display = 'none';
+      } catch (err) {
+        console.error(err);
+        gateError.style.display = 'block';
+      }
+    });
+
+    let appInited = false;
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        gateOverlay.style.display = 'none';
+        if (!appInited) { appInited = true; initApp(); }
+      } else {
+        gateOverlay.style.display = 'flex';
+      }
+    });
+
+    document.getElementById('signout-btn').addEventListener('click', () => signOut(auth));
   </script>
 </body>
 </html>

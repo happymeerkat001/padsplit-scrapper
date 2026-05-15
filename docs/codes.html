@@ -189,10 +189,11 @@
     <h2 class="gate-title">Codes Access</h2>
     <div class="muted">Enter password to view and edit property codes.</div>
     <form id="gate-form" class="gate-form">
-      <input id="gate-input" type="password" placeholder="Password" autocomplete="off" />
+      <input id="gate-email" type="email" placeholder="Email" autocomplete="email" />
+      <input id="gate-input" type="password" placeholder="Password" autocomplete="current-password" />
       <button type="submit">Unlock</button>
     </form>
-    <div id="gate-error" class="error hidden" style="margin-top:0.6rem">Incorrect password.</div>
+    <div id="gate-error" class="error hidden" style="margin-top:0.6rem">Incorrect email or password.</div>
   </div>
 
   <div id="app-wrap" class="hidden">
@@ -202,6 +203,7 @@
         <a href="./index.html" class="header-link">Dashboard</a>
         <a href="./templates.html" class="header-link">Templates</a>
         <a href="./stats.html" class="header-link">Stats</a>
+        <button id="signout-btn" class="header-link" style="background:none;border:none;cursor:pointer;padding:0">Sign out</button>
       </div>
     </header>
 
@@ -224,6 +226,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import { getFirestore, collection, getDocs, setDoc, doc, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -236,6 +239,7 @@
     };
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app);
 
     const DEFAULTS = [
       {
@@ -526,19 +530,20 @@
       gateInput.focus();
     }
 
-    gateForm.addEventListener('submit', (e) => {
+    gateForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      if (gateInput.value === '9999') {
-        sessionStorage.setItem('codes_auth', '1');
+      const email = document.getElementById('gate-email').value.trim();
+      try {
+        await signInWithEmailAndPassword(auth, email, gateInput.value);
         gateError.classList.add('hidden');
-        showApp();
-        return;
+      } catch (err) {
+        console.error(err);
+        gateError.classList.remove('hidden');
+        gateWrap.classList.remove('shake');
+        void gateWrap.offsetWidth;
+        gateWrap.classList.add('shake');
+        gateInput.select();
       }
-      gateError.classList.remove('hidden');
-      gateWrap.classList.remove('shake');
-      void gateWrap.offsetWidth;
-      gateWrap.classList.add('shake');
-      gateInput.select();
     });
 
     function renderProperty(property, savedValues = {}) {
@@ -640,11 +645,11 @@
       });
     }
 
-    if (sessionStorage.getItem('codes_auth') === '1') {
-      showApp();
-    } else {
-      showGate();
-    }
+    onAuthStateChanged(auth, (user) => {
+      if (user) showApp();
+      else showGate();
+    });
+    document.getElementById('signout-btn').addEventListener('click', () => signOut(auth));
 
     // ── Notes ────────────────────────────────────────────────────────────────
     const NOTES_DOC = doc(db, 'notes', 'codes');
