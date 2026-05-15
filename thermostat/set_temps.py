@@ -277,6 +277,7 @@ def apply_device_changes(
                 post_slack_message(msg)
             except Exception as exc:
                 sys.stderr.write(f"[alert] Slack notify failed: {exc}\n")
+            raise RuntimeError(msg)
 
 
 def build_parser():
@@ -346,6 +347,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 if __name__ == "__main__":
     try:
         sys.exit(main())
+    except KeyboardInterrupt:
+        sys.stderr.write("[cancelled] Interrupted by user\n")
+        sys.exit(130)
     except requests.exceptions.Timeout as exc:
         sys.stderr.write(f"[error] Timeout during thermostat set: {exc}\n")
     except requests.exceptions.ConnectionError as exc:

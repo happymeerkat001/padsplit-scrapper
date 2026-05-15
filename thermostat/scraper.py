@@ -26,9 +26,12 @@ USER_AGENT = (
 )
 
 TIMEOUT = (10, 30)
+AUTH_TIMEOUT = (10, 75)
 LOCATION_FETCH_TIMEOUT = (10, 60)
 LOCATION_FETCH_RETRIES = 3
 LOCATION_FETCH_BACKOFF = 5
+LOGIN_RETRIES = 3
+LOGIN_BACKOFF = 10
 
 
 def load_credentials() -> Dict[str, str]:
@@ -52,28 +55,32 @@ def create_session() -> requests.Session:
 
 
 def login(session: requests.Session, email: str, password: str) -> None:
-    max_attempts = 3
-    for attempt in range(1, max_attempts + 1):
-        sys.stderr.write(f"[auth] Login attempt {attempt}/{max_attempts}\n")
-        # GET first — server requires TrueHomeCheckCookie to be set before POST.
-        # Must NOT send X-Requested-With here or the server skips setting that cookie.
-        session.get(PORTAL_URL, timeout=TIMEOUT, headers={"X-Requested-With": None})
-        resp = session.post(
-            PORTAL_URL,
-            data={"UserName": email, "Password": password, "RememberMe": "false", "timeOffset": "480"},
-            headers={"Content-Type": "application/x-www-form-urlencoded", "Referer": PORTAL_URL},
-            timeout=TIMEOUT,
-            allow_redirects=False,
-        )
-        sys.stderr.write(
-            f"Login attempt {attempt}/{max_attempts} → status={resp.status_code}, cookies={list(session.cookies.keys())}\n"
-        )
-        if session.cookies.get(".ASPXAUTH_TRUEHOME"):
-            return
-        if attempt < max_attempts:
-            time.sleep(5)
+    for attempt in range(1, LOGIN_RETRIES + 1):
+        sys.stderr.write(f"[auth] Login attempt {attempt}/{LOGIN_RETRIES}\n")
+        try:
+            # GET first — server requires TrueHomeCheckCookie to be set before POST.
+            # Must NOT send X-Requested-With here or the server skips setting that cookie.
+            session.get(PORTAL_URL, timeout=AUTH_TIMEOUT, headers={"X-Requested-With": None})
+            resp = session.post(
+                PORTAL_URL,
+                data={"UserName": email, "Password": password, "RememberMe": "false", "timeOffset": "480"},
+                headers={"Content-Type": "application/x-www-form-urlencoded", "Referer": PORTAL_URL},
+                timeout=AUTH_TIMEOUT,
+                allow_redirects=False,
+            )
+            sys.stderr.write(
+                f"Login attempt {attempt}/{LOGIN_RETRIES} → status={resp.status_code}, cookies={list(session.cookies.keys())}\n"
+            )
+            if session.cookies.get(".ASPXAUTH_TRUEHOME"):
+                return
+        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError, requests.exceptions.RequestException) as exc:
+            sys.stderr.write(f"[auth] Login attempt {attempt}/{LOGIN_RETRIES} failed: {exc}\n")
+
+        if attempt < LOGIN_RETRIES:
+            sys.stderr.write(f"[auth] Retrying in {LOGIN_BACKOFF}s\n")
+            time.sleep(LOGIN_BACKOFF)
     raise RuntimeError(
-        f"Login failed after {max_attempts} attempts: .ASPXAUTH_TRUEHOME cookie not set. "
+        f"Login failed after {LOGIN_RETRIES} attempts: .ASPXAUTH_TRUEHOME cookie not set. "
         f"Cookies present: {list(session.cookies.keys())}"
     )
 

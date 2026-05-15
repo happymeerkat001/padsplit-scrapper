@@ -18,6 +18,32 @@ class DummySession:
         return False
 
 
+class LoginSession:
+    def __init__(self, get_side_effects=None, post_side_effects=None):
+        self.get_side_effects = list(get_side_effects or [])
+        self.post_side_effects = list(post_side_effects or [])
+        self.cookies = {}
+
+    def get(self, *args, **kwargs):
+        if self.get_side_effects:
+            effect = self.get_side_effects.pop(0)
+            if isinstance(effect, Exception):
+                raise effect
+            return effect
+        return object()
+
+    def post(self, *args, **kwargs):
+        if self.post_side_effects:
+            effect = self.post_side_effects.pop(0)
+            if isinstance(effect, Exception):
+                raise effect
+            if effect == "success":
+                self.cookies[".ASPXAUTH_TRUEHOME"] = "cookie"
+                return type("Resp", (), {"status_code": 200})()
+            return effect
+        return type("Resp", (), {"status_code": 200})()
+
+
 def sample_output(scraped_at: str = "2026-04-27T12:16:16Z") -> dict:
     return {
         "scraped_at": scraped_at,
@@ -44,6 +70,45 @@ def sample_output(scraped_at: str = "2026-04-27T12:16:16Z") -> dict:
 
 
 class ThermostatScraperTests(unittest.TestCase):
+    def test_login_retries_after_post_timeout_and_succeeds(self) -> None:
+        session = LoginSession(
+            post_side_effects=[
+                requests.exceptions.Timeout("slow post"),
+                "success",
+            ]
+        )
+        with patch.object(scraper.time, "sleep") as sleep_mock:
+            scraper.login(session, "user", "pw")
+
+        sleep_mock.assert_called_once_with(scraper.LOGIN_BACKOFF)
+
+    def test_login_retries_after_get_timeout_and_succeeds(self) -> None:
+        session = LoginSession(
+            get_side_effects=[
+                requests.exceptions.Timeout("slow get"),
+                object(),
+            ],
+            post_side_effects=["success"],
+        )
+        with patch.object(scraper.time, "sleep") as sleep_mock:
+            scraper.login(session, "user", "pw")
+
+        sleep_mock.assert_called_once_with(scraper.LOGIN_BACKOFF)
+
+    def test_login_raises_after_retry_budget_exhausted(self) -> None:
+        session = LoginSession(
+            post_side_effects=[
+                requests.exceptions.Timeout("slow post"),
+                requests.exceptions.Timeout("slow post"),
+                requests.exceptions.Timeout("slow post"),
+            ]
+        )
+        with patch.object(scraper.time, "sleep") as sleep_mock:
+            with self.assertRaisesRegex(RuntimeError, "Login failed after 3 attempts"):
+                scraper.login(session, "user", "pw")
+
+        self.assertEqual(sleep_mock.call_count, 2)
+
     def test_successful_fresh_scrape_writes_current_output_and_skips_slack(self) -> None:
         fresh_output = sample_output("2026-05-04T11:00:00Z")
         with tempfile.TemporaryDirectory() as tmpdir:
