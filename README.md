@@ -74,7 +74,14 @@ Change targets:
 python3 thermostat/set_temps.py --cool 78 --heat 60 --target "6623 Leanna"
 python3 thermostat/set_temps.py --location-id 7712909
 python3 thermostat/set_temps.py --all
+python3 thermostat/set_temps.py --resume-schedule --target "6623 Leanna" --stop-launchagent
+python3 thermostat/set_temps.py --resume-schedule --all
 ```
+
+Resume note:
+
+- `--resume-schedule --target "6623 Leanna"` clears the hold for that house.
+- Add `--stop-launchagent` when resuming Leanna, or the 30-minute LaunchAgent will put it back on hold on its next run.
 
 Logs:
 

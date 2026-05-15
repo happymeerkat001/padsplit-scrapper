@@ -3,9 +3,12 @@
 Usage:
     python3 thermostat/set_temps.py --cool 78 --heat 60 --target "6623 Leanna"
     python3 thermostat/set_temps.py --location-id 7712909
+    python3 thermostat/set_temps.py --resume-schedule --target "6623 Leanna" --stop-launchagent
+    python3 thermostat/set_temps.py --resume-schedule --all
     python3 thermostat/set_temps.py --all
 """
 
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -30,6 +33,7 @@ from thermostat.scraper import (
 )
 
 SUBMIT_URL = f"{PORTAL_URL}/Device/SubmitControlScreenChanges"
+LAUNCH_AGENT_PATH = Path.home() / "Library" / "LaunchAgents" / "com.padsplit.thermostat-set-temps.plist"
 
 DEFAULT_COOL = 75
 DEFAULT_HEAT = 63
@@ -142,24 +146,12 @@ def select_locations(
     return list(selected.values())
 
 
-def set_device_temps(
+def submit_device_change(
     session: requests.Session,
     device_id: int,
-    cool_setpoint: int,
-    heat_setpoint: int,
+    payload: Dict,
+    action_label: str,
 ) -> bool:
-    """Set heat/cool setpoints with permanent hold for a single device."""
-    payload = {
-        "DeviceID": device_id,
-        "SystemSwitch": None,
-        "HeatSetpoint": heat_setpoint,
-        "CoolSetpoint": cool_setpoint,
-        "HeatNextPeriod": None,
-        "CoolNextPeriod": None,
-        "StatusHeat": 1,
-        "StatusCool": 1,
-        "FanMode": None,
-    }
     try:
         resp = session.post(
             SUBMIT_URL,
@@ -171,8 +163,7 @@ def set_device_temps(
         data = resp.json()
         success = data.get("success", False) if isinstance(data, dict) else False
         sys.stderr.write(
-            f"[set] Device {device_id}: "
-            f"cool={cool_setpoint} heat={heat_setpoint} "
+            f"[set] Device {device_id}: {action_label} "
             f"-> {'OK' if success else f'FAIL ({data})'}\n"
         )
         return success
@@ -181,12 +172,54 @@ def set_device_temps(
         return False
 
 
-def set_all_temps(
+def set_hold_payload(device_id: int, cool_setpoint: int, heat_setpoint: int) -> Dict:
+    return {
+        "DeviceID": device_id,
+        "SystemSwitch": None,
+        "HeatSetpoint": heat_setpoint,
+        "CoolSetpoint": cool_setpoint,
+        "HeatNextPeriod": None,
+        "CoolNextPeriod": None,
+        "StatusHeat": 1,
+        "StatusCool": 1,
+        "FanMode": None,
+    }
+
+
+def set_resume_schedule_payload(device_id: int) -> Dict:
+    return {
+        "DeviceID": device_id,
+        "SystemSwitch": None,
+        "HeatSetpoint": None,
+        "CoolSetpoint": None,
+        "HeatNextPeriod": None,
+        "CoolNextPeriod": None,
+        "StatusHeat": 0,
+        "StatusCool": 0,
+        "FanMode": None,
+    }
+
+
+def stop_launchagent() -> None:
+    result = subprocess.run(
+        ["launchctl", "unload", str(LAUNCH_AGENT_PATH)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        stderr = result.stderr.strip() or result.stdout.strip() or "unknown launchctl error"
+        raise RuntimeError(f"Failed to unload LaunchAgent {LAUNCH_AGENT_PATH}: {stderr}")
+
+
+def apply_device_changes(
     cool_setpoint: int = DEFAULT_COOL,
     heat_setpoint: int = DEFAULT_HEAT,
     targets: Optional[Sequence[str]] = None,
     location_ids: Optional[Sequence[int]] = None,
     allow_all: bool = False,
+    resume_schedule: bool = False,
+    stop_scheduled_job: bool = False,
 ) -> None:
     creds = load_credentials()
     with create_session() as session:
@@ -211,7 +244,13 @@ def set_all_temps(
                 device_name = dev.get("Name", str(device_id))
                 if not device_id:
                     continue
-                ok = set_device_temps(session, device_id, cool_setpoint, heat_setpoint)
+                if resume_schedule:
+                    payload = set_resume_schedule_payload(device_id)
+                    action_label = "resume schedule"
+                else:
+                    payload = set_hold_payload(device_id, cool_setpoint, heat_setpoint)
+                    action_label = f"cool={cool_setpoint} heat={heat_setpoint}"
+                ok = submit_device_change(session, device_id, payload, action_label)
                 results.append({"name": device_name, "id": device_id, "ok": ok})
                 time.sleep(1)
 
@@ -225,12 +264,14 @@ def set_all_temps(
 
         sys.stderr.write(f"\n[done] {succeeded}/{total} devices set successfully\n")
 
+        if resume_schedule and stop_scheduled_job:
+            stop_launchagent()
+            sys.stderr.write(f"[launchagent] Unloaded {LAUNCH_AGENT_PATH}\n")
+
         if failed:
             names = ", ".join(result["name"] for result in failed)
-            msg = (
-                f"Thermostat set_temps: {succeeded}/{total} OK. "
-                f"Failed: {names}. Target: cool={cool_setpoint} heat={heat_setpoint}"
-            )
+            target_mode = "resume schedule" if resume_schedule else f"cool={cool_setpoint} heat={heat_setpoint}"
+            msg = f"Thermostat set_temps: {succeeded}/{total} OK. Failed: {names}. Target: {target_mode}"
             sys.stderr.write(f"[alert] {msg}\n")
             try:
                 post_slack_message(msg)
@@ -262,6 +303,18 @@ def build_parser():
         action="store_true",
         help="Target every thermostat location.",
     )
+    parser.add_argument(
+        "--resume-schedule",
+        "--resume-scheudle",
+        dest="resume_schedule",
+        action="store_true",
+        help="Clear hold and resume the thermostat's TCC schedule.",
+    )
+    parser.add_argument(
+        "--stop-launchagent",
+        action="store_true",
+        help="Unload the thermostat LaunchAgent after a targeted resume-schedule run.",
+    )
     return parser
 
 
@@ -273,13 +326,19 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         parser.error("--all cannot be combined with --target or --location-id")
     if not args.all and not args.target and not args.location_id:
         parser.error("specify --target, --location-id, or --all")
+    if args.stop_launchagent and args.all:
+        parser.error("--stop-launchagent cannot be used with --all")
+    if args.stop_launchagent and not args.resume_schedule:
+        parser.error("--stop-launchagent requires --resume-schedule")
 
-    set_all_temps(
+    apply_device_changes(
         cool_setpoint=args.cool,
         heat_setpoint=args.heat,
         targets=args.target,
         location_ids=args.location_id,
         allow_all=args.all,
+        resume_schedule=args.resume_schedule,
+        stop_scheduled_job=args.stop_launchagent,
     )
     return 0
 
