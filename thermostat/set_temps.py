@@ -33,7 +33,9 @@ from thermostat.scraper import (
 )
 
 SUBMIT_URL = f"{PORTAL_URL}/Device/SubmitControlScreenChanges"
-LAUNCH_AGENT_PATH = Path.home() / "Library" / "LaunchAgents" / "com.padsplit.thermostat-set-temps.plist"
+LAUNCH_AGENT_DIR = Path.home() / "Library" / "LaunchAgents"
+LEGACY_LAUNCH_AGENT_PATH = LAUNCH_AGENT_DIR / "com.padsplit.thermostat-set-temps.plist"
+SCHEDULE_LAUNCH_AGENT_GLOB = "com.padsplit.thermostat.*.plist"
 
 DEFAULT_COOL = 75
 DEFAULT_HEAT = 63
@@ -200,16 +202,30 @@ def set_resume_schedule_payload(device_id: int) -> Dict:
     }
 
 
+def launchagent_paths() -> List[Path]:
+    paths = sorted(LAUNCH_AGENT_DIR.glob(SCHEDULE_LAUNCH_AGENT_GLOB))
+    if LEGACY_LAUNCH_AGENT_PATH.exists():
+        paths.append(LEGACY_LAUNCH_AGENT_PATH)
+    return paths
+
+
 def stop_launchagent() -> None:
-    result = subprocess.run(
-        ["launchctl", "unload", str(LAUNCH_AGENT_PATH)],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    if result.returncode != 0:
-        stderr = result.stderr.strip() or result.stdout.strip() or "unknown launchctl error"
-        raise RuntimeError(f"Failed to unload LaunchAgent {LAUNCH_AGENT_PATH}: {stderr}")
+    paths = launchagent_paths()
+    if not paths:
+        return
+    errors: List[str] = []
+    for path in paths:
+        result = subprocess.run(
+            ["launchctl", "unload", str(path)],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if result.returncode != 0:
+            stderr = result.stderr.strip() or result.stdout.strip() or "unknown launchctl error"
+            errors.append(f"{path}: {stderr}")
+    if errors:
+        raise RuntimeError("Failed to unload LaunchAgents: " + "; ".join(errors))
 
 
 def apply_device_changes(
@@ -266,7 +282,7 @@ def apply_device_changes(
 
         if resume_schedule and stop_scheduled_job:
             stop_launchagent()
-            sys.stderr.write(f"[launchagent] Unloaded {LAUNCH_AGENT_PATH}\n")
+            sys.stderr.write("[launchagent] Unloaded thermostat LaunchAgents\n")
 
         if failed:
             names = ", ".join(result["name"] for result in failed)

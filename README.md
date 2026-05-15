@@ -94,3 +94,49 @@ Unload launch agent:
 ```bash
 launchctl unload ~/Library/LaunchAgents/com.padsplit.thermostat-set-temps.plist
 ```
+
+## Thermostat Schedule
+
+Install one-house schedule:
+
+```bash
+python3 thermostat/schedule.py install \
+  --target "6623 Leanna" \
+  --slot 7:00am 76 68 \
+  --slot 8:30am 77 68 \
+  --slot 6:00pm 78 68
+```
+
+Install same schedule for all houses:
+
+```bash
+python3 thermostat/schedule.py install \
+  --all \
+  --slot 7:00am 76 68 \
+  --slot 8:30am 77 68
+```
+
+Remove schedule automation:
+
+```bash
+python3 thermostat/schedule.py uninstall --target "6623 Leanna"
+python3 thermostat/schedule.py uninstall --all
+```
+
+Remove schedule automation and resume TCC schedule:
+
+```bash
+python3 thermostat/schedule.py uninstall --target "6623 Leanna" --resume-schedule
+python3 thermostat/schedule.py uninstall --all --resume-schedule
+```
+
+Show installed thermostat schedules:
+
+```bash
+python3 thermostat/schedule.py status
+```
+
+Time format:
+
+- Use 12-hour input with `am` or `pm`, such as `7am`, `7:00am`, or `6:30pm`.
+- `19:30`, `1700`, and `7:00` are rejected.
