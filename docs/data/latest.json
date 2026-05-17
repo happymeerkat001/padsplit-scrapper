@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-05-17T15:30:34Z",
+  "scraped_at": "2026-05-17T16:40:33Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MjA1MTQx",
@@ -8,7 +8,7 @@
       "isArchived": false,
       "occupancy": {
         "moveInDate": "2025-09-21",
-        "moveOutDate": "2026-05-17",
+        "moveOutDate": null,
         "conditionalEligibilityApplied": null,
         "room": {
           "pk": 32872,
@@ -43,8 +43,8 @@
       },
       "isCancelled": false,
       "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTEyMDMwMg==",
-        "created": "2026-05-17T15:04:14.681428",
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTEyMTE0Mw==",
+        "created": "2026-05-17T15:36:37.522447",
         "text": null,
         "deleted": null,
         "extra": null,
@@ -58,9 +58,9 @@
         "attachments": [],
         "paymentExtensionStatus": null,
         "ticketStatus": {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czo5NTE3NzI=",
-          "created": "2026-05-17T15:04:14.690988",
-          "status": "SUBMITTED",
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czo5NTE4ODQ=",
+          "created": "2026-05-17T15:36:37.527198",
+          "status": "WITHDRAWN",
           "canRate": false,
           "ticket": {
             "id": "411560",
@@ -72,7 +72,7 @@
             },
             "details": "Collections",
             "location": "ROOM",
-            "status": "SUBMITTED",
+            "status": "WITHDRAWN",
             "rating": null,
             "comment": null,
             "category": "ROOM_TURN",
@@ -83,11 +83,59 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-05-16T14:19:33.323157",
+        "seenAt": "2026-05-17T15:36:13.802684",
         "isPinned": false,
         "isUnread": false
       },
       "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTEyMTE0Mw==",
+          "text": null,
+          "created": "2026-05-17T15:36:37.522447",
+          "messageType": "TICKET_UPDATE",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czo5NTE4ODQ=",
+            "created": "2026-05-17T15:36:37.527198",
+            "status": "WITHDRAWN",
+            "canRate": false,
+            "ticket": {
+              "id": "411560",
+              "author": {
+                "firstName": "Kiyla",
+                "lastName": "Mitchell",
+                "id": "816944",
+                "displayName": "Ky"
+              },
+              "details": "Collections",
+              "location": "ROOM",
+              "status": "WITHDRAWN",
+              "rating": null,
+              "comment": null,
+              "category": "ROOM_TURN",
+              "onHoldReason": null,
+              "withdrawReason": null
+            }
+          },
+          "bookingStatus": null
+        },
         {
           "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTEyMDMwMg==",
           "text": null,
@@ -126,7 +174,7 @@
               },
               "details": "Collections",
               "location": "ROOM",
-              "status": "SUBMITTED",
+              "status": "WITHDRAWN",
               "rating": null,
               "comment": null,
               "category": "ROOM_TURN",
@@ -366,32 +414,6 @@
           "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODk2Njk2Ng==",
           "text": "Did you make payment on Thursday?",
           "created": "2026-05-09T15:26:25.221467",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODk2Njk1OA==",
-          "text": "Hello Mitchell",
-          "created": "2026-05-09T15:26:10.862324",
           "messageType": "TEXT",
           "deleted": null,
           "isBroadcast": false,
@@ -13713,49 +13735,6 @@
   "tasks": {
     "Requests": [
       {
-        "id": 411560,
-        "status": "submitted",
-        "comment": null,
-        "category": "room-turn",
-        "media": [],
-        "created": "2026-05-17T15:04:14.636508",
-        "modified": "2026-05-17T15:04:15.291623",
-        "room_name": "",
-        "room_number": 6,
-        "room_status": 3,
-        "room_code": "2222",
-        "location": "Room",
-        "details": "Collections",
-        "property_id": 9369,
-        "property_address": {
-          "id": 12545,
-          "street1": "3406 Green Hill Drive",
-          "street2": "",
-          "city": "Arlington",
-          "state": "TX",
-          "zip": "76014",
-          "city_slug": "arlington-tx"
-        },
-        "reported_by": {
-          "id": 816944,
-          "name": "Ky",
-          "role_id": 0,
-          "picture": "img/profiles/user_816944_a57631a6-2afd-4e1e-90dc-de801d2e25c3.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-05-17T15:04:14.639895",
-        "rating": null,
-        "extra_data": {
-          "user_id": 816944,
-          "occupancy_id": 215610,
-          "move_out_date": "2026-05-17"
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null
-      },
-      {
         "id": 411392,
         "status": "submitted",
         "comment": null,
@@ -14283,6 +14262,6 @@
     "error_type": null,
     "error_message": null,
     "fallback_used": false,
-    "run_scraped_at": "2026-05-17T15:30:34Z"
+    "run_scraped_at": "2026-05-17T16:40:33Z"
   }
 }
