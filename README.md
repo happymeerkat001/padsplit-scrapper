@@ -116,11 +116,10 @@ Install one-house schedule with more slots:
 ```bash
 python3 thermostat/schedule.py install \
   --target "5509 BURTON" \
-  --slot 6:00am 77 62 \
-  --slot 7:00am 77 62 \
-  --slot 8:30am 77 62 \
-  --slot 6:00pm 77 62 \
-  --slot 7:30pm 76 62
+  --slot 8:00am 77 62 \
+  --slot 2:00pm 77 62 \
+  --slot 5:30pm 77 62 \
+  --slot 7:00pm 77 62
 ```
 
 Install same schedule for all houses:
@@ -177,7 +176,7 @@ Meaning:
 - `uninstall --all` removes all schedule-managed LaunchAgents only
 - `uninstall --all --resume-schedule` removes all schedule-managed LaunchAgents and tells TCC to resume built-in schedule for all houses
 
-Show installed thermostat schedules:
+Show installed thermostat schedules (not status):
 
 ```bash
 python3 thermostat/schedule.py status
