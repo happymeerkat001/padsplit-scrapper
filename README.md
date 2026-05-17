@@ -115,11 +115,11 @@ Install one-house schedule with more slots:
 
 ```bash
 python3 thermostat/schedule.py install \
-  --target "5509 BURTON" \
-  --slot 8:00am 77 62 \
+  --target "1404 PIONEER" \
+  --slot 8:00am 76 62 \
   --slot 2:00pm 77 62 \
   --slot 5:30pm 77 62 \
-  --slot 7:00pm 77 62
+  --slot 7:00pm 76 62
 ```
 
 Install same schedule for all houses:
@@ -179,7 +179,7 @@ Meaning:
 Show installed thermostat schedules (not status):
 
 ```bash
-python3 thermostat/schedule.py status
+statuspython3 thermostat/schedule.py 
 ```
 
 `status` shows configured schedule time, cool, heat, target, and LaunchAgent label from installed plist files.
