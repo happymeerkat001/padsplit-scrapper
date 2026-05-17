@@ -1,10 +1,12 @@
 import json
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Dict, List, Optional
 
+import firebase_admin
 import requests
+from firebase_admin import credentials, firestore
 
 DEFAULT_TIMEOUT = (10, 30)
 SLACK_POST_URL = "https://slack.com/api/chat.postMessage"
@@ -55,6 +57,51 @@ def _build_digest(payload: Dict) -> str:
     return "\n".join(lines)
 
 
+def _init_firestore_app() -> firebase_admin.App:
+    if firebase_admin._apps:
+        return firebase_admin.get_app()
+
+    service_account_json = os.getenv("FIREBASE_SERVICE_ACCOUNT_JSON")
+    if service_account_json:
+        return firebase_admin.initialize_app(credentials.Certificate(json.loads(service_account_json)))
+
+    google_credentials = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+    if google_credentials:
+        return firebase_admin.initialize_app(credentials.Certificate(google_credentials))
+
+    raise RuntimeError("Missing FIREBASE_SERVICE_ACCOUNT_JSON or GOOGLE_APPLICATION_CREDENTIALS")
+
+
+def _load_ac_filter_dates(app: firebase_admin.App) -> List[Dict]:
+    client = firestore.client(app=app)
+    docs = client.collection("property_codes").stream()
+    overdue: List[Dict] = []
+    cutoff = datetime.now(timezone.utc) - timedelta(days=90)
+
+    for doc in docs:
+        data = doc.to_dict() or {}
+        raw = (data.get("ac_filter_date") or "").strip()
+        if not raw:
+            continue
+        try:
+            dt = datetime.fromisoformat(raw)
+        except ValueError:
+            continue
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        else:
+            dt = dt.astimezone(timezone.utc)
+        if dt < cutoff:
+            overdue.append({
+                "slug": doc.id,
+                "address": data.get("address") or data.get("property_address") or doc.id,
+                "ac_filter_date": raw,
+            })
+
+    overdue.sort(key=lambda item: item["ac_filter_date"])
+    return overdue
+
+
 def post_slack_message(text: str, *, token: Optional[str] = None, channel: Optional[str] = None) -> Dict:
     token = token or os.getenv("SLACK_BOT_TOKEN")
     channel = channel or os.getenv("SLACK_CHANNEL_ID")
@@ -80,6 +127,13 @@ def main() -> None:
     base_dir = Path(__file__).resolve().parent
     payload = _load_latest_payload(base_dir)
     text = _build_digest(payload)
+    app = _init_firestore_app()
+    overdue = _load_ac_filter_dates(app)
+    if overdue:
+        lines = ["", "AC Filter overdue (>90 days):"]
+        for item in overdue:
+            lines.append(f"- {item['address']} ({item['slug']}): last changed {item['ac_filter_date']}")
+        text += "\n".join(lines)
     data = post_slack_message(text)
 
     meta = {
