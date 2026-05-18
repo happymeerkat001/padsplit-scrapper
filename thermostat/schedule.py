@@ -2,10 +2,12 @@
 """Manage thermostat schedules via LaunchAgents."""
 
 import argparse
+import json
 import plistlib
 import re
 import subprocess
 import sys
+from datetime import datetime, timedelta, timezone
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
@@ -17,6 +19,7 @@ PLIST_PREFIX = "com.padsplit.thermostat."
 PYTHON_PATH = ROOT_DIR / "venv" / "bin" / "python3"
 SET_TEMPS_PATH = ROOT_DIR / "thermostat" / "set_temps.py"
 LOG_DIR = ROOT_DIR / "thermostat"
+LATEST_SNAPSHOT_PATH = ROOT_DIR / "thermostat" / "output" / "latest.json"
 
 
 @dataclass(frozen=True)
@@ -200,6 +203,66 @@ def loaded_labels() -> set[str]:
     return labels
 
 
+def normalize_location_name(value: str) -> str:
+    return value.lower().strip()
+
+
+def load_live_snapshot() -> Tuple[Dict[str, Dict[str, object]], Optional[str]]:
+    try:
+        payload = json.loads(LATEST_SNAPSHOT_PATH.read_text())
+    except (FileNotFoundError, json.JSONDecodeError, OSError):
+        return {}, None
+
+    snapshot: Dict[str, Dict[str, object]] = {}
+    for location in payload.get("locations", []):
+        name = location.get("name")
+        devices = location.get("devices")
+        if not isinstance(name, str) or not isinstance(devices, list) or not devices:
+            continue
+        device = devices[0]
+        if not isinstance(device, dict):
+            continue
+        snapshot[normalize_location_name(name)] = {
+            "temp": device.get("temp"),
+            "heat_setpoint": device.get("heat_setpoint"),
+            "cool_setpoint": device.get("cool_setpoint"),
+        }
+    scraped_at = payload.get("scraped_at")
+    return snapshot, scraped_at if isinstance(scraped_at, str) else None
+
+
+def parse_scraped_at(value: Optional[str]) -> Optional[datetime]:
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+
+
+def format_snapshot_value(value: object) -> str:
+    if isinstance(value, float) and value.is_integer():
+        return str(int(value))
+    if isinstance(value, (int, float)):
+        return str(value)
+    return "---"
+
+
+def live_row_for_target(target: str, live_snapshot: Dict[str, Dict[str, object]]) -> Dict[str, str]:
+    if target == "all":
+        return {"temp": "---", "cool_setpoint": "---", "heat_setpoint": "---"}
+
+    normalized_target = normalize_location_name(target)
+    for location_name, device in live_snapshot.items():
+        if normalized_target in location_name or location_name in normalized_target:
+            return {
+                "temp": format_snapshot_value(device.get("temp")),
+                "cool_setpoint": format_snapshot_value(device.get("cool_setpoint")),
+                "heat_setpoint": format_snapshot_value(device.get("heat_setpoint")),
+            }
+    return {"temp": "---", "cool_setpoint": "---", "heat_setpoint": "---"}
+
+
 def plist_summary(path: Path) -> Dict[str, str]:
     payload = plistlib.loads(path.read_bytes())
     label = str(payload["Label"])
@@ -230,14 +293,26 @@ def status_command() -> int:
         print("No thermostat schedules installed.")
         return 0
 
+    live_snapshot, scraped_at = load_live_snapshot()
+    scraped_at_dt = parse_scraped_at(scraped_at)
+    if scraped_at_dt is not None:
+        age = datetime.now(timezone.utc) - scraped_at_dt.astimezone(timezone.utc)
+        if age > timedelta(hours=2):
+            stale_hours = max(1, int(age.total_seconds() // 3600))
+            print(f"[warn] live data is stale (scraped {stale_hours}h ago)")
+
     loaded = loaded_labels()
-    print("STATE\tTIME\tCOOL\tHEAT\tTARGET\tLABEL")
+    print(
+        f"{'STATE':<10} {'TIME':<9} {'SCHED_COOL':<11} {'SCHED_HEAT':<11} "
+        f"{'LIVE_TEMP':<10} {'LIVE_COOL':<10} {'LIVE_HEAT':<10} TARGET"
+    )
     for path in paths:
         summary = plist_summary(path)
         state = "loaded" if summary["label"] in loaded else "file-only"
+        live = live_row_for_target(summary["target"], live_snapshot)
         print(
-            f"{state}\t{summary['time']}\t{summary['cool']}\t{summary['heat']}\t"
-            f"{summary['target']}\t{summary['label']}"
+            f"{state:<10} {summary['time']:<9} {summary['cool']:<11} {summary['heat']:<11} "
+            f"{live['temp']:<10} {live['cool_setpoint']:<10} {live['heat_setpoint']:<10} {summary['target']}"
         )
     return 0
 
