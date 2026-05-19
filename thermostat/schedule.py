@@ -351,6 +351,10 @@ def find_device_for_target(
             candidates.append(location_names[location_id])
         if location.get("Name"):
             candidates.append(str(location["Name"]))
+        # Fallback: device's own Name field (mirrors scraper.py build_output logic)
+        first_device = next((d for d in (location.get("Devices") or []) if isinstance(d, dict)), None)
+        if first_device and first_device.get("Name"):
+            candidates.append(str(first_device["Name"]))
 
         normalized_candidates = [normalize_location_name(candidate) for candidate in candidates]
         matched = any(
