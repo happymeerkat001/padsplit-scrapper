@@ -3,10 +3,12 @@
 
 import argparse
 import json
+import os
 import plistlib
 import re
 import subprocess
 import sys
+import threading
 from datetime import datetime, timedelta, timezone
 from dataclasses import dataclass
 from pathlib import Path
@@ -20,6 +22,7 @@ PYTHON_PATH = ROOT_DIR / "venv" / "bin" / "python3"
 SET_TEMPS_PATH = ROOT_DIR / "thermostat" / "set_temps.py"
 LOG_DIR = ROOT_DIR / "thermostat"
 LATEST_SNAPSHOT_PATH = ROOT_DIR / "thermostat" / "output" / "latest.json"
+_LAST_LIVE_FETCH_ERROR: Optional[str] = None
 
 
 @dataclass(frozen=True)
@@ -231,6 +234,124 @@ def load_live_snapshot() -> Tuple[Dict[str, Dict[str, object]], Optional[str]]:
     return snapshot, scraped_at if isinstance(scraped_at, str) else None
 
 
+def fetch_live_setpoints() -> Optional[Dict[str, Dict[str, object]]]:
+    global _LAST_LIVE_FETCH_ERROR
+    _LAST_LIVE_FETCH_ERROR = None
+
+    result: Dict[str, Optional[Dict[str, Dict[str, object]]]] = {"snapshot": None}
+    error: Dict[str, Optional[str]] = {"message": None}
+
+    def worker() -> None:
+        try:
+            from thermostat.scraper import (
+                create_session,
+                extract_device,
+                fetch_device_uidata,
+                fetch_locations,
+                fetch_location_names,
+                load_credentials,
+                login,
+            )
+
+            creds = load_credentials()
+            snapshot: Dict[str, Dict[str, object]] = {}
+            with create_session() as session:
+                login(session, creds["email"], creds["password"])
+                location_names = fetch_location_names(session)
+                raw_locations = fetch_locations(session)
+                for location in raw_locations:
+                    devices = location.get("Devices") or []
+                    if not isinstance(devices, list) or not devices:
+                        continue
+                    first_device = devices[0]
+                    if not isinstance(first_device, dict):
+                        continue
+                    device_id = first_device.get("DeviceID")
+                    if device_id is None:
+                        continue
+                    ui_data = fetch_device_uidata(session, device_id)
+                    thermostat_data = first_device.get("ThermostatData") or {}
+                    first_device["ThermostatData"] = thermostat_data
+                    for key in ("HeatSetpoint", "CoolSetpoint"):
+                        if ui_data.get(key) is not None:
+                            thermostat_data[key] = ui_data[key]
+                    extracted = extract_device(first_device)
+                    location_id = location.get("LocationID")
+                    location_name = (
+                        location_names.get(location_id) if isinstance(location_id, int) else None
+                    ) or location.get("Name") or extracted.get("name") or str(location_id or "")
+                    if not isinstance(location_name, str) or not location_name.strip():
+                        continue
+                    snapshot[normalize_location_name(location_name)] = {
+                        "temp": extracted.get("temp"),
+                        "cool_setpoint": extracted.get("cool_setpoint"),
+                        "heat_setpoint": extracted.get("heat_setpoint"),
+                        "humidity": extracted.get("humidity"),
+                    }
+            result["snapshot"] = snapshot
+        except (Exception, SystemExit) as exc:
+            error["message"] = str(exc) or exc.__class__.__name__
+
+    thread = threading.Thread(target=worker, name="schedule-live-fetch", daemon=True)
+    thread.start()
+    thread.join(timeout=30)
+    if thread.is_alive():
+        _LAST_LIVE_FETCH_ERROR = "timed out after 30s"
+        return None
+    if error["message"]:
+        _LAST_LIVE_FETCH_ERROR = error["message"]
+        return None
+    return result["snapshot"]
+
+
+def heal_snapshot_cache(live_data: Dict[str, Dict[str, object]]) -> None:
+    try:
+        payload = json.loads(LATEST_SNAPSHOT_PATH.read_text())
+    except (FileNotFoundError, json.JSONDecodeError, OSError):
+        return
+
+    scraped_at_dt = parse_scraped_at(payload.get("scraped_at") if isinstance(payload, dict) else None)
+    if scraped_at_dt is not None:
+        age = datetime.now(timezone.utc) - scraped_at_dt.astimezone(timezone.utc)
+        if age < timedelta(minutes=10):
+            return
+
+    if not isinstance(payload, dict):
+        return
+    locations = payload.get("locations")
+    if not isinstance(locations, list):
+        return
+
+    updated = False
+    for location in locations:
+        if not isinstance(location, dict):
+            continue
+        name = location.get("name")
+        devices = location.get("devices")
+        if not isinstance(name, str) or not isinstance(devices, list) or not devices:
+            continue
+        device = devices[0]
+        if not isinstance(device, dict):
+            continue
+        fresh = live_data.get(normalize_location_name(name))
+        if fresh is None:
+            continue
+        for key in ("cool_setpoint", "heat_setpoint", "temp", "humidity"):
+            if key in fresh:
+                device[key] = fresh.get(key)
+        updated = True
+
+    if not updated:
+        return
+
+    payload["scraped_at"] = datetime.now(timezone.utc).isoformat()
+    LATEST_SNAPSHOT_PATH.parent.mkdir(parents=True, exist_ok=True)
+    tmp_path = LATEST_SNAPSHOT_PATH.with_suffix(".json.tmp")
+    with tmp_path.open("w") as handle:
+        json.dump(payload, handle, indent=2)
+    os.replace(tmp_path, LATEST_SNAPSHOT_PATH)
+
+
 def parse_scraped_at(value: Optional[str]) -> Optional[datetime]:
     if not value:
         return None
@@ -293,13 +414,26 @@ def status_command() -> int:
         print("No thermostat schedules installed.")
         return 0
 
+    now_utc = datetime.now(timezone.utc)
     live_snapshot, scraped_at = load_live_snapshot()
     scraped_at_dt = parse_scraped_at(scraped_at)
+    age: Optional[timedelta] = None
     if scraped_at_dt is not None:
-        age = datetime.now(timezone.utc) - scraped_at_dt.astimezone(timezone.utc)
-        if age > timedelta(hours=2):
+        age = now_utc - scraped_at_dt.astimezone(timezone.utc)
+    is_stale = scraped_at_dt is None or (age is not None and age > timedelta(hours=2))
+    if is_stale:
+        if age is None:
+            print("[info] live data is stale (missing scraped_at); fetching from TCC...", flush=True)
+        else:
             stale_hours = max(1, int(age.total_seconds() // 3600))
-            print(f"[warn] live data is stale (scraped {stale_hours}h ago)")
+            print(f"[info] live data is stale ({stale_hours}h ago); fetching from TCC...", flush=True)
+        fresh = fetch_live_setpoints()
+        if fresh is not None:
+            live_snapshot = fresh
+            heal_snapshot_cache(fresh)
+        else:
+            reason = _LAST_LIVE_FETCH_ERROR or "unknown error"
+            print(f"[warn] live fetch failed ({reason}); showing stale data")
 
     loaded = loaded_labels()
     print(
