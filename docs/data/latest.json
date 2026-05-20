@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-05-20T06:29:35Z",
+  "scraped_at": "2026-05-20T10:14:58Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6OTA1MDc=",
@@ -43,38 +43,55 @@
       },
       "isCancelled": false,
       "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTE3MDEzNg==",
-        "created": "2026-05-20T01:22:25.549082",
-        "text": "",
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTE3MjY5Ng==",
+        "created": "2026-05-20T08:33:17.698138",
+        "text": "Well done Tyrone!!",
         "deleted": null,
         "extra": null,
         "messageType": "TEXT",
         "sender": {
-          "pk": 448210,
-          "firstName": "Tyrone",
-          "lastName": "Parker",
-          "displayName": null
+          "pk": 318367,
+          "firstName": "Ang",
+          "lastName": "Li",
+          "displayName": "Cyndy Manager"
         },
-        "attachments": [
-          {
-            "mediaType": "PICTURE",
-            "deleted": null
-          },
-          {
-            "mediaType": "PICTURE",
-            "deleted": null
-          }
-        ],
+        "attachments": [],
         "paymentExtensionStatus": null,
         "ticketStatus": null,
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-05-18T23:08:01.419740",
+        "seenAt": "2026-05-20T08:33:19.528467",
         "isPinned": false,
-        "isUnread": true
+        "isUnread": false
       },
       "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTE3MjY5Ng==",
+          "text": "Well done Tyrone!!",
+          "created": "2026-05-20T08:33:17.698138",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
         {
           "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTE3MDEzNg==",
           "text": "",
@@ -333,32 +350,6 @@
           "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTE0NjM1OA==",
           "text": "I only see one ",
           "created": "2026-05-18T21:12:41.373434",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjQ0ODIxMA==",
-            "pk": 448210,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_448210_194fb865-68e8-4684-b99e-790ff082f633.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_448210_194fb865-68e8-4684-b99e-790ff082f633.jpg",
-            "firstName": "Tyrone",
-            "lastName": "Parker",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 386094
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTE0NTEzOQ==",
-          "text": "I will in a little sorry ",
-          "created": "2026-05-18T20:20:23.195127",
           "messageType": "TEXT",
           "deleted": null,
           "isBroadcast": false,
@@ -2594,9 +2585,9 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-05-19T23:05:45.046886",
+        "seenAt": "2026-05-20T08:38:57.854203",
         "isPinned": false,
-        "isUnread": true
+        "isUnread": false
       },
       "recent_messages": [
         {
@@ -15354,7 +15345,7 @@
               },
               "details": "Collections",
               "location": "ROOM",
-              "status": "COMPLETED",
+              "status": "ARCHIVED",
               "rating": null,
               "comment": null,
               "category": "ROOM_TURN",
@@ -17980,97 +17971,6 @@
         "days_to_complete": null
       },
       {
-        "id": 409266,
-        "status": "completed",
-        "comment": null,
-        "category": "room-turn",
-        "media": [],
-        "created": "2026-05-12T15:12:32.849910",
-        "modified": "2026-05-14T11:40:33.496484",
-        "room_name": "",
-        "room_number": 4,
-        "room_status": 1,
-        "room_code": "1234",
-        "location": "Room",
-        "details": "Collections",
-        "property_id": 20021,
-        "property_address": {
-          "id": 27496,
-          "street1": "1404 Pioneer Lane",
-          "street2": "",
-          "city": "Plano",
-          "state": "TX",
-          "zip": "75023",
-          "city_slug": "plano-tx"
-        },
-        "reported_by": {
-          "id": 943779,
-          "name": "Tira Davis",
-          "role_id": 0,
-          "picture": "img/profiles/user_943779_bbcd3bc3-1f3e-4816-8edd-05fad59ec911.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-05-12T15:12:32.852749",
-        "rating": null,
-        "extra_data": {
-          "user_id": 943779,
-          "checklist": {},
-          "occupancy_id": 295800,
-          "move_out_date": "2026-05-12"
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null
-      },
-      {
-        "id": 409032,
-        "status": "completed",
-        "comment": null,
-        "category": "room-turn",
-        "media": [],
-        "created": "2026-05-12T12:30:47.553784",
-        "modified": "2026-05-14T11:37:17.194134",
-        "room_name": "Room 6",
-        "room_number": 6,
-        "room_status": 1,
-        "room_code": "3414",
-        "location": "Room",
-        "details": "moving-to-a-new-home",
-        "property_id": 8127,
-        "property_address": {
-          "id": 10664,
-          "street1": "10235 Ridge Oak Street",
-          "street2": "",
-          "city": "Dallas",
-          "state": "TX",
-          "zip": "75227",
-          "city_slug": "dallas-tx"
-        },
-        "reported_by": {
-          "id": 394101,
-          "name": "Brayan Garcia",
-          "role_id": 0,
-          "picture": "img/profiles/user_394101_cb8197df-4729-453c-9af9-c930ee013620.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-05-12T12:30:47.554032",
-        "rating": null,
-        "extra_data": {
-          "user_id": 394101,
-          "checklist": {},
-          "occupancy_id": 123620,
-          "move_out_date": "2026-05-12",
-          "move_out_quiz": {
-            "Do you have a physical key to your room?": "No, I don\u2019t have a key to my room"
-          }
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 3,
-        "days_to_complete": null
-      },
-      {
         "id": 409866,
         "status": "completed",
         "comment": null,
@@ -18251,6 +18151,6 @@
     "error_type": null,
     "error_message": null,
     "fallback_used": false,
-    "run_scraped_at": "2026-05-20T06:29:35Z"
+    "run_scraped_at": "2026-05-20T10:14:58Z"
   }
 }
