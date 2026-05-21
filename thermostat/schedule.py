@@ -16,6 +16,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
+import requests
+
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 LAUNCH_AGENT_DIR = Path.home() / "Library" / "LaunchAgents"
@@ -29,6 +31,44 @@ SCHEDULES_PATH = ROOT_DIR / "thermostat" / "config" / "schedules.json"
 ENFORCER_LOG_PATH = LOG_DIR / "enforcer.log"
 LATEST_SNAPSHOT_PATH = ROOT_DIR / "thermostat" / "output" / "latest.json"
 _LAST_LIVE_FETCH_ERROR: Optional[str] = None
+
+LOW_TEMP_ALERT_TARGET = "leanna"
+LOW_TEMP_THRESHOLD_F = 75
+TEMP_ALERT_STATE_PATH = LOG_DIR / "temp_alert_state.json"
+
+
+def _post_temp_alert(webhook_url: str, target: str, temp_f: float) -> None:
+    _logger = logging.getLogger(__name__)
+    try:
+        requests.post(
+            webhook_url,
+            json={"text": f"Leanna temp {temp_f:.0f}\u00b0F \u2014 below {LOW_TEMP_THRESHOLD_F}\u00b0F threshold"},
+            timeout=10,
+        )
+    except Exception as exc:
+        _logger.error("Slack temp alert failed: %s", exc)
+
+
+def _should_send_temp_alert() -> bool:
+    """True if no alert sent in last hour (file-based debounce, Unix timestamp)."""
+    try:
+        state = json.loads(TEMP_ALERT_STATE_PATH.read_text())
+        import time as _time
+
+        if _time.time() - float(state["last_alerted"]) < 3600:
+            return False
+    except (FileNotFoundError, KeyError, ValueError, OSError):
+        pass
+    return True
+
+
+def _record_temp_alert() -> None:
+    import time as _time
+
+    try:
+        TEMP_ALERT_STATE_PATH.write_text(json.dumps({"last_alerted": _time.time()}))
+    except OSError:
+        pass
 
 
 @dataclass(frozen=True)
@@ -416,6 +456,7 @@ def enforce_command() -> int:
             login(session, creds["email"], creds["password"])
             raw_locations = fetch_locations(session)
             location_names = fetch_location_names(session)
+            slack_webhook = os.getenv("SLACK_WEBHOOK_URL")
 
             for norm_target, slots in schedules.items():
                 active_slot = find_active_slot(slots, now)
@@ -429,6 +470,22 @@ def enforce_command() -> int:
                 live_heat = ui_data.get("HeatSetpoint")
                 status_cool = ui_data.get("StatusCool")
                 status_heat = ui_data.get("StatusHeat")
+
+                live_temp = ui_data.get("DispTemperature")
+                if slack_webhook and live_temp is not None and LOW_TEMP_ALERT_TARGET in norm_target:
+                    try:
+                        live_temp_f = float(live_temp)
+                    except (TypeError, ValueError):
+                        logger.warning("[alert] %s: invalid live temperature %r", norm_target, live_temp)
+                    else:
+                        if live_temp_f < LOW_TEMP_THRESHOLD_F and _should_send_temp_alert():
+                            _record_temp_alert()
+                            threading.Thread(
+                                target=_post_temp_alert,
+                                args=(slack_webhook, norm_target, live_temp_f),
+                                daemon=True,
+                            ).start()
+                            logger.info("[alert] %s temp %.0f\u00b0F \u2014 Slack notified", norm_target, live_temp_f)
 
                 if (
                     live_cool is not None
