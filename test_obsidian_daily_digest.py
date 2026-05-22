@@ -7,6 +7,7 @@ from zoneinfo import ZoneInfo
 from obsidian_daily_digest import (
     END_MARKER,
     START_MARKER,
+    format_draft_replies,
     get_daily_note_path,
     upsert_managed_block,
     write_daily_digest,
@@ -144,6 +145,37 @@ def test_write_daily_digest_handles_missing_thermostat() -> None:
         assert "Thermostat data unavailable." in content
 
 
+def test_format_draft_replies_requires_contract_fields() -> None:
+    lines = format_draft_replies(
+        {
+            "drafts": [
+                {
+                    "chat_id": "chat_123",
+                    "message_id": "msg_456",
+                    "tenant_name": "Roshawn Porter",
+                    "room_number": 5,
+                    "property": "10235 Ridge Oak",
+                    "category": "maintenance",
+                    "urgency": "high",
+                    "inbound_at": "2026-04-13T10:30:00Z",
+                    "draft_reply": "Hi Roshawn, thanks for letting me know.",
+                },
+                {
+                    "chat_id": "missing_message_id",
+                    "tenant_name": "Malformed",
+                    "draft_reply": "Skip me",
+                },
+            ]
+        }
+    )
+
+    rendered = "\n".join(lines)
+    assert "### Draft Replies" in rendered
+    assert "Roshawn Porter" in rendered
+    assert "Open PadSplit thread" in rendered
+    assert "Malformed" not in rendered
+
+
 def test_get_daily_note_path_requires_existing_directory() -> None:
     missing = Path(tempfile.gettempdir()) / "codex-missing-obsidian-dir"
     if missing.exists():
@@ -161,6 +193,7 @@ if __name__ == "__main__":
         test_write_daily_digest_creates_note_when_missing,
         test_write_daily_digest_is_idempotent_for_same_note,
         test_write_daily_digest_handles_missing_thermostat,
+        test_format_draft_replies_requires_contract_fields,
         test_get_daily_note_path_requires_existing_directory,
     ]
     for test in tests:

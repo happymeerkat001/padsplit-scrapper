@@ -23,6 +23,8 @@ commit_and_push() {
   msg=$1
   git -C "$WORKSPACE" add \
     padsplit_scraper/output/latest.json \
+    padsplit_scraper/output/drafts.json \
+    padsplit_scraper/output/drafted_messages.json \
     padsplit_scraper/output/stats.json \
     thermostat/output/latest.json \
     docs/data/latest.json \
@@ -61,6 +63,10 @@ echo "[$(date)] Thermostat scraper exit code: $?"
 echo "[$(date)] Running PadSplit scraper (messages + tasks)..."
 "$VENV" "$WORKSPACE/padsplit_scraper/scraper.py"
 echo "[$(date)] PadSplit scraper exit code: $?"
+
+echo "[$(date)] Generating PadSplit draft replies..."
+"$VENV" "$WORKSPACE/message_drafter.py" || true
+echo "[$(date)] PadSplit draft reply step complete"
 
 echo "[$(date)] Writing Obsidian daily digest..."
 "$VENV" "$WORKSPACE/obsidian_daily_digest.py"
