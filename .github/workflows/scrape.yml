@@ -16,9 +16,10 @@ jobs:
   scrape:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true
 
       - uses: actions/setup-python@v5
         with:
@@ -67,14 +68,32 @@ jobs:
           cp padsplit_scraper/output/latest.json docs/data/latest.json
           cp padsplit_scraper/output/stats.json docs/data/stats.json || echo "stats.json not found, skipping"
 
-      - name: Commit snapshot
+      - name: Diagnose token permissions
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          echo "=== Token write check ==="
+          curl -s -o /dev/null -w "HTTP %{http_code}" \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${{ github.repository }}"
+          echo ""
+          echo "=== Branch protection check ==="
+          curl -s -w "\nHTTP %{http_code}\n" \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${{ github.repository }}/branches/${{ github.ref_name }}/protection"
+          echo "=== Git credential helper ==="
+          git config --list | grep -i "credential\|url\|helper" || echo "No credential config found"
+          echo "=== Git remote ==="
+          git remote -v
+
+      - name: Commit and push snapshot
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
           git pull --rebase --autostash
           git add docs/data/latest.json docs/data/stats.json docs/data/monthly_history.json
           git diff --cached --quiet || git commit -m "chore: scrape $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          git push
+          git push origin HEAD:${{ github.ref_name }}
 
       - name: Notify Slack on failure
         if: failure()
