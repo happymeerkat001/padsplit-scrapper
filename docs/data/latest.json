@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-05-26T17:01:42Z",
+  "scraped_at": "2026-05-26T19:29:30Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6Mjc5ODE5",
@@ -43,51 +43,81 @@
       },
       "isCancelled": false,
       "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTI4NzIxMw==",
-        "created": "2026-05-26T15:13:14.347466",
-        "text": null,
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTI5MjE1MA==",
+        "created": "2026-05-26T18:38:21.167149",
+        "text": "I did last Wednesday, the money i was expecting still hasnt arrived but if it stays 300 by tomorrow I will be caught up ",
         "deleted": null,
         "extra": null,
-        "messageType": "TICKET_UPDATE",
+        "messageType": "TEXT",
         "sender": {
-          "pk": 701127,
-          "firstName": "Ang",
-          "lastName": "Li",
+          "pk": 949325,
+          "firstName": "Nicklaus",
+          "lastName": "Nichols",
           "displayName": null
         },
         "attachments": [],
         "paymentExtensionStatus": null,
-        "ticketStatus": {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czo5NjU1NDA=",
-          "created": "2026-05-26T15:13:14.358466",
-          "status": "SUBMITTED",
-          "canRate": false,
-          "ticket": {
-            "id": "416184",
-            "author": {
-              "firstName": "Nicklaus",
-              "lastName": "Nichols",
-              "id": "949325",
-              "displayName": null
-            },
-            "details": "Collections",
-            "location": "ROOM",
-            "status": "SUBMITTED",
-            "rating": null,
-            "comment": null,
-            "category": "ROOM_TURN",
-            "onHoldReason": null,
-            "withdrawReason": null
-          }
-        },
+        "ticketStatus": null,
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-05-21T13:34:58.893976",
+        "seenAt": "2026-05-26T18:51:52.938108",
         "isPinned": false,
-        "isUnread": true
+        "isUnread": false
       },
       "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTI5MjE1MA==",
+          "text": "I did last Wednesday, the money i was expecting still hasnt arrived but if it stays 300 by tomorrow I will be caught up ",
+          "created": "2026-05-26T18:38:21.167149",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjk0OTMyNQ==",
+            "pk": 949325,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_949325_ccf738aa-2c7a-4e7e-bdba-4e8c0d9d21e0.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_949325_ccf738aa-2c7a-4e7e-bdba-4e8c0d9d21e0.jpg",
+            "firstName": "Nicklaus",
+            "lastName": "Nichols",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 886787
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTI5MTY4Mg==",
+          "text": "You didn\u2019t make payments?",
+          "created": "2026-05-26T18:16:57.936465",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
         {
           "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTI4NzIxMw==",
           "text": null,
@@ -361,58 +391,6 @@
           "paymentExtensionStatus": null,
           "ticketStatus": null,
           "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTEzNzgyMA==",
-          "text": "Good morning Nicklaus, just a reminder about the HAVC filters",
-          "created": "2026-05-18T15:22:30.186142",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTA4NzQ4OA==",
-          "text": "Your welcome ",
-          "created": "2026-05-15T23:16:31.277418",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjk0OTMyNQ==",
-            "pk": 949325,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_949325_ccf738aa-2c7a-4e7e-bdba-4e8c0d9d21e0.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_949325_ccf738aa-2c7a-4e7e-bdba-4e8c0d9d21e0.jpg",
-            "firstName": "Nicklaus",
-            "lastName": "Nichols",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 886787
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
         }
       ]
     },
@@ -458,9 +436,9 @@
       },
       "isCancelled": false,
       "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTI4NzEyMQ==",
-        "created": "2026-05-26T15:11:08.255032",
-        "text": "Good morning, I was checking to see if there was an update on my application? ",
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTI5MTg3OQ==",
+        "created": "2026-05-26T18:26:44.126798",
+        "text": "",
         "deleted": null,
         "extra": null,
         "messageType": "TEXT",
@@ -470,17 +448,93 @@
           "lastName": "Henderson",
           "displayName": "Aaliyah"
         },
-        "attachments": [],
+        "attachments": [
+          {
+            "mediaType": "PICTURE",
+            "deleted": null
+          },
+          {
+            "mediaType": "PICTURE",
+            "deleted": null
+          }
+        ],
         "paymentExtensionStatus": null,
         "ticketStatus": null,
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-05-25T21:03:46.330321",
+        "seenAt": "2026-05-26T19:18:04.548136",
         "isPinned": false,
-        "isUnread": true
+        "isUnread": false
       },
       "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTI5MTg3OQ==",
+          "text": "",
+          "created": "2026-05-26T18:26:44.126798",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjEwNjM0MjU=",
+            "pk": 1063425,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_1063425_8f60c60f-c2cc-4fc6-9ebf-fed8f600a408.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1063425_8f60c60f-c2cc-4fc6-9ebf-fed8f600a408.jpg",
+            "firstName": "Aaliyah",
+            "lastName": "Henderson",
+            "isActive": true,
+            "displayName": "Aaliyah",
+            "padmateProfileId": 1000700
+          },
+          "attachments": [
+            {
+              "id": "TWVzc2VuZ2VyQXR0YWNobWVudFR5cGU6NzAzOTU0",
+              "deleted": null,
+              "mediaType": "PICTURE",
+              "location": "img/chat/message/attachments/message_9291879_bc942adf-1d6e-498c-9984-a6e5b400bfdd",
+              "filename": "1"
+            },
+            {
+              "id": "TWVzc2VuZ2VyQXR0YWNobWVudFR5cGU6NzAzOTUz",
+              "deleted": null,
+              "mediaType": "PICTURE",
+              "location": "img/chat/message/attachments/message_9291879_facc5c04-ad24-4b8f-94ca-48e65f84f47f",
+              "filename": "0"
+            }
+          ],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTI5MTY1Mw==",
+          "text": "Good morning Aaliyah, Thank you. To help us complete the review process, could you please upload a recent pay stub or any document that shows proof of income?",
+          "created": "2026-05-26T18:16:04.241957",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
         {
           "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTI4NzEyMQ==",
           "text": "Good morning, I was checking to see if there was an update on my application? ",
@@ -686,21 +740,43 @@
       },
       "isCancelled": false,
       "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTI4NzA2NQ==",
-        "created": "2026-05-26T15:09:33.986768",
-        "text": "Thank you",
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTI5MTc1Ng==",
+        "created": "2026-05-26T18:20:15.034344",
+        "text": null,
         "deleted": null,
         "extra": null,
-        "messageType": "TEXT",
+        "messageType": "TICKET_UPDATE",
         "sender": {
-          "pk": 675098,
-          "firstName": "Leonard",
-          "lastName": "Gray",
-          "displayName": null
+          "pk": 339595,
+          "firstName": "Tinghui",
+          "lastName": "Li",
+          "displayName": ""
         },
         "attachments": [],
         "paymentExtensionStatus": null,
-        "ticketStatus": null,
+        "ticketStatus": {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czo5NjYwMDA=",
+          "created": "2026-05-26T18:20:15.041523",
+          "status": "SUBMITTED",
+          "canRate": false,
+          "ticket": {
+            "id": "416266",
+            "author": {
+              "firstName": "Leonard",
+              "lastName": "Gray",
+              "id": "675098",
+              "displayName": null
+            },
+            "details": "It doesn\u2019t work",
+            "location": "DOORLOCK",
+            "status": "SUBMITTED",
+            "rating": null,
+            "comment": null,
+            "category": "UNCLASSIFIED",
+            "onHoldReason": null,
+            "withdrawReason": null
+          }
+        },
         "bookingStatus": null
       },
       "member": {
@@ -709,6 +785,54 @@
         "isUnread": true
       },
       "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTI5MTc1Ng==",
+          "text": null,
+          "created": "2026-05-26T18:20:15.034344",
+          "messageType": "TICKET_UPDATE",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
+            "pk": 339595,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Tinghui",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "",
+            "padmateProfileId": 278216
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czo5NjYwMDA=",
+            "created": "2026-05-26T18:20:15.041523",
+            "status": "SUBMITTED",
+            "canRate": false,
+            "ticket": {
+              "id": "416266",
+              "author": {
+                "firstName": "Leonard",
+                "lastName": "Gray",
+                "id": "675098",
+                "displayName": null
+              },
+              "details": "It doesn\u2019t work",
+              "location": "DOORLOCK",
+              "status": "SUBMITTED",
+              "rating": null,
+              "comment": null,
+              "category": "UNCLASSIFIED",
+              "onHoldReason": null,
+              "withdrawReason": null
+            }
+          },
+          "bookingStatus": null
+        },
         {
           "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTI4NzA2NQ==",
           "text": "Thank you",
@@ -942,32 +1066,6 @@
           "paymentExtensionStatus": null,
           "ticketStatus": null,
           "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTIzMDY5OA==",
-          "text": "Yes he said he did. Hope you can lock now",
-          "created": "2026-05-22T23:13:34.012200",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
         }
       ]
     },
@@ -1013,51 +1111,55 @@
       },
       "isCancelled": false,
       "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTI4NjkxMQ==",
-        "created": "2026-05-26T15:05:43.308804",
-        "text": null,
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTI5MTY2Ng==",
+        "created": "2026-05-26T18:16:34.057424",
+        "text": "Are you moving out?",
         "deleted": null,
         "extra": null,
-        "messageType": "TICKET_UPDATE",
+        "messageType": "TEXT",
         "sender": {
-          "pk": 339595,
-          "firstName": "Tinghui",
+          "pk": 318367,
+          "firstName": "Ang",
           "lastName": "Li",
-          "displayName": ""
+          "displayName": "Cyndy Manager"
         },
         "attachments": [],
         "paymentExtensionStatus": null,
-        "ticketStatus": {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czo5NjU0NDA=",
-          "created": "2026-05-26T15:05:43.318214",
-          "status": "SUBMITTED",
-          "canRate": false,
-          "ticket": {
-            "id": "416101",
-            "author": {
-              "firstName": "Tira",
-              "lastName": "Davis",
-              "id": "943779",
-              "displayName": null
-            },
-            "details": "Collections",
-            "location": "ROOM",
-            "status": "SUBMITTED",
-            "rating": null,
-            "comment": null,
-            "category": "ROOM_TURN",
-            "onHoldReason": null,
-            "withdrawReason": null
-          }
-        },
+        "ticketStatus": null,
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-05-23T19:46:56.222535",
+        "seenAt": "2026-05-26T18:16:35.155825",
         "isPinned": false,
-        "isUnread": true
+        "isUnread": false
       },
       "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTI5MTY2Ng==",
+          "text": "Are you moving out?",
+          "created": "2026-05-26T18:16:34.057424",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
         {
           "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTI4NjkxMQ==",
           "text": null,
@@ -1350,32 +1452,6 @@
               "withdrawReason": null
             }
           },
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTA1MDg3Nw==",
-          "text": "Good morning I hope you have a wonderful blessed day. Be safe ",
-          "created": "2026-05-14T11:26:13.362035",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjk0Mzc3OQ==",
-            "pk": 943779,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_943779_bbcd3bc3-1f3e-4816-8edd-05fad59ec911.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profile-display-pictures/user_881242_065ff095-b17c-4922-a12a-28e229241dfe.jpg",
-            "firstName": "Tira",
-            "lastName": "Davis",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 881242
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
           "bookingStatus": null
         }
       ]
@@ -1831,7 +1907,7 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-05-26T12:22:25.107888",
+        "seenAt": "2026-05-26T18:22:12.508454",
         "isPinned": false,
         "isUnread": false
       },
@@ -2158,7 +2234,7 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-05-25T17:23:22.999250",
+        "seenAt": "2026-05-26T18:22:26.972044",
         "isPinned": false,
         "isUnread": false
       },
@@ -4394,7 +4470,7 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-05-26T13:55:59.037924",
+        "seenAt": "2026-05-26T18:22:47.370842",
         "isPinned": false,
         "isUnread": false
       },
@@ -8647,277 +8723,7 @@
         "seenAt": "2026-05-21T18:59:26.350618",
         "isPinned": false,
         "isUnread": false
-      },
-      "recent_messages": [
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTIwNDA5OA==",
-          "text": "Okay do let me know if you get it",
-          "created": "2026-05-21T18:59:25.195574",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTE5OTA3MQ==",
-          "text": "Not sure I\u2019m at work right now. ",
-          "created": "2026-05-21T15:30:16.400023",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjg0MzgyMw==",
-            "pk": 843823,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_843823_5d6906af-9e86-460d-a3e7-24b580d293a5.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_843823_5d6906af-9e86-460d-a3e7-24b580d293a5.jpg",
-            "firstName": "Deangelo",
-            "lastName": "Bell",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 781326
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTE5NzgwNQ==",
-          "text": "Hi Deangelo, did you receive the AC filter?",
-          "created": "2026-05-21T14:37:21.545986",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTE0ODg1MA==",
-          "text": "Hi everyone,  \n\nWe wanted to update you that the power outage affecting the home is part of a larger area outage currently impacting over 300 homes. We contacted the power company, and they confirmed their team is actively working to restore service.  \n\nAt this time, they estimate power should be restored by approximately 10:00 PM. We appreciate everyone\u2019s patience and understanding while the issue is being resolved. We\u2019ll share any additional updates if we receive them.  \n\nThank you.",
-          "created": "2026-05-18T23:24:53.633965",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": true,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTE0ODY1OA==",
-          "text": "Dear All,  \n\nQuick important update for everyone\u2019s safety:\n\nIn case of a water leak or pipe issue, please act immediately to prevent flooding and damage. Please place this in the common closet where everyone can reach it.\n\n\ud83d\udc49 Location:  \nThe water shut-off box is located between the water meter and the house.\n\n\ud83d\udc49 What to do:  \n1. Use the water key to turn OFF the water immediately  \n2. This helps prevent damage to the house and your personal belongings  \n3. You may turn it ON briefly if needed (for drinking water), but please keep it OFF afterward  \n\nWe will send someone out ASAP to fix the issue.\n\n\ud83c\udfa5 How to use a water key:  \nhttps://youtube.com/shorts/SCryjPiyZcs?si=NfvowNCrVSnHK99w\n\n\u26a0\ufe0f Reminder:  \nLeaks and flooding are considered emergency maintenance issues, so quick action helps protect everyone.\n\nIf you\u2019re unsure, message us immediately.\n\nThank you for helping keep the home safe.",
-          "created": "2026-05-18T23:14:57.863765",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": true,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTE0ODYyMg==",
-          "text": "I will send a message out to everyone in the house. ",
-          "created": "2026-05-18T23:12:50.289984",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTE0ODYxOA==",
-          "text": "One is a six-pack of the AC filter. The other is a water key, just in case we have a leak one day. It allows you or another member of Padsplit to turn the water off so we can get someone out there ASAP to fix it. ",
-          "created": "2026-05-18T23:12:41.171852",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTE0ODYwMg==",
-          "text": "",
-          "created": "2026-05-18T23:12:05.926105",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [
-            {
-              "id": "TWVzc2VuZ2VyQXR0YWNobWVudFR5cGU6NjkwNjc2",
-              "deleted": null,
-              "mediaType": "PICTURE",
-              "location": "img/chat/message/attachments/message_9148602_a21e82ba-59fc-4aeb-b857-886edeae4317",
-              "filename": "0"
-            }
-          ],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTE0ODU5Ng==",
-          "text": "There's an order for you coming tomorrow and May 20th.",
-          "created": "2026-05-18T23:11:48.923746",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTE0ODQ1Mw==",
-          "text": "Let me check with the power company",
-          "created": "2026-05-18T23:07:05.699158",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        }
-      ]
+      }
     },
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzQyODgw",
@@ -10743,6 +10549,48 @@
   "tasks": {
     "Requests": [
       {
+        "id": 416266,
+        "status": "submitted",
+        "comment": null,
+        "category": "unclassified",
+        "media": [],
+        "created": "2026-05-26T18:20:14.990771",
+        "modified": "2026-05-26T18:20:14.990771",
+        "room_name": "Room 4",
+        "room_number": 4,
+        "room_status": 1,
+        "room_code": "5411",
+        "location": "Doorlock",
+        "details": "It doesn\u2019t work",
+        "property_id": 8127,
+        "property_address": {
+          "id": 10664,
+          "street1": "10235 Ridge Oak Street",
+          "street2": "",
+          "city": "Dallas",
+          "state": "TX",
+          "zip": "75227",
+          "city_slug": "dallas-tx"
+        },
+        "reported_by": {
+          "id": 675098,
+          "name": "Leonard Gray",
+          "role_id": 0,
+          "picture": "img/profiles/user_675098_a595a757-2695-4fae-883f-4c2b1e0565a8.jpg"
+        },
+        "assigned_to": null,
+        "on_hold_reason": null,
+        "update_status_at": "2026-05-26T18:20:14.992205",
+        "rating": null,
+        "extra_data": {},
+        "has_reused_code": true,
+        "moveout_photos_count": 0,
+        "days_to_complete": null,
+        "is_on_payment_plan": false,
+        "payment_plan_end_date": null,
+        "payment_plan_reason_note": null
+      },
+      {
         "id": 416184,
         "status": "submitted",
         "comment": null,
@@ -11418,6 +11266,6 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-05-26T17:01:42Z"
+    "run_scraped_at": "2026-05-26T19:29:30Z"
   }
 }
