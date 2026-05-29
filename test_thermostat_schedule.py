@@ -143,7 +143,7 @@ class ThermostatScheduleTests(unittest.TestCase):
             ):
                 out = io.StringIO()
                 with redirect_stdout(out):
-                    schedule.status_command()
+                    schedule.status_command(unittest.mock.Mock(target=None))
 
             text = out.getvalue()
             self.assertIn("loaded", text)
@@ -237,7 +237,7 @@ class ThermostatScheduleTests(unittest.TestCase):
             ):
                 out = io.StringIO()
                 with redirect_stdout(out):
-                    schedule.status_command()
+                    schedule.status_command(unittest.mock.Mock(target=None))
 
             text = out.getvalue()
             self.assertIn("[info] live data is stale", text)
@@ -286,7 +286,7 @@ class ThermostatScheduleTests(unittest.TestCase):
                 datetime_mock.now.return_value = datetime(2026, 5, 19, 2, 0)
                 out = io.StringIO()
                 with redirect_stdout(out):
-                    schedule.status_command()
+                    schedule.status_command(unittest.mock.Mock(target=None))
 
             text = out.getvalue()
             self.assertIn("[enforcer]", text)
@@ -294,6 +294,55 @@ class ThermostatScheduleTests(unittest.TestCase):
             self.assertIn("[hybrid]", text)
             self.assertIn("7:00 PM", text)
             self.assertIn("75", text)
+
+    def test_status_target_prints_full_configured_schedule(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            schedules_path = Path(tmpdir) / "schedules.json"
+            schedules_path.write_text(
+                json.dumps(
+                    {
+                        "6623 leanna": [
+                            {"hour": 8, "minute": 0, "cool": 76, "heat": 62},
+                            {"hour": 14, "minute": 0, "cool": 77, "heat": 62},
+                            {"hour": 19, "minute": 0, "cool": 76, "heat": 62},
+                        ]
+                    }
+                )
+            )
+
+            with patch.object(schedule, "SCHEDULES_PATH", schedules_path):
+                out = io.StringIO()
+                with redirect_stdout(out):
+                    schedule.status_command(unittest.mock.Mock(target="6623 Leanna"))
+
+            text = out.getvalue()
+            self.assertIn("Configured schedule for 6623 leanna:", text)
+            self.assertIn("8:00 AM", text)
+            self.assertIn("2:00 PM", text)
+            self.assertIn("7:00 PM", text)
+            self.assertIn("cool=77 heat=62", text)
+
+    def test_status_target_tolerates_wrapped_whitespace(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            schedules_path = Path(tmpdir) / "schedules.json"
+            schedules_path.write_text(
+                json.dumps(
+                    {
+                        "6623 leanna": [
+                            {"hour": 8, "minute": 0, "cool": 76, "heat": 62},
+                        ]
+                    }
+                )
+            )
+
+            with patch.object(schedule, "SCHEDULES_PATH", schedules_path):
+                out = io.StringIO()
+                with redirect_stdout(out):
+                    schedule.status_command(unittest.mock.Mock(target="6623\n  Leanna"))
+
+            text = out.getvalue()
+            self.assertIn("Configured schedule for 6623 leanna:", text)
+            self.assertIn("8:00 AM", text)
 
 
 if __name__ == "__main__":

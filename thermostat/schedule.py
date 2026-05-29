@@ -355,7 +355,25 @@ def loaded_labels() -> set[str]:
 
 
 def normalize_location_name(value: str) -> str:
-    return value.lower().strip()
+    return " ".join(value.lower().split())
+
+
+def resolve_schedule_target(target: str, schedules: Dict[str, List[Slot]]) -> str:
+    normalized_target = normalize_location_name(target)
+    matches = [
+        candidate
+        for candidate in schedules
+        if normalized_target == candidate
+        or normalized_target in candidate
+        or candidate in normalized_target
+    ]
+    if len(matches) == 1:
+        return matches[0]
+    if not matches:
+        available = ", ".join(sorted(schedules))
+        raise RuntimeError(f'No configured schedule matched target "{target}". Available: {available}')
+    matched = ", ".join(sorted(matches))
+    raise RuntimeError(f'Ambiguous schedule target "{target}". Matches: {matched}')
 
 
 def setup_enforcer_logging() -> logging.Logger:
@@ -777,11 +795,18 @@ def format_last_run(path: Path) -> str:
         return "---"
 
 
-def status_command() -> int:
+def status_command(args: argparse.Namespace) -> int:
     if not SCHEDULES_PATH.exists():
         return legacy_status_command()
 
     schedules = load_schedules()
+    if args.target:
+        target = resolve_schedule_target(args.target, schedules)
+        print(f"Configured schedule for {target}:")
+        for slot in schedules[target]:
+            print(f"{slot.display:<9} cool={slot.cool} heat={slot.heat}")
+        return 0
+
     loaded = loaded_labels()
     legacy_paths = calendar_plists()
     legacy_summaries = [plist_summary(path) for path in legacy_paths]
@@ -848,7 +873,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Also restore TCC schedule for the same target scope.",
     )
 
-    subparsers.add_parser("status", help="Show installed thermostat schedules")
+    status_parser = subparsers.add_parser("status", help="Show installed thermostat schedules")
+    status_parser.add_argument(
+        "--target",
+        help='Show the full configured schedule for one thermostat location, e.g. "6623 Leanna".',
+    )
     subparsers.add_parser("enforce", help="Enforce configured thermostat schedules")
     return parser
 
@@ -865,7 +894,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     if args.command == "uninstall":
         return uninstall_command(args)
     if args.command == "status":
-        return status_command()
+        return status_command(args)
     if args.command == "enforce":
         return enforce_command()
     parser.error(f"unsupported command {args.command}")

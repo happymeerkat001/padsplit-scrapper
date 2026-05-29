@@ -179,7 +179,7 @@ Meaning:
 Show installed thermostat schedules (not status):
 
 ```bash
-statuspython3 thermostat/schedule.py 
+python3 thermostat/schedule.py status
 ```
 
 `status` shows configured schedule time, cool, heat, target, and LaunchAgent label from installed plist files.
@@ -194,7 +194,16 @@ Generated files:
 - LaunchAgents are written under `~/Library/LaunchAgents/` as `com.padsplit.thermostat.<target>.<hhmm>.plist`.
 - Slot logs are written to `thermostat/schedule-<target>-<hhmm>.stdout.log` and `.stderr.log`.
 
+Show the full configured schedule for one house:
+
+```bash
+python3 thermostat/schedule.py status --target "6623 Leanna"
+```
+
+This prints every configured slot time plus cool/heat values for that target.
+
 Current limitation:
 
-- `python3 thermostat/schedule.py status` shows only schedule-managed thermostat LaunchAgents created by `thermostat/schedule.py`.
+- ``python3 thermostat/schedule.py status`` shows only schedule-managed thermostat LaunchAgents created by `thermostat/schedule.py`.
+- ``python3 thermostat/schedule.py status --target "6623 Leanna"`` shows the full configured schedule for that house from `thermostat/config/schedules.json`.
 - It does not show the older legacy `com.padsplit.thermostat-set-temps.plist`.
