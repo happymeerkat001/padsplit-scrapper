@@ -1,6 +1,178 @@
 {
-  "scraped_at": "2026-05-30T22:42:09Z",
+  "scraped_at": "2026-05-30T23:44:41Z",
   "messages": [
+    {
+      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzU4Njgw",
+      "title": "Angel Cole",
+      "chatType": "HOST_SUPPORT_CHAT",
+      "isArchived": false,
+      "occupancy": {
+        "moveInDate": "2026-05-27",
+        "moveOutDate": null,
+        "conditionalEligibilityApplied": null,
+        "room": {
+          "pk": 21180,
+          "roomNumber": 7
+        },
+        "user": {
+          "picture": "img/profiles/user_1034604_d037497d-81a7-4f79-b267-926c9cf4c7be.jpg",
+          "firstName": "Angel",
+          "lastName": "Cole",
+          "displayName": null
+        }
+      },
+      "property": {
+        "host": {
+          "firstName": "Tinghui",
+          "lastName": "Li",
+          "displayName": "",
+          "picture": ""
+        },
+        "description": "Your new home awaits! This cozy Dallas home is waiting for you. This PadSplit has a Backyard and Dining area, and is newly-renovated and cozy.\n\nThis home has a full kitchen, onsite laundry and parking and is very commutable close to public transit and multiple highways.  Located right between I35E, I45 and I20.\n\nThe neighborhood is quiet, which means you won\u2019t be far from all Dallas has to offer.\nThe image on satellite is a few years old and please come and see the house by yourself before you make any judgement.",
+        "address": {
+          "street1": "3414 Pebbleshores Drive",
+          "street2": "",
+          "zip": "75241",
+          "city": {
+            "name": "Dallas",
+            "state": {
+              "name": "Texas"
+            }
+          }
+        }
+      },
+      "isCancelled": false,
+      "lastMessage": {
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTM4MTIzOA==",
+        "created": "2026-05-30T23:34:22.679664",
+        "text": "Fixed washer please disregard thank you",
+        "deleted": null,
+        "extra": null,
+        "messageType": "TEXT",
+        "sender": {
+          "pk": 1034604,
+          "firstName": "Angel",
+          "lastName": "Cole",
+          "displayName": null
+        },
+        "attachments": [],
+        "paymentExtensionStatus": null,
+        "ticketStatus": null,
+        "bookingStatus": null
+      },
+      "member": {
+        "seenAt": null,
+        "isPinned": false,
+        "isUnread": true
+      },
+      "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTM4MTIzOA==",
+          "text": "Fixed washer please disregard thank you",
+          "created": "2026-05-30T23:34:22.679664",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjEwMzQ2MDQ=",
+            "pk": 1034604,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_1034604_d037497d-81a7-4f79-b267-926c9cf4c7be.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1034604_d037497d-81a7-4f79-b267-926c9cf4c7be.jpg",
+            "firstName": "Angel",
+            "lastName": "Cole",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 971951
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTM3OTExOA==",
+          "text": null,
+          "created": "2026-05-30T21:09:16.054453",
+          "messageType": "TICKET_UPDATE",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
+            "pk": 339595,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Tinghui",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "",
+            "padmateProfileId": 278216
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czo5NzMwODU=",
+            "created": "2026-05-30T21:09:16.083955",
+            "status": "SUBMITTED",
+            "canRate": false,
+            "ticket": {
+              "id": "418345",
+              "author": {
+                "firstName": "Angel",
+                "lastName": "Cole",
+                "id": "1034604",
+                "displayName": null
+              },
+              "details": "Washer does not work",
+              "location": "LAUNDRY",
+              "status": "SUBMITTED",
+              "rating": null,
+              "comment": null,
+              "category": "UNCLASSIFIED",
+              "onHoldReason": null,
+              "withdrawReason": null
+            }
+          },
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTMwOTIwOQ==",
+          "text": null,
+          "created": "2026-05-27T15:27:28.900334",
+          "messageType": "BOOKING_STATUS",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
+            "pk": 339595,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Tinghui",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "",
+            "padmateProfileId": 278216
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZUJvb2tpbmdTdGF0dXM6Mjg0ODU4",
+            "created": "2026-05-27T15:27:28.915643",
+            "status": "APPROVED",
+            "verificationTimeInHours": null
+          }
+        }
+      ]
+    },
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzU5OTY2",
       "title": "Doretta Evans",
@@ -43,9 +215,9 @@
       },
       "isCancelled": false,
       "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTM4MDI3OA==",
-        "created": "2026-05-30T22:24:47.317320",
-        "text": "Also, may I pay my charges as frequently as I want? I'd prefer to always be ahead in my room rent.",
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTM4MDkzNw==",
+        "created": "2026-05-30T23:09:51.048312",
+        "text": "Also, what sized bed is that? May I get curtains,  an area rug, a lamp?",
         "deleted": null,
         "extra": null,
         "messageType": "TEXT",
@@ -66,6 +238,32 @@
         "isUnread": true
       },
       "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTM4MDkzNw==",
+          "text": "Also, what sized bed is that? May I get curtains,  an area rug, a lamp?",
+          "created": "2026-05-30T23:09:51.048312",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjEwMTgwMzI=",
+            "pk": 1018032,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_1018032_e149da99-ebc9-4022-920b-f095ed06a5b6.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1018032_e149da99-ebc9-4022-920b-f095ed06a5b6.jpg",
+            "firstName": "Doretta",
+            "lastName": "Evans",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 955424
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
         {
           "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTM4MDI3OA==",
           "text": "Also, may I pay my charges as frequently as I want? I'd prefer to always be ahead in my room rent.",
@@ -334,32 +532,156 @@
           "paymentExtensionStatus": null,
           "ticketStatus": null,
           "bookingStatus": null
+        }
+      ]
+    },
+    {
+      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzYxNDQy",
+      "title": "Marianne Fried",
+      "chatType": "HOST_SUPPORT_CHAT",
+      "isArchived": false,
+      "occupancy": {
+        "moveInDate": "2026-06-01",
+        "moveOutDate": null,
+        "conditionalEligibilityApplied": null,
+        "room": {
+          "pk": 28755,
+          "roomNumber": 6
         },
+        "user": {
+          "picture": "img/profiles/user_911226_ad3e5aff-96a6-4362-a21a-8cab4464471a.jpg",
+          "firstName": "Marianne",
+          "lastName": "Fried",
+          "displayName": null
+        }
+      },
+      "property": {
+        "host": {
+          "firstName": "Tinghui",
+          "lastName": "Li",
+          "displayName": "",
+          "picture": ""
+        },
+        "description": "Move into a cozy House today! Newly-renovated and comfortable, this is the perfect place to call home. \n\nThe kitchen comes equipped with a fridge, sink, oven, stovetop, as well as garbage disposal, making it the perfect spot to whip up a meal or two.\n\nThe neighbourhood is near highways, and you won\u2019t be far from all Dallas has to offer.",
+        "address": {
+          "street1": "10235 Ridge Oak Street",
+          "street2": "",
+          "zip": "75227",
+          "city": {
+            "name": "Dallas",
+            "state": {
+              "name": "Texas"
+            }
+          }
+        }
+      },
+      "isCancelled": false,
+      "lastMessage": {
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTM4MDU2NA==",
+        "created": "2026-05-30T22:44:00.078606",
+        "text": "Hi, this is Marian Fried. I\u2019m double checking in order to make sure my interview video reached you . Thanks. ",
+        "deleted": null,
+        "extra": null,
+        "messageType": "TEXT",
+        "sender": {
+          "pk": 911226,
+          "firstName": "Marianne",
+          "lastName": "Fried",
+          "displayName": null
+        },
+        "attachments": [],
+        "paymentExtensionStatus": null,
+        "ticketStatus": null,
+        "bookingStatus": null
+      },
+      "member": {
+        "seenAt": "2026-05-30T21:40:53.924656",
+        "isPinned": false,
+        "isUnread": true
+      },
+      "recent_messages": [
         {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTM1NjA5NQ==",
-          "text": "Allow me a moment to figure out how to show proof, please.",
-          "created": "2026-05-29T18:24:50.536265",
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTM4MDU2NA==",
+          "text": "Hi, this is Marian Fried. I\u2019m double checking in order to make sure my interview video reached you . Thanks. ",
+          "created": "2026-05-30T22:44:00.078606",
           "messageType": "TEXT",
           "deleted": null,
           "isBroadcast": false,
           "extra": null,
           "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjEwMTgwMzI=",
-            "pk": 1018032,
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkxMTIyNg==",
+            "pk": 911226,
             "roleId": "A_0",
-            "picture": "img/profiles/user_1018032_e149da99-ebc9-4022-920b-f095ed06a5b6.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1018032_e149da99-ebc9-4022-920b-f095ed06a5b6.jpg",
-            "firstName": "Doretta",
-            "lastName": "Evans",
+            "picture": "img/profiles/user_911226_ad3e5aff-96a6-4362-a21a-8cab4464471a.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_911226_ad3e5aff-96a6-4362-a21a-8cab4464471a.jpg",
+            "firstName": "Marianne",
+            "lastName": "Fried",
             "isActive": true,
             "displayName": null,
-            "padmateProfileId": 955424
+            "padmateProfileId": 848697
           },
           "attachments": [],
           "reactions": [],
           "paymentExtensionStatus": null,
           "ticketStatus": null,
           "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTM3OTU5Mg==",
+          "text": "Hi, Thank you for considering our home. Please use the link below as a sample to make an introductory video of yourself explaining why you\u2019re a best fit for our property. Copy link and paste on your browser and should be submitted on time. \n\nhttps://app.hirevire.com/applications/977d344b-8592-4fc5-bd41-38717d6fa90a?lang=EN",
+          "created": "2026-05-30T21:40:52.965507",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTM3OTU4MQ==",
+          "text": null,
+          "created": "2026-05-30T21:39:58.374727",
+          "messageType": "BOOKING_STATUS",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
+            "pk": 339595,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Tinghui",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "",
+            "padmateProfileId": 278216
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZUJvb2tpbmdTdGF0dXM6Mjg3NDAy",
+            "created": "2026-05-30T21:39:58.379301",
+            "status": "APPROVED",
+            "verificationTimeInHours": 24
+          }
         }
       ]
     },
@@ -713,130 +1035,6 @@
       ]
     },
     {
-      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzYxNDQy",
-      "title": "Marianne Fried",
-      "chatType": "HOST_SUPPORT_CHAT",
-      "isArchived": false,
-      "occupancy": {
-        "moveInDate": "2026-06-01",
-        "moveOutDate": null,
-        "conditionalEligibilityApplied": null,
-        "room": {
-          "pk": 28755,
-          "roomNumber": 6
-        },
-        "user": {
-          "picture": "img/profiles/user_911226_ad3e5aff-96a6-4362-a21a-8cab4464471a.jpg",
-          "firstName": "Marianne",
-          "lastName": "Fried",
-          "displayName": null
-        }
-      },
-      "property": {
-        "host": {
-          "firstName": "Tinghui",
-          "lastName": "Li",
-          "displayName": "",
-          "picture": ""
-        },
-        "description": "Move into a cozy House today! Newly-renovated and comfortable, this is the perfect place to call home. \n\nThe kitchen comes equipped with a fridge, sink, oven, stovetop, as well as garbage disposal, making it the perfect spot to whip up a meal or two.\n\nThe neighbourhood is near highways, and you won\u2019t be far from all Dallas has to offer.",
-        "address": {
-          "street1": "10235 Ridge Oak Street",
-          "street2": "",
-          "zip": "75227",
-          "city": {
-            "name": "Dallas",
-            "state": {
-              "name": "Texas"
-            }
-          }
-        }
-      },
-      "isCancelled": false,
-      "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTM3OTU5Mg==",
-        "created": "2026-05-30T21:40:52.965507",
-        "text": "Hi, Thank you for considering our home. Please use the link below as a sample to make an introductory video of yourself explaining why you\u2019re a best fit for our property. Copy link and paste on your browser and should be submitted on time. \n\nhttps://app.hirevire.com/applications/977d344b-8592-4fc5-bd41-38717d6fa90a?lang=EN",
-        "deleted": null,
-        "extra": null,
-        "messageType": "TEXT",
-        "sender": {
-          "pk": 318367,
-          "firstName": "Ang",
-          "lastName": "Li",
-          "displayName": "Cyndy Manager"
-        },
-        "attachments": [],
-        "paymentExtensionStatus": null,
-        "ticketStatus": null,
-        "bookingStatus": null
-      },
-      "member": {
-        "seenAt": "2026-05-30T21:40:53.924656",
-        "isPinned": false,
-        "isUnread": false
-      },
-      "recent_messages": [
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTM3OTU5Mg==",
-          "text": "Hi, Thank you for considering our home. Please use the link below as a sample to make an introductory video of yourself explaining why you\u2019re a best fit for our property. Copy link and paste on your browser and should be submitted on time. \n\nhttps://app.hirevire.com/applications/977d344b-8592-4fc5-bd41-38717d6fa90a?lang=EN",
-          "created": "2026-05-30T21:40:52.965507",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTM3OTU4MQ==",
-          "text": null,
-          "created": "2026-05-30T21:39:58.374727",
-          "messageType": "BOOKING_STATUS",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
-            "pk": 339595,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Tinghui",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "",
-            "padmateProfileId": 278216
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": {
-            "id": "TWVzc2VuZ2VyTWVzc2FnZUJvb2tpbmdTdGF0dXM6Mjg3NDAy",
-            "created": "2026-05-30T21:39:58.379301",
-            "status": "APPROVED",
-            "verificationTimeInHours": 24
-          }
-        }
-      ]
-    },
-    {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzQ5NTY5",
       "title": "Camron Pratt",
       "chatType": "HOST_SUPPORT_CHAT",
@@ -1160,174 +1358,6 @@
           "paymentExtensionStatus": null,
           "ticketStatus": null,
           "bookingStatus": null
-        }
-      ]
-    },
-    {
-      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzU4Njgw",
-      "title": "Angel Cole",
-      "chatType": "HOST_SUPPORT_CHAT",
-      "isArchived": false,
-      "occupancy": {
-        "moveInDate": "2026-05-27",
-        "moveOutDate": null,
-        "conditionalEligibilityApplied": null,
-        "room": {
-          "pk": 21180,
-          "roomNumber": 7
-        },
-        "user": {
-          "picture": "img/profiles/user_1034604_d037497d-81a7-4f79-b267-926c9cf4c7be.jpg",
-          "firstName": "Angel",
-          "lastName": "Cole",
-          "displayName": null
-        }
-      },
-      "property": {
-        "host": {
-          "firstName": "Tinghui",
-          "lastName": "Li",
-          "displayName": "",
-          "picture": ""
-        },
-        "description": "Your new home awaits! This cozy Dallas home is waiting for you. This PadSplit has a Backyard and Dining area, and is newly-renovated and cozy.\n\nThis home has a full kitchen, onsite laundry and parking and is very commutable close to public transit and multiple highways.  Located right between I35E, I45 and I20.\n\nThe neighborhood is quiet, which means you won\u2019t be far from all Dallas has to offer.\nThe image on satellite is a few years old and please come and see the house by yourself before you make any judgement.",
-        "address": {
-          "street1": "3414 Pebbleshores Drive",
-          "street2": "",
-          "zip": "75241",
-          "city": {
-            "name": "Dallas",
-            "state": {
-              "name": "Texas"
-            }
-          }
-        }
-      },
-      "isCancelled": false,
-      "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTM3OTExOA==",
-        "created": "2026-05-30T21:09:16.054453",
-        "text": null,
-        "deleted": null,
-        "extra": null,
-        "messageType": "TICKET_UPDATE",
-        "sender": {
-          "pk": 339595,
-          "firstName": "Tinghui",
-          "lastName": "Li",
-          "displayName": ""
-        },
-        "attachments": [],
-        "paymentExtensionStatus": null,
-        "ticketStatus": {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czo5NzMwODU=",
-          "created": "2026-05-30T21:09:16.083955",
-          "status": "SUBMITTED",
-          "canRate": false,
-          "ticket": {
-            "id": "418345",
-            "author": {
-              "firstName": "Angel",
-              "lastName": "Cole",
-              "id": "1034604",
-              "displayName": null
-            },
-            "details": "Washer does not work",
-            "location": "LAUNDRY",
-            "status": "SUBMITTED",
-            "rating": null,
-            "comment": null,
-            "category": "UNCLASSIFIED",
-            "onHoldReason": null,
-            "withdrawReason": null
-          }
-        },
-        "bookingStatus": null
-      },
-      "member": {
-        "seenAt": null,
-        "isPinned": false,
-        "isUnread": true
-      },
-      "recent_messages": [
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTM3OTExOA==",
-          "text": null,
-          "created": "2026-05-30T21:09:16.054453",
-          "messageType": "TICKET_UPDATE",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
-            "pk": 339595,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Tinghui",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "",
-            "padmateProfileId": 278216
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": {
-            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czo5NzMwODU=",
-            "created": "2026-05-30T21:09:16.083955",
-            "status": "SUBMITTED",
-            "canRate": false,
-            "ticket": {
-              "id": "418345",
-              "author": {
-                "firstName": "Angel",
-                "lastName": "Cole",
-                "id": "1034604",
-                "displayName": null
-              },
-              "details": "Washer does not work",
-              "location": "LAUNDRY",
-              "status": "SUBMITTED",
-              "rating": null,
-              "comment": null,
-              "category": "UNCLASSIFIED",
-              "onHoldReason": null,
-              "withdrawReason": null
-            }
-          },
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTMwOTIwOQ==",
-          "text": null,
-          "created": "2026-05-27T15:27:28.900334",
-          "messageType": "BOOKING_STATUS",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
-            "pk": 339595,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Tinghui",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "",
-            "padmateProfileId": 278216
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": {
-            "id": "TWVzc2VuZ2VyTWVzc2FnZUJvb2tpbmdTdGF0dXM6Mjg0ODU4",
-            "created": "2026-05-27T15:27:28.915643",
-            "status": "APPROVED",
-            "verificationTimeInHours": null
-          }
         }
       ]
     },
@@ -11065,6 +11095,6 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-05-30T22:42:09Z"
+    "run_scraped_at": "2026-05-30T23:44:41Z"
   }
 }
