@@ -1,6 +1,377 @@
 {
-  "scraped_at": "2026-05-30T15:53:41Z",
+  "scraped_at": "2026-05-30T17:32:09Z",
   "messages": [
+    {
+      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzIyNDc0",
+      "title": "Angel Cole",
+      "chatType": "HOST_SUPPORT_CHAT",
+      "isArchived": false,
+      "occupancy": {
+        "moveInDate": "2026-04-06",
+        "moveOutDate": "2026-05-27",
+        "conditionalEligibilityApplied": null,
+        "room": {
+          "pk": 21179,
+          "roomNumber": 6
+        },
+        "user": {
+          "picture": "img/profiles/user_1034604_d037497d-81a7-4f79-b267-926c9cf4c7be.jpg",
+          "firstName": "Angel",
+          "lastName": "Cole",
+          "displayName": null
+        }
+      },
+      "property": {
+        "host": {
+          "firstName": "Tinghui",
+          "lastName": "Li",
+          "displayName": "",
+          "picture": ""
+        },
+        "description": "Your new home awaits! This cozy Dallas home is waiting for you. This PadSplit has a Backyard and Dining area, and is newly-renovated and cozy.\n\nThis home has a full kitchen, onsite laundry and parking and is very commutable close to public transit and multiple highways.  Located right between I35E, I45 and I20.\n\nThe neighborhood is quiet, which means you won\u2019t be far from all Dallas has to offer.\nThe image on satellite is a few years old and please come and see the house by yourself before you make any judgement.",
+        "address": {
+          "street1": "3414 Pebbleshores Drive",
+          "street2": "",
+          "zip": "75241",
+          "city": {
+            "name": "Dallas",
+            "state": {
+              "name": "Texas"
+            }
+          }
+        }
+      },
+      "isCancelled": false,
+      "lastMessage": {
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTM3NTU0MQ==",
+        "created": "2026-05-30T17:28:22.343326",
+        "text": null,
+        "deleted": null,
+        "extra": null,
+        "messageType": "MOVE_OUT_CONFIRMED",
+        "sender": {
+          "pk": 339595,
+          "firstName": "Tinghui",
+          "lastName": "Li",
+          "displayName": ""
+        },
+        "attachments": [],
+        "paymentExtensionStatus": null,
+        "ticketStatus": null,
+        "bookingStatus": null
+      },
+      "member": {
+        "seenAt": "2026-05-30T13:21:05.697049",
+        "isPinned": false,
+        "isUnread": true
+      },
+      "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTM3NTU0MQ==",
+          "text": null,
+          "created": "2026-05-30T17:28:22.343326",
+          "messageType": "MOVE_OUT_CONFIRMED",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
+            "pk": 339595,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Tinghui",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "",
+            "padmateProfileId": 278216
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTM3NTU0MA==",
+          "text": null,
+          "created": "2026-05-30T17:28:22.332802",
+          "messageType": "TICKET_UPDATE",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
+            "pk": 339595,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Tinghui",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "",
+            "padmateProfileId": 278216
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czo5NzI4OTc=",
+            "created": "2026-05-30T17:28:22.340670",
+            "status": "COMPLETED",
+            "canRate": false,
+            "ticket": {
+              "id": "416758",
+              "author": {
+                "firstName": "Angel",
+                "lastName": "Cole",
+                "id": "1034604",
+                "displayName": null
+              },
+              "details": "Host Emergency Transfer: Property Maintenance",
+              "location": "ROOM",
+              "status": "COMPLETED",
+              "rating": null,
+              "comment": null,
+              "category": "ROOM_TURN",
+              "onHoldReason": null,
+              "withdrawReason": null
+            }
+          },
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTM3NTUzOQ==",
+          "text": null,
+          "created": "2026-05-30T17:28:22.006196",
+          "messageType": "MOVE_OUT_CONFIRMED",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
+            "pk": 339595,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Tinghui",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "",
+            "padmateProfileId": 278216
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTM3NTUzOA==",
+          "text": null,
+          "created": "2026-05-30T17:28:21.994596",
+          "messageType": "TICKET_UPDATE",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
+            "pk": 339595,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Tinghui",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "",
+            "padmateProfileId": 278216
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czo5NzI4OTY=",
+            "created": "2026-05-30T17:28:22.003251",
+            "status": "COMPLETED",
+            "canRate": false,
+            "ticket": {
+              "id": "416758",
+              "author": {
+                "firstName": "Angel",
+                "lastName": "Cole",
+                "id": "1034604",
+                "displayName": null
+              },
+              "details": "Host Emergency Transfer: Property Maintenance",
+              "location": "ROOM",
+              "status": "COMPLETED",
+              "rating": null,
+              "comment": null,
+              "category": "ROOM_TURN",
+              "onHoldReason": null,
+              "withdrawReason": null
+            }
+          },
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTM3Mzk4OQ==",
+          "text": "It is ready",
+          "created": "2026-05-30T16:20:20.108997",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjEwMzQ2MDQ=",
+            "pk": 1034604,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_1034604_d037497d-81a7-4f79-b267-926c9cf4c7be.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1034604_d037497d-81a7-4f79-b267-926c9cf4c7be.jpg",
+            "firstName": "Angel",
+            "lastName": "Cole",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 971951
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTM3MDM2Mw==",
+          "text": "Is the room 6 ready?",
+          "created": "2026-05-30T13:21:04.414221",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTM3MDM1Mw==",
+          "text": "Good morning Angel",
+          "created": "2026-05-30T13:20:51.796291",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTM1NTkxNw==",
+          "text": "Yes ma\u2019am it\u2019s almost done I just have to mop",
+          "created": "2026-05-29T18:15:21.686719",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjEwMzQ2MDQ=",
+            "pk": 1034604,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_1034604_d037497d-81a7-4f79-b267-926c9cf4c7be.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1034604_d037497d-81a7-4f79-b267-926c9cf4c7be.jpg",
+            "firstName": "Angel",
+            "lastName": "Cole",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 971951
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTM1NTkwOQ==",
+          "text": "Okay, please do and let me know",
+          "created": "2026-05-29T18:14:47.289192",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTM1MDE4Nw==",
+          "text": "Yes I have to clean the room today! The water came in my rooms and soaked everything so my box is ruined but I moved and today I\u2019m cleaning it for you ",
+          "created": "2026-05-29T14:10:52.463408",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjEwMzQ2MDQ=",
+            "pk": 1034604,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_1034604_d037497d-81a7-4f79-b267-926c9cf4c7be.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1034604_d037497d-81a7-4f79-b267-926c9cf4c7be.jpg",
+            "firstName": "Angel",
+            "lastName": "Cole",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 971951
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        }
+      ]
+    },
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzExMzYw",
       "title": "Mattie Garcia Garcia",
@@ -1363,355 +1734,6 @@
           "reactions": [],
           "paymentExtensionStatus": null,
           "ticketStatus": null,
-          "bookingStatus": null
-        }
-      ]
-    },
-    {
-      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzIyNDc0",
-      "title": "Angel Cole",
-      "chatType": "HOST_SUPPORT_CHAT",
-      "isArchived": false,
-      "occupancy": {
-        "moveInDate": "2026-04-06",
-        "moveOutDate": "2026-05-27",
-        "conditionalEligibilityApplied": null,
-        "room": {
-          "pk": 21179,
-          "roomNumber": 6
-        },
-        "user": {
-          "picture": "img/profiles/user_1034604_d037497d-81a7-4f79-b267-926c9cf4c7be.jpg",
-          "firstName": "Angel",
-          "lastName": "Cole",
-          "displayName": null
-        }
-      },
-      "property": {
-        "host": {
-          "firstName": "Tinghui",
-          "lastName": "Li",
-          "displayName": "",
-          "picture": ""
-        },
-        "description": "Your new home awaits! This cozy Dallas home is waiting for you. This PadSplit has a Backyard and Dining area, and is newly-renovated and cozy.\n\nThis home has a full kitchen, onsite laundry and parking and is very commutable close to public transit and multiple highways.  Located right between I35E, I45 and I20.\n\nThe neighborhood is quiet, which means you won\u2019t be far from all Dallas has to offer.\nThe image on satellite is a few years old and please come and see the house by yourself before you make any judgement.",
-        "address": {
-          "street1": "3414 Pebbleshores Drive",
-          "street2": "",
-          "zip": "75241",
-          "city": {
-            "name": "Dallas",
-            "state": {
-              "name": "Texas"
-            }
-          }
-        }
-      },
-      "isCancelled": false,
-      "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTM3MDM2Mw==",
-        "created": "2026-05-30T13:21:04.414221",
-        "text": "Is the room 6 ready?",
-        "deleted": null,
-        "extra": null,
-        "messageType": "TEXT",
-        "sender": {
-          "pk": 318367,
-          "firstName": "Ang",
-          "lastName": "Li",
-          "displayName": "Cyndy Manager"
-        },
-        "attachments": [],
-        "paymentExtensionStatus": null,
-        "ticketStatus": null,
-        "bookingStatus": null
-      },
-      "member": {
-        "seenAt": "2026-05-30T13:21:05.697049",
-        "isPinned": false,
-        "isUnread": false
-      },
-      "recent_messages": [
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTM3MDM2Mw==",
-          "text": "Is the room 6 ready?",
-          "created": "2026-05-30T13:21:04.414221",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTM3MDM1Mw==",
-          "text": "Good morning Angel",
-          "created": "2026-05-30T13:20:51.796291",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTM1NTkxNw==",
-          "text": "Yes ma\u2019am it\u2019s almost done I just have to mop",
-          "created": "2026-05-29T18:15:21.686719",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjEwMzQ2MDQ=",
-            "pk": 1034604,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_1034604_d037497d-81a7-4f79-b267-926c9cf4c7be.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1034604_d037497d-81a7-4f79-b267-926c9cf4c7be.jpg",
-            "firstName": "Angel",
-            "lastName": "Cole",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 971951
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTM1NTkwOQ==",
-          "text": "Okay, please do and let me know",
-          "created": "2026-05-29T18:14:47.289192",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTM1MDE4Nw==",
-          "text": "Yes I have to clean the room today! The water came in my rooms and soaked everything so my box is ruined but I moved and today I\u2019m cleaning it for you ",
-          "created": "2026-05-29T14:10:52.463408",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjEwMzQ2MDQ=",
-            "pk": 1034604,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_1034604_d037497d-81a7-4f79-b267-926c9cf4c7be.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1034604_d037497d-81a7-4f79-b267-926c9cf4c7be.jpg",
-            "firstName": "Angel",
-            "lastName": "Cole",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 971951
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTM0OTg5Ng==",
-          "text": "Hi Angel, have you fully moved?",
-          "created": "2026-05-29T13:57:22.719370",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTMyNjkzNw==",
-          "text": "Yes ma\u2019am ",
-          "created": "2026-05-28T13:18:57.855855",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjEwMzQ2MDQ=",
-            "pk": 1034604,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_1034604_d037497d-81a7-4f79-b267-926c9cf4c7be.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1034604_d037497d-81a7-4f79-b267-926c9cf4c7be.jpg",
-            "firstName": "Angel",
-            "lastName": "Cole",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 971951
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTMyNjkyOA==",
-          "text": "Alright. Let me know once your done",
-          "created": "2026-05-28T13:18:36.998071",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTMyMjI4NQ==",
-          "text": "I will finish tomorrow I got home from work late",
-          "created": "2026-05-28T02:09:51.449798",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjEwMzQ2MDQ=",
-            "pk": 1034604,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_1034604_d037497d-81a7-4f79-b267-926c9cf4c7be.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1034604_d037497d-81a7-4f79-b267-926c9cf4c7be.jpg",
-            "firstName": "Angel",
-            "lastName": "Cole",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 971951
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTMwOTIwOA==",
-          "text": null,
-          "created": "2026-05-27T15:27:28.265343",
-          "messageType": "TICKET_UPDATE",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
-            "pk": 339595,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Tinghui",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "",
-            "padmateProfileId": 278216
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": {
-            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czo5Njc2NTI=",
-            "created": "2026-05-27T15:27:28.296107",
-            "status": "SUBMITTED",
-            "canRate": false,
-            "ticket": {
-              "id": "416758",
-              "author": {
-                "firstName": "Angel",
-                "lastName": "Cole",
-                "id": "1034604",
-                "displayName": null
-              },
-              "details": "Host Emergency Transfer: Property Maintenance",
-              "location": "ROOM",
-              "status": "SUBMITTED",
-              "rating": null,
-              "comment": null,
-              "category": "ROOM_TURN",
-              "onHoldReason": null,
-              "withdrawReason": null
-            }
-          },
           "bookingStatus": null
         }
       ]
@@ -5479,7 +5501,7 @@
       "isArchived": false,
       "occupancy": {
         "moveInDate": "2025-08-04",
-        "moveOutDate": null,
+        "moveOutDate": "2026-05-31",
         "conditionalEligibilityApplied": null,
         "room": {
           "pk": 21174,
@@ -10585,52 +10607,6 @@
         "payment_plan_reason_note": null
       },
       {
-        "id": 416758,
-        "status": "submitted",
-        "comment": null,
-        "category": "room-turn",
-        "media": [],
-        "created": "2026-05-27T15:27:28.190491",
-        "modified": "2026-05-27T15:27:28.702102",
-        "room_name": "A-6",
-        "room_number": 6,
-        "room_status": 3,
-        "room_code": "9999",
-        "location": "Room",
-        "details": "Host Emergency Transfer: Property Maintenance",
-        "property_id": 5735,
-        "property_address": {
-          "id": 7379,
-          "street1": "3414 Pebbleshores Drive",
-          "street2": "",
-          "city": "Dallas",
-          "state": "TX",
-          "zip": "75241",
-          "city_slug": "dallas-tx"
-        },
-        "reported_by": {
-          "id": 1034604,
-          "name": "Angel Cole",
-          "role_id": 0,
-          "picture": "img/profiles/user_1034604_d037497d-81a7-4f79-b267-926c9cf4c7be.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-05-27T15:27:28.193472",
-        "rating": null,
-        "extra_data": {
-          "user_id": 1034604,
-          "occupancy_id": 287120,
-          "move_out_date": "2026-05-27"
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
-      },
-      {
         "id": 416101,
         "status": "submitted",
         "comment": null,
@@ -10729,6 +10705,53 @@
       }
     ],
     "Complete": [
+      {
+        "id": 416758,
+        "status": "completed",
+        "comment": null,
+        "category": "room-turn",
+        "media": [],
+        "created": "2026-05-27T15:27:28.190491",
+        "modified": "2026-05-30T17:28:28.316310",
+        "room_name": "A-6",
+        "room_number": 6,
+        "room_status": 1,
+        "room_code": "9999",
+        "location": "Room",
+        "details": "Host Emergency Transfer: Property Maintenance",
+        "property_id": 5735,
+        "property_address": {
+          "id": 7379,
+          "street1": "3414 Pebbleshores Drive",
+          "street2": "",
+          "city": "Dallas",
+          "state": "TX",
+          "zip": "75241",
+          "city_slug": "dallas-tx"
+        },
+        "reported_by": {
+          "id": 1034604,
+          "name": "Angel Cole",
+          "role_id": 0,
+          "picture": "img/profiles/user_1034604_d037497d-81a7-4f79-b267-926c9cf4c7be.jpg"
+        },
+        "assigned_to": null,
+        "on_hold_reason": null,
+        "update_status_at": "2026-05-27T15:27:28.193472",
+        "rating": null,
+        "extra_data": {
+          "user_id": 1034604,
+          "checklist": {},
+          "occupancy_id": 287120,
+          "move_out_date": "2026-05-27"
+        },
+        "has_reused_code": true,
+        "moveout_photos_count": 0,
+        "days_to_complete": null,
+        "is_on_payment_plan": false,
+        "payment_plan_end_date": null,
+        "payment_plan_reason_note": null
+      },
       {
         "id": 416266,
         "status": "completed",
@@ -11073,6 +11096,6 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-05-30T15:53:41Z"
+    "run_scraped_at": "2026-05-30T17:32:09Z"
   }
 }
