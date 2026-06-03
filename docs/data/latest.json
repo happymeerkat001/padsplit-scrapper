@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-06-02T22:04:50Z",
+  "scraped_at": "2026-06-03T00:03:39Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzExMzYw",
@@ -43,9 +43,9 @@
       },
       "isCancelled": false,
       "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQzOTg0MQ==",
-        "created": "2026-06-02T18:03:35.711187",
-        "text": "How come it\u2019s not set on a certain temperature and kept at that temperature? I check it a few times and it was at 77 &78  at certain points. If other people are cold then they can close their vent.We are in Texas and it\u2019s summer time, it\u2019s hot. It has a cooled of a bit now since you lowered it. I don\u2019t want to have to send a message everyday about the temperature. \nThanks for your help ",
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQ0NTYwNg==",
+        "created": "2026-06-02T22:24:39.411816",
+        "text": "Hello, it\u2019s hot again. ",
         "deleted": null,
         "extra": null,
         "messageType": "TEXT",
@@ -63,9 +63,35 @@
       "member": {
         "seenAt": "2026-06-02T21:00:40.768133",
         "isPinned": false,
-        "isUnread": false
+        "isUnread": true
       },
       "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQ0NTYwNg==",
+          "text": "Hello, it\u2019s hot again. ",
+          "created": "2026-06-02T22:24:39.411816",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjk3NTYxNg==",
+            "pk": 975616,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_975616_23eea02f-eb0b-4468-a457-3fe5182bb837.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_975616_23eea02f-eb0b-4468-a457-3fe5182bb837.jpg",
+            "firstName": "Mathilda",
+            "lastName": "Garcia",
+            "isActive": true,
+            "displayName": "Mattie Garcia",
+            "padmateProfileId": 913065
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
         {
           "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQzOTg0MQ==",
           "text": "How come it\u2019s not set on a certain temperature and kept at that temperature? I check it a few times and it was at 77 &78  at certain points. If other people are cold then they can close their vent.We are in Texas and it\u2019s summer time, it\u2019s hot. It has a cooled of a bit now since you lowered it. I don\u2019t want to have to send a message everyday about the temperature. \nThanks for your help ",
@@ -320,54 +346,6 @@
           "reactions": [],
           "paymentExtensionStatus": null,
           "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTMxMjY1MA==",
-          "text": null,
-          "created": "2026-05-27T17:47:40.690756",
-          "messageType": "TICKET_UPDATE",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": {
-            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czo5Njc5Nzc=",
-            "created": "2026-05-27T17:47:40.764311",
-            "status": "SUBMITTED",
-            "canRate": false,
-            "ticket": {
-              "id": "416805",
-              "author": {
-                "firstName": "Mathilda",
-                "lastName": "Garcia",
-                "id": "975616",
-                "displayName": "Mattie Garcia"
-              },
-              "details": "Toilet in first bathroom is not filling up with water after flushing. Water is being added to the tank by someone physically filling it up by hand. Toilet has been broken going on 3 weeks.",
-              "location": "BATHROOM_DOWNSTAIRS",
-              "status": "COMPLETED",
-              "rating": null,
-              "comment": null,
-              "category": "UNCLASSIFIED",
-              "onHoldReason": null,
-              "withdrawReason": null
-            }
-          },
           "bookingStatus": null
         }
       ]
@@ -12165,6 +12143,6 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-06-02T22:04:50Z"
+    "run_scraped_at": "2026-06-03T00:03:39Z"
   }
 }
