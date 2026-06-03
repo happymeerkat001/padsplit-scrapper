@@ -1,6 +1,684 @@
 {
-  "scraped_at": "2026-06-03T00:03:39Z",
+  "scraped_at": "2026-06-03T05:20:04Z",
   "messages": [
+    {
+      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzYzMTMy",
+      "title": "Chase Wofford",
+      "chatType": "HOST_SUPPORT_CHAT",
+      "isArchived": false,
+      "occupancy": {
+        "moveInDate": "2026-06-04",
+        "moveOutDate": null,
+        "conditionalEligibilityApplied": null,
+        "room": {
+          "pk": 21179,
+          "roomNumber": 6
+        },
+        "user": {
+          "picture": "img/profiles/user_935813_467acb1d-0b39-44b3-bfd6-3af269656611.jpg",
+          "firstName": "Chase",
+          "lastName": "Wofford",
+          "displayName": null
+        }
+      },
+      "property": {
+        "host": {
+          "firstName": "Tinghui",
+          "lastName": "Li",
+          "displayName": "",
+          "picture": ""
+        },
+        "description": "Your new home awaits! This cozy Dallas home is waiting for you. This PadSplit has a Backyard and Dining area, and is newly-renovated and cozy.\n\nThis home has a full kitchen, onsite laundry and parking and is very commutable close to public transit and multiple highways.  Located right between I35E, I45 and I20.\n\nThe neighborhood is quiet, which means you won\u2019t be far from all Dallas has to offer.\nThe image on satellite is a few years old and please come and see the house by yourself before you make any judgement.",
+        "address": {
+          "street1": "3414 Pebbleshores Drive",
+          "street2": "",
+          "zip": "75241",
+          "city": {
+            "name": "Dallas",
+            "state": {
+              "name": "Texas"
+            }
+          }
+        }
+      },
+      "isCancelled": false,
+      "lastMessage": {
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQ0ODg5NQ==",
+        "created": "2026-06-03T01:38:03.732849",
+        "text": null,
+        "deleted": null,
+        "extra": null,
+        "messageType": "BOOKING_STATUS",
+        "sender": {
+          "pk": 339595,
+          "firstName": "Tinghui",
+          "lastName": "Li",
+          "displayName": ""
+        },
+        "attachments": [],
+        "paymentExtensionStatus": null,
+        "ticketStatus": null,
+        "bookingStatus": {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZUJvb2tpbmdTdGF0dXM6Mjg5NDAw",
+          "created": "2026-06-03T01:38:03.743534",
+          "status": "APPROVED"
+        }
+      },
+      "member": {
+        "seenAt": "2026-06-02T13:43:01.433242",
+        "isPinned": false,
+        "isUnread": true
+      },
+      "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQ0ODg5NQ==",
+          "text": null,
+          "created": "2026-06-03T01:38:03.732849",
+          "messageType": "BOOKING_STATUS",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
+            "pk": 339595,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Tinghui",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "",
+            "padmateProfileId": 278216
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZUJvb2tpbmdTdGF0dXM6Mjg5NDAw",
+            "created": "2026-06-03T01:38:03.743534",
+            "status": "APPROVED",
+            "verificationTimeInHours": 24
+          }
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQzMzc3Mg==",
+          "text": "Awesome thank you so much",
+          "created": "2026-06-02T13:45:25.050337",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkzNTgxMw==",
+            "pk": 935813,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_935813_467acb1d-0b39-44b3-bfd6-3af269656611.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_935813_467acb1d-0b39-44b3-bfd6-3af269656611.jpg",
+            "firstName": "Chase",
+            "lastName": "Wofford",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 873281
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQzMzcxNA==",
+          "text": "You can move in tomorrow",
+          "created": "2026-06-02T13:43:00.140678",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQzMzUzMw==",
+          "text": "It wasn\u2019t an option to select today or tomorrow when booking",
+          "created": "2026-06-02T13:31:43.551572",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkzNTgxMw==",
+            "pk": 935813,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_935813_467acb1d-0b39-44b3-bfd6-3af269656611.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_935813_467acb1d-0b39-44b3-bfd6-3af269656611.jpg",
+            "firstName": "Chase",
+            "lastName": "Wofford",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 873281
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQzMzUwOQ==",
+          "text": "Why not you and just pay you directly?",
+          "created": "2026-06-02T13:30:54.733083",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkzNTgxMw==",
+            "pk": 935813,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_935813_467acb1d-0b39-44b3-bfd6-3af269656611.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_935813_467acb1d-0b39-44b3-bfd6-3af269656611.jpg",
+            "firstName": "Chase",
+            "lastName": "Wofford",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 873281
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQzMzIyMQ==",
+          "text": "You move in date is on 4th, but if you want to move in today or tomorrow you have to contact padsplit",
+          "created": "2026-06-02T13:17:54.997916",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQzMzExMw==",
+          "text": "Or tomorrow?",
+          "created": "2026-06-02T13:12:43.071814",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkzNTgxMw==",
+            "pk": 935813,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_935813_467acb1d-0b39-44b3-bfd6-3af269656611.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_935813_467acb1d-0b39-44b3-bfd6-3af269656611.jpg",
+            "firstName": "Chase",
+            "lastName": "Wofford",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 873281
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQzMzEwOA==",
+          "text": "Can I move in today?",
+          "created": "2026-06-02T13:12:32.501591",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkzNTgxMw==",
+            "pk": 935813,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_935813_467acb1d-0b39-44b3-bfd6-3af269656611.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_935813_467acb1d-0b39-44b3-bfd6-3af269656611.jpg",
+            "firstName": "Chase",
+            "lastName": "Wofford",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 873281
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQzMzA5NA==",
+          "text": "Paid Friday from first job, paid yesterday from second job. Paid again next week. ",
+          "created": "2026-06-02T13:11:59.998399",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkzNTgxMw==",
+            "pk": 935813,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_935813_467acb1d-0b39-44b3-bfd6-3af269656611.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_935813_467acb1d-0b39-44b3-bfd6-3af269656611.jpg",
+            "firstName": "Chase",
+            "lastName": "Wofford",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 873281
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQzMzA2Nw==",
+          "text": "",
+          "created": "2026-06-02T13:11:09.722721",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkzNTgxMw==",
+            "pk": 935813,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_935813_467acb1d-0b39-44b3-bfd6-3af269656611.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_935813_467acb1d-0b39-44b3-bfd6-3af269656611.jpg",
+            "firstName": "Chase",
+            "lastName": "Wofford",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 873281
+          },
+          "attachments": [
+            {
+              "id": "TWVzc2VuZ2VyQXR0YWNobWVudFR5cGU6NzE2ODQw",
+              "deleted": null,
+              "mediaType": "PICTURE",
+              "location": "img/chat/message/attachments/message_9433067_3b742bd8-d29e-4873-9cbf-0087fa35b59b",
+              "filename": "1"
+            },
+            {
+              "id": "TWVzc2VuZ2VyQXR0YWNobWVudFR5cGU6NzE2ODM5",
+              "deleted": null,
+              "mediaType": "PICTURE",
+              "location": "img/chat/message/attachments/message_9433067_68420f9a-5d5e-4d6c-a865-d438ed8c1f5a",
+              "filename": "0"
+            }
+          ],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        }
+      ]
+    },
+    {
+      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzU4Mzcz",
+      "title": "Timothy Moore Is King Grindee",
+      "chatType": "HOST_SUPPORT_CHAT",
+      "isArchived": false,
+      "occupancy": {
+        "moveInDate": "2026-05-30",
+        "moveOutDate": "2026-06-04",
+        "conditionalEligibilityApplied": null,
+        "room": {
+          "pk": 25336,
+          "roomNumber": 1
+        },
+        "user": {
+          "picture": "img/profiles/user_880606_4edc7d5c-a899-4efc-87d9-17d3f1e45577.jpg",
+          "firstName": "Timothy Glen",
+          "lastName": "Moore Is King Grindee",
+          "displayName": "Timothy"
+        }
+      },
+      "property": {
+        "host": {
+          "firstName": "Tinghui",
+          "lastName": "Li",
+          "displayName": "",
+          "picture": ""
+        },
+        "description": "Move into a freshly renovated House today! Close to freeways, food, grocery and a bus station this spacious and newly renovated home is the perfect place to call home. \n\nThe kitchen comes equipped with a fridge, sink, oven, stovetop, as well as dishwasher, making it the perfect spot to whip up a meal or two.\n\nThe neighbourhood is near highways, food and public transit while still being quiet and safe and you won\u2019t be far from all Dallas has to offer.",
+        "address": {
+          "street1": "6623 Leana Avenue",
+          "street2": "",
+          "zip": "75241",
+          "city": {
+            "name": "Dallas",
+            "state": {
+              "name": "Texas"
+            }
+          }
+        }
+      },
+      "isCancelled": false,
+      "lastMessage": {
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQ0ODA3MQ==",
+        "created": "2026-06-03T00:40:27.098591",
+        "text": "After the issues with the room and my bag coming up missing with medications in it I would like to exact my right for a House transfer. Im not comfortable there and that's not what I need to be feeling rn. Ill let you know where.l",
+        "deleted": null,
+        "extra": null,
+        "messageType": "TEXT",
+        "sender": {
+          "pk": 880606,
+          "firstName": "Timothy Glen",
+          "lastName": "Moore Is King Grindee",
+          "displayName": "Timothy"
+        },
+        "attachments": [],
+        "paymentExtensionStatus": null,
+        "ticketStatus": null,
+        "bookingStatus": null
+      },
+      "member": {
+        "seenAt": "2026-06-02T17:27:57.457977",
+        "isPinned": false,
+        "isUnread": true
+      },
+      "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQ0ODA3MQ==",
+          "text": "After the issues with the room and my bag coming up missing with medications in it I would like to exact my right for a House transfer. Im not comfortable there and that's not what I need to be feeling rn. Ill let you know where.l",
+          "created": "2026-06-03T00:40:27.098591",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjg4MDYwNg==",
+            "pk": 880606,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_880606_4edc7d5c-a899-4efc-87d9-17d3f1e45577.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_880606_4edc7d5c-a899-4efc-87d9-17d3f1e45577.jpg",
+            "firstName": "Timothy Glen",
+            "lastName": "Moore Is King Grindee",
+            "isActive": true,
+            "displayName": "Timothy",
+            "padmateProfileId": 818094
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQzNzE2Ng==",
+          "text": "Ones name is Damintre very dark skinned black guy whom I've had issues with the most and has as I reported to my Recovery Coach been seen on properties I've resided causing commotion. these are people I had to not deal with I have no association with and can't get the hint that's why the filings have been done on them ",
+          "created": "2026-06-02T16:00:38.265604",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjg4MDYwNg==",
+            "pk": 880606,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_880606_4edc7d5c-a899-4efc-87d9-17d3f1e45577.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_880606_4edc7d5c-a899-4efc-87d9-17d3f1e45577.jpg",
+            "firstName": "Timothy Glen",
+            "lastName": "Moore Is King Grindee",
+            "isActive": true,
+            "displayName": "Timothy",
+            "padmateProfileId": 818094
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQzNzA3Ng==",
+          "text": "Because I was to go over to my mother's today to get the rest of my thing I cant perform my personal care and my medications were in it'. I need to make that no one came here claiming they know me as there are some people Im still to supposed to put in restraining orders for as I've already completed my IC3 report for the FBI and Dallas Police Report concerning identity theft and Cyber Stalking and harassment by these people whom should not be allowed on property at all.",
+          "created": "2026-06-02T15:57:36.711213",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjg4MDYwNg==",
+            "pk": 880606,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_880606_4edc7d5c-a899-4efc-87d9-17d3f1e45577.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_880606_4edc7d5c-a899-4efc-87d9-17d3f1e45577.jpg",
+            "firstName": "Timothy Glen",
+            "lastName": "Moore Is King Grindee",
+            "isActive": true,
+            "displayName": "Timothy",
+            "padmateProfileId": 818094
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQzNjk2Mg==",
+          "text": "Last night I went to the store around 11:30 and made sure to shut ths door behind me. Caleb was in his car parked on the side of the house. \nI returned around 12:20 am. When i exited the Uber to come inside the house I didn't have to use my code as the front door was open. Upon entering my room I noticed my brown leather bag with all my toiletry items was missing. Can we please check with this housemates what is going on because I brought that bag with me for sure as it was what contained all those items I laid it on my bedroom floor by the desk now no bag.",
+          "created": "2026-06-02T15:51:27.746999",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjg4MDYwNg==",
+            "pk": 880606,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_880606_4edc7d5c-a899-4efc-87d9-17d3f1e45577.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_880606_4edc7d5c-a899-4efc-87d9-17d3f1e45577.jpg",
+            "firstName": "Timothy Glen",
+            "lastName": "Moore Is King Grindee",
+            "isActive": true,
+            "displayName": "Timothy",
+            "padmateProfileId": 818094
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQzMzA2NA==",
+          "text": "How about the outlets? Working now?",
+          "created": "2026-06-02T13:10:58.122372",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQzMzA0MQ==",
+          "text": "For the batteries can you replace and we reimburse you?",
+          "created": "2026-06-02T13:09:00.839256",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQzMzAzMQ==",
+          "text": "Good morning Timothy",
+          "created": "2026-06-02T13:08:44.825761",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQyNzM1OQ==",
+          "text": "'well I bought a brand new charger for my phone and tablet when I was visiting family out of town in West Texas and just got back they worked well at my grandmother's but I noticed they didn't work well at the motels at nor went to working well here I'm going to test it out of my mother's because I ran across this issue before and it was something in the electrical wiring of the dwelling itself not the merchandise.  And the FBI Reports this type stuff is happening a lot more now I do to people the copper issue was still in copper or not being brought up to par.",
+          "created": "2026-06-02T00:39:31.710001",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjg4MDYwNg==",
+            "pk": 880606,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_880606_4edc7d5c-a899-4efc-87d9-17d3f1e45577.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_880606_4edc7d5c-a899-4efc-87d9-17d3f1e45577.jpg",
+            "firstName": "Timothy Glen",
+            "lastName": "Moore Is King Grindee",
+            "isActive": true,
+            "displayName": "Timothy",
+            "padmateProfileId": 818094
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQyNzI2Mw==",
+          "text": "Okay how about the outlet? Are they working now?",
+          "created": "2026-06-02T00:34:09.076543",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQyNjQ0Ng==",
+          "text": "been told by my allerist its from a I plant that is found in places in especially on North Texas area and would it areas and you can't come in on your clothes and it just stains but they carry something in it that I'm away with you right now I feel it so appliance will be replaced quickly that would be a good and I can cleaning solution to use that will contain the whatever it's called by that plant and trees Ive encountered this before and received medical attention and knowledge of it.  Being its just me in my room this should not be an issue anymore. Because if it does that's something that would need to looked into how as it does but come through the windows and doors  Its brought from certain wooded areas like walking trails and travels with you by your clothing, bags or animals the last way Jehovah God helps us all someone puts it there. I wouldn't take to kindly to kindly to that one..lol It's really easy to remove. With quick brisks movements by your hands back and forth over clothing.And it does effect other certain medical conditions as my diabetic neuropathy.v Thank you ",
+          "created": "2026-06-01T23:52:34.323373",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjg4MDYwNg==",
+            "pk": 880606,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_880606_4edc7d5c-a899-4efc-87d9-17d3f1e45577.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_880606_4edc7d5c-a899-4efc-87d9-17d3f1e45577.jpg",
+            "firstName": "Timothy Glen",
+            "lastName": "Moore Is King Grindee",
+            "isActive": true,
+            "displayName": "Timothy",
+            "padmateProfileId": 818094
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        }
+      ]
+    },
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzExMzYw",
       "title": "Mattie Garcia Garcia",
@@ -1005,333 +1683,6 @@
       ]
     },
     {
-      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzU4Mzcz",
-      "title": "Timothy Moore Is King Grindee",
-      "chatType": "HOST_SUPPORT_CHAT",
-      "isArchived": false,
-      "occupancy": {
-        "moveInDate": "2026-05-30",
-        "moveOutDate": null,
-        "conditionalEligibilityApplied": null,
-        "room": {
-          "pk": 25336,
-          "roomNumber": 1
-        },
-        "user": {
-          "picture": "img/profiles/user_880606_4edc7d5c-a899-4efc-87d9-17d3f1e45577.jpg",
-          "firstName": "Timothy Glen",
-          "lastName": "Moore Is King Grindee",
-          "displayName": "Timothy"
-        }
-      },
-      "property": {
-        "host": {
-          "firstName": "Tinghui",
-          "lastName": "Li",
-          "displayName": "",
-          "picture": ""
-        },
-        "description": "Move into a freshly renovated House today! Close to freeways, food, grocery and a bus station this spacious and newly renovated home is the perfect place to call home. \n\nThe kitchen comes equipped with a fridge, sink, oven, stovetop, as well as dishwasher, making it the perfect spot to whip up a meal or two.\n\nThe neighbourhood is near highways, food and public transit while still being quiet and safe and you won\u2019t be far from all Dallas has to offer.",
-        "address": {
-          "street1": "6623 Leana Avenue",
-          "street2": "",
-          "zip": "75241",
-          "city": {
-            "name": "Dallas",
-            "state": {
-              "name": "Texas"
-            }
-          }
-        }
-      },
-      "isCancelled": false,
-      "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQzNzE2Ng==",
-        "created": "2026-06-02T16:00:38.265604",
-        "text": "Ones name is Damintre very dark skinned black guy whom I've had issues with the most and has as I reported to my Recovery Coach been seen on properties I've resided causing commotion. these are people I had to not deal with I have no association with and can't get the hint that's why the filings have been done on them ",
-        "deleted": null,
-        "extra": null,
-        "messageType": "TEXT",
-        "sender": {
-          "pk": 880606,
-          "firstName": "Timothy Glen",
-          "lastName": "Moore Is King Grindee",
-          "displayName": "Timothy"
-        },
-        "attachments": [],
-        "paymentExtensionStatus": null,
-        "ticketStatus": null,
-        "bookingStatus": null
-      },
-      "member": {
-        "seenAt": "2026-06-02T17:27:57.457977",
-        "isPinned": false,
-        "isUnread": false
-      },
-      "recent_messages": [
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQzNzE2Ng==",
-          "text": "Ones name is Damintre very dark skinned black guy whom I've had issues with the most and has as I reported to my Recovery Coach been seen on properties I've resided causing commotion. these are people I had to not deal with I have no association with and can't get the hint that's why the filings have been done on them ",
-          "created": "2026-06-02T16:00:38.265604",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjg4MDYwNg==",
-            "pk": 880606,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_880606_4edc7d5c-a899-4efc-87d9-17d3f1e45577.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_880606_4edc7d5c-a899-4efc-87d9-17d3f1e45577.jpg",
-            "firstName": "Timothy Glen",
-            "lastName": "Moore Is King Grindee",
-            "isActive": true,
-            "displayName": "Timothy",
-            "padmateProfileId": 818094
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQzNzA3Ng==",
-          "text": "Because I was to go over to my mother's today to get the rest of my thing I cant perform my personal care and my medications were in it'. I need to make that no one came here claiming they know me as there are some people Im still to supposed to put in restraining orders for as I've already completed my IC3 report for the FBI and Dallas Police Report concerning identity theft and Cyber Stalking and harassment by these people whom should not be allowed on property at all.",
-          "created": "2026-06-02T15:57:36.711213",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjg4MDYwNg==",
-            "pk": 880606,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_880606_4edc7d5c-a899-4efc-87d9-17d3f1e45577.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_880606_4edc7d5c-a899-4efc-87d9-17d3f1e45577.jpg",
-            "firstName": "Timothy Glen",
-            "lastName": "Moore Is King Grindee",
-            "isActive": true,
-            "displayName": "Timothy",
-            "padmateProfileId": 818094
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQzNjk2Mg==",
-          "text": "Last night I went to the store around 11:30 and made sure to shut ths door behind me. Caleb was in his car parked on the side of the house. \nI returned around 12:20 am. When i exited the Uber to come inside the house I didn't have to use my code as the front door was open. Upon entering my room I noticed my brown leather bag with all my toiletry items was missing. Can we please check with this housemates what is going on because I brought that bag with me for sure as it was what contained all those items I laid it on my bedroom floor by the desk now no bag.",
-          "created": "2026-06-02T15:51:27.746999",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjg4MDYwNg==",
-            "pk": 880606,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_880606_4edc7d5c-a899-4efc-87d9-17d3f1e45577.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_880606_4edc7d5c-a899-4efc-87d9-17d3f1e45577.jpg",
-            "firstName": "Timothy Glen",
-            "lastName": "Moore Is King Grindee",
-            "isActive": true,
-            "displayName": "Timothy",
-            "padmateProfileId": 818094
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQzMzA2NA==",
-          "text": "How about the outlets? Working now?",
-          "created": "2026-06-02T13:10:58.122372",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQzMzA0MQ==",
-          "text": "For the batteries can you replace and we reimburse you?",
-          "created": "2026-06-02T13:09:00.839256",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQzMzAzMQ==",
-          "text": "Good morning Timothy",
-          "created": "2026-06-02T13:08:44.825761",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQyNzM1OQ==",
-          "text": "'well I bought a brand new charger for my phone and tablet when I was visiting family out of town in West Texas and just got back they worked well at my grandmother's but I noticed they didn't work well at the motels at nor went to working well here I'm going to test it out of my mother's because I ran across this issue before and it was something in the electrical wiring of the dwelling itself not the merchandise.  And the FBI Reports this type stuff is happening a lot more now I do to people the copper issue was still in copper or not being brought up to par.",
-          "created": "2026-06-02T00:39:31.710001",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjg4MDYwNg==",
-            "pk": 880606,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_880606_4edc7d5c-a899-4efc-87d9-17d3f1e45577.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_880606_4edc7d5c-a899-4efc-87d9-17d3f1e45577.jpg",
-            "firstName": "Timothy Glen",
-            "lastName": "Moore Is King Grindee",
-            "isActive": true,
-            "displayName": "Timothy",
-            "padmateProfileId": 818094
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQyNzI2Mw==",
-          "text": "Okay how about the outlet? Are they working now?",
-          "created": "2026-06-02T00:34:09.076543",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQyNjQ0Ng==",
-          "text": "been told by my allerist its from a I plant that is found in places in especially on North Texas area and would it areas and you can't come in on your clothes and it just stains but they carry something in it that I'm away with you right now I feel it so appliance will be replaced quickly that would be a good and I can cleaning solution to use that will contain the whatever it's called by that plant and trees Ive encountered this before and received medical attention and knowledge of it.  Being its just me in my room this should not be an issue anymore. Because if it does that's something that would need to looked into how as it does but come through the windows and doors  Its brought from certain wooded areas like walking trails and travels with you by your clothing, bags or animals the last way Jehovah God helps us all someone puts it there. I wouldn't take to kindly to kindly to that one..lol It's really easy to remove. With quick brisks movements by your hands back and forth over clothing.And it does effect other certain medical conditions as my diabetic neuropathy.v Thank you ",
-          "created": "2026-06-01T23:52:34.323373",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjg4MDYwNg==",
-            "pk": 880606,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_880606_4edc7d5c-a899-4efc-87d9-17d3f1e45577.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_880606_4edc7d5c-a899-4efc-87d9-17d3f1e45577.jpg",
-            "firstName": "Timothy Glen",
-            "lastName": "Moore Is King Grindee",
-            "isActive": true,
-            "displayName": "Timothy",
-            "padmateProfileId": 818094
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQyNjI1MA==",
-          "text": "Could you please explain in the electrical fault? Is there no light in the outlet?",
-          "created": "2026-06-01T23:43:12.106307",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        }
-      ]
-    },
-    {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzYxNjUx",
       "title": "Bryan Martinez",
       "chatType": "HOST_SUPPORT_CHAT",
@@ -2013,348 +2364,6 @@
           "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTM0MTI3Mg==",
           "text": "Thank you Roshawn, we would send someone over",
           "created": "2026-05-28T23:23:28.993231",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        }
-      ]
-    },
-    {
-      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzYzMTMy",
-      "title": "Chase Wofford",
-      "chatType": "HOST_SUPPORT_CHAT",
-      "isArchived": false,
-      "occupancy": {
-        "moveInDate": "2026-06-04",
-        "moveOutDate": null,
-        "conditionalEligibilityApplied": null,
-        "room": {
-          "pk": 21179,
-          "roomNumber": 6
-        },
-        "user": {
-          "picture": "img/profiles/user_935813_467acb1d-0b39-44b3-bfd6-3af269656611.jpg",
-          "firstName": "Chase",
-          "lastName": "Wofford",
-          "displayName": null
-        }
-      },
-      "property": {
-        "host": {
-          "firstName": "Tinghui",
-          "lastName": "Li",
-          "displayName": "",
-          "picture": ""
-        },
-        "description": "Your new home awaits! This cozy Dallas home is waiting for you. This PadSplit has a Backyard and Dining area, and is newly-renovated and cozy.\n\nThis home has a full kitchen, onsite laundry and parking and is very commutable close to public transit and multiple highways.  Located right between I35E, I45 and I20.\n\nThe neighborhood is quiet, which means you won\u2019t be far from all Dallas has to offer.\nThe image on satellite is a few years old and please come and see the house by yourself before you make any judgement.",
-        "address": {
-          "street1": "3414 Pebbleshores Drive",
-          "street2": "",
-          "zip": "75241",
-          "city": {
-            "name": "Dallas",
-            "state": {
-              "name": "Texas"
-            }
-          }
-        }
-      },
-      "isCancelled": false,
-      "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQzMzc3Mg==",
-        "created": "2026-06-02T13:45:25.050337",
-        "text": "Awesome thank you so much",
-        "deleted": null,
-        "extra": null,
-        "messageType": "TEXT",
-        "sender": {
-          "pk": 935813,
-          "firstName": "Chase",
-          "lastName": "Wofford",
-          "displayName": null
-        },
-        "attachments": [],
-        "paymentExtensionStatus": null,
-        "ticketStatus": null,
-        "bookingStatus": null
-      },
-      "member": {
-        "seenAt": "2026-06-02T13:43:01.433242",
-        "isPinned": false,
-        "isUnread": true
-      },
-      "recent_messages": [
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQzMzc3Mg==",
-          "text": "Awesome thank you so much",
-          "created": "2026-06-02T13:45:25.050337",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkzNTgxMw==",
-            "pk": 935813,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_935813_467acb1d-0b39-44b3-bfd6-3af269656611.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_935813_467acb1d-0b39-44b3-bfd6-3af269656611.jpg",
-            "firstName": "Chase",
-            "lastName": "Wofford",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 873281
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQzMzcxNA==",
-          "text": "You can move in tomorrow",
-          "created": "2026-06-02T13:43:00.140678",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQzMzUzMw==",
-          "text": "It wasn\u2019t an option to select today or tomorrow when booking",
-          "created": "2026-06-02T13:31:43.551572",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkzNTgxMw==",
-            "pk": 935813,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_935813_467acb1d-0b39-44b3-bfd6-3af269656611.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_935813_467acb1d-0b39-44b3-bfd6-3af269656611.jpg",
-            "firstName": "Chase",
-            "lastName": "Wofford",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 873281
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQzMzUwOQ==",
-          "text": "Why not you and just pay you directly?",
-          "created": "2026-06-02T13:30:54.733083",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkzNTgxMw==",
-            "pk": 935813,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_935813_467acb1d-0b39-44b3-bfd6-3af269656611.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_935813_467acb1d-0b39-44b3-bfd6-3af269656611.jpg",
-            "firstName": "Chase",
-            "lastName": "Wofford",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 873281
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQzMzIyMQ==",
-          "text": "You move in date is on 4th, but if you want to move in today or tomorrow you have to contact padsplit",
-          "created": "2026-06-02T13:17:54.997916",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQzMzExMw==",
-          "text": "Or tomorrow?",
-          "created": "2026-06-02T13:12:43.071814",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkzNTgxMw==",
-            "pk": 935813,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_935813_467acb1d-0b39-44b3-bfd6-3af269656611.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_935813_467acb1d-0b39-44b3-bfd6-3af269656611.jpg",
-            "firstName": "Chase",
-            "lastName": "Wofford",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 873281
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQzMzEwOA==",
-          "text": "Can I move in today?",
-          "created": "2026-06-02T13:12:32.501591",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkzNTgxMw==",
-            "pk": 935813,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_935813_467acb1d-0b39-44b3-bfd6-3af269656611.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_935813_467acb1d-0b39-44b3-bfd6-3af269656611.jpg",
-            "firstName": "Chase",
-            "lastName": "Wofford",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 873281
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQzMzA5NA==",
-          "text": "Paid Friday from first job, paid yesterday from second job. Paid again next week. ",
-          "created": "2026-06-02T13:11:59.998399",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkzNTgxMw==",
-            "pk": 935813,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_935813_467acb1d-0b39-44b3-bfd6-3af269656611.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_935813_467acb1d-0b39-44b3-bfd6-3af269656611.jpg",
-            "firstName": "Chase",
-            "lastName": "Wofford",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 873281
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQzMzA2Nw==",
-          "text": "",
-          "created": "2026-06-02T13:11:09.722721",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkzNTgxMw==",
-            "pk": 935813,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_935813_467acb1d-0b39-44b3-bfd6-3af269656611.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_935813_467acb1d-0b39-44b3-bfd6-3af269656611.jpg",
-            "firstName": "Chase",
-            "lastName": "Wofford",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 873281
-          },
-          "attachments": [
-            {
-              "id": "TWVzc2VuZ2VyQXR0YWNobWVudFR5cGU6NzE2ODQw",
-              "deleted": null,
-              "mediaType": "PICTURE",
-              "location": "img/chat/message/attachments/message_9433067_3b742bd8-d29e-4873-9cbf-0087fa35b59b",
-              "filename": "1"
-            },
-            {
-              "id": "TWVzc2VuZ2VyQXR0YWNobWVudFR5cGU6NzE2ODM5",
-              "deleted": null,
-              "mediaType": "PICTURE",
-              "location": "img/chat/message/attachments/message_9433067_68420f9a-5d5e-4d6c-a865-d438ed8c1f5a",
-              "filename": "0"
-            }
-          ],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQzMjkxMg==",
-          "text": "Thank you. To help us complete the review process, could you please upload a recent pay stub or any document that shows proof of income?",
-          "created": "2026-06-02T13:02:00.047391",
           "messageType": "TEXT",
           "deleted": null,
           "isBroadcast": false,
@@ -11418,7 +11427,7 @@
         "modified": "2026-06-01T23:39:35.147053",
         "room_name": "A-1",
         "room_number": 1,
-        "room_status": 1,
+        "room_status": 3,
         "room_code": "1234",
         "location": "Room",
         "details": "Yes when I moved in one of the batteries is missing from the door lock but actually they all need to be replaced. If I'd been here for a while I would do that but I'm making notes requests for issues with my bedroom.  New clean, non blinds would help as they do look like they should be replaced. And there are some issues wit black smudges on the walls. Is it possible for a new fresh of paint. The floor I can get cleaned up and possibly remove what I am allergic to and its the blinds I've been",
@@ -11460,7 +11469,7 @@
         "modified": "2026-06-01T23:08:07.823176",
         "room_name": "A-1",
         "room_number": 1,
-        "room_status": 1,
+        "room_status": 3,
         "room_code": "1234",
         "location": "Room",
         "details": "The outlets. Im trying to change my phone with new chargers and it feels if they are not pulling the proper electrical wattage.",
@@ -11731,7 +11740,7 @@
         "modified": "2026-06-01T23:41:58.318215",
         "room_name": "A-1",
         "room_number": 1,
-        "room_status": 1,
+        "room_status": 3,
         "room_code": "1234",
         "location": "Other",
         "details": "I just in and read a message from Caleb one the other housemates and mentioned an issue with the AC cool air output. Sitting here for a bit I've noticed what he means. Just seeing if can be checked out for a new filter or Freon.  Heat sets off my migraines",
@@ -12143,6 +12152,6 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-06-03T00:03:39Z"
+    "run_scraped_at": "2026-06-03T05:20:04Z"
   }
 }
