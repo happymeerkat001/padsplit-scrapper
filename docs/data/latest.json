@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-06-05T06:07:57Z",
+  "scraped_at": "2026-06-05T10:17:57Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6Mjg3MjYy",
@@ -43,17 +43,17 @@
       },
       "isCancelled": false,
       "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQ4ODg3Mg==",
-        "created": "2026-06-05T01:11:35.125528",
-        "text": "Hay Cindy is it time for a new mop head yet the last one we got in March is getting a bit rough and smelly I can buy it again if I get the 10 dollar refund like last time ",
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQ5MTM4Ng==",
+        "created": "2026-06-05T08:47:18.766260",
+        "text": "Yes sure, we would refund",
         "deleted": null,
         "extra": null,
         "messageType": "TEXT",
         "sender": {
-          "pk": 552038,
-          "firstName": "Michael",
-          "lastName": "Bouwens",
-          "displayName": "Mike"
+          "pk": 318367,
+          "firstName": "Ang",
+          "lastName": "Li",
+          "displayName": "Cyndy Manager"
         },
         "attachments": [],
         "paymentExtensionStatus": null,
@@ -61,11 +61,37 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-05-20T18:33:57.444313",
+        "seenAt": "2026-06-05T08:47:19.830448",
         "isPinned": false,
-        "isUnread": true
+        "isUnread": false
       },
       "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQ5MTM4Ng==",
+          "text": "Yes sure, we would refund",
+          "created": "2026-06-05T08:47:18.766260",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
         {
           "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTQ4ODg3Mg==",
           "text": "Hay Cindy is it time for a new mop head yet the last one we got in March is getting a bit rough and smelly I can buy it again if I get the 10 dollar refund like last time ",
@@ -278,32 +304,6 @@
           "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTE1NzA4NQ==",
           "text": "Any idea if room 4 is still around?",
           "created": "2026-05-19T15:07:08.373947",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTE1NzA3NQ==",
-          "text": "Hello Mike, good morning",
-          "created": "2026-05-19T15:06:56.202029",
           "messageType": "TEXT",
           "deleted": null,
           "isBroadcast": false,
@@ -9136,7 +9136,7 @@
             },
             "details": "it gets extremely hot over the day. me and my padmates are thinking the ac should be set to 75 atleast because 77 in 90 degree heat isn\u2019t keeping the house cool at all",
             "location": "OTHER",
-            "status": "COMPLETED",
+            "status": "ARCHIVED",
             "rating": null,
             "comment": null,
             "category": "UNCLASSIFIED",
@@ -9223,7 +9223,7 @@
             },
             "details": "The dryer is really backed up with lint and has an error code on it-  it took 3 times to get my cloths dry.  It also sounds like something is caught up inside the drum and is really load when running.  I\u2019m just worried about a fire starting or something because there is so much backed up lint.  I brought my shop vac from storage but forgot the hose or I would have vacuumed it out.",
             "location": "LAUNDRY",
-            "status": "COMPLETED",
+            "status": "ARCHIVED",
             "rating": null,
             "comment": null,
             "category": "UNCLASSIFIED",
@@ -11738,94 +11738,6 @@
         "is_on_payment_plan": false,
         "payment_plan_end_date": null,
         "payment_plan_reason_note": null
-      },
-      {
-        "id": 417448,
-        "status": "completed",
-        "comment": null,
-        "category": "unclassified",
-        "media": [],
-        "created": "2026-05-29T02:42:32.263613",
-        "modified": "2026-05-29T11:23:40.628424",
-        "room_name": "A-5",
-        "room_number": 5,
-        "room_status": 1,
-        "room_code": "7777",
-        "location": "Other",
-        "details": "it gets extremely hot over the day. me and my padmates are thinking the ac should be set to 75 atleast because 77 in 90 degree heat isn\u2019t keeping the house cool at all",
-        "property_id": 5735,
-        "property_address": {
-          "id": 7379,
-          "street1": "3414 Pebbleshores Drive",
-          "street2": "",
-          "city": "Dallas",
-          "state": "TX",
-          "zip": "75241",
-          "city_slug": "dallas-tx"
-        },
-        "reported_by": {
-          "id": 1075227,
-          "name": "Keyonna Pierre",
-          "role_id": 0,
-          "picture": "img/profiles/user_1075227_915e3548-e1b8-46d3-a065-0e6653c19447.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-05-29T02:42:32.265065",
-        "rating": null,
-        "extra_data": {
-          "checklist": {}
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
-      },
-      {
-        "id": 410323,
-        "status": "completed",
-        "comment": null,
-        "category": "unclassified",
-        "media": [],
-        "created": "2026-05-14T22:57:56.405136",
-        "modified": "2026-05-28T18:01:24.980141",
-        "room_name": "",
-        "room_number": 5,
-        "room_status": 1,
-        "room_code": "N/A",
-        "location": "Laundry",
-        "details": "The dryer is really backed up with lint and has an error code on it-  it took 3 times to get my cloths dry.  It also sounds like something is caught up inside the drum and is really load when running.  I\u2019m just worried about a fire starting or something because there is so much backed up lint.  I brought my shop vac from storage but forgot the hose or I would have vacuumed it out.",
-        "property_id": 31523,
-        "property_address": {
-          "id": 42103,
-          "street1": "1025 Broken Crest",
-          "street2": "",
-          "city": "DeSoto",
-          "state": "TX",
-          "zip": "75115",
-          "city_slug": "desoto-tx"
-        },
-        "reported_by": {
-          "id": 1022265,
-          "name": "Brandon",
-          "role_id": 0,
-          "picture": "img/profiles/user_1022265_997bc158-b270-4319-bab9-bc77ca60d83d.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-05-28T18:01:24.975122",
-        "rating": null,
-        "extra_data": {
-          "checklist": {}
-        },
-        "has_reused_code": false,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
       }
     ]
   },
@@ -11836,6 +11748,6 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-06-05T06:07:57Z"
+    "run_scraped_at": "2026-06-05T10:17:57Z"
   }
 }
