@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-06-10T06:08:10Z",
+  "scraped_at": "2026-06-10T10:35:37Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzY4NTIz",
@@ -1998,7 +1998,7 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-06-08T21:59:05.209916",
+        "seenAt": "2026-06-10T08:54:38.038008",
         "isPinned": false,
         "isUnread": false
       },
@@ -5515,7 +5515,7 @@
             },
             "details": "Water coming out the drain to the cabinet under the sink",
             "location": "KITCHEN",
-            "status": "COMPLETED",
+            "status": "ARCHIVED",
             "rating": null,
             "comment": null,
             "category": "UNCLASSIFIED",
@@ -5569,7 +5569,7 @@
               },
               "details": "Water coming out the drain to the cabinet under the sink",
               "location": "KITCHEN",
-              "status": "COMPLETED",
+              "status": "ARCHIVED",
               "rating": null,
               "comment": null,
               "category": "UNCLASSIFIED",
@@ -5677,7 +5677,7 @@
               },
               "details": "Water coming out the drain to the cabinet under the sink",
               "location": "KITCHEN",
-              "status": "COMPLETED",
+              "status": "ARCHIVED",
               "rating": null,
               "comment": null,
               "category": "UNCLASSIFIED",
@@ -8964,7 +8964,7 @@
             },
             "details": "Collections",
             "location": "ROOM",
-            "status": "WITHDRAWN",
+            "status": "ARCHIVED",
             "rating": null,
             "comment": null,
             "category": "ROOM_TURN",
@@ -11195,55 +11195,6 @@
         "payment_plan_reason_note": null
       },
       {
-        "id": 416101,
-        "status": "completed",
-        "comment": null,
-        "category": "room-turn",
-        "media": [],
-        "created": "2026-05-26T15:05:43.273682",
-        "modified": "2026-06-09T12:24:04.799422",
-        "room_name": "",
-        "room_number": 4,
-        "room_status": 1,
-        "room_code": "1234",
-        "location": "Room",
-        "details": "Collections",
-        "property_id": 20021,
-        "property_address": {
-          "id": 27496,
-          "street1": "1404 Pioneer Lane",
-          "street2": "",
-          "city": "Plano",
-          "state": "TX",
-          "zip": "75023",
-          "city_slug": "plano-tx"
-        },
-        "reported_by": {
-          "id": 943779,
-          "name": "Tira Davis",
-          "role_id": 0,
-          "picture": "img/profiles/user_943779_bbcd3bc3-1f3e-4816-8edd-05fad59ec911.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-05-26T15:05:43.275943",
-        "rating": null,
-        "extra_data": {
-          "user_id": 943779,
-          "checklist": {},
-          "occupancy_id": 295800,
-          "move_out_date": "2026-05-26",
-          "move_out_details": "#943779 Tira Davis | PTS pending approval | $551 05/29 | Host Ticket #1215987",
-          "is_present_after_move_out": true
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
-      },
-      {
         "id": 421814,
         "status": "completed",
         "comment": null,
@@ -11370,50 +11321,6 @@
           "checklist": {},
           "occupancy_id": 200991,
           "move_out_date": "2026-05-31"
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
-      },
-      {
-        "id": 420077,
-        "status": "completed",
-        "comment": null,
-        "category": "unclassified",
-        "media": [],
-        "created": "2026-06-03T06:45:25.670160",
-        "modified": "2026-06-07T15:43:55.384515",
-        "room_name": "A-7",
-        "room_number": 7,
-        "room_status": 1,
-        "room_code": "9999",
-        "location": "Kitchen",
-        "details": "Water coming out the drain to the cabinet under the sink",
-        "property_id": 5735,
-        "property_address": {
-          "id": 7379,
-          "street1": "3414 Pebbleshores Drive",
-          "street2": "",
-          "city": "Dallas",
-          "state": "TX",
-          "zip": "75241",
-          "city_slug": "dallas-tx"
-        },
-        "reported_by": {
-          "id": 1034604,
-          "name": "Angel Cole",
-          "role_id": 0,
-          "picture": "img/profiles/user_1034604_d037497d-81a7-4f79-b267-926c9cf4c7be.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-06-03T06:45:25.672453",
-        "rating": null,
-        "extra_data": {
-          "checklist": {}
         },
         "has_reused_code": true,
         "moveout_photos_count": 0,
@@ -11678,6 +11585,6 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-06-10T06:08:10Z"
+    "run_scraped_at": "2026-06-10T10:35:37Z"
   }
 }
