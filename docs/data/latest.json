@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-06-14T06:22:08Z",
+  "scraped_at": "2026-06-14T10:15:39Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzI1NDU3",
@@ -9253,7 +9253,7 @@
               },
               "details": "Ait conditioner not working correctly",
               "location": "OTHER",
-              "status": "COMPLETED",
+              "status": "ARCHIVED",
               "rating": null,
               "comment": null,
               "category": "UNCLASSIFIED",
@@ -9301,7 +9301,7 @@
               },
               "details": "Ait conditioner not working correctly",
               "location": "OTHER",
-              "status": "COMPLETED",
+              "status": "ARCHIVED",
               "rating": null,
               "comment": null,
               "category": "UNCLASSIFIED",
@@ -10857,7 +10857,7 @@
             },
             "details": "The battery for fire alarm in room 1 needs replacement",
             "location": "ROOM",
-            "status": "COMPLETED",
+            "status": "ARCHIVED",
             "rating": null,
             "comment": null,
             "category": "UNCLASSIFIED",
@@ -12717,97 +12717,6 @@
         "payment_plan_reason_note": null
       },
       {
-        "id": 421649,
-        "status": "completed",
-        "comment": null,
-        "category": "room-turn",
-        "media": [],
-        "created": "2026-06-06T12:33:19.099840",
-        "modified": "2026-06-10T16:55:53.709105",
-        "room_name": "",
-        "room_number": 2,
-        "room_status": 1,
-        "room_code": "1234",
-        "location": "Room",
-        "details": "cleanliness",
-        "property_id": 9369,
-        "property_address": {
-          "id": 12545,
-          "street1": "3406 Green Hill Drive",
-          "street2": "",
-          "city": "Arlington",
-          "state": "TX",
-          "zip": "76014",
-          "city_slug": "arlington-tx"
-        },
-        "reported_by": {
-          "id": 599551,
-          "name": "Angela Thiam",
-          "role_id": 0,
-          "picture": "img/profiles/user_599551_03a3cba9-447f-407c-9082-251693baba8b.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-06-06T12:33:19.100077",
-        "rating": null,
-        "extra_data": {
-          "user_id": 599551,
-          "checklist": {},
-          "occupancy_id": 153415,
-          "move_out_date": "2026-06-06"
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
-      },
-      {
-        "id": 421814,
-        "status": "completed",
-        "comment": null,
-        "category": "unclassified",
-        "media": [],
-        "created": "2026-06-06T17:26:15.018285",
-        "modified": "2026-06-09T00:14:50.898838",
-        "room_name": "A-4",
-        "room_number": 4,
-        "room_status": 1,
-        "room_code": "1234",
-        "location": "Room",
-        "details": "The battery for fire alarm in room 1 needs replacement",
-        "property_id": 7093,
-        "property_address": {
-          "id": 9235,
-          "street1": "6623 Leana Avenue",
-          "street2": "",
-          "city": "Dallas",
-          "state": "TX",
-          "zip": "75241",
-          "city_slug": "dallas-tx"
-        },
-        "reported_by": {
-          "id": 759529,
-          "name": "Michael Asare",
-          "role_id": 0,
-          "picture": "img/profiles/user_759529_734d8caa-5b10-4ce7-88e0-ed9befb7155a.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-06-06T17:26:15.019830",
-        "rating": null,
-        "extra_data": {
-          "checklist": {}
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
-      },
-      {
         "id": 421885,
         "status": "completed",
         "comment": null,
@@ -12897,152 +12806,6 @@
         "is_on_payment_plan": false,
         "payment_plan_end_date": null,
         "payment_plan_reason_note": null
-      },
-      {
-        "id": 421829,
-        "status": "completed",
-        "comment": null,
-        "category": "unclassified",
-        "media": [
-          {
-            "id": 143013,
-            "location": "img/tickets/ticket_421829_0.jpg",
-            "category": "default",
-            "media_type": "image"
-          }
-        ],
-        "created": "2026-06-06T18:02:03.858609",
-        "modified": "2026-06-06T18:03:06.479370",
-        "room_name": "A-3",
-        "room_number": 3,
-        "room_status": 1,
-        "room_code": "1234",
-        "location": "Other",
-        "details": "Ait conditioner not working correctly",
-        "property_id": 7093,
-        "property_address": {
-          "id": 9235,
-          "street1": "6623 Leana Avenue",
-          "street2": "",
-          "city": "Dallas",
-          "state": "TX",
-          "zip": "75241",
-          "city_slug": "dallas-tx"
-        },
-        "reported_by": {
-          "id": 437527,
-          "name": "Talaundra Robinson",
-          "role_id": 0,
-          "picture": "img/profiles/user_437527_99bdb841-cc22-4c5d-bd09-2417b7dc8edf.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-06-06T18:03:06.472482",
-        "rating": null,
-        "extra_data": {
-          "checklist": {}
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
-      },
-      {
-        "id": 421663,
-        "status": "completed",
-        "comment": null,
-        "category": "unclassified",
-        "media": [],
-        "created": "2026-06-06T12:36:47.314525",
-        "modified": "2026-06-06T12:37:29.641204",
-        "room_name": "A-3",
-        "room_number": 3,
-        "room_status": 1,
-        "room_code": "1234",
-        "location": "Other",
-        "details": "Air conditioner. The temperature is not comfortable for the tenants in the house",
-        "property_id": 7093,
-        "property_address": {
-          "id": 9235,
-          "street1": "6623 Leana Avenue",
-          "street2": "",
-          "city": "Dallas",
-          "state": "TX",
-          "zip": "75241",
-          "city_slug": "dallas-tx"
-        },
-        "reported_by": {
-          "id": 437527,
-          "name": "Talaundra Robinson",
-          "role_id": 0,
-          "picture": "img/profiles/user_437527_99bdb841-cc22-4c5d-bd09-2417b7dc8edf.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-06-06T12:37:29.636106",
-        "rating": null,
-        "extra_data": {
-          "checklist": {}
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
-      },
-      {
-        "id": 421439,
-        "status": "completed",
-        "comment": "The host doesn't care about the temperature issues in the house",
-        "category": "unclassified",
-        "media": [
-          {
-            "id": 142921,
-            "location": "img/tickets/ticket_421439_0.jpg",
-            "category": "default",
-            "media_type": "image"
-          }
-        ],
-        "created": "2026-06-06T01:40:31.697159",
-        "modified": "2026-06-06T12:35:27.551890",
-        "room_name": "A-3",
-        "room_number": 3,
-        "room_status": 1,
-        "room_code": "1234",
-        "location": "Other",
-        "details": "Air conditioner . It is HOT",
-        "property_id": 7093,
-        "property_address": {
-          "id": 9235,
-          "street1": "6623 Leana Avenue",
-          "street2": "",
-          "city": "Dallas",
-          "state": "TX",
-          "zip": "75241",
-          "city_slug": "dallas-tx"
-        },
-        "reported_by": {
-          "id": 437527,
-          "name": "Talaundra Robinson",
-          "role_id": 0,
-          "picture": "img/profiles/user_437527_99bdb841-cc22-4c5d-bd09-2417b7dc8edf.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-06-06T12:25:21.265802",
-        "rating": 1,
-        "extra_data": {
-          "checklist": {}
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
       }
     ],
     "Other": [
@@ -13101,6 +12864,6 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-06-14T06:22:08Z"
+    "run_scraped_at": "2026-06-14T10:15:39Z"
   }
 }
