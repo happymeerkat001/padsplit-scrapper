@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-06-19T05:29:25Z",
+  "scraped_at": "2026-06-19T10:05:48Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzQ5NTcw",
@@ -7578,7 +7578,7 @@
             },
             "details": "Hello, please give me timeframe when you be by to install the door knob and padlock. As it stands now, anyone can come and go into my room when I\u2019m not home Thank you",
             "location": "DOORLOCK",
-            "status": "COMPLETED",
+            "status": "ARCHIVED",
             "rating": null,
             "comment": null,
             "category": "UNCLASSIFIED",
@@ -7632,7 +7632,7 @@
               },
               "details": "Hello, please give me timeframe when you be by to install the door knob and padlock. As it stands now, anyone can come and go into my room when I\u2019m not home Thank you",
               "location": "DOORLOCK",
-              "status": "COMPLETED",
+              "status": "ARCHIVED",
               "rating": null,
               "comment": null,
               "category": "UNCLASSIFIED",
@@ -11099,7 +11099,7 @@
               },
               "details": "I need a new lock code for my door please before I  move please.",
               "location": "DOORLOCK",
-              "status": "COMPLETED",
+              "status": "ARCHIVED",
               "rating": null,
               "comment": null,
               "category": "UNCLASSIFIED",
@@ -14835,50 +14835,6 @@
         "payment_plan_reason_note": null
       },
       {
-        "id": 423004,
-        "status": "completed",
-        "comment": null,
-        "category": "unclassified",
-        "media": [],
-        "created": "2026-06-08T22:52:52.869561",
-        "modified": "2026-06-18T15:18:32.314368",
-        "room_name": "Room 6",
-        "room_number": 6,
-        "room_status": 1,
-        "room_code": "3414",
-        "location": "Doorlock",
-        "details": "Hello, please give me timeframe when you be by to install the door knob and padlock. As it stands now, anyone can come and go into my room when I\u2019m not home Thank you",
-        "property_id": 8127,
-        "property_address": {
-          "id": 10664,
-          "street1": "10235 Ridge Oak Street",
-          "street2": "",
-          "city": "Dallas",
-          "state": "TX",
-          "zip": "75227",
-          "city_slug": "dallas-tx"
-        },
-        "reported_by": {
-          "id": 911226,
-          "name": "Marianne Fried",
-          "role_id": 0,
-          "picture": "img/profiles/user_911226_ad3e5aff-96a6-4362-a21a-8cab4464471a.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-06-08T22:52:52.870284",
-        "rating": null,
-        "extra_data": {
-          "checklist": {}
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
-      },
-      {
         "id": 425154,
         "status": "completed",
         "comment": null,
@@ -14918,50 +14874,6 @@
         "assigned_to": null,
         "on_hold_reason": null,
         "update_status_at": "2026-06-18T15:18:12.978251",
-        "rating": null,
-        "extra_data": {
-          "checklist": {}
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
-      },
-      {
-        "id": 417003,
-        "status": "completed",
-        "comment": null,
-        "category": "unclassified",
-        "media": [],
-        "created": "2026-05-28T08:02:09.472784",
-        "modified": "2026-06-11T22:12:05.442973",
-        "room_name": "A-3",
-        "room_number": 3,
-        "room_status": 1,
-        "room_code": "1234",
-        "location": "Doorlock",
-        "details": "I need a new lock code for my door please before I  move please.",
-        "property_id": 7093,
-        "property_address": {
-          "id": 9235,
-          "street1": "6623 Leana Avenue",
-          "street2": "",
-          "city": "Dallas",
-          "state": "TX",
-          "zip": "75241",
-          "city_slug": "dallas-tx"
-        },
-        "reported_by": {
-          "id": 437527,
-          "name": "Talaundra Robinson",
-          "role_id": 0,
-          "picture": "img/profiles/user_437527_99bdb841-cc22-4c5d-bd09-2417b7dc8edf.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-06-11T22:12:05.435103",
         "rating": null,
         "extra_data": {
           "checklist": {}
@@ -15030,6 +14942,6 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-06-19T05:29:25Z"
+    "run_scraped_at": "2026-06-19T10:05:48Z"
   }
 }
