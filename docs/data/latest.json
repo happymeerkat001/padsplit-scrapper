@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-06-24T05:51:47Z",
+  "scraped_at": "2026-06-24T09:52:14Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzQ5Njk1",
@@ -10890,56 +10890,6 @@
         "payment_plan_reason_note": null
       },
       {
-        "id": 426907,
-        "status": "completed",
-        "comment": null,
-        "category": "room-turn",
-        "media": [],
-        "created": "2026-06-16T12:30:51.571462",
-        "modified": "2026-06-20T14:37:23.066122",
-        "room_name": "A-1",
-        "room_number": 1,
-        "room_status": 1,
-        "room_code": "1234",
-        "location": "Room",
-        "details": "Room transfer",
-        "property_id": 7093,
-        "property_address": {
-          "id": 9235,
-          "street1": "6623 Leana Avenue",
-          "street2": "",
-          "city": "Dallas",
-          "state": "TX",
-          "zip": "75241",
-          "city_slug": "dallas-tx"
-        },
-        "reported_by": {
-          "id": 1030705,
-          "name": "TK",
-          "role_id": 0,
-          "picture": "img/profiles/user_1030705_d727e3cb-26e0-4233-8cfd-41fb8cb51e9e.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-06-16T12:30:51.571719",
-        "rating": null,
-        "extra_data": {
-          "user_id": 1030705,
-          "checklist": {},
-          "occupancy_id": 318123,
-          "move_out_date": "2026-06-16",
-          "move_out_quiz": {
-            "Do you have a physical key to your room?": "No, I don\u2019t have a key to my room"
-          }
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 2,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
-      },
-      {
         "id": 426205,
         "status": "completed",
         "comment": null,
@@ -11043,6 +10993,6 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-06-24T05:51:47Z"
+    "run_scraped_at": "2026-06-24T09:52:14Z"
   }
 }
