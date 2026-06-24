@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-06-24T15:26:56Z",
+  "scraped_at": "2026-06-24T17:33:04Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MjYzMTA3",
@@ -335,7 +335,7 @@
       "isArchived": false,
       "occupancy": {
         "moveInDate": "2026-06-23",
-        "moveOutDate": null,
+        "moveOutDate": "2026-06-25",
         "conditionalEligibilityApplied": null,
         "room": {
           "pk": 71402,
@@ -12213,7 +12213,7 @@
         "modified": "2026-06-21T15:06:08.940215",
         "room_name": "",
         "room_number": 4,
-        "room_status": 1,
+        "room_status": 3,
         "room_code": "1234",
         "location": "Room",
         "details": "Room transfer",
@@ -12451,6 +12451,6 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-06-24T15:26:56Z"
+    "run_scraped_at": "2026-06-24T17:33:04Z"
   }
 }
