@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-06-27T07:40:57Z",
+  "scraped_at": "2026-06-27T09:52:24Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzQwMTQ1",
@@ -12343,50 +12343,6 @@
         "is_on_payment_plan": false,
         "payment_plan_end_date": null,
         "payment_plan_reason_note": null
-      },
-      {
-        "id": 428506,
-        "status": "completed",
-        "comment": null,
-        "category": "unclassified",
-        "media": [],
-        "created": "2026-06-19T14:50:49.369466",
-        "modified": "2026-06-20T14:38:55.590477",
-        "room_name": "",
-        "room_number": 4,
-        "room_status": 1,
-        "room_code": "2516",
-        "location": "Other",
-        "details": "No power in the entire house",
-        "property_id": 8840,
-        "property_address": {
-          "id": 11718,
-          "street1": "2516 Sylvia Street",
-          "street2": "",
-          "city": "Dallas",
-          "state": "TX",
-          "zip": "75241",
-          "city_slug": "dallas-tx"
-        },
-        "reported_by": {
-          "id": 833971,
-          "name": "Keithreaon Burks",
-          "role_id": 0,
-          "picture": "img/profiles/user_833971_04da6f7f-52f3-4389-802a-2a7e2cf9851b.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-06-19T14:50:49.375060",
-        "rating": null,
-        "extra_data": {
-          "checklist": {}
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
       }
     ]
   },
@@ -12397,6 +12353,6 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-06-27T07:40:57Z"
+    "run_scraped_at": "2026-06-27T09:52:24Z"
   }
 }
