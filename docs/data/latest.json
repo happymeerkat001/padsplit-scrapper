@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-07-02T06:11:35Z",
+  "scraped_at": "2026-07-02T09:35:14Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6Mjg3MjYy",
@@ -10137,53 +10137,6 @@
         "is_on_payment_plan": false,
         "payment_plan_end_date": null,
         "payment_plan_reason_note": null
-      },
-      {
-        "id": 431254,
-        "status": "completed",
-        "comment": null,
-        "category": "room-turn",
-        "media": [],
-        "created": "2026-06-24T21:13:10.156278",
-        "modified": "2026-06-24T21:16:10.383271",
-        "room_name": "A-6",
-        "room_number": 6,
-        "room_status": 1,
-        "room_code": "9999",
-        "location": "Room",
-        "details": "Host Emergency Transfer: Property Maintenance",
-        "property_id": 5735,
-        "property_address": {
-          "id": 7379,
-          "street1": "3414 Pebbleshores Drive",
-          "street2": "",
-          "city": "Dallas",
-          "state": "TX",
-          "zip": "75241",
-          "city_slug": "dallas-tx"
-        },
-        "reported_by": {
-          "id": 935813,
-          "name": "Chase Wofford",
-          "role_id": 0,
-          "picture": "img/profiles/user_935813_467acb1d-0b39-44b3-bfd6-3af269656611.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-06-24T21:13:10.158762",
-        "rating": null,
-        "extra_data": {
-          "user_id": 935813,
-          "checklist": {},
-          "occupancy_id": 313353,
-          "move_out_date": "2026-06-24"
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
       }
     ],
     "Other": [
@@ -10242,6 +10195,6 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-07-02T06:11:35Z"
+    "run_scraped_at": "2026-07-02T09:35:14Z"
   }
 }
