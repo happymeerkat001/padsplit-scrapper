@@ -1,6 +1,108 @@
 {
-  "scraped_at": "2026-07-02T16:29:23Z",
+  "scraped_at": "2026-07-02T18:20:34Z",
   "messages": [
+    {
+      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6Mzg0NTI0",
+      "title": "Jeremy Hodges",
+      "chatType": "HOST_SUPPORT_CHAT",
+      "isArchived": false,
+      "occupancy": {
+        "moveInDate": "2026-07-05",
+        "moveOutDate": null,
+        "conditionalEligibilityApplied": null,
+        "room": {
+          "pk": 55030,
+          "roomNumber": 1
+        },
+        "user": {
+          "picture": "img/profiles/user_1179280_3d15ef7c-ec21-4120-ba29-5908560273a6.jpg",
+          "firstName": "Jeremy",
+          "lastName": "Hodges",
+          "displayName": null
+        }
+      },
+      "property": {
+        "host": {
+          "firstName": "Ang",
+          "lastName": "Li",
+          "displayName": null,
+          "picture": ""
+        },
+        "description": "Move into a newly-renovated House today! Homey and comfortable, this is the perfect place to call home. \n\nThe kitchen comes equipped with a fridge, sink, oven, stovetop, as well as garbage disposal, making it the perfect spot to whip up a meal or two.\n\nThe neighbourhood is near highways, and you won\u2019t be far from all Haltom City has to offer.",
+        "address": {
+          "street1": "3541 Parker Road East",
+          "street2": "",
+          "zip": "76117",
+          "city": {
+            "name": "Haltom City",
+            "state": {
+              "name": "Texas"
+            }
+          }
+        }
+      },
+      "isCancelled": false,
+      "lastMessage": {
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTAwMjI4Nzc=",
+        "created": "2026-07-02T17:51:13.276773",
+        "text": null,
+        "deleted": null,
+        "extra": null,
+        "messageType": "BOOKING_STATUS",
+        "sender": {
+          "pk": 701127,
+          "firstName": "Ang",
+          "lastName": "Li",
+          "displayName": null
+        },
+        "attachments": [],
+        "paymentExtensionStatus": null,
+        "ticketStatus": null,
+        "bookingStatus": {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZUJvb2tpbmdTdGF0dXM6MzA3MjAx",
+          "created": "2026-07-02T17:51:13.285235",
+          "status": "PENDING"
+        }
+      },
+      "member": {
+        "seenAt": null,
+        "isPinned": false,
+        "isUnread": true
+      },
+      "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTAwMjI4Nzc=",
+          "text": null,
+          "created": "2026-07-02T17:51:13.276773",
+          "messageType": "BOOKING_STATUS",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjcwMTEyNw==",
+            "pk": 701127,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 638709
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZUJvb2tpbmdTdGF0dXM6MzA3MjAx",
+            "created": "2026-07-02T17:51:13.285235",
+            "status": "PENDING",
+            "verificationTimeInHours": 24
+          }
+        }
+      ]
+    },
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzY1OTYy",
       "title": "Darrick Mendoza",
@@ -61,9 +163,9 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-07-02T14:36:26.337739",
+        "seenAt": "2026-07-02T17:48:16.828820",
         "isPinned": false,
-        "isUnread": true
+        "isUnread": false
       },
       "recent_messages": [
         {
@@ -6681,386 +6783,7 @@
         "seenAt": "2026-06-27T23:36:33.339225",
         "isPinned": false,
         "isUnread": false
-      },
-      "recent_messages": [
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTkxOTQ1MA==",
-          "text": null,
-          "created": "2026-06-27T17:53:48.393800",
-          "messageType": "TICKET_UPDATE",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
-            "pk": 339595,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Tinghui",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "",
-            "padmateProfileId": 278216
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": {
-            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMDE5ODMz",
-            "created": "2026-06-27T17:53:48.407879",
-            "status": "COMPLETED",
-            "canRate": false,
-            "ticket": {
-              "id": "431713",
-              "author": {
-                "firstName": "James",
-                "lastName": "Shiley",
-                "id": "546342",
-                "displayName": null
-              },
-              "details": "Light blew out",
-              "location": "LAUNDRY",
-              "status": "COMPLETED",
-              "rating": null,
-              "comment": null,
-              "category": "UNCLASSIFIED",
-              "onHoldReason": null,
-              "withdrawReason": null
-            }
-          },
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTkxNTEyMQ==",
-          "text": null,
-          "created": "2026-06-27T14:12:20.725467",
-          "messageType": "MOVE_OUT_PHOTOS",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjU0NjM0Mg==",
-            "pk": 546342,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_546342_ec6f5232-71e7-4ea4-ac08-adbf2518a22e",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_546342_ec6f5232-71e7-4ea4-ac08-adbf2518a22e",
-            "firstName": "James",
-            "lastName": "Shiley",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 484103
-          },
-          "attachments": [
-            {
-              "id": "TWVzc2VuZ2VyQXR0YWNobWVudFR5cGU6NzY0MjUw",
-              "deleted": null,
-              "mediaType": "PICTURE",
-              "location": "img/chat/message/attachments/message_9915121_c3fb0c1b-31e7-4034-b18c-4183d8e21d26.jpg",
-              "filename": "9a7240c1-9aa9-421d-a779-3e163b5e5279.jpg"
-            },
-            {
-              "id": "TWVzc2VuZ2VyQXR0YWNobWVudFR5cGU6NzY0MjQ5",
-              "deleted": null,
-              "mediaType": "PICTURE",
-              "location": "img/chat/message/attachments/message_9915121_74c1804e-4809-46c3-a2f0-769c637b1e4c.jpg",
-              "filename": "f087d088-d50b-4b3a-8ec4-d5297c707fd8.jpg"
-            },
-            {
-              "id": "TWVzc2VuZ2VyQXR0YWNobWVudFR5cGU6NzY0MjQ4",
-              "deleted": null,
-              "mediaType": "PICTURE",
-              "location": "img/chat/message/attachments/message_9915121_906d8c15-bcf9-4298-80e4-5e16b7335b5c.jpg",
-              "filename": "b1268449-8280-41c0-8325-e1c328d5ddf4.jpg"
-            },
-            {
-              "id": "TWVzc2VuZ2VyQXR0YWNobWVudFR5cGU6NzY0MjQ3",
-              "deleted": null,
-              "mediaType": "PICTURE",
-              "location": "img/chat/message/attachments/message_9915121_9c9311c4-8787-4685-8580-c001883c3f46.jpg",
-              "filename": "ebc0e2c6-372d-44bf-9791-0f6ee2a6970e.jpg"
-            }
-          ],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTkxMjg1Nw==",
-          "text": null,
-          "created": "2026-06-27T12:30:51.861073",
-          "messageType": "TICKET_UPDATE",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
-            "pk": 339595,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Tinghui",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "",
-            "padmateProfileId": 278216
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": {
-            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMDE5MTkx",
-            "created": "2026-06-27T12:30:51.870392",
-            "status": "SUBMITTED",
-            "canRate": false,
-            "ticket": {
-              "id": "432347",
-              "author": {
-                "firstName": "James",
-                "lastName": "Shiley",
-                "id": "546342",
-                "displayName": null
-              },
-              "details": "other",
-              "location": "ROOM",
-              "status": "SUBMITTED",
-              "rating": null,
-              "comment": null,
-              "category": "ROOM_TURN",
-              "onHoldReason": null,
-              "withdrawReason": null
-            }
-          },
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTg4OTU1Ng==",
-          "text": null,
-          "created": "2026-06-26T00:50:56.376529",
-          "messageType": "TICKET_UPDATE",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
-            "pk": 339595,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Tinghui",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "",
-            "padmateProfileId": 278216
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": {
-            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMDE3MjM1",
-            "created": "2026-06-26T00:50:56.383665",
-            "status": "SUBMITTED",
-            "canRate": false,
-            "ticket": {
-              "id": "431713",
-              "author": {
-                "firstName": "James",
-                "lastName": "Shiley",
-                "id": "546342",
-                "displayName": null
-              },
-              "details": "Light blew out",
-              "location": "LAUNDRY",
-              "status": "COMPLETED",
-              "rating": null,
-              "comment": null,
-              "category": "UNCLASSIFIED",
-              "onHoldReason": null,
-              "withdrawReason": null
-            }
-          },
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTg4MzA1OA==",
-          "text": null,
-          "created": "2026-06-25T18:39:09.765195",
-          "messageType": "TICKET_UPDATE",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
-            "pk": 339595,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Tinghui",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "",
-            "padmateProfileId": 278216
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": {
-            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMDE2NzMy",
-            "created": "2026-06-25T18:39:09.795858",
-            "status": "COMPLETED",
-            "canRate": false,
-            "ticket": {
-              "id": "430134",
-              "author": {
-                "firstName": "James",
-                "lastName": "Shiley",
-                "id": "546342",
-                "displayName": null
-              },
-              "details": "The shower water goes cold after 9-10 minutes. I have tried to get this fixed multiple times.",
-              "location": "BATHROOM_DOWNSTAIRS",
-              "status": "ARCHIVED",
-              "rating": null,
-              "comment": null,
-              "category": "UNCLASSIFIED",
-              "onHoldReason": null,
-              "withdrawReason": null
-            }
-          },
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTg3MTIwMw==",
-          "text": "*now I feel ",
-          "created": "2026-06-25T01:01:05.488083",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjU0NjM0Mg==",
-            "pk": 546342,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_546342_ec6f5232-71e7-4ea4-ac08-adbf2518a22e",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_546342_ec6f5232-71e7-4ea4-ac08-adbf2518a22e",
-            "firstName": "James",
-            "lastName": "Shiley",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 484103
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTg3MTIwMA==",
-          "text": "Well know I feel anxious",
-          "created": "2026-06-25T01:00:57.935122",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjU0NjM0Mg==",
-            "pk": 546342,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_546342_ec6f5232-71e7-4ea4-ac08-adbf2518a22e",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_546342_ec6f5232-71e7-4ea4-ac08-adbf2518a22e",
-            "firstName": "James",
-            "lastName": "Shiley",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 484103
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTg3MDU5Ng==",
-          "text": "I left the house because of it",
-          "created": "2026-06-25T00:24:11.050313",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjU0NjM0Mg==",
-            "pk": 546342,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_546342_ec6f5232-71e7-4ea4-ac08-adbf2518a22e",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_546342_ec6f5232-71e7-4ea4-ac08-adbf2518a22e",
-            "firstName": "James",
-            "lastName": "Shiley",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 484103
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTg3MDU5NA==",
-          "text": "The pot smoke burnt my eyes yes",
-          "created": "2026-06-25T00:24:03.052868",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjU0NjM0Mg==",
-            "pk": 546342,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_546342_ec6f5232-71e7-4ea4-ac08-adbf2518a22e",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_546342_ec6f5232-71e7-4ea4-ac08-adbf2518a22e",
-            "firstName": "James",
-            "lastName": "Shiley",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 484103
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTg3MDU5MA==",
-          "text": "Because they keep smoking no matter how many times I send a no smoking notice",
-          "created": "2026-06-25T00:23:51.529666",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjU0NjM0Mg==",
-            "pk": 546342,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_546342_ec6f5232-71e7-4ea4-ac08-adbf2518a22e",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_546342_ec6f5232-71e7-4ea4-ac08-adbf2518a22e",
-            "firstName": "James",
-            "lastName": "Shiley",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 484103
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        }
-      ]
+      }
     },
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzQwMTQ1",
@@ -10411,6 +10134,6 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-07-02T16:29:23Z"
+    "run_scraped_at": "2026-07-02T18:20:34Z"
   }
 }
