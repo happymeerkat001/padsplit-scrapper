@@ -1,6 +1,2030 @@
 {
-  "scraped_at": "2026-07-05T12:42:33Z",
+  "scraped_at": "2026-07-05T14:21:12Z",
   "messages": [
+    {
+      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzI1NDU3",
+      "title": "James Shiley",
+      "chatType": "HOST_SUPPORT_CHAT",
+      "isArchived": false,
+      "occupancy": {
+        "moveInDate": "2026-04-11",
+        "moveOutDate": "2026-06-27",
+        "conditionalEligibilityApplied": null,
+        "room": {
+          "pk": 31129,
+          "roomNumber": 2
+        },
+        "user": {
+          "picture": "img/profiles/user_546342_ec6f5232-71e7-4ea4-ac08-adbf2518a22e",
+          "firstName": "James",
+          "lastName": "Shiley",
+          "displayName": null
+        }
+      },
+      "property": {
+        "host": {
+          "firstName": "Tinghui",
+          "lastName": "Li",
+          "displayName": "",
+          "picture": ""
+        },
+        "description": "Enjoy living in a comfortable House. This beautiful home is decorated with modern touches while providing the basic necessities. All that\u2019s missing is you!\n\nThe kitchen is equipped with a fridge, sink, oven, stovetop, as well as upgraded appliances. It\u2019s the perfect spot for you to cook at home and save money.\n\nThe surrounding location is near grocery stores, making it the perfect place to call home.",
+        "address": {
+          "street1": "2516 Sylvia Street",
+          "street2": "",
+          "zip": "75241",
+          "city": {
+            "name": "Dallas",
+            "state": {
+              "name": "Texas"
+            }
+          }
+        }
+      },
+      "isCancelled": false,
+      "lastMessage": {
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTAwNzEzNjQ=",
+        "created": "2026-07-05T13:54:18.784019",
+        "text": null,
+        "deleted": null,
+        "extra": null,
+        "messageType": "MOVE_OUT_CONFIRMED",
+        "sender": {
+          "pk": 339595,
+          "firstName": "Tinghui",
+          "lastName": "Li",
+          "displayName": ""
+        },
+        "attachments": [],
+        "paymentExtensionStatus": null,
+        "ticketStatus": null,
+        "bookingStatus": null
+      },
+      "member": {
+        "seenAt": "2026-06-27T23:36:33.339225",
+        "isPinned": false,
+        "isUnread": true
+      },
+      "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTAwNzEzNjQ=",
+          "text": null,
+          "created": "2026-07-05T13:54:18.784019",
+          "messageType": "MOVE_OUT_CONFIRMED",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
+            "pk": 339595,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Tinghui",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "",
+            "padmateProfileId": 278216
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTAwNzEzNjM=",
+          "text": null,
+          "created": "2026-07-05T13:54:18.772874",
+          "messageType": "TICKET_UPDATE",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
+            "pk": 339595,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Tinghui",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "",
+            "padmateProfileId": 278216
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMDMyMTYx",
+            "created": "2026-07-05T13:54:18.780381",
+            "status": "COMPLETED",
+            "canRate": false,
+            "ticket": {
+              "id": "432347",
+              "author": {
+                "firstName": "James",
+                "lastName": "Shiley",
+                "id": "546342",
+                "displayName": null
+              },
+              "details": "other",
+              "location": "ROOM",
+              "status": "COMPLETED",
+              "rating": null,
+              "comment": null,
+              "category": "ROOM_TURN",
+              "onHoldReason": null,
+              "withdrawReason": null
+            }
+          },
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTkxOTQ1MA==",
+          "text": null,
+          "created": "2026-06-27T17:53:48.393800",
+          "messageType": "TICKET_UPDATE",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
+            "pk": 339595,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Tinghui",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "",
+            "padmateProfileId": 278216
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMDE5ODMz",
+            "created": "2026-06-27T17:53:48.407879",
+            "status": "COMPLETED",
+            "canRate": false,
+            "ticket": {
+              "id": "431713",
+              "author": {
+                "firstName": "James",
+                "lastName": "Shiley",
+                "id": "546342",
+                "displayName": null
+              },
+              "details": "Light blew out",
+              "location": "LAUNDRY",
+              "status": "ARCHIVED",
+              "rating": null,
+              "comment": null,
+              "category": "UNCLASSIFIED",
+              "onHoldReason": null,
+              "withdrawReason": null
+            }
+          },
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTkxNTEyMQ==",
+          "text": null,
+          "created": "2026-06-27T14:12:20.725467",
+          "messageType": "MOVE_OUT_PHOTOS",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjU0NjM0Mg==",
+            "pk": 546342,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_546342_ec6f5232-71e7-4ea4-ac08-adbf2518a22e",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_546342_ec6f5232-71e7-4ea4-ac08-adbf2518a22e",
+            "firstName": "James",
+            "lastName": "Shiley",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 484103
+          },
+          "attachments": [
+            {
+              "id": "TWVzc2VuZ2VyQXR0YWNobWVudFR5cGU6NzY0MjUw",
+              "deleted": null,
+              "mediaType": "PICTURE",
+              "location": "img/chat/message/attachments/message_9915121_c3fb0c1b-31e7-4034-b18c-4183d8e21d26.jpg",
+              "filename": "9a7240c1-9aa9-421d-a779-3e163b5e5279.jpg"
+            },
+            {
+              "id": "TWVzc2VuZ2VyQXR0YWNobWVudFR5cGU6NzY0MjQ5",
+              "deleted": null,
+              "mediaType": "PICTURE",
+              "location": "img/chat/message/attachments/message_9915121_74c1804e-4809-46c3-a2f0-769c637b1e4c.jpg",
+              "filename": "f087d088-d50b-4b3a-8ec4-d5297c707fd8.jpg"
+            },
+            {
+              "id": "TWVzc2VuZ2VyQXR0YWNobWVudFR5cGU6NzY0MjQ4",
+              "deleted": null,
+              "mediaType": "PICTURE",
+              "location": "img/chat/message/attachments/message_9915121_906d8c15-bcf9-4298-80e4-5e16b7335b5c.jpg",
+              "filename": "b1268449-8280-41c0-8325-e1c328d5ddf4.jpg"
+            },
+            {
+              "id": "TWVzc2VuZ2VyQXR0YWNobWVudFR5cGU6NzY0MjQ3",
+              "deleted": null,
+              "mediaType": "PICTURE",
+              "location": "img/chat/message/attachments/message_9915121_9c9311c4-8787-4685-8580-c001883c3f46.jpg",
+              "filename": "ebc0e2c6-372d-44bf-9791-0f6ee2a6970e.jpg"
+            }
+          ],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTkxMjg1Nw==",
+          "text": null,
+          "created": "2026-06-27T12:30:51.861073",
+          "messageType": "TICKET_UPDATE",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
+            "pk": 339595,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Tinghui",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "",
+            "padmateProfileId": 278216
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMDE5MTkx",
+            "created": "2026-06-27T12:30:51.870392",
+            "status": "SUBMITTED",
+            "canRate": false,
+            "ticket": {
+              "id": "432347",
+              "author": {
+                "firstName": "James",
+                "lastName": "Shiley",
+                "id": "546342",
+                "displayName": null
+              },
+              "details": "other",
+              "location": "ROOM",
+              "status": "COMPLETED",
+              "rating": null,
+              "comment": null,
+              "category": "ROOM_TURN",
+              "onHoldReason": null,
+              "withdrawReason": null
+            }
+          },
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTg4OTU1Ng==",
+          "text": null,
+          "created": "2026-06-26T00:50:56.376529",
+          "messageType": "TICKET_UPDATE",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
+            "pk": 339595,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Tinghui",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "",
+            "padmateProfileId": 278216
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMDE3MjM1",
+            "created": "2026-06-26T00:50:56.383665",
+            "status": "SUBMITTED",
+            "canRate": false,
+            "ticket": {
+              "id": "431713",
+              "author": {
+                "firstName": "James",
+                "lastName": "Shiley",
+                "id": "546342",
+                "displayName": null
+              },
+              "details": "Light blew out",
+              "location": "LAUNDRY",
+              "status": "ARCHIVED",
+              "rating": null,
+              "comment": null,
+              "category": "UNCLASSIFIED",
+              "onHoldReason": null,
+              "withdrawReason": null
+            }
+          },
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTg4MzA1OA==",
+          "text": null,
+          "created": "2026-06-25T18:39:09.765195",
+          "messageType": "TICKET_UPDATE",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
+            "pk": 339595,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Tinghui",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "",
+            "padmateProfileId": 278216
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMDE2NzMy",
+            "created": "2026-06-25T18:39:09.795858",
+            "status": "COMPLETED",
+            "canRate": false,
+            "ticket": {
+              "id": "430134",
+              "author": {
+                "firstName": "James",
+                "lastName": "Shiley",
+                "id": "546342",
+                "displayName": null
+              },
+              "details": "The shower water goes cold after 9-10 minutes. I have tried to get this fixed multiple times.",
+              "location": "BATHROOM_DOWNSTAIRS",
+              "status": "ARCHIVED",
+              "rating": null,
+              "comment": null,
+              "category": "UNCLASSIFIED",
+              "onHoldReason": null,
+              "withdrawReason": null
+            }
+          },
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTg3MTIwMw==",
+          "text": "*now I feel ",
+          "created": "2026-06-25T01:01:05.488083",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjU0NjM0Mg==",
+            "pk": 546342,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_546342_ec6f5232-71e7-4ea4-ac08-adbf2518a22e",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_546342_ec6f5232-71e7-4ea4-ac08-adbf2518a22e",
+            "firstName": "James",
+            "lastName": "Shiley",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 484103
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTg3MTIwMA==",
+          "text": "Well know I feel anxious",
+          "created": "2026-06-25T01:00:57.935122",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjU0NjM0Mg==",
+            "pk": 546342,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_546342_ec6f5232-71e7-4ea4-ac08-adbf2518a22e",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_546342_ec6f5232-71e7-4ea4-ac08-adbf2518a22e",
+            "firstName": "James",
+            "lastName": "Shiley",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 484103
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTg3MDU5Ng==",
+          "text": "I left the house because of it",
+          "created": "2026-06-25T00:24:11.050313",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjU0NjM0Mg==",
+            "pk": 546342,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_546342_ec6f5232-71e7-4ea4-ac08-adbf2518a22e",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_546342_ec6f5232-71e7-4ea4-ac08-adbf2518a22e",
+            "firstName": "James",
+            "lastName": "Shiley",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 484103
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        }
+      ]
+    },
+    {
+      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MjgwODk2",
+      "title": "Michael Asare",
+      "chatType": "HOST_SUPPORT_CHAT",
+      "isArchived": false,
+      "occupancy": {
+        "moveInDate": "2026-02-03",
+        "moveOutDate": "2026-06-26",
+        "conditionalEligibilityApplied": null,
+        "room": {
+          "pk": 25339,
+          "roomNumber": 4
+        },
+        "user": {
+          "picture": "img/profiles/user_759529_734d8caa-5b10-4ce7-88e0-ed9befb7155a.jpg",
+          "firstName": "Michael",
+          "lastName": "Asare",
+          "displayName": null
+        }
+      },
+      "property": {
+        "host": {
+          "firstName": "Tinghui",
+          "lastName": "Li",
+          "displayName": "",
+          "picture": ""
+        },
+        "description": "Move into a freshly renovated House today! Close to freeways, food, grocery and a bus station this spacious and newly renovated home is the perfect place to call home. \n\nThe kitchen comes equipped with a fridge, sink, oven, stovetop, as well as dishwasher, making it the perfect spot to whip up a meal or two.\n\nThe neighbourhood is near highways, food and public transit while still being quiet and safe and you won\u2019t be far from all Dallas has to offer.",
+        "address": {
+          "street1": "6623 Leana Avenue",
+          "street2": "",
+          "zip": "75241",
+          "city": {
+            "name": "Dallas",
+            "state": {
+              "name": "Texas"
+            }
+          }
+        }
+      },
+      "isCancelled": false,
+      "lastMessage": {
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTAwNzEzNTY=",
+        "created": "2026-07-05T13:53:44.845452",
+        "text": null,
+        "deleted": null,
+        "extra": null,
+        "messageType": "MOVE_OUT_CONFIRMED",
+        "sender": {
+          "pk": 339595,
+          "firstName": "Tinghui",
+          "lastName": "Li",
+          "displayName": ""
+        },
+        "attachments": [],
+        "paymentExtensionStatus": null,
+        "ticketStatus": null,
+        "bookingStatus": null
+      },
+      "member": {
+        "seenAt": "2026-06-29T14:06:23.664351",
+        "isPinned": false,
+        "isUnread": true
+      },
+      "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTAwNzEzNTY=",
+          "text": null,
+          "created": "2026-07-05T13:53:44.845452",
+          "messageType": "MOVE_OUT_CONFIRMED",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
+            "pk": 339595,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Tinghui",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "",
+            "padmateProfileId": 278216
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTAwNzEzNTU=",
+          "text": null,
+          "created": "2026-07-05T13:53:44.836944",
+          "messageType": "TICKET_UPDATE",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
+            "pk": 339595,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Tinghui",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "",
+            "padmateProfileId": 278216
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMDMyMTU5",
+            "created": "2026-07-05T13:53:44.843086",
+            "status": "COMPLETED",
+            "canRate": false,
+            "ticket": {
+              "id": "432014",
+              "author": {
+                "firstName": "Michael",
+                "lastName": "Asare",
+                "id": "759529",
+                "displayName": null
+              },
+              "details": "Collections",
+              "location": "ROOM",
+              "status": "COMPLETED",
+              "rating": null,
+              "comment": null,
+              "category": "ROOM_TURN",
+              "onHoldReason": null,
+              "withdrawReason": null
+            }
+          },
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTk0NzQ4MQ==",
+          "text": "Thank you.",
+          "created": "2026-06-29T14:06:22.573401",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTk0NjAwMg==",
+          "text": "Moved out",
+          "created": "2026-06-29T12:50:01.372854",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjc1OTUyOQ==",
+            "pk": 759529,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_759529_734d8caa-5b10-4ce7-88e0-ed9befb7155a.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_759529_734d8caa-5b10-4ce7-88e0-ed9befb7155a.jpg",
+            "firstName": "Michael",
+            "lastName": "Asare",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 697079
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTk0NTk5OA==",
+          "text": "",
+          "created": "2026-06-29T12:49:49.721193",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjc1OTUyOQ==",
+            "pk": 759529,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_759529_734d8caa-5b10-4ce7-88e0-ed9befb7155a.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_759529_734d8caa-5b10-4ce7-88e0-ed9befb7155a.jpg",
+            "firstName": "Michael",
+            "lastName": "Asare",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 697079
+          },
+          "attachments": [
+            {
+              "id": "TWVzc2VuZ2VyQXR0YWNobWVudFR5cGU6NzY4NDMw",
+              "deleted": null,
+              "mediaType": "PICTURE",
+              "location": "img/chat/message/attachments/message_9945998_9795bfe9-adb5-4283-b69f-96fe1b02298d",
+              "filename": "2"
+            },
+            {
+              "id": "TWVzc2VuZ2VyQXR0YWNobWVudFR5cGU6NzY4NDI5",
+              "deleted": null,
+              "mediaType": "PICTURE",
+              "location": "img/chat/message/attachments/message_9945998_05b950b0-34cb-478d-8908-ccd94fb13006",
+              "filename": "1"
+            },
+            {
+              "id": "TWVzc2VuZ2VyQXR0YWNobWVudFR5cGU6NzY4NDI4",
+              "deleted": null,
+              "mediaType": "PICTURE",
+              "location": "img/chat/message/attachments/message_9945998_70e535e9-66d4-465b-990d-162a189b287f",
+              "filename": "0"
+            }
+          ],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTkwMjgyOA==",
+          "text": "I have been charged until 6/30 per the email bill.  I am moving out on the 29th, that\u2019s when I get paid ",
+          "created": "2026-06-26T19:21:28.175207",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjc1OTUyOQ==",
+            "pk": 759529,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_759529_734d8caa-5b10-4ce7-88e0-ed9befb7155a.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_759529_734d8caa-5b10-4ce7-88e0-ed9befb7155a.jpg",
+            "firstName": "Michael",
+            "lastName": "Asare",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 697079
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTkwMjc1NA==",
+          "text": "Are you moving out?",
+          "created": "2026-06-26T19:18:29.748357",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTg5NzMyNA==",
+          "text": null,
+          "created": "2026-06-26T15:04:30.662062",
+          "messageType": "TICKET_UPDATE",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
+            "pk": 339595,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Tinghui",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "",
+            "padmateProfileId": 278216
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMDE4MDA0",
+            "created": "2026-06-26T15:04:30.666544",
+            "status": "SUBMITTED",
+            "canRate": false,
+            "ticket": {
+              "id": "432014",
+              "author": {
+                "firstName": "Michael",
+                "lastName": "Asare",
+                "id": "759529",
+                "displayName": null
+              },
+              "details": "Collections",
+              "location": "ROOM",
+              "status": "COMPLETED",
+              "rating": null,
+              "comment": null,
+              "category": "ROOM_TURN",
+              "onHoldReason": null,
+              "withdrawReason": null
+            }
+          },
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTcxNzI2Nw==",
+          "text": "",
+          "created": "2026-06-16T23:42:14.085810",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjc1OTUyOQ==",
+            "pk": 759529,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_759529_734d8caa-5b10-4ce7-88e0-ed9befb7155a.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_759529_734d8caa-5b10-4ce7-88e0-ed9befb7155a.jpg",
+            "firstName": "Michael",
+            "lastName": "Asare",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 697079
+          },
+          "attachments": [
+            {
+              "id": "TWVzc2VuZ2VyQXR0YWNobWVudFR5cGU6NzQyODk4",
+              "deleted": null,
+              "mediaType": "PICTURE",
+              "location": "img/chat/message/attachments/message_9717267_14f9d07a-c9ad-443f-afc8-4c90183765fc",
+              "filename": "0"
+            }
+          ],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTcxNTkyMQ==",
+          "text": "Okay I\u2019m speaking with him",
+          "created": "2026-06-16T22:26:03.508233",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        }
+      ]
+    },
+    {
+      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzYxNDQy",
+      "title": "Marianne Fried",
+      "chatType": "HOST_SUPPORT_CHAT",
+      "isArchived": false,
+      "occupancy": {
+        "moveInDate": "2026-06-01",
+        "moveOutDate": null,
+        "conditionalEligibilityApplied": null,
+        "room": {
+          "pk": 28755,
+          "roomNumber": 6
+        },
+        "user": {
+          "picture": "img/profiles/user_911226_ad3e5aff-96a6-4362-a21a-8cab4464471a.jpg",
+          "firstName": "Marianne",
+          "lastName": "Fried",
+          "displayName": null
+        }
+      },
+      "property": {
+        "host": {
+          "firstName": "Tinghui",
+          "lastName": "Li",
+          "displayName": "",
+          "picture": ""
+        },
+        "description": "Move into a cozy House today! Newly-renovated and comfortable, this is the perfect place to call home. \n\nThe kitchen comes equipped with a fridge, sink, oven, stovetop, as well as garbage disposal, making it the perfect spot to whip up a meal or two.\n\nThe neighbourhood is near highways, and you won\u2019t be far from all Dallas has to offer.",
+        "address": {
+          "street1": "10235 Ridge Oak Street",
+          "street2": "",
+          "zip": "75227",
+          "city": {
+            "name": "Dallas",
+            "state": {
+              "name": "Texas"
+            }
+          }
+        }
+      },
+      "isCancelled": false,
+      "lastMessage": {
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTAwNzEzNDU=",
+        "created": "2026-07-05T13:53:06.857291",
+        "text": null,
+        "deleted": null,
+        "extra": null,
+        "messageType": "TICKET_UPDATE",
+        "sender": {
+          "pk": 339595,
+          "firstName": "Tinghui",
+          "lastName": "Li",
+          "displayName": ""
+        },
+        "attachments": [],
+        "paymentExtensionStatus": null,
+        "ticketStatus": {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMDMyMTU2",
+          "created": "2026-07-05T13:53:06.870512",
+          "status": "COMPLETED",
+          "canRate": false,
+          "ticket": {
+            "id": "433885",
+            "author": {
+              "firstName": "Marianne",
+              "lastName": "Fried",
+              "id": "911226",
+              "displayName": null
+            },
+            "details": "Please check on smoke alarm batteries.",
+            "location": "OTHER",
+            "status": "COMPLETED",
+            "rating": null,
+            "comment": null,
+            "category": "UNCLASSIFIED",
+            "onHoldReason": null,
+            "withdrawReason": null
+          }
+        },
+        "bookingStatus": null
+      },
+      "member": {
+        "seenAt": "2026-06-24T23:59:54.089616",
+        "isPinned": false,
+        "isUnread": true
+      },
+      "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTAwNzEzNDU=",
+          "text": null,
+          "created": "2026-07-05T13:53:06.857291",
+          "messageType": "TICKET_UPDATE",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
+            "pk": 339595,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Tinghui",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "",
+            "padmateProfileId": 278216
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMDMyMTU2",
+            "created": "2026-07-05T13:53:06.870512",
+            "status": "COMPLETED",
+            "canRate": false,
+            "ticket": {
+              "id": "433885",
+              "author": {
+                "firstName": "Marianne",
+                "lastName": "Fried",
+                "id": "911226",
+                "displayName": null
+              },
+              "details": "Please check on smoke alarm batteries.",
+              "location": "OTHER",
+              "status": "COMPLETED",
+              "rating": null,
+              "comment": null,
+              "category": "UNCLASSIFIED",
+              "onHoldReason": null,
+              "withdrawReason": null
+            }
+          },
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTAwNzEzMzk=",
+          "text": null,
+          "created": "2026-07-05T13:52:52.913211",
+          "messageType": "TICKET_UPDATE",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
+            "pk": 339595,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Tinghui",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "",
+            "padmateProfileId": 278216
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMDMyMTU1",
+            "created": "2026-07-05T13:52:52.919755",
+            "status": "COMPLETED",
+            "canRate": false,
+            "ticket": {
+              "id": "434411",
+              "author": {
+                "firstName": "Marianne",
+                "lastName": "Fried",
+                "id": "911226",
+                "displayName": null
+              },
+              "details": "Ceiling Fan \u2018s connection to the ceiling seems loose. The whole fan apparatus wobbles as the fan is running.",
+              "location": "ROOM",
+              "status": "COMPLETED",
+              "rating": null,
+              "comment": null,
+              "category": "UNCLASSIFIED",
+              "onHoldReason": null,
+              "withdrawReason": null
+            }
+          },
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTk4MDE3OA==",
+          "text": null,
+          "created": "2026-06-30T22:03:21.313730",
+          "messageType": "TICKET_UPDATE",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
+            "pk": 339595,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Tinghui",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "",
+            "padmateProfileId": 278216
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMDI1NDk2",
+            "created": "2026-06-30T22:03:21.330655",
+            "status": "SUBMITTED",
+            "canRate": false,
+            "ticket": {
+              "id": "434411",
+              "author": {
+                "firstName": "Marianne",
+                "lastName": "Fried",
+                "id": "911226",
+                "displayName": null
+              },
+              "details": "Ceiling Fan \u2018s connection to the ceiling seems loose. The whole fan apparatus wobbles as the fan is running.",
+              "location": "ROOM",
+              "status": "COMPLETED",
+              "rating": null,
+              "comment": null,
+              "category": "UNCLASSIFIED",
+              "onHoldReason": null,
+              "withdrawReason": null
+            }
+          },
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTk2MjYxNQ==",
+          "text": null,
+          "created": "2026-06-30T00:45:57.520447",
+          "messageType": "TICKET_UPDATE",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
+            "pk": 339595,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Tinghui",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "",
+            "padmateProfileId": 278216
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMDIzNzc0",
+            "created": "2026-06-30T00:45:57.554966",
+            "status": "SUBMITTED",
+            "canRate": false,
+            "ticket": {
+              "id": "433885",
+              "author": {
+                "firstName": "Marianne",
+                "lastName": "Fried",
+                "id": "911226",
+                "displayName": null
+              },
+              "details": "Please check on smoke alarm batteries.",
+              "location": "OTHER",
+              "status": "COMPLETED",
+              "rating": null,
+              "comment": null,
+              "category": "UNCLASSIFIED",
+              "onHoldReason": null,
+              "withdrawReason": null
+            }
+          },
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTg2ODkwNA==",
+          "text": "Good evening Cyndy,\nCurrently our daytime thermostat has consistently read as 79  degrees. Can you lower the temperature? \nThanks. ",
+          "created": "2026-06-24T23:18:32.048037",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkxMTIyNg==",
+            "pk": 911226,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_911226_ad3e5aff-96a6-4362-a21a-8cab4464471a.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_911226_ad3e5aff-96a6-4362-a21a-8cab4464471a.jpg",
+            "firstName": "Marianne",
+            "lastName": "Fried",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 848697
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTc0OTI3Nw==",
+          "text": null,
+          "created": "2026-06-18T15:18:29.013069",
+          "messageType": "TICKET_UPDATE",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
+            "pk": 339595,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Tinghui",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "",
+            "padmateProfileId": 278216
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMDA1MTIx",
+            "created": "2026-06-18T15:18:29.029815",
+            "status": "COMPLETED",
+            "canRate": false,
+            "ticket": {
+              "id": "423004",
+              "author": {
+                "firstName": "Marianne",
+                "lastName": "Fried",
+                "id": "911226",
+                "displayName": null
+              },
+              "details": "Hello, please give me timeframe when you be by to install the door knob and padlock. As it stands now, anyone can come and go into my room when I\u2019m not home Thank you",
+              "location": "DOORLOCK",
+              "status": "ARCHIVED",
+              "rating": null,
+              "comment": null,
+              "category": "UNCLASSIFIED",
+              "onHoldReason": null,
+              "withdrawReason": null
+            }
+          },
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTc0OTI3NQ==",
+          "text": null,
+          "created": "2026-06-18T15:18:13.064369",
+          "messageType": "TICKET_UPDATE",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
+            "pk": 339595,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Tinghui",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "",
+            "padmateProfileId": 278216
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMDA1MTIw",
+            "created": "2026-06-18T15:18:13.075456",
+            "status": "COMPLETED",
+            "canRate": false,
+            "ticket": {
+              "id": "425154",
+              "author": {
+                "firstName": "Marianne",
+                "lastName": "Fried",
+                "id": "911226",
+                "displayName": null
+              },
+              "details": "The replaced? Padlock installation is incomplete. How do I get it to secure closed when the latch does not lock in place when I leave? I believe the old lock was tightened to secure it back in place  (it is still  installed crookedly ), and an additional backing that covers the batteries was snapped on. The other padlocks in this padsplit  home includes a door handled in the middle of each door\u2019s device to help the padlock\u2019s latch into place. Please, please repair this properly.",
+              "location": "ROOM",
+              "status": "ARCHIVED",
+              "rating": null,
+              "comment": null,
+              "category": "UNCLASSIFIED",
+              "onHoldReason": null,
+              "withdrawReason": null
+            }
+          },
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTY2MzQzMg==",
+          "text": "Thanks so much Cyndy. ",
+          "created": "2026-06-14T18:19:58.402476",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkxMTIyNg==",
+            "pk": 911226,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_911226_ad3e5aff-96a6-4362-a21a-8cab4464471a.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_911226_ad3e5aff-96a6-4362-a21a-8cab4464471a.jpg",
+            "firstName": "Marianne",
+            "lastName": "Fried",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 848697
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTY2MzQwNQ==",
+          "text": "I\u2019ll reach out to him once more",
+          "created": "2026-06-14T18:18:49.243202",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTY2MzM4MA==",
+          "text": "Good afternoon Cyndy.  It isn\u2019t fixed just yet. ",
+          "created": "2026-06-14T18:17:06.612510",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkxMTIyNg==",
+            "pk": 911226,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_911226_ad3e5aff-96a6-4362-a21a-8cab4464471a.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_911226_ad3e5aff-96a6-4362-a21a-8cab4464471a.jpg",
+            "firstName": "Marianne",
+            "lastName": "Fried",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 848697
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        }
+      ]
+    },
+    {
+      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzExMzYw",
+      "title": "Mattie Garcia Garcia",
+      "chatType": "HOST_SUPPORT_CHAT",
+      "isArchived": false,
+      "occupancy": {
+        "moveInDate": "2026-03-20",
+        "moveOutDate": "2026-06-28",
+        "conditionalEligibilityApplied": null,
+        "room": {
+          "pk": 32869,
+          "roomNumber": 3
+        },
+        "user": {
+          "picture": "img/profiles/user_975616_23eea02f-eb0b-4468-a457-3fe5182bb837.jpg",
+          "firstName": "Mathilda",
+          "lastName": "Garcia",
+          "displayName": "Mattie Garcia"
+        }
+      },
+      "property": {
+        "host": {
+          "firstName": "Ang",
+          "lastName": "Li",
+          "displayName": "Cyndy Manager",
+          "picture": ""
+        },
+        "description": "Your new home awaits! This homey Arlington home is waiting for you. This PadSplit has a Backyard, and it\u2019s newly-renovated and comfortable.\n\nThe kitchen comes equipped with a fridge, sink, oven, stovetop, as well as upgraded appliances.\n\nThe neighbourhood is close to public transit, which means you won\u2019t be far from all Arlington has to offer.",
+        "address": {
+          "street1": "3406 Green Hill Drive",
+          "street2": "",
+          "zip": "76014",
+          "city": {
+            "name": "Arlington",
+            "state": {
+              "name": "Texas"
+            }
+          }
+        }
+      },
+      "isCancelled": false,
+      "lastMessage": {
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTAwNzEzMDI=",
+        "created": "2026-07-05T13:51:10.035772",
+        "text": "Good Morning Mattie, are you moved out now?",
+        "deleted": null,
+        "extra": null,
+        "messageType": "TEXT",
+        "sender": {
+          "pk": 318367,
+          "firstName": "Ang",
+          "lastName": "Li",
+          "displayName": "Cyndy Manager"
+        },
+        "attachments": [],
+        "paymentExtensionStatus": null,
+        "ticketStatus": null,
+        "bookingStatus": null
+      },
+      "member": {
+        "seenAt": "2026-07-05T13:51:12.510847",
+        "isPinned": false,
+        "isUnread": false
+      },
+      "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTAwNzEzMDI=",
+          "text": "Good Morning Mattie, are you moved out now?",
+          "created": "2026-07-05T13:51:10.035772",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTk2MjA1NA==",
+          "text": "Cyndy, \n\nI do not have an exact date. I don\u2019t want to tell you the wrong date. When I receive an update, I will let you know. I did receive an email from Padsplit notifying me that I had until July13th to move out. Please do not ask other padsplit roommates if I am still here. You could have asked me and I would have told you. This  is my personal business and asking other roommate if I moved out is not it\u2019s not professional. It also puts that person in an awkward position. Thanks for understanding. If and when I receive a date to move ahead of time I will notify you.out, More than likely it will be Friday, Saturday or Sunday. \ufffc That is the timeframe that I was last given from the other location.\n\nMany thanks,\nMattie Garcia ",
+          "created": "2026-06-30T00:16:12.511961",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjk3NTYxNg==",
+            "pk": 975616,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_975616_23eea02f-eb0b-4468-a457-3fe5182bb837.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_975616_23eea02f-eb0b-4468-a457-3fe5182bb837.jpg",
+            "firstName": "Mathilda",
+            "lastName": "Garcia",
+            "isActive": true,
+            "displayName": "Mattie Garcia",
+            "padmateProfileId": 913065
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTk1MDQxOQ==",
+          "text": "You will pay the day you live. Give me exactly the day you move out.",
+          "created": "2026-06-29T15:50:20.287061",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTk0NzU4OA==",
+          "text": "I will pay what I owe. I arranged for another place that is not ready. I am not purposely staying over and my account will be paid in full. As I mentioned in my message earlier, I will be moving this week, the  latest the weekend. unfortunately the economy and employment is really bad right now and is out of my control. \nNo need to reply. Have a nice week \ud83d\ude03",
+          "created": "2026-06-29T14:12:03.066726",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjk3NTYxNg==",
+            "pk": 975616,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_975616_23eea02f-eb0b-4468-a457-3fe5182bb837.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_975616_23eea02f-eb0b-4468-a457-3fe5182bb837.jpg",
+            "firstName": "Mathilda",
+            "lastName": "Garcia",
+            "isActive": true,
+            "displayName": "Mattie Garcia",
+            "padmateProfileId": 913065
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTk0NzQ2MA==",
+          "text": "You said you\u2019d be last week now you said by Friday, it\u2019s okay if the property doesn\u2019t meet up to your standard and you want to leave, what\u2019s not okay is you staying more than a week without paying. I do not appreciate it either. The proper thing to do is move out and not staying without payment. Kindly leave",
+          "created": "2026-06-29T14:05:31.453589",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTk0NzAxMw==",
+          "text": "I am not planning on staying. I am leaving as soon as possible. I am hoping to be gone by Friday. I will send pictures upon move out. If you need to file eviction you can but it will be a waste because I will be moved out by the time a court date is set. Also I don\u2019t appreciate being harassed and threatened by a court order and my credit. I know exactly how the eviction process works. I don\u2019t appreciate being told. My things are going to be removed because that is illegal and I don\u2019t want to be threatened regarding my credit being ruined and court. I am talking with Padsplit management regarding the balance as I have mentioned multiple complaints people living here that don\u2019t be long other guest staying the night a new guest that is a rate crazy slams. The doors constantly gets into people stuff and the temperature in the room that I am in is hot all the time. The bedroom door does not even have a door knob or handle to pull it closed so the lock will engage. The common areas not being cleaned ever since I\u2019ve been here. The day I moved in there was a used condom in the window sill with bodily fluids inside of it. Trash in the room so there are multiple issues that I have sent to you or discussed with you multiple times. The lock to my door was not fixed for almost a month or longer.  I had narcotic medication come up missing so I will take this up with Padsplit.  If you feel like you need to file a court order then I understand. I hope you have a great day..\nKind regards,\nMattie Garcia ",
+          "created": "2026-06-29T13:45:19.580059",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjk3NTYxNg==",
+            "pk": 975616,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_975616_23eea02f-eb0b-4468-a457-3fe5182bb837.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_975616_23eea02f-eb0b-4468-a457-3fe5182bb837.jpg",
+            "firstName": "Mathilda",
+            "lastName": "Garcia",
+            "isActive": true,
+            "displayName": "Mattie Garcia",
+            "padmateProfileId": 913065
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTk0NjY5MQ==",
+          "text": "We filed to court, you are going to pay court fee, owed fee plus interest. This will damage your credit dramatically . You can not borrow any money from bank. You also lose the right to live In Padsplit property . Leave now before I receive court order!!! \ufffc",
+          "created": "2026-06-29T13:25:31.406985",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTkzMTg2MA==",
+          "text": null,
+          "created": "2026-06-28T15:04:50.939631",
+          "messageType": "TICKET_UPDATE",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMDIwODQ5",
+            "created": "2026-06-28T15:04:50.945742",
+            "status": "SUBMITTED",
+            "canRate": false,
+            "ticket": {
+              "id": "432997",
+              "author": {
+                "firstName": "Mathilda",
+                "lastName": "Garcia",
+                "id": "975616",
+                "displayName": "Mattie Garcia"
+              },
+              "details": "Collections",
+              "location": "ROOM",
+              "status": "SUBMITTED",
+              "rating": null,
+              "comment": null,
+              "category": "ROOM_TURN",
+              "onHoldReason": null,
+              "withdrawReason": null
+            }
+          },
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTkyODQ4MQ==",
+          "text": "Texas Eviction Notice\n\n\nTo Mattie Garcia Garcia\n\n\nPROPERTY ADDRESS:\n\n3406 Green Hill Drive Arlington, TX, 76014\n\n\nDate: 27/06/2026\n\n\nPLEASE TAKE NOTICE that your tenancy at the above-described premises is hereby terminated as of after the service of this notice.\n\n\nYOU ARE HEREBY required to vacate the premises and return possession to the landlord/owner by (29/06/2026). Failure to comply may result in legal action to remove you from the premises.\n\n\nREASON FOR EVICTION:\nX\u2610 Non-payment of rent\nX\u2610 Lease violation\nX\u2610 End of lease term\n\u2610 Other: (Specify reason)\nNon payment\n\nLEGAL NOTICE: This notice complies with Texas Property Code \u00a7 24.005. If you fail to vacate within the time specified, the landlord may file for eviction in court.\n\n\nLANDLORD/PROPERTY MANAGER INFORMATION:\n\n\nName: Tinghui Li\nPhone: 9452413070\nEmail: xxxxxxxx\n\n\nDated: 28/06/2026\n\n\nLandlord/ Manager Signature: Cyndy",
+          "created": "2026-06-28T07:44:35.925869",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTg4OTA3MQ==",
+          "text": "You still didn\u2019t leave yesterday right?",
+          "created": "2026-06-26T00:18:34.018192",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        }
+      ]
+    },
+    {
+      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzY1OTYy",
+      "title": "Darrick Mendoza",
+      "chatType": "HOST_SUPPORT_CHAT",
+      "isArchived": false,
+      "occupancy": {
+        "moveInDate": "2026-06-08",
+        "moveOutDate": null,
+        "conditionalEligibilityApplied": null,
+        "room": {
+          "pk": 55037,
+          "roomNumber": 8
+        },
+        "user": {
+          "picture": "img/profiles/user_502556_b2f3aecd-c960-4e71-a80d-436fff4c3cf2.jpg",
+          "firstName": "Darrick",
+          "lastName": "Mendoza",
+          "displayName": null
+        }
+      },
+      "property": {
+        "host": {
+          "firstName": "Ang",
+          "lastName": "Li",
+          "displayName": null,
+          "picture": ""
+        },
+        "description": "Move into a newly-renovated House today! Homey and comfortable, this is the perfect place to call home. \n\nThe kitchen comes equipped with a fridge, sink, oven, stovetop, as well as garbage disposal, making it the perfect spot to whip up a meal or two.\n\nThe neighbourhood is near highways, and you won\u2019t be far from all Haltom City has to offer.",
+        "address": {
+          "street1": "3541 Parker Road East",
+          "street2": "",
+          "zip": "76117",
+          "city": {
+            "name": "Haltom City",
+            "state": {
+              "name": "Texas"
+            }
+          }
+        }
+      },
+      "isCancelled": false,
+      "lastMessage": {
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTAwNzEyOTg=",
+        "created": "2026-07-05T13:50:53.926917",
+        "text": "Okay \ud83d\ude42",
+        "deleted": null,
+        "extra": null,
+        "messageType": "TEXT",
+        "sender": {
+          "pk": 502556,
+          "firstName": "Darrick",
+          "lastName": "Mendoza",
+          "displayName": null
+        },
+        "attachments": [],
+        "paymentExtensionStatus": null,
+        "ticketStatus": null,
+        "bookingStatus": null
+      },
+      "member": {
+        "seenAt": "2026-07-05T13:50:30.139918",
+        "isPinned": false,
+        "isUnread": true
+      },
+      "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTAwNzEyOTg=",
+          "text": "Okay \ud83d\ude42",
+          "created": "2026-07-05T13:50:53.926917",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjUwMjU1Ng==",
+            "pk": 502556,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_502556_b2f3aecd-c960-4e71-a80d-436fff4c3cf2.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_502556_b2f3aecd-c960-4e71-a80d-436fff4c3cf2.jpg",
+            "firstName": "Darrick",
+            "lastName": "Mendoza",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 440374
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTAwNzEyOTE=",
+          "text": "I know, I\u2019m sorting it out with padsplit",
+          "created": "2026-07-05T13:50:28.961061",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTAwNzEwODA=",
+          "text": "I called padsplit and let them know",
+          "created": "2026-07-05T13:35:10.772236",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjUwMjU1Ng==",
+            "pk": 502556,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_502556_b2f3aecd-c960-4e71-a80d-436fff4c3cf2.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_502556_b2f3aecd-c960-4e71-a80d-436fff4c3cf2.jpg",
+            "firstName": "Darrick",
+            "lastName": "Mendoza",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 440374
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTAwNzA2MjM=",
+          "text": "It says someone is moving into room #1 today but I have already moved into room #1",
+          "created": "2026-07-05T12:55:53.346676",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjUwMjU1Ng==",
+            "pk": 502556,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_502556_b2f3aecd-c960-4e71-a80d-436fff4c3cf2.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_502556_b2f3aecd-c960-4e71-a80d-436fff4c3cf2.jpg",
+            "firstName": "Darrick",
+            "lastName": "Mendoza",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 440374
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTAwMjExOTQ=",
+          "text": "There is $384 for the $40 fee and rest of rent,if I owe more I can send",
+          "created": "2026-07-02T16:19:48.434138",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjUwMjU1Ng==",
+            "pk": 502556,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_502556_b2f3aecd-c960-4e71-a80d-436fff4c3cf2.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_502556_b2f3aecd-c960-4e71-a80d-436fff4c3cf2.jpg",
+            "firstName": "Darrick",
+            "lastName": "Mendoza",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 440374
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTAwMjExMTU=",
+          "text": "Okay sounds good",
+          "created": "2026-07-02T16:15:33.687325",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjUwMjU1Ng==",
+            "pk": 502556,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_502556_b2f3aecd-c960-4e71-a80d-436fff4c3cf2.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_502556_b2f3aecd-c960-4e71-a80d-436fff4c3cf2.jpg",
+            "firstName": "Darrick",
+            "lastName": "Mendoza",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 440374
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTAwMjExMTI=",
+          "text": "Yes I have moved in",
+          "created": "2026-07-02T16:15:19.478554",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjUwMjU1Ng==",
+            "pk": 502556,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_502556_b2f3aecd-c960-4e71-a80d-436fff4c3cf2.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_502556_b2f3aecd-c960-4e71-a80d-436fff4c3cf2.jpg",
+            "firstName": "Darrick",
+            "lastName": "Mendoza",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 440374
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTAwMTg0Mzc=",
+          "text": "Hope your aware room 1 is $172 weekly",
+          "created": "2026-07-02T14:36:25.068457",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTAwMTg0MTc=",
+          "text": "Have you moved?",
+          "created": "2026-07-02T14:34:39.639029",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTAwMTQ1OTc=",
+          "text": "Alright code is 1587",
+          "created": "2026-07-02T11:40:48.889204",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        }
+      ]
+    },
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6Mzg1NzUx",
       "title": "Steven Fisher",
@@ -424,7 +2448,7 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-07-04T19:06:49.868134",
+        "seenAt": "2026-07-05T13:51:22.165757",
         "isPinned": false,
         "isUnread": false
       },
@@ -519,7 +2543,7 @@
               },
               "details": "Collections",
               "location": "ROOM",
-              "status": "SUBMITTED",
+              "status": "EVICTION",
               "rating": null,
               "comment": null,
               "category": "ROOM_TURN",
@@ -593,7 +2617,7 @@
               },
               "details": "Collections",
               "location": "ROOM",
-              "status": "SUBMITTED",
+              "status": "EVICTION",
               "rating": null,
               "comment": null,
               "category": "ROOM_TURN",
@@ -3073,1209 +5097,6 @@
       ]
     },
     {
-      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzY1OTYy",
-      "title": "Darrick Mendoza",
-      "chatType": "HOST_SUPPORT_CHAT",
-      "isArchived": false,
-      "occupancy": {
-        "moveInDate": "2026-06-08",
-        "moveOutDate": null,
-        "conditionalEligibilityApplied": null,
-        "room": {
-          "pk": 55037,
-          "roomNumber": 8
-        },
-        "user": {
-          "picture": "img/profiles/user_502556_b2f3aecd-c960-4e71-a80d-436fff4c3cf2.jpg",
-          "firstName": "Darrick",
-          "lastName": "Mendoza",
-          "displayName": null
-        }
-      },
-      "property": {
-        "host": {
-          "firstName": "Ang",
-          "lastName": "Li",
-          "displayName": null,
-          "picture": ""
-        },
-        "description": "Move into a newly-renovated House today! Homey and comfortable, this is the perfect place to call home. \n\nThe kitchen comes equipped with a fridge, sink, oven, stovetop, as well as garbage disposal, making it the perfect spot to whip up a meal or two.\n\nThe neighbourhood is near highways, and you won\u2019t be far from all Haltom City has to offer.",
-        "address": {
-          "street1": "3541 Parker Road East",
-          "street2": "",
-          "zip": "76117",
-          "city": {
-            "name": "Haltom City",
-            "state": {
-              "name": "Texas"
-            }
-          }
-        }
-      },
-      "isCancelled": false,
-      "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTAwMjExOTQ=",
-        "created": "2026-07-02T16:19:48.434138",
-        "text": "There is $384 for the $40 fee and rest of rent,if I owe more I can send",
-        "deleted": null,
-        "extra": null,
-        "messageType": "TEXT",
-        "sender": {
-          "pk": 502556,
-          "firstName": "Darrick",
-          "lastName": "Mendoza",
-          "displayName": null
-        },
-        "attachments": [],
-        "paymentExtensionStatus": null,
-        "ticketStatus": null,
-        "bookingStatus": null
-      },
-      "member": {
-        "seenAt": "2026-07-02T19:41:53.246852",
-        "isPinned": false,
-        "isUnread": false
-      },
-      "recent_messages": [
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTAwMjExOTQ=",
-          "text": "There is $384 for the $40 fee and rest of rent,if I owe more I can send",
-          "created": "2026-07-02T16:19:48.434138",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjUwMjU1Ng==",
-            "pk": 502556,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_502556_b2f3aecd-c960-4e71-a80d-436fff4c3cf2.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_502556_b2f3aecd-c960-4e71-a80d-436fff4c3cf2.jpg",
-            "firstName": "Darrick",
-            "lastName": "Mendoza",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 440374
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTAwMjExMTU=",
-          "text": "Okay sounds good",
-          "created": "2026-07-02T16:15:33.687325",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjUwMjU1Ng==",
-            "pk": 502556,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_502556_b2f3aecd-c960-4e71-a80d-436fff4c3cf2.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_502556_b2f3aecd-c960-4e71-a80d-436fff4c3cf2.jpg",
-            "firstName": "Darrick",
-            "lastName": "Mendoza",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 440374
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTAwMjExMTI=",
-          "text": "Yes I have moved in",
-          "created": "2026-07-02T16:15:19.478554",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjUwMjU1Ng==",
-            "pk": 502556,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_502556_b2f3aecd-c960-4e71-a80d-436fff4c3cf2.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_502556_b2f3aecd-c960-4e71-a80d-436fff4c3cf2.jpg",
-            "firstName": "Darrick",
-            "lastName": "Mendoza",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 440374
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTAwMTg0Mzc=",
-          "text": "Hope your aware room 1 is $172 weekly",
-          "created": "2026-07-02T14:36:25.068457",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTAwMTg0MTc=",
-          "text": "Have you moved?",
-          "created": "2026-07-02T14:34:39.639029",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTAwMTQ1OTc=",
-          "text": "Alright code is 1587",
-          "created": "2026-07-02T11:40:48.889204",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTAwMDg3OTM=",
-          "text": "Just need door code",
-          "created": "2026-07-01T22:42:49.543707",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjUwMjU1Ng==",
-            "pk": 502556,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_502556_b2f3aecd-c960-4e71-a80d-436fff4c3cf2.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_502556_b2f3aecd-c960-4e71-a80d-436fff4c3cf2.jpg",
-            "firstName": "Darrick",
-            "lastName": "Mendoza",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 440374
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTAwMDg3ODg=",
-          "text": "Room 8 is clean and I am moved into room #1",
-          "created": "2026-07-01T22:42:39.214940",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjUwMjU1Ng==",
-            "pk": 502556,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_502556_b2f3aecd-c960-4e71-a80d-436fff4c3cf2.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_502556_b2f3aecd-c960-4e71-a80d-436fff4c3cf2.jpg",
-            "firstName": "Darrick",
-            "lastName": "Mendoza",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 440374
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTAwMDcxNTU=",
-          "text": "I am on my way home now and will clean and switch rooms ",
-          "created": "2026-07-01T21:25:33.089312",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjUwMjU1Ng==",
-            "pk": 502556,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_502556_b2f3aecd-c960-4e71-a80d-436fff4c3cf2.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_502556_b2f3aecd-c960-4e71-a80d-436fff4c3cf2.jpg",
-            "firstName": "Darrick",
-            "lastName": "Mendoza",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 440374
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTk5ODM1NQ==",
-          "text": "That would be greta",
-          "created": "2026-07-01T15:01:26.187974",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        }
-      ]
-    },
-    {
-      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MjY2NDg1",
-      "title": "Darcy Gonzalez",
-      "chatType": "HOST_SUPPORT_CHAT",
-      "isArchived": false,
-      "occupancy": {
-        "moveInDate": "2026-01-18",
-        "moveOutDate": "2026-07-01",
-        "conditionalEligibilityApplied": null,
-        "room": {
-          "pk": 82575,
-          "roomNumber": 5
-        },
-        "user": {
-          "picture": "img/profiles/user_922060_ac75308f-4740-4386-8af0-24c1789576a2.jpg",
-          "firstName": "Darcy",
-          "lastName": "Gonzalez",
-          "displayName": null
-        }
-      },
-      "property": {
-        "host": {
-          "firstName": "Ang",
-          "lastName": "Li",
-          "displayName": "Cyndy Manager",
-          "picture": ""
-        },
-        "description": "Your new home awaits! This comfortable Fort Worth home is waiting for you. This PadSplit has a Backyard, and it\u2019s newly-renovated and homey.\n\nThe kitchen comes equipped with a fridge, sink, oven, stovetop, as well as upgraded appliances.\n\nThe neighbourhood is near highways, which means you won\u2019t be far from all Fort Worth has to offer.",
-        "address": {
-          "street1": "5509 Burton Avenue",
-          "street2": "",
-          "zip": "76119",
-          "city": {
-            "name": "Fort Worth",
-            "state": {
-              "name": "Texas"
-            }
-          }
-        }
-      },
-      "isCancelled": false,
-      "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTk5NjIzMw==",
-        "created": "2026-07-01T13:28:45.794124",
-        "text": null,
-        "deleted": null,
-        "extra": null,
-        "messageType": "MOVE_OUT_PHOTOS",
-        "sender": {
-          "pk": 922060,
-          "firstName": "Darcy",
-          "lastName": "Gonzalez",
-          "displayName": null
-        },
-        "attachments": [
-          {
-            "mediaType": "PICTURE",
-            "deleted": null
-          },
-          {
-            "mediaType": "PICTURE",
-            "deleted": null
-          }
-        ],
-        "paymentExtensionStatus": null,
-        "ticketStatus": null,
-        "bookingStatus": null
-      },
-      "member": {
-        "seenAt": "2026-06-30T06:30:13.619658",
-        "isPinned": false,
-        "isUnread": true
-      },
-      "recent_messages": [
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTk5NjIzMw==",
-          "text": null,
-          "created": "2026-07-01T13:28:45.794124",
-          "messageType": "MOVE_OUT_PHOTOS",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkyMjA2MA==",
-            "pk": 922060,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_922060_ac75308f-4740-4386-8af0-24c1789576a2.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_922060_ac75308f-4740-4386-8af0-24c1789576a2.jpg",
-            "firstName": "Darcy",
-            "lastName": "Gonzalez",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 859530
-          },
-          "attachments": [
-            {
-              "id": "TWVzc2VuZ2VyQXR0YWNobWVudFR5cGU6NzcyOTg4",
-              "deleted": null,
-              "mediaType": "PICTURE",
-              "location": "img/chat/message/attachments/message_9996233_61da6f46-7a2d-4b79-a623-899707485703.jpg",
-              "filename": "9fbe51be-d783-484f-9398-8d478e270967.jpg"
-            },
-            {
-              "id": "TWVzc2VuZ2VyQXR0YWNobWVudFR5cGU6NzcyOTg3",
-              "deleted": null,
-              "mediaType": "PICTURE",
-              "location": "img/chat/message/attachments/message_9996233_37862ff0-90d0-4f0a-8294-cc476834e4e9.jpg",
-              "filename": "0ded04ea-4f32-4a4e-bfe4-6ec0bd5fa781.jpg"
-            }
-          ],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTk5NDY2Nw==",
-          "text": null,
-          "created": "2026-07-01T12:31:16.019443",
-          "messageType": "TICKET_UPDATE",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": {
-            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMDI2MTUw",
-            "created": "2026-07-01T12:31:16.032752",
-            "status": "SUBMITTED",
-            "canRate": false,
-            "ticket": {
-              "id": "434636",
-              "author": {
-                "firstName": "Darcy",
-                "lastName": "Gonzalez",
-                "id": "922060",
-                "displayName": null
-              },
-              "details": "unresolved-maintenance",
-              "location": "ROOM",
-              "status": "SUBMITTED",
-              "rating": null,
-              "comment": null,
-              "category": "ROOM_TURN",
-              "onHoldReason": null,
-              "withdrawReason": null
-            }
-          },
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTk2NTUyNA==",
-          "text": "Maintenance guy confirmed it worked",
-          "created": "2026-06-30T06:30:12.323056",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTk2NTUyMw==",
-          "text": "Did you input the code",
-          "created": "2026-06-30T06:29:56.850281",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTk2MDAzNw==",
-          "text": "Hi Cyndy I want to move out within the next 2 weeks and my boyfriend is going to be helping me move out tonight tomorrow and within the next couple of weeks starting tonight ",
-          "created": "2026-06-29T22:33:34.668918",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkyMjA2MA==",
-            "pk": 922060,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_922060_ac75308f-4740-4386-8af0-24c1789576a2.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_922060_ac75308f-4740-4386-8af0-24c1789576a2.jpg",
-            "firstName": "Darcy",
-            "lastName": "Gonzalez",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 859530
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTk1NzQ3Ng==",
-          "text": "Hi there, my lock still doesn\u2019t work correctly ",
-          "created": "2026-06-29T20:42:27.691421",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkyMjA2MA==",
-            "pk": 922060,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_922060_ac75308f-4740-4386-8af0-24c1789576a2.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_922060_ac75308f-4740-4386-8af0-24c1789576a2.jpg",
-            "firstName": "Darcy",
-            "lastName": "Gonzalez",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 859530
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTk1Njc1NQ==",
-          "text": null,
-          "created": "2026-06-29T20:14:18.594183",
-          "messageType": "TICKET_UPDATE",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": {
-            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMDIzMzAy",
-            "created": "2026-06-29T20:14:18.602126",
-            "status": "SUBMITTED",
-            "canRate": false,
-            "ticket": {
-              "id": "433783",
-              "author": {
-                "firstName": "Darcy",
-                "lastName": "Gonzalez",
-                "id": "922060",
-                "displayName": null
-              },
-              "details": "Lock issues \u2014 the door isn\u2019t locking (2nd request) problem was never resolved",
-              "location": "ROOM",
-              "status": "SUBMITTED",
-              "rating": null,
-              "comment": null,
-              "category": "UNCLASSIFIED",
-              "onHoldReason": null,
-              "withdrawReason": null
-            }
-          },
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTgwMjkzNw==",
-          "text": null,
-          "created": "2026-06-21T15:06:39.968939",
-          "messageType": "TICKET_UPDATE",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": {
-            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMDA5MzY3",
-            "created": "2026-06-21T15:06:39.975770",
-            "status": "COMPLETED",
-            "canRate": false,
-            "ticket": {
-              "id": "427766",
-              "author": {
-                "firstName": "Darcy",
-                "lastName": "Gonzalez",
-                "id": "922060",
-                "displayName": null
-              },
-              "details": "Lock issues",
-              "location": "ROOM",
-              "status": "ARCHIVED",
-              "rating": null,
-              "comment": null,
-              "category": "UNCLASSIFIED",
-              "onHoldReason": null,
-              "withdrawReason": null
-            }
-          },
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTgwMTQ1OQ==",
-          "text": "Will they be continuing to work on my lock today?",
-          "created": "2026-06-21T13:34:44.912240",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkyMjA2MA==",
-            "pk": 922060,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_922060_ac75308f-4740-4386-8af0-24c1789576a2.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_922060_ac75308f-4740-4386-8af0-24c1789576a2.jpg",
-            "firstName": "Darcy",
-            "lastName": "Gonzalez",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 859530
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTc5ODQ2MA==",
-          "text": "So it hasn\u2019t been completed?",
-          "created": "2026-06-21T02:42:25.407298",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkyMjA2MA==",
-            "pk": 922060,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_922060_ac75308f-4740-4386-8af0-24c1789576a2.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_922060_ac75308f-4740-4386-8af0-24c1789576a2.jpg",
-            "firstName": "Darcy",
-            "lastName": "Gonzalez",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 859530
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        }
-      ]
-    },
-    {
-      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzYxNDQy",
-      "title": "Marianne Fried",
-      "chatType": "HOST_SUPPORT_CHAT",
-      "isArchived": false,
-      "occupancy": {
-        "moveInDate": "2026-06-01",
-        "moveOutDate": null,
-        "conditionalEligibilityApplied": null,
-        "room": {
-          "pk": 28755,
-          "roomNumber": 6
-        },
-        "user": {
-          "picture": "img/profiles/user_911226_ad3e5aff-96a6-4362-a21a-8cab4464471a.jpg",
-          "firstName": "Marianne",
-          "lastName": "Fried",
-          "displayName": null
-        }
-      },
-      "property": {
-        "host": {
-          "firstName": "Tinghui",
-          "lastName": "Li",
-          "displayName": "",
-          "picture": ""
-        },
-        "description": "Move into a cozy House today! Newly-renovated and comfortable, this is the perfect place to call home. \n\nThe kitchen comes equipped with a fridge, sink, oven, stovetop, as well as garbage disposal, making it the perfect spot to whip up a meal or two.\n\nThe neighbourhood is near highways, and you won\u2019t be far from all Dallas has to offer.",
-        "address": {
-          "street1": "10235 Ridge Oak Street",
-          "street2": "",
-          "zip": "75227",
-          "city": {
-            "name": "Dallas",
-            "state": {
-              "name": "Texas"
-            }
-          }
-        }
-      },
-      "isCancelled": false,
-      "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTk4MDE3OA==",
-        "created": "2026-06-30T22:03:21.313730",
-        "text": null,
-        "deleted": null,
-        "extra": null,
-        "messageType": "TICKET_UPDATE",
-        "sender": {
-          "pk": 339595,
-          "firstName": "Tinghui",
-          "lastName": "Li",
-          "displayName": ""
-        },
-        "attachments": [],
-        "paymentExtensionStatus": null,
-        "ticketStatus": {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMDI1NDk2",
-          "created": "2026-06-30T22:03:21.330655",
-          "status": "SUBMITTED",
-          "canRate": false,
-          "ticket": {
-            "id": "434411",
-            "author": {
-              "firstName": "Marianne",
-              "lastName": "Fried",
-              "id": "911226",
-              "displayName": null
-            },
-            "details": "Ceiling Fan \u2018s connection to the ceiling seems loose. The whole fan apparatus wobbles as the fan is running.",
-            "location": "ROOM",
-            "status": "SUBMITTED",
-            "rating": null,
-            "comment": null,
-            "category": "UNCLASSIFIED",
-            "onHoldReason": null,
-            "withdrawReason": null
-          }
-        },
-        "bookingStatus": null
-      },
-      "member": {
-        "seenAt": "2026-06-24T23:59:54.089616",
-        "isPinned": false,
-        "isUnread": true
-      },
-      "recent_messages": [
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTk4MDE3OA==",
-          "text": null,
-          "created": "2026-06-30T22:03:21.313730",
-          "messageType": "TICKET_UPDATE",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
-            "pk": 339595,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Tinghui",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "",
-            "padmateProfileId": 278216
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": {
-            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMDI1NDk2",
-            "created": "2026-06-30T22:03:21.330655",
-            "status": "SUBMITTED",
-            "canRate": false,
-            "ticket": {
-              "id": "434411",
-              "author": {
-                "firstName": "Marianne",
-                "lastName": "Fried",
-                "id": "911226",
-                "displayName": null
-              },
-              "details": "Ceiling Fan \u2018s connection to the ceiling seems loose. The whole fan apparatus wobbles as the fan is running.",
-              "location": "ROOM",
-              "status": "SUBMITTED",
-              "rating": null,
-              "comment": null,
-              "category": "UNCLASSIFIED",
-              "onHoldReason": null,
-              "withdrawReason": null
-            }
-          },
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTk2MjYxNQ==",
-          "text": null,
-          "created": "2026-06-30T00:45:57.520447",
-          "messageType": "TICKET_UPDATE",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
-            "pk": 339595,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Tinghui",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "",
-            "padmateProfileId": 278216
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": {
-            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMDIzNzc0",
-            "created": "2026-06-30T00:45:57.554966",
-            "status": "SUBMITTED",
-            "canRate": false,
-            "ticket": {
-              "id": "433885",
-              "author": {
-                "firstName": "Marianne",
-                "lastName": "Fried",
-                "id": "911226",
-                "displayName": null
-              },
-              "details": "Please check on smoke alarm batteries.",
-              "location": "OTHER",
-              "status": "SUBMITTED",
-              "rating": null,
-              "comment": null,
-              "category": "UNCLASSIFIED",
-              "onHoldReason": null,
-              "withdrawReason": null
-            }
-          },
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTg2ODkwNA==",
-          "text": "Good evening Cyndy,\nCurrently our daytime thermostat has consistently read as 79  degrees. Can you lower the temperature? \nThanks. ",
-          "created": "2026-06-24T23:18:32.048037",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkxMTIyNg==",
-            "pk": 911226,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_911226_ad3e5aff-96a6-4362-a21a-8cab4464471a.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_911226_ad3e5aff-96a6-4362-a21a-8cab4464471a.jpg",
-            "firstName": "Marianne",
-            "lastName": "Fried",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 848697
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTc0OTI3Nw==",
-          "text": null,
-          "created": "2026-06-18T15:18:29.013069",
-          "messageType": "TICKET_UPDATE",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
-            "pk": 339595,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Tinghui",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "",
-            "padmateProfileId": 278216
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": {
-            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMDA1MTIx",
-            "created": "2026-06-18T15:18:29.029815",
-            "status": "COMPLETED",
-            "canRate": false,
-            "ticket": {
-              "id": "423004",
-              "author": {
-                "firstName": "Marianne",
-                "lastName": "Fried",
-                "id": "911226",
-                "displayName": null
-              },
-              "details": "Hello, please give me timeframe when you be by to install the door knob and padlock. As it stands now, anyone can come and go into my room when I\u2019m not home Thank you",
-              "location": "DOORLOCK",
-              "status": "ARCHIVED",
-              "rating": null,
-              "comment": null,
-              "category": "UNCLASSIFIED",
-              "onHoldReason": null,
-              "withdrawReason": null
-            }
-          },
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTc0OTI3NQ==",
-          "text": null,
-          "created": "2026-06-18T15:18:13.064369",
-          "messageType": "TICKET_UPDATE",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
-            "pk": 339595,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Tinghui",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "",
-            "padmateProfileId": 278216
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": {
-            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMDA1MTIw",
-            "created": "2026-06-18T15:18:13.075456",
-            "status": "COMPLETED",
-            "canRate": false,
-            "ticket": {
-              "id": "425154",
-              "author": {
-                "firstName": "Marianne",
-                "lastName": "Fried",
-                "id": "911226",
-                "displayName": null
-              },
-              "details": "The replaced? Padlock installation is incomplete. How do I get it to secure closed when the latch does not lock in place when I leave? I believe the old lock was tightened to secure it back in place  (it is still  installed crookedly ), and an additional backing that covers the batteries was snapped on. The other padlocks in this padsplit  home includes a door handled in the middle of each door\u2019s device to help the padlock\u2019s latch into place. Please, please repair this properly.",
-              "location": "ROOM",
-              "status": "ARCHIVED",
-              "rating": null,
-              "comment": null,
-              "category": "UNCLASSIFIED",
-              "onHoldReason": null,
-              "withdrawReason": null
-            }
-          },
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTY2MzQzMg==",
-          "text": "Thanks so much Cyndy. ",
-          "created": "2026-06-14T18:19:58.402476",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkxMTIyNg==",
-            "pk": 911226,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_911226_ad3e5aff-96a6-4362-a21a-8cab4464471a.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_911226_ad3e5aff-96a6-4362-a21a-8cab4464471a.jpg",
-            "firstName": "Marianne",
-            "lastName": "Fried",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 848697
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTY2MzQwNQ==",
-          "text": "I\u2019ll reach out to him once more",
-          "created": "2026-06-14T18:18:49.243202",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTY2MzM4MA==",
-          "text": "Good afternoon Cyndy.  It isn\u2019t fixed just yet. ",
-          "created": "2026-06-14T18:17:06.612510",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkxMTIyNg==",
-            "pk": 911226,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_911226_ad3e5aff-96a6-4362-a21a-8cab4464471a.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_911226_ad3e5aff-96a6-4362-a21a-8cab4464471a.jpg",
-            "firstName": "Marianne",
-            "lastName": "Fried",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 848697
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTY2MzMzOA==",
-          "text": "Good day Marianne, kindly confirm the door knob has been fixed",
-          "created": "2026-06-14T18:14:50.800341",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTYzOTAyNg==",
-          "text": null,
-          "created": "2026-06-13T04:43:34.480412",
-          "messageType": "TICKET_UPDATE",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
-            "pk": 339595,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Tinghui",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "",
-            "padmateProfileId": 278216
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": {
-            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czo5OTU2OTY=",
-            "created": "2026-06-13T04:43:34.487733",
-            "status": "SUBMITTED",
-            "canRate": false,
-            "ticket": {
-              "id": "425154",
-              "author": {
-                "firstName": "Marianne",
-                "lastName": "Fried",
-                "id": "911226",
-                "displayName": null
-              },
-              "details": "The replaced? Padlock installation is incomplete. How do I get it to secure closed when the latch does not lock in place when I leave? I believe the old lock was tightened to secure it back in place  (it is still  installed crookedly ), and an additional backing that covers the batteries was snapped on. The other padlocks in this padsplit  home includes a door handled in the middle of each door\u2019s device to help the padlock\u2019s latch into place. Please, please repair this properly.",
-              "location": "ROOM",
-              "status": "ARCHIVED",
-              "rating": null,
-              "comment": null,
-              "category": "UNCLASSIFIED",
-              "onHoldReason": null,
-              "withdrawReason": null
-            }
-          },
-          "bookingStatus": null
-        }
-      ]
-    },
-    {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6Mzc5OTMw",
       "title": "Kenneth Johnson",
       "chatType": "HOST_SUPPORT_CHAT",
@@ -5012,222 +5833,7 @@
         "seenAt": "2026-06-30T13:22:35.629768",
         "isPinned": false,
         "isUnread": false
-      },
-      "recent_messages": [
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTk2ODU0Ng==",
-          "text": "That for new week and the $40 for code change",
-          "created": "2026-06-30T13:22:34.613350",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTk2NjY3OA==",
-          "text": "I paid rent Wednesday. Then it says dues were on the 25th which was the following day. Now total is $217 which I don\u2019t understand at all. Please help ",
-          "created": "2026-06-30T12:01:38.653650",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkzNTgxMw==",
-            "pk": 935813,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_935813_467acb1d-0b39-44b3-bfd6-3af269656611.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_935813_467acb1d-0b39-44b3-bfd6-3af269656611.jpg",
-            "firstName": "Chase",
-            "lastName": "Wofford",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 873281
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTk2NjY2Nw==",
-          "text": "Issue ",
-          "created": "2026-06-30T12:00:45.019793",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkzNTgxMw==",
-            "pk": 935813,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_935813_467acb1d-0b39-44b3-bfd6-3af269656611.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_935813_467acb1d-0b39-44b3-bfd6-3af269656611.jpg",
-            "firstName": "Chase",
-            "lastName": "Wofford",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 873281
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTk2NjY2Ng==",
-          "text": "Hey good morning ",
-          "created": "2026-06-30T12:00:41.303611",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkzNTgxMw==",
-            "pk": 935813,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_935813_467acb1d-0b39-44b3-bfd6-3af269656611.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_935813_467acb1d-0b39-44b3-bfd6-3af269656611.jpg",
-            "firstName": "Chase",
-            "lastName": "Wofford",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 873281
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTg3MDA1Ng==",
-          "text": "If you guest does not leave by EOD you rent will be increased by $100 as fine or you vacate the property",
-          "created": "2026-06-24T23:58:58.983056",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTg2NjY4Nw==",
-          "text": "Yes ",
-          "created": "2026-06-24T21:15:31.401834",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkzNTgxMw==",
-            "pk": 935813,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_935813_467acb1d-0b39-44b3-bfd6-3af269656611.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_935813_467acb1d-0b39-44b3-bfd6-3af269656611.jpg",
-            "firstName": "Chase",
-            "lastName": "Wofford",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 873281
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTg2NjY0Nw==",
-          "text": "Room 6 is cleaned right?",
-          "created": "2026-06-24T21:13:38.424838",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTg2NjYzNg==",
-          "text": null,
-          "created": "2026-06-24T21:13:10.665713",
-          "messageType": "BOOKING_STATUS",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
-            "pk": 339595,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Tinghui",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "",
-            "padmateProfileId": 278216
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": {
-            "id": "TWVzc2VuZ2VyTWVzc2FnZUJvb2tpbmdTdGF0dXM6MzAyMTA1",
-            "created": "2026-06-24T21:13:10.674612",
-            "status": "APPROVED",
-            "verificationTimeInHours": null
-          }
-        }
-      ]
+      }
     },
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzMwNzQ0",
@@ -5290,136 +5896,6 @@
       },
       "member": {
         "seenAt": "2026-06-30T06:31:23.559597",
-        "isPinned": false,
-        "isUnread": false
-      }
-    },
-    {
-      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzExMzYw",
-      "title": "Mattie Garcia Garcia",
-      "chatType": "HOST_SUPPORT_CHAT",
-      "isArchived": false,
-      "occupancy": {
-        "moveInDate": "2026-03-20",
-        "moveOutDate": "2026-06-28",
-        "conditionalEligibilityApplied": null,
-        "room": {
-          "pk": 32869,
-          "roomNumber": 3
-        },
-        "user": {
-          "picture": "img/profiles/user_975616_23eea02f-eb0b-4468-a457-3fe5182bb837.jpg",
-          "firstName": "Mathilda",
-          "lastName": "Garcia",
-          "displayName": "Mattie Garcia"
-        }
-      },
-      "property": {
-        "host": {
-          "firstName": "Ang",
-          "lastName": "Li",
-          "displayName": "Cyndy Manager",
-          "picture": ""
-        },
-        "description": "Your new home awaits! This homey Arlington home is waiting for you. This PadSplit has a Backyard, and it\u2019s newly-renovated and comfortable.\n\nThe kitchen comes equipped with a fridge, sink, oven, stovetop, as well as upgraded appliances.\n\nThe neighbourhood is close to public transit, which means you won\u2019t be far from all Arlington has to offer.",
-        "address": {
-          "street1": "3406 Green Hill Drive",
-          "street2": "",
-          "zip": "76014",
-          "city": {
-            "name": "Arlington",
-            "state": {
-              "name": "Texas"
-            }
-          }
-        }
-      },
-      "isCancelled": false,
-      "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTk2MjA1NA==",
-        "created": "2026-06-30T00:16:12.511961",
-        "text": "Cyndy, \n\nI do not have an exact date. I don\u2019t want to tell you the wrong date. When I receive an update, I will let you know. I did receive an email from Padsplit notifying me that I had until July13th to move out. Please do not ask other padsplit roommates if I am still here. You could have asked me and I would have told you. This  is my personal business and asking other roommate if I moved out is not it\u2019s not professional. It also puts that person in an awkward position. Thanks for understanding. If and when I receive a date to move ahead of time I will notify you.out, More than likely it will be Friday, Saturday or Sunday. \ufffc That is the timeframe that I was last given from the other location.\n\nMany thanks,\nMattie Garcia ",
-        "deleted": null,
-        "extra": null,
-        "messageType": "TEXT",
-        "sender": {
-          "pk": 975616,
-          "firstName": "Mathilda",
-          "lastName": "Garcia",
-          "displayName": "Mattie Garcia"
-        },
-        "attachments": [],
-        "paymentExtensionStatus": null,
-        "ticketStatus": null,
-        "bookingStatus": null
-      },
-      "member": {
-        "seenAt": "2026-07-02T14:47:29.953192",
-        "isPinned": false,
-        "isUnread": false
-      }
-    },
-    {
-      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MjgwODk2",
-      "title": "Michael Asare",
-      "chatType": "HOST_SUPPORT_CHAT",
-      "isArchived": false,
-      "occupancy": {
-        "moveInDate": "2026-02-03",
-        "moveOutDate": "2026-06-26",
-        "conditionalEligibilityApplied": null,
-        "room": {
-          "pk": 25339,
-          "roomNumber": 4
-        },
-        "user": {
-          "picture": "img/profiles/user_759529_734d8caa-5b10-4ce7-88e0-ed9befb7155a.jpg",
-          "firstName": "Michael",
-          "lastName": "Asare",
-          "displayName": null
-        }
-      },
-      "property": {
-        "host": {
-          "firstName": "Tinghui",
-          "lastName": "Li",
-          "displayName": "",
-          "picture": ""
-        },
-        "description": "Move into a freshly renovated House today! Close to freeways, food, grocery and a bus station this spacious and newly renovated home is the perfect place to call home. \n\nThe kitchen comes equipped with a fridge, sink, oven, stovetop, as well as dishwasher, making it the perfect spot to whip up a meal or two.\n\nThe neighbourhood is near highways, food and public transit while still being quiet and safe and you won\u2019t be far from all Dallas has to offer.",
-        "address": {
-          "street1": "6623 Leana Avenue",
-          "street2": "",
-          "zip": "75241",
-          "city": {
-            "name": "Dallas",
-            "state": {
-              "name": "Texas"
-            }
-          }
-        }
-      },
-      "isCancelled": false,
-      "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTk0NzQ4MQ==",
-        "created": "2026-06-29T14:06:22.573401",
-        "text": "Thank you.",
-        "deleted": null,
-        "extra": null,
-        "messageType": "TEXT",
-        "sender": {
-          "pk": 318367,
-          "firstName": "Ang",
-          "lastName": "Li",
-          "displayName": "Cyndy Manager"
-        },
-        "attachments": [],
-        "paymentExtensionStatus": null,
-        "ticketStatus": null,
-        "bookingStatus": null
-      },
-      "member": {
-        "seenAt": "2026-06-29T14:06:23.664351",
         "isPinned": false,
         "isUnread": false
       }
@@ -5615,93 +6091,6 @@
       },
       "member": {
         "seenAt": "2026-06-28T08:32:42.948776",
-        "isPinned": false,
-        "isUnread": false
-      }
-    },
-    {
-      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzI1NDU3",
-      "title": "James Shiley",
-      "chatType": "HOST_SUPPORT_CHAT",
-      "isArchived": false,
-      "occupancy": {
-        "moveInDate": "2026-04-11",
-        "moveOutDate": "2026-06-27",
-        "conditionalEligibilityApplied": null,
-        "room": {
-          "pk": 31129,
-          "roomNumber": 2
-        },
-        "user": {
-          "picture": "img/profiles/user_546342_ec6f5232-71e7-4ea4-ac08-adbf2518a22e",
-          "firstName": "James",
-          "lastName": "Shiley",
-          "displayName": null
-        }
-      },
-      "property": {
-        "host": {
-          "firstName": "Tinghui",
-          "lastName": "Li",
-          "displayName": "",
-          "picture": ""
-        },
-        "description": "Enjoy living in a comfortable House. This beautiful home is decorated with modern touches while providing the basic necessities. All that\u2019s missing is you!\n\nThe kitchen is equipped with a fridge, sink, oven, stovetop, as well as upgraded appliances. It\u2019s the perfect spot for you to cook at home and save money.\n\nThe surrounding location is near grocery stores, making it the perfect place to call home.",
-        "address": {
-          "street1": "2516 Sylvia Street",
-          "street2": "",
-          "zip": "75241",
-          "city": {
-            "name": "Dallas",
-            "state": {
-              "name": "Texas"
-            }
-          }
-        }
-      },
-      "isCancelled": false,
-      "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTkxOTQ1MA==",
-        "created": "2026-06-27T17:53:48.393800",
-        "text": null,
-        "deleted": null,
-        "extra": null,
-        "messageType": "TICKET_UPDATE",
-        "sender": {
-          "pk": 339595,
-          "firstName": "Tinghui",
-          "lastName": "Li",
-          "displayName": ""
-        },
-        "attachments": [],
-        "paymentExtensionStatus": null,
-        "ticketStatus": {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMDE5ODMz",
-          "created": "2026-06-27T17:53:48.407879",
-          "status": "COMPLETED",
-          "canRate": false,
-          "ticket": {
-            "id": "431713",
-            "author": {
-              "firstName": "James",
-              "lastName": "Shiley",
-              "id": "546342",
-              "displayName": null
-            },
-            "details": "Light blew out",
-            "location": "LAUNDRY",
-            "status": "ARCHIVED",
-            "rating": null,
-            "comment": null,
-            "category": "UNCLASSIFIED",
-            "onHoldReason": null,
-            "withdrawReason": null
-          }
-        },
-        "bookingStatus": null
-      },
-      "member": {
-        "seenAt": "2026-06-27T23:36:33.339225",
         "isPinned": false,
         "isUnread": false
       }
@@ -6639,93 +7028,6 @@
       },
       "member": {
         "seenAt": "2026-06-23T13:25:43.977692",
-        "isPinned": false,
-        "isUnread": false
-      }
-    },
-    {
-      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzU4MzU0",
-      "title": "Leticia G Covarrubias",
-      "chatType": "HOST_SUPPORT_CHAT",
-      "isArchived": false,
-      "occupancy": {
-        "moveInDate": "2026-05-30",
-        "moveOutDate": "2026-06-22",
-        "conditionalEligibilityApplied": null,
-        "room": {
-          "pk": 82574,
-          "roomNumber": 4
-        },
-        "user": {
-          "picture": "img/profiles/user_1116242_08f6b047-99c8-4db8-8f1e-4ce199b94caa.jpg",
-          "firstName": "Leticia G",
-          "lastName": "Covarrubias",
-          "displayName": null
-        }
-      },
-      "property": {
-        "host": {
-          "firstName": "Ang",
-          "lastName": "Li",
-          "displayName": "Cyndy Manager",
-          "picture": ""
-        },
-        "description": "Your new home awaits! This comfortable Fort Worth home is waiting for you. This PadSplit has a Backyard, and it\u2019s newly-renovated and homey.\n\nThe kitchen comes equipped with a fridge, sink, oven, stovetop, as well as upgraded appliances.\n\nThe neighbourhood is near highways, which means you won\u2019t be far from all Fort Worth has to offer.",
-        "address": {
-          "street1": "5509 Burton Avenue",
-          "street2": "",
-          "zip": "76119",
-          "city": {
-            "name": "Fort Worth",
-            "state": {
-              "name": "Texas"
-            }
-          }
-        }
-      },
-      "isCancelled": false,
-      "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTgxNTcyMQ==",
-        "created": "2026-06-22T12:30:51.016453",
-        "text": null,
-        "deleted": null,
-        "extra": null,
-        "messageType": "TICKET_UPDATE",
-        "sender": {
-          "pk": 318367,
-          "firstName": "Ang",
-          "lastName": "Li",
-          "displayName": "Cyndy Manager"
-        },
-        "attachments": [],
-        "paymentExtensionStatus": null,
-        "ticketStatus": {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMDEwMjk2",
-          "created": "2026-06-22T12:30:51.029202",
-          "status": "SUBMITTED",
-          "canRate": false,
-          "ticket": {
-            "id": "429820",
-            "author": {
-              "firstName": "Leticia G",
-              "lastName": "Covarrubias",
-              "id": "1116242",
-              "displayName": null
-            },
-            "details": "safety-concern",
-            "location": "ROOM",
-            "status": "SUBMITTED",
-            "rating": null,
-            "comment": null,
-            "category": "ROOM_TURN",
-            "onHoldReason": null,
-            "withdrawReason": null
-          }
-        },
-        "bookingStatus": null
-      },
-      "member": {
-        "seenAt": "2026-06-20T14:04:11.618243",
         "isPinned": false,
         "isUnread": false
       }
@@ -8229,54 +8531,6 @@
   "tasks": {
     "Requests": [
       {
-        "id": 433568,
-        "status": "submitted",
-        "comment": null,
-        "category": "room-turn",
-        "media": [],
-        "created": "2026-06-29T15:10:09.070080",
-        "modified": "2026-07-04T07:07:45.633433",
-        "room_name": "",
-        "room_number": 3,
-        "room_status": 3,
-        "room_code": "7633",
-        "location": "Room",
-        "details": "Collections",
-        "property_id": 31523,
-        "property_address": {
-          "id": 42103,
-          "street1": "1025 Broken Crest",
-          "street2": "",
-          "city": "DeSoto",
-          "state": "TX",
-          "zip": "75115",
-          "city_slug": "desoto-tx"
-        },
-        "reported_by": {
-          "id": 1018843,
-          "name": "Curtis Palmer",
-          "role_id": 0,
-          "picture": "img/profiles/user_1018843_245c6ea5-057a-4174-af48-de89560c7bf1.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-07-04T07:07:45.624528",
-        "rating": null,
-        "extra_data": {
-          "user_id": 1018843,
-          "occupancy_id": 284295,
-          "move_out_date": "2026-06-29",
-          "move_out_details": "CA transferred call\nPTP request pending host approval\nAmount to Pay: $439.98\nPayment Date: July 4, 2026\nReason for Late Payment: Had to pay for an apartment\nMember   Incident #1292101\nHost Ticket \u202d#1292117\u202c",
-          "is_present_after_move_out": true
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
-      },
-      {
         "id": 435844,
         "status": "submitted",
         "comment": null,
@@ -8311,229 +8565,6 @@
         "update_status_at": "2026-07-04T02:44:37.208932",
         "rating": null,
         "extra_data": {},
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
-      },
-      {
-        "id": 434636,
-        "status": "submitted",
-        "comment": null,
-        "category": "room-turn",
-        "media": [],
-        "created": "2026-07-01T12:31:15.974205",
-        "modified": "2026-07-01T13:29:15.799150",
-        "room_name": "",
-        "room_number": 5,
-        "room_status": 3,
-        "room_code": "504530",
-        "location": "Room",
-        "details": "unresolved-maintenance",
-        "property_id": 24516,
-        "property_address": {
-          "id": 33032,
-          "street1": "5509 Burton Avenue",
-          "street2": "",
-          "city": "Fort Worth",
-          "state": "TX",
-          "zip": "76119",
-          "city_slug": "fort-worth-tx"
-        },
-        "reported_by": {
-          "id": 922060,
-          "name": "Darcy Gonzalez",
-          "role_id": 0,
-          "picture": "img/profiles/user_922060_ac75308f-4740-4386-8af0-24c1789576a2.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-07-01T12:31:15.974495",
-        "rating": null,
-        "extra_data": {
-          "user_id": 922060,
-          "occupancy_id": 251942,
-          "move_out_date": "2026-07-01",
-          "move_out_quiz": {
-            "Do you have a physical key to your room?": "No, I don\u2019t have a key to my room"
-          }
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 2,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
-      },
-      {
-        "id": 434411,
-        "status": "submitted",
-        "comment": null,
-        "category": "unclassified",
-        "media": [],
-        "created": "2026-06-30T22:03:21.244335",
-        "modified": "2026-06-30T22:03:21.244335",
-        "room_name": "Room 6",
-        "room_number": 6,
-        "room_status": 1,
-        "room_code": "3414",
-        "location": "Room",
-        "details": "Ceiling Fan \u2018s connection to the ceiling seems loose. The whole fan apparatus wobbles as the fan is running.",
-        "property_id": 8127,
-        "property_address": {
-          "id": 10664,
-          "street1": "10235 Ridge Oak Street",
-          "street2": "",
-          "city": "Dallas",
-          "state": "TX",
-          "zip": "75227",
-          "city_slug": "dallas-tx"
-        },
-        "reported_by": {
-          "id": 911226,
-          "name": "Marianne Fried",
-          "role_id": 0,
-          "picture": "img/profiles/user_911226_ad3e5aff-96a6-4362-a21a-8cab4464471a.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-06-30T22:03:21.247596",
-        "rating": null,
-        "extra_data": {},
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
-      },
-      {
-        "id": 433885,
-        "status": "submitted",
-        "comment": null,
-        "category": "unclassified",
-        "media": [],
-        "created": "2026-06-30T00:45:57.426684",
-        "modified": "2026-06-30T00:45:57.426684",
-        "room_name": "Room 6",
-        "room_number": 6,
-        "room_status": 1,
-        "room_code": "3414",
-        "location": "Other",
-        "details": "Please check on smoke alarm batteries.",
-        "property_id": 8127,
-        "property_address": {
-          "id": 10664,
-          "street1": "10235 Ridge Oak Street",
-          "street2": "",
-          "city": "Dallas",
-          "state": "TX",
-          "zip": "75227",
-          "city_slug": "dallas-tx"
-        },
-        "reported_by": {
-          "id": 911226,
-          "name": "Marianne Fried",
-          "role_id": 0,
-          "picture": "img/profiles/user_911226_ad3e5aff-96a6-4362-a21a-8cab4464471a.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-06-30T00:45:57.430729",
-        "rating": null,
-        "extra_data": {},
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
-      },
-      {
-        "id": 433783,
-        "status": "submitted",
-        "comment": null,
-        "category": "unclassified",
-        "media": [],
-        "created": "2026-06-29T20:14:18.556569",
-        "modified": "2026-06-29T20:14:18.556569",
-        "room_name": "",
-        "room_number": 5,
-        "room_status": 3,
-        "room_code": "504530",
-        "location": "Room",
-        "details": "Lock issues \u2014 the door isn\u2019t locking (2nd request) problem was never resolved",
-        "property_id": 24516,
-        "property_address": {
-          "id": 33032,
-          "street1": "5509 Burton Avenue",
-          "street2": "",
-          "city": "Fort Worth",
-          "state": "TX",
-          "zip": "76119",
-          "city_slug": "fort-worth-tx"
-        },
-        "reported_by": {
-          "id": 922060,
-          "name": "Darcy Gonzalez",
-          "role_id": 0,
-          "picture": "img/profiles/user_922060_ac75308f-4740-4386-8af0-24c1789576a2.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-06-29T20:14:18.557574",
-        "rating": null,
-        "extra_data": {},
-        "has_reused_code": true,
-        "moveout_photos_count": 2,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
-      },
-      {
-        "id": 432014,
-        "status": "submitted",
-        "comment": null,
-        "category": "room-turn",
-        "media": [],
-        "created": "2026-06-26T15:04:30.639809",
-        "modified": "2026-06-29T17:05:51.618428",
-        "room_name": "A-4",
-        "room_number": 4,
-        "room_status": 3,
-        "room_code": "1234",
-        "location": "Room",
-        "details": "Collections",
-        "property_id": 7093,
-        "property_address": {
-          "id": 9235,
-          "street1": "6623 Leana Avenue",
-          "street2": "",
-          "city": "Dallas",
-          "state": "TX",
-          "zip": "75241",
-          "city_slug": "dallas-tx"
-        },
-        "reported_by": {
-          "id": 759529,
-          "name": "Michael Asare",
-          "role_id": 0,
-          "picture": "img/profiles/user_759529_734d8caa-5b10-4ce7-88e0-ed9befb7155a.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-06-26T15:04:30.640886",
-        "rating": null,
-        "extra_data": {
-          "user_id": 759529,
-          "occupancy_id": 260237,
-          "move_out_date": "2026-06-26",
-          "move_out_details": null,
-          "is_present_after_move_out": false
-        },
         "has_reused_code": true,
         "moveout_photos_count": 0,
         "days_to_complete": null,
@@ -8586,94 +8617,49 @@
         "is_on_payment_plan": false,
         "payment_plan_end_date": null,
         "payment_plan_reason_note": null
-      },
+      }
+    ],
+    "Eviction": [
       {
-        "id": 432347,
-        "status": "submitted",
+        "id": 433568,
+        "status": "eviction",
         "comment": null,
         "category": "room-turn",
         "media": [],
-        "created": "2026-06-27T12:30:51.818667",
-        "modified": "2026-06-27T14:16:34.900108",
+        "created": "2026-06-29T15:10:09.070080",
+        "modified": "2026-07-05T13:51:44.862945",
         "room_name": "",
-        "room_number": 2,
+        "room_number": 3,
         "room_status": 3,
-        "room_code": "2516",
+        "room_code": "7633",
         "location": "Room",
-        "details": "other",
-        "property_id": 8840,
+        "details": "Collections",
+        "property_id": 31523,
         "property_address": {
-          "id": 11718,
-          "street1": "2516 Sylvia Street",
+          "id": 42103,
+          "street1": "1025 Broken Crest",
           "street2": "",
-          "city": "Dallas",
+          "city": "DeSoto",
           "state": "TX",
-          "zip": "75241",
-          "city_slug": "dallas-tx"
+          "zip": "75115",
+          "city_slug": "desoto-tx"
         },
         "reported_by": {
-          "id": 546342,
-          "name": "James Shiley",
+          "id": 1018843,
+          "name": "Curtis Palmer",
           "role_id": 0,
-          "picture": "img/profiles/user_546342_ec6f5232-71e7-4ea4-ac08-adbf2518a22e"
+          "picture": "img/profiles/user_1018843_245c6ea5-057a-4174-af48-de89560c7bf1.jpg"
         },
         "assigned_to": null,
         "on_hold_reason": null,
-        "update_status_at": "2026-06-27T12:30:51.818959",
+        "update_status_at": "2026-07-05T13:51:44.939358",
         "rating": null,
         "extra_data": {
-          "user_id": 546342,
-          "occupancy_id": 288890,
-          "move_out_date": "2026-06-27",
-          "move_out_quiz": {
-            "Do you have a physical key to your room?": "No, I don\u2019t have a key to my room"
-          }
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 4,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
-      },
-      {
-        "id": 429820,
-        "status": "submitted",
-        "comment": null,
-        "category": "room-turn",
-        "media": [],
-        "created": "2026-06-22T12:30:50.963618",
-        "modified": "2026-06-22T12:30:50.963618",
-        "room_name": "",
-        "room_number": 4,
-        "room_status": 3,
-        "room_code": "456090",
-        "location": "Room",
-        "details": "safety-concern",
-        "property_id": 24516,
-        "property_address": {
-          "id": 33032,
-          "street1": "5509 Burton Avenue",
-          "street2": "",
-          "city": "Fort Worth",
-          "state": "TX",
-          "zip": "76119",
-          "city_slug": "fort-worth-tx"
-        },
-        "reported_by": {
-          "id": 1116242,
-          "name": "Leticia G Covarrubias",
-          "role_id": 0,
-          "picture": "img/profiles/user_1116242_08f6b047-99c8-4db8-8f1e-4ce199b94caa.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-06-22T12:30:50.963910",
-        "rating": null,
-        "extra_data": {
-          "user_id": 1116242,
-          "occupancy_id": 310253,
-          "move_out_date": "2026-06-22"
+          "user_id": 1018843,
+          "occupancy_id": 284295,
+          "move_out_date": "2026-06-29",
+          "move_out_details": "CA transferred call\nPTP request pending host approval\nAmount to Pay: $439.98\nPayment Date: July 4, 2026\nReason for Late Payment: Had to pay for an apartment\nMember   Incident #1292101\nHost Ticket \u202d#1292117\u202c",
+          "is_present_after_move_out": true
         },
         "has_reused_code": true,
         "moveout_photos_count": 0,
@@ -8681,9 +8667,7 @@
         "is_on_payment_plan": false,
         "payment_plan_end_date": null,
         "payment_plan_reason_note": null
-      }
-    ],
-    "Eviction": [
+      },
       {
         "id": 422197,
         "status": "eviction",
@@ -8733,6 +8717,334 @@
       }
     ],
     "Complete": [
+      {
+        "id": 432347,
+        "status": "completed",
+        "comment": null,
+        "category": "room-turn",
+        "media": [],
+        "created": "2026-06-27T12:30:51.818667",
+        "modified": "2026-07-05T13:54:18.456196",
+        "room_name": "",
+        "room_number": 2,
+        "room_status": 1,
+        "room_code": "2516",
+        "location": "Room",
+        "details": "other",
+        "property_id": 8840,
+        "property_address": {
+          "id": 11718,
+          "street1": "2516 Sylvia Street",
+          "street2": "",
+          "city": "Dallas",
+          "state": "TX",
+          "zip": "75241",
+          "city_slug": "dallas-tx"
+        },
+        "reported_by": {
+          "id": 546342,
+          "name": "James Shiley",
+          "role_id": 0,
+          "picture": "img/profiles/user_546342_ec6f5232-71e7-4ea4-ac08-adbf2518a22e"
+        },
+        "assigned_to": null,
+        "on_hold_reason": null,
+        "update_status_at": "2026-07-05T13:54:18.450620",
+        "rating": null,
+        "extra_data": {
+          "user_id": 546342,
+          "checklist": {},
+          "occupancy_id": 288890,
+          "move_out_date": "2026-06-27",
+          "move_out_quiz": {
+            "Do you have a physical key to your room?": "No, I don\u2019t have a key to my room"
+          }
+        },
+        "has_reused_code": true,
+        "moveout_photos_count": 4,
+        "days_to_complete": null,
+        "is_on_payment_plan": false,
+        "payment_plan_end_date": null,
+        "payment_plan_reason_note": null
+      },
+      {
+        "id": 432014,
+        "status": "completed",
+        "comment": null,
+        "category": "room-turn",
+        "media": [],
+        "created": "2026-06-26T15:04:30.639809",
+        "modified": "2026-07-05T13:53:44.585101",
+        "room_name": "A-4",
+        "room_number": 4,
+        "room_status": 1,
+        "room_code": "1234",
+        "location": "Room",
+        "details": "Collections",
+        "property_id": 7093,
+        "property_address": {
+          "id": 9235,
+          "street1": "6623 Leana Avenue",
+          "street2": "",
+          "city": "Dallas",
+          "state": "TX",
+          "zip": "75241",
+          "city_slug": "dallas-tx"
+        },
+        "reported_by": {
+          "id": 759529,
+          "name": "Michael Asare",
+          "role_id": 0,
+          "picture": "img/profiles/user_759529_734d8caa-5b10-4ce7-88e0-ed9befb7155a.jpg"
+        },
+        "assigned_to": null,
+        "on_hold_reason": null,
+        "update_status_at": "2026-07-05T13:53:44.580552",
+        "rating": null,
+        "extra_data": {
+          "user_id": 759529,
+          "checklist": {},
+          "occupancy_id": 260237,
+          "move_out_date": "2026-06-26",
+          "move_out_details": null,
+          "is_present_after_move_out": false
+        },
+        "has_reused_code": true,
+        "moveout_photos_count": 0,
+        "days_to_complete": null,
+        "is_on_payment_plan": false,
+        "payment_plan_end_date": null,
+        "payment_plan_reason_note": null
+      },
+      {
+        "id": 433783,
+        "status": "completed",
+        "comment": null,
+        "category": "unclassified",
+        "media": [],
+        "created": "2026-06-29T20:14:18.556569",
+        "modified": "2026-07-05T13:53:28.199423",
+        "room_name": "",
+        "room_number": 5,
+        "room_status": 1,
+        "room_code": "504530",
+        "location": "Room",
+        "details": "Lock issues \u2014 the door isn\u2019t locking (2nd request) problem was never resolved",
+        "property_id": 24516,
+        "property_address": {
+          "id": 33032,
+          "street1": "5509 Burton Avenue",
+          "street2": "",
+          "city": "Fort Worth",
+          "state": "TX",
+          "zip": "76119",
+          "city_slug": "fort-worth-tx"
+        },
+        "reported_by": {
+          "id": 922060,
+          "name": "Darcy Gonzalez",
+          "role_id": 0,
+          "picture": "img/profiles/user_922060_ac75308f-4740-4386-8af0-24c1789576a2.jpg"
+        },
+        "assigned_to": null,
+        "on_hold_reason": null,
+        "update_status_at": "2026-07-05T13:53:28.192319",
+        "rating": null,
+        "extra_data": {
+          "checklist": {}
+        },
+        "has_reused_code": true,
+        "moveout_photos_count": 2,
+        "days_to_complete": null,
+        "is_on_payment_plan": false,
+        "payment_plan_end_date": null,
+        "payment_plan_reason_note": null
+      },
+      {
+        "id": 433885,
+        "status": "completed",
+        "comment": null,
+        "category": "unclassified",
+        "media": [],
+        "created": "2026-06-30T00:45:57.426684",
+        "modified": "2026-07-05T13:53:06.775714",
+        "room_name": "Room 6",
+        "room_number": 6,
+        "room_status": 1,
+        "room_code": "3414",
+        "location": "Other",
+        "details": "Please check on smoke alarm batteries.",
+        "property_id": 8127,
+        "property_address": {
+          "id": 10664,
+          "street1": "10235 Ridge Oak Street",
+          "street2": "",
+          "city": "Dallas",
+          "state": "TX",
+          "zip": "75227",
+          "city_slug": "dallas-tx"
+        },
+        "reported_by": {
+          "id": 911226,
+          "name": "Marianne Fried",
+          "role_id": 0,
+          "picture": "img/profiles/user_911226_ad3e5aff-96a6-4362-a21a-8cab4464471a.jpg"
+        },
+        "assigned_to": null,
+        "on_hold_reason": null,
+        "update_status_at": "2026-07-05T13:53:06.768054",
+        "rating": null,
+        "extra_data": {
+          "checklist": {}
+        },
+        "has_reused_code": true,
+        "moveout_photos_count": 0,
+        "days_to_complete": null,
+        "is_on_payment_plan": false,
+        "payment_plan_end_date": null,
+        "payment_plan_reason_note": null
+      },
+      {
+        "id": 434411,
+        "status": "completed",
+        "comment": null,
+        "category": "unclassified",
+        "media": [],
+        "created": "2026-06-30T22:03:21.244335",
+        "modified": "2026-07-05T13:52:52.895013",
+        "room_name": "Room 6",
+        "room_number": 6,
+        "room_status": 1,
+        "room_code": "3414",
+        "location": "Room",
+        "details": "Ceiling Fan \u2018s connection to the ceiling seems loose. The whole fan apparatus wobbles as the fan is running.",
+        "property_id": 8127,
+        "property_address": {
+          "id": 10664,
+          "street1": "10235 Ridge Oak Street",
+          "street2": "",
+          "city": "Dallas",
+          "state": "TX",
+          "zip": "75227",
+          "city_slug": "dallas-tx"
+        },
+        "reported_by": {
+          "id": 911226,
+          "name": "Marianne Fried",
+          "role_id": 0,
+          "picture": "img/profiles/user_911226_ad3e5aff-96a6-4362-a21a-8cab4464471a.jpg"
+        },
+        "assigned_to": null,
+        "on_hold_reason": null,
+        "update_status_at": "2026-07-05T13:52:52.890207",
+        "rating": null,
+        "extra_data": {
+          "checklist": {}
+        },
+        "has_reused_code": true,
+        "moveout_photos_count": 0,
+        "days_to_complete": null,
+        "is_on_payment_plan": false,
+        "payment_plan_end_date": null,
+        "payment_plan_reason_note": null
+      },
+      {
+        "id": 434636,
+        "status": "completed",
+        "comment": null,
+        "category": "room-turn",
+        "media": [],
+        "created": "2026-07-01T12:31:15.974205",
+        "modified": "2026-07-05T13:52:43.479766",
+        "room_name": "",
+        "room_number": 5,
+        "room_status": 1,
+        "room_code": "504530",
+        "location": "Room",
+        "details": "unresolved-maintenance",
+        "property_id": 24516,
+        "property_address": {
+          "id": 33032,
+          "street1": "5509 Burton Avenue",
+          "street2": "",
+          "city": "Fort Worth",
+          "state": "TX",
+          "zip": "76119",
+          "city_slug": "fort-worth-tx"
+        },
+        "reported_by": {
+          "id": 922060,
+          "name": "Darcy Gonzalez",
+          "role_id": 0,
+          "picture": "img/profiles/user_922060_ac75308f-4740-4386-8af0-24c1789576a2.jpg"
+        },
+        "assigned_to": null,
+        "on_hold_reason": null,
+        "update_status_at": "2026-07-01T12:31:15.974495",
+        "rating": null,
+        "extra_data": {
+          "user_id": 922060,
+          "checklist": {},
+          "occupancy_id": 251942,
+          "move_out_date": "2026-07-01",
+          "move_out_quiz": {
+            "Do you have a physical key to your room?": "No, I don\u2019t have a key to my room"
+          }
+        },
+        "has_reused_code": true,
+        "moveout_photos_count": 2,
+        "days_to_complete": null,
+        "is_on_payment_plan": false,
+        "payment_plan_end_date": null,
+        "payment_plan_reason_note": null
+      },
+      {
+        "id": 429820,
+        "status": "completed",
+        "comment": null,
+        "category": "room-turn",
+        "media": [],
+        "created": "2026-06-22T12:30:50.963618",
+        "modified": "2026-07-05T13:52:21.294654",
+        "room_name": "",
+        "room_number": 4,
+        "room_status": 1,
+        "room_code": "456090",
+        "location": "Room",
+        "details": "safety-concern",
+        "property_id": 24516,
+        "property_address": {
+          "id": 33032,
+          "street1": "5509 Burton Avenue",
+          "street2": "",
+          "city": "Fort Worth",
+          "state": "TX",
+          "zip": "76119",
+          "city_slug": "fort-worth-tx"
+        },
+        "reported_by": {
+          "id": 1116242,
+          "name": "Leticia G Covarrubias",
+          "role_id": 0,
+          "picture": "img/profiles/user_1116242_08f6b047-99c8-4db8-8f1e-4ce199b94caa.jpg"
+        },
+        "assigned_to": null,
+        "on_hold_reason": null,
+        "update_status_at": "2026-06-22T12:30:50.963910",
+        "rating": null,
+        "extra_data": {
+          "user_id": 1116242,
+          "checklist": {},
+          "occupancy_id": 310253,
+          "move_out_date": "2026-06-22"
+        },
+        "has_reused_code": true,
+        "moveout_photos_count": 0,
+        "days_to_complete": null,
+        "is_on_payment_plan": false,
+        "payment_plan_end_date": null,
+        "payment_plan_reason_note": null
+      },
       {
         "id": 434079,
         "status": "completed",
@@ -8888,6 +9200,6 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-07-05T12:42:33Z"
+    "run_scraped_at": "2026-07-05T14:21:12Z"
   }
 }
