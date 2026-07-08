@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-07-08T07:17:04Z",
+  "scraped_at": "2026-07-08T09:41:50Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6Mzg4MjQ5",
@@ -651,9 +651,9 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-07-07T22:16:38.390970",
+        "seenAt": "2026-07-08T08:29:11.044670",
         "isPinned": false,
-        "isUnread": true
+        "isUnread": false
       },
       "recent_messages": [
         {
@@ -7758,57 +7758,6 @@
         "is_on_payment_plan": false,
         "payment_plan_end_date": null,
         "payment_plan_reason_note": null
-      },
-      {
-        "id": 433235,
-        "status": "completed",
-        "comment": null,
-        "category": "unclassified",
-        "media": [
-          {
-            "id": 146331,
-            "location": "img/tickets/ticket_433235_0.jpg",
-            "category": "default",
-            "media_type": "image"
-          }
-        ],
-        "created": "2026-06-29T01:29:21.706126",
-        "modified": "2026-06-30T21:21:06.052884",
-        "room_name": "",
-        "room_number": 2,
-        "room_status": 1,
-        "room_code": "242424",
-        "location": "Other",
-        "details": "The air vent in my room drips water one drip every 30 min or so not sure if it's from humidity or not I just know that a dripping vent could be a clog somewhere",
-        "property_id": 24516,
-        "property_address": {
-          "id": 33032,
-          "street1": "5509 Burton Avenue",
-          "street2": "",
-          "city": "Fort Worth",
-          "state": "TX",
-          "zip": "76119",
-          "city_slug": "fort-worth-tx"
-        },
-        "reported_by": {
-          "id": 552038,
-          "name": "Mike",
-          "role_id": 0,
-          "picture": "img/profiles/user_552038_3140b797-0af1-4958-a1f9-50e3016a0c88.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-06-30T21:21:06.043074",
-        "rating": null,
-        "extra_data": {
-          "checklist": {}
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
       }
     ]
   },
@@ -7819,6 +7768,6 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-07-08T07:17:04Z"
+    "run_scraped_at": "2026-07-08T09:41:50Z"
   }
 }
