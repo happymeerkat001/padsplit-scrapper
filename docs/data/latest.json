@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-07-10T05:46:23Z",
+  "scraped_at": "2026-07-10T08:53:09Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6Mjg3MjYy",
@@ -4419,7 +4419,7 @@
             },
             "details": "Collections",
             "location": "ROOM",
-            "status": "WITHDRAWN",
+            "status": "ARCHIVED",
             "rating": null,
             "comment": null,
             "category": "ROOM_TURN",
@@ -7241,9 +7241,9 @@
         "has_reused_code": true,
         "moveout_photos_count": 0,
         "days_to_complete": null,
-        "is_on_payment_plan": true,
-        "payment_plan_end_date": "2026-07-09",
-        "payment_plan_reason_note": ""
+        "is_on_payment_plan": false,
+        "payment_plan_end_date": null,
+        "payment_plan_reason_note": null
       },
       {
         "id": 436868,
@@ -7711,53 +7711,6 @@
         "is_on_payment_plan": false,
         "payment_plan_end_date": null,
         "payment_plan_reason_note": null
-      },
-      {
-        "id": 434079,
-        "status": "completed",
-        "comment": null,
-        "category": "room-turn",
-        "media": [],
-        "created": "2026-06-30T12:30:54.637523",
-        "modified": "2026-07-02T14:35:17.234454",
-        "room_name": "",
-        "room_number": 1,
-        "room_status": 1,
-        "room_code": "1234(give it when applying)",
-        "location": "Room",
-        "details": "Room transfer",
-        "property_id": 15799,
-        "property_address": {
-          "id": 21682,
-          "street1": "3541 Parker Road East",
-          "street2": "",
-          "city": "Haltom City",
-          "state": "TX",
-          "zip": "76117",
-          "city_slug": "haltom-city-tx"
-        },
-        "reported_by": {
-          "id": 1092618,
-          "name": "Alexander Martinez Jr",
-          "role_id": 0,
-          "picture": "img/profiles/user_1092618_2b72fa23-e765-4b2e-930b-50571185f971.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-07-02T14:35:08.841434",
-        "rating": null,
-        "extra_data": {
-          "user_id": 1092618,
-          "checklist": {},
-          "occupancy_id": 317222,
-          "move_out_date": "2026-06-30"
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
       }
     ]
   },
@@ -7768,6 +7721,6 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-07-10T05:46:23Z"
+    "run_scraped_at": "2026-07-10T08:53:09Z"
   }
 }
