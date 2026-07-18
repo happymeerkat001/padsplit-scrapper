@@ -23,14 +23,14 @@ def sample_padsplit_payload() -> dict:
         "tasks": {
             "Requests": [
                 {
-                    "property_address": {"street1": "10235 Ridge Oak"},
+                    "property_address": {"street1": "10235 Ridge Oak", "city": "Dallas", "state": "TX"},
                     "details": "Leak under kitchen sink",
                     "room_number": 5,
                 }
             ],
             "Open": [
                 {
-                    "property_address": {"street1": "4100 N Main St"},
+                    "property_address": {"street1": "4100 N Main St", "city": "Fort Worth", "state": "TX"},
                     "details": "Replace hallway smoke detector",
                     "room_number": 1,
                 }
@@ -107,7 +107,8 @@ def test_write_daily_digest_creates_note_when_missing() -> None:
         content = note_path.read_text()
         assert note_path.name == "2026-04-13.md"
         assert "## PadSplit Daily Digest" in content
-        assert "Leak under kitchen sink" in content
+        assert "10235 Ridge Oak, Dallas, TX: Requests Room 5: Leak under kitchen sink" in content
+        assert "4100 N Main St, Fort Worth, TX: Open Room 1: Replace hallway smoke detector" in content
         assert "Roshawn Porter (Room 5)" in content
         assert "10235 Ridge Oak: 73.0F, heat 68.0F, cool 78.0F, humidity 49.0%" in content
 

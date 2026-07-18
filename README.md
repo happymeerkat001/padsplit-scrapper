@@ -46,6 +46,16 @@ Write Obsidian daily digest:
 python3 obsidian_daily_digest.py
 ```
 
+Generate message drafts:
+
+```bash
+# Dry run — template matching only, no API calls
+python3 message_drafter.py --template-only --stdout
+
+# Live run — calls Claude API, writes drafts.json
+python3 message_drafter.py --stdout
+```
+
 Run tests:
 
 ```bash
@@ -115,11 +125,11 @@ Install one-house schedule with more slots:
 
 ```bash
 python3 thermostat/schedule.py install \
-  --target "1404 PIONEER" \
-  --slot 8:00am 76 62 \
-  --slot 2:00pm 77 62 \
-  --slot 5:30pm 77 62 \
-  --slot 7:00pm 76 62
+  --target "3414 pebbleshores" \
+  --slot 8:00am 74 62 \
+  --slot 2:00pm 75 62 \
+  --slot 5:30pm 75 62 \
+  --slot 7:00pm 74 62
 ```
 
 Install same schedule for all houses:
@@ -184,6 +194,14 @@ python3 thermostat/schedule.py status
 
 `status` shows configured schedule time, cool, heat, target, and LaunchAgent label from installed plist files.
 
+Show the full configured schedule for one house:
+
+```bash
+python3 thermostat/schedule.py status --target "3406 Green Hill"
+```
+
+This prints every configured slot time plus cool/heat values for that target.
+
 Time format:
 
 - Use 12-hour input with `am` or `pm`, such as `7am`, `7:00am`, or `6:30pm`.
@@ -193,14 +211,6 @@ Generated files:
 
 - LaunchAgents are written under `~/Library/LaunchAgents/` as `com.padsplit.thermostat.<target>.<hhmm>.plist`.
 - Slot logs are written to `thermostat/schedule-<target>-<hhmm>.stdout.log` and `.stderr.log`.
-
-Show the full configured schedule for one house:
-
-```bash
-python3 thermostat/schedule.py status --target "6623 Leanna"
-```
-
-This prints every configured slot time plus cool/heat values for that target.
 
 Current limitation:
 

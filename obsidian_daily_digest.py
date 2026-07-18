@@ -70,11 +70,20 @@ def get_counts(tasks: Dict) -> Tuple[int, int, int]:
     return requests_count, open_count, complete_count
 
 
+def format_task_address(task: Dict) -> str:
+    property_address = task.get("property_address") or {}
+    street = normalize_whitespace(property_address.get("street1")) or "Unknown address"
+    city = normalize_whitespace(property_address.get("city"))
+    state = normalize_whitespace(property_address.get("state"))
+    locality = ", ".join(part for part in (city, state) if part)
+    return f"{street}, {locality}" if locality else street
+
+
 def format_task_groups(tasks: Dict) -> List[str]:
     grouped: Dict[str, List[Tuple[str, str, Optional[int]]]] = defaultdict(list)
     for bucket in ("Requests", "Open"):
         for task in tasks.get(bucket, []) or []:
-            address = ((task.get("property_address") or {}).get("street1") or "Unknown address").strip()
+            address = format_task_address(task)
             details = normalize_whitespace(task.get("details") or task.get("description")) or "(no details)"
             room_number = task.get("room_number")
             grouped[address].append((bucket, details, room_number))
