@@ -33,7 +33,7 @@ LATEST_SNAPSHOT_PATH = ROOT_DIR / "thermostat" / "output" / "latest.json"
 _LAST_LIVE_FETCH_ERROR: Optional[str] = None
 
 LOW_TEMP_ALERT_TARGET = "leanna"
-LOW_TEMP_THRESHOLD_F = 75
+LOW_TEMP_THRESHOLD_F = 74
 TEMP_ALERT_STATE_PATH = LOG_DIR / "temp_alert_state.json"
 
 

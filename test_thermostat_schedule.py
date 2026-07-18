@@ -13,6 +13,9 @@ import thermostat.schedule as schedule
 
 
 class ThermostatScheduleTests(unittest.TestCase):
+    def test_leanna_low_temp_alert_threshold_is_74f(self) -> None:
+        self.assertEqual(schedule.LOW_TEMP_THRESHOLD_F, 74)
+
     def test_parse_time_accepts_supported_12_hour_formats(self) -> None:
         self.assertEqual(schedule.parse_time("7am"), (7, 0))
         self.assertEqual(schedule.parse_time("7:30am"), (7, 30))
