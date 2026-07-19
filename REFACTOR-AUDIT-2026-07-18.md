@@ -1,5 +1,8 @@
 # padsplit-scraper — Refactor & Optimization Audit (2026-07-18)
 
+> **STATUS: PLAN ONLY — NOTHING EXECUTED YET.**
+> **Next step:** open a Codex (or Claude Code) session in this repo and say: *"Execute REFACTOR-AUDIT-2026-07-18.md, follow the Suggested Codex order at the bottom, one commit per step."* Start with P0.1+P0.3 (stops daily repo bloat, ~15 min, low risk). Verify after each phase: run the test files + one manual `./run_morning.sh` and confirm the commit contains only rolling JSON files.
+
 Fable audit; Codex implements. This is a **live production system** (cron 6:00/14:00 daily, launchd thermostat enforcer, Slack alerts) — every item below is sequenced to avoid breaking a running pipeline. Verify after each phase with the existing tests (`test_padsplit_scraper.py`, `test_thermostat_*.py`) plus one full `./run_morning.sh` dry cycle.
 
 ## Verdict in one line
