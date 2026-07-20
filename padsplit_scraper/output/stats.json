@@ -3739,12 +3739,12 @@
     "avg_score_30d": 79.5
   },
   "run_status": {
-    "state": "ok",
+    "state": "degraded",
     "mode": "full",
-    "failed_phase": null,
-    "error_type": null,
-    "error_message": null,
-    "fallback_used": false,
-    "run_scraped_at": "2026-05-15T21:44:07Z"
+    "failed_phase": "earnings_stats",
+    "error_type": "HTTPError",
+    "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
+    "fallback_used": true,
+    "run_scraped_at": "2026-07-20T03:02:41Z"
   }
 }
