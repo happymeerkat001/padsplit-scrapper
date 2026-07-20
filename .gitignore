@@ -14,11 +14,13 @@ thermostat/output/202*.json
 thermostat/temp_alert_state.json
 
 
-# Python Virtual Environment & Cacheå
+# Python Virtual Environment & Cache
 venv/
 __pycache__/
 *.pyc
 
+# Runtime logs
+logs/
 
 *.log
 padsplit_scraper/output/latest.json

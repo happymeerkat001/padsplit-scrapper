@@ -41,6 +41,16 @@ class ThermostatScheduleTests(unittest.TestCase):
         self.assertIn("--target", payload["ProgramArguments"])
         self.assertIn("6623 Leanna", payload["ProgramArguments"])
 
+    def test_launchagent_logs_are_written_to_the_central_logs_directory(self) -> None:
+        slot = schedule.Slot(hour=7, minute=0, cool=76, heat=68)
+        stdout_path, stderr_path = schedule.log_paths_for("6623-leanna", slot)
+        enforcer = schedule.build_enforcer_plist()
+
+        self.assertEqual(stdout_path.parent, schedule.ROOT_DIR / "logs")
+        self.assertEqual(stderr_path.parent, schedule.ROOT_DIR / "logs")
+        self.assertEqual(Path(enforcer["StandardOutPath"]).parent, schedule.ROOT_DIR / "logs")
+        self.assertEqual(Path(enforcer["StandardErrorPath"]).parent, schedule.ROOT_DIR / "logs")
+
     def test_install_replaces_target_specific_plists_only(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             launch_dir = Path(tmpdir)
