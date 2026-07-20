@@ -18,4 +18,4 @@ jobs:
       - name: Send task digest to Slack
         env:
           SLACK_WEBHOOK_TASKS: ${{ secrets.SLACK_WEBHOOK_TASKS }}
-        run: python slack_notifier.py
+        run: python slack_task_digest.py

@@ -98,8 +98,10 @@ Resume note:
 Logs:
 
 ```text
-thermostat/set_temps.stderr.log
+logs/
 ```
+
+All runtime and LaunchAgent logs are ignored under `logs/`.
 
 Unload launch agent:
 
@@ -210,7 +212,7 @@ Time format:
 Generated files:
 
 - LaunchAgents are written under `~/Library/LaunchAgents/` as `com.padsplit.thermostat.<target>.<hhmm>.plist`.
-- Slot logs are written to `thermostat/schedule-<target>-<hhmm>.stdout.log` and `.stderr.log`.
+- Slot logs are written to `logs/schedule-<target>-<hhmm>.stdout.log` and `.stderr.log`.
 
 Current limitation:
 
