@@ -1,6 +1,130 @@
 {
-  "scraped_at": "2026-07-19T22:11:19Z",
+  "scraped_at": "2026-07-20T03:01:59Z",
   "messages": [
+    {
+      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6Mzk2Njky",
+      "title": "Mark Renic",
+      "chatType": "HOST_SUPPORT_CHAT",
+      "isArchived": false,
+      "occupancy": {
+        "moveInDate": "2026-07-22",
+        "moveOutDate": null,
+        "conditionalEligibilityApplied": null,
+        "room": {
+          "pk": 71401,
+          "roomNumber": 3
+        },
+        "user": {
+          "picture": "img/profiles/user_1209743_796805ed-3577-4485-8d88-1e54fe41adc9.jpg",
+          "firstName": "Mark",
+          "lastName": "Renic",
+          "displayName": null
+        }
+      },
+      "property": {
+        "host": {
+          "firstName": "Tinghui",
+          "lastName": "Li",
+          "displayName": "",
+          "picture": ""
+        },
+        "description": "Enjoy living in a cozy House. This comfortable home is decorated with modern touches while providing the basic necessities. All that\u2019s missing is you!\n\nThe kitchen is equipped with a fridge, sink, oven, stovetop, as well as upgraded appliances. It\u2019s the perfect spot for you to cook at home and save money.\n\nThe surrounding location is near grocery stores, making it the perfect place to call home.",
+        "address": {
+          "street1": "1404 Pioneer Lane",
+          "street2": "",
+          "zip": "75023",
+          "city": {
+            "name": "Plano",
+            "state": {
+              "name": "Texas"
+            }
+          }
+        }
+      },
+      "isCancelled": false,
+      "lastMessage": {
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTAzNzI0ODQ=",
+        "created": "2026-07-20T01:25:11.508354",
+        "text": "Hello! My name is Mark Renic and I'm interested in renting a room in your PadSplit. I work full-time as a Facilities Maintenance Technician at Oncor and have a steady income. I'm a clean, respectful, and responsible person who keeps my living space tidy, pays my bills on time and gets along well with everyone. I'm looking for a safe, quiet place to live and I would appreciate the opportunity to be a tenant. Thank you for your consideration!",
+        "deleted": null,
+        "extra": null,
+        "messageType": "OPEN_REQUEST",
+        "sender": {
+          "pk": 1209743,
+          "firstName": "Mark",
+          "lastName": "Renic",
+          "displayName": null
+        },
+        "attachments": [],
+        "paymentExtensionStatus": null,
+        "ticketStatus": null,
+        "bookingStatus": null
+      },
+      "member": {
+        "seenAt": null,
+        "isPinned": false,
+        "isUnread": true
+      },
+      "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTAzNzI0ODQ=",
+          "text": "Hello! My name is Mark Renic and I'm interested in renting a room in your PadSplit. I work full-time as a Facilities Maintenance Technician at Oncor and have a steady income. I'm a clean, respectful, and responsible person who keeps my living space tidy, pays my bills on time and gets along well with everyone. I'm looking for a safe, quiet place to live and I would appreciate the opportunity to be a tenant. Thank you for your consideration!",
+          "created": "2026-07-20T01:25:11.508354",
+          "messageType": "OPEN_REQUEST",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjEyMDk3NDM=",
+            "pk": 1209743,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_1209743_796805ed-3577-4485-8d88-1e54fe41adc9.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1209743_796805ed-3577-4485-8d88-1e54fe41adc9.jpg",
+            "firstName": "Mark",
+            "lastName": "Renic",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 1146523
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTAzNzI0MjI=",
+          "text": null,
+          "created": "2026-07-20T01:20:04.644591",
+          "messageType": "BOOKING_STATUS",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
+            "pk": 339595,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Tinghui",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "",
+            "padmateProfileId": 278216
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZUJvb2tpbmdTdGF0dXM6MzE3MTc1",
+            "created": "2026-07-20T01:20:04.650809",
+            "status": "PENDING",
+            "verificationTimeInHours": 24
+          }
+        }
+      ]
+    },
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6Mzk2NDYz",
       "title": "Christian Wayne",
@@ -9504,6 +9628,6 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-07-19T22:11:19Z"
+    "run_scraped_at": "2026-07-20T03:01:59Z"
   }
 }
