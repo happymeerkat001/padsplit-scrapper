@@ -35,9 +35,10 @@ def call_minimax(prompt: str) -> str:
     api_key = (os.getenv("MINIMAX_API_KEY") or "").strip()
     if not api_key:
         sys.exit("Missing MINIMAX_API_KEY in environment")
+    model = (os.getenv("MINIMAX_MODEL") or "MiniMax-M2.5").strip()
 
     body = json.dumps({
-        "model": "MiniMax-M2.5",
+        "model": model,
         "messages": [{"role": "user", "content": prompt}],
     }).encode()
 
