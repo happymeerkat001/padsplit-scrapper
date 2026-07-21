@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-07-21T06:43:21Z",
+  "scraped_at": "2026-07-21T09:17:50Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzkyMjI1",
@@ -9776,53 +9776,6 @@
     ],
     "Complete": [
       {
-        "id": 440455,
-        "status": "completed",
-        "comment": null,
-        "category": "room-turn",
-        "media": [],
-        "created": "2026-07-13T12:30:55.271412",
-        "modified": "2026-07-18T16:20:09.373933",
-        "room_name": "",
-        "room_number": 3,
-        "room_status": 1,
-        "room_code": "1234",
-        "location": "Room",
-        "details": "moving-to-a-new-city",
-        "property_id": 20021,
-        "property_address": {
-          "id": 27496,
-          "street1": "1404 Pioneer Lane",
-          "street2": "",
-          "city": "Plano",
-          "state": "TX",
-          "zip": "75023",
-          "city_slug": "plano-tx"
-        },
-        "reported_by": {
-          "id": 1040211,
-          "name": "Jorge Ontiveros",
-          "role_id": 0,
-          "picture": "img/profiles/user_1040211_dcec9407-5c48-4a5a-b713-5a7111bb699f.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-07-13T12:30:55.271680",
-        "rating": null,
-        "extra_data": {
-          "user_id": 1040211,
-          "checklist": {},
-          "occupancy_id": 288046,
-          "move_out_date": "2026-07-13"
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
-      },
-      {
         "id": 440314,
         "status": "completed",
         "comment": null,
@@ -9858,55 +9811,6 @@
         "rating": null,
         "extra_data": {
           "checklist": {}
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
-      },
-      {
-        "id": 440499,
-        "status": "completed",
-        "comment": null,
-        "category": "room-turn",
-        "media": [],
-        "created": "2026-07-13T12:31:17.869424",
-        "modified": "2026-07-16T14:40:19.349858",
-        "room_name": "A-1",
-        "room_number": 1,
-        "room_status": 1,
-        "room_code": "9999",
-        "location": "Room",
-        "details": "other",
-        "property_id": 5735,
-        "property_address": {
-          "id": 7379,
-          "street1": "3414 Pebbleshores Drive",
-          "street2": "",
-          "city": "Dallas",
-          "state": "TX",
-          "zip": "75241",
-          "city_slug": "dallas-tx"
-        },
-        "reported_by": {
-          "id": 935813,
-          "name": "Chase Wofford",
-          "role_id": 0,
-          "picture": "img/profiles/user_935813_467acb1d-0b39-44b3-bfd6-3af269656611.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-07-13T12:31:17.869683",
-        "rating": null,
-        "extra_data": {
-          "user_id": 935813,
-          "checklist": {},
-          "occupancy_id": 323248,
-          "move_out_date": "2026-07-13",
-          "move_out_details": null,
-          "is_present_after_move_out": false
         },
         "has_reused_code": true,
         "moveout_photos_count": 0,
@@ -9968,6 +9872,6 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-07-21T06:43:21Z"
+    "run_scraped_at": "2026-07-21T09:17:50Z"
   }
 }
