@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-07-23T07:44:53Z",
+  "scraped_at": "2026-07-23T10:06:53Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6Mjc5ODE5",
@@ -8994,50 +8994,6 @@
         "is_on_payment_plan": false,
         "payment_plan_end_date": null,
         "payment_plan_reason_note": null
-      },
-      {
-        "id": 439828,
-        "status": "completed",
-        "comment": null,
-        "category": "unclassified",
-        "media": [],
-        "created": "2026-07-12T02:42:25.294577",
-        "modified": "2026-07-15T18:02:46.100866",
-        "room_name": "",
-        "room_number": 7,
-        "room_status": 1,
-        "room_code": "121212",
-        "location": "Doorlock",
-        "details": "The lock on my door won\u2019t lock or stay closed at all, it worked fine until about two weeks ago and now the door won\u2019t even stay closed, coming open anytime someone even bumps into it",
-        "property_id": 24516,
-        "property_address": {
-          "id": 33032,
-          "street1": "5509 Burton Avenue",
-          "street2": "",
-          "city": "Fort Worth",
-          "state": "TX",
-          "zip": "76119",
-          "city_slug": "fort-worth-tx"
-        },
-        "reported_by": {
-          "id": 1033006,
-          "name": "Leroy",
-          "role_id": 0,
-          "picture": "img/profiles/user_1033006_14f97755-9d1a-4026-bff8-289833aa91d9.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-07-15T18:02:46.082247",
-        "rating": null,
-        "extra_data": {
-          "checklist": {}
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
       }
     ]
   },
@@ -9048,6 +9004,6 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-07-23T07:44:53Z"
+    "run_scraped_at": "2026-07-23T10:06:53Z"
   }
 }
