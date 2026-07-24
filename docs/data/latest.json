@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-07-24T07:20:42Z",
+  "scraped_at": "2026-07-24T10:00:18Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzQ5NTcw",
@@ -1176,7 +1176,7 @@
               },
               "details": "Collections",
               "location": "ROOM",
-              "status": "WITHDRAWN",
+              "status": "ARCHIVED",
               "rating": null,
               "comment": null,
               "category": "ROOM_TURN",
@@ -1224,7 +1224,7 @@
               },
               "details": "Collections",
               "location": "ROOM",
-              "status": "WITHDRAWN",
+              "status": "ARCHIVED",
               "rating": null,
               "comment": null,
               "category": "ROOM_TURN",
@@ -3352,7 +3352,7 @@
               },
               "details": "Collections",
               "location": "ROOM",
-              "status": "WITHDRAWN",
+              "status": "ARCHIVED",
               "rating": null,
               "comment": null,
               "category": "ROOM_TURN",
@@ -3452,7 +3452,7 @@
               },
               "details": "Collections",
               "location": "ROOM",
-              "status": "WITHDRAWN",
+              "status": "ARCHIVED",
               "rating": null,
               "comment": null,
               "category": "ROOM_TURN",
@@ -5118,7 +5118,7 @@
             },
             "details": "We need a plumber to come out and look at the tub in the bathroom and the toilet in the other is stopped up.",
             "location": "BATHROOM_UPSTAIRS",
-            "status": "COMPLETED",
+            "status": "ARCHIVED",
             "rating": null,
             "comment": null,
             "category": "UNCLASSIFIED",
@@ -8166,50 +8166,6 @@
         "is_on_payment_plan": false,
         "payment_plan_end_date": null,
         "payment_plan_reason_note": null
-      },
-      {
-        "id": 440314,
-        "status": "completed",
-        "comment": null,
-        "category": "unclassified",
-        "media": [],
-        "created": "2026-07-12T23:53:43.392911",
-        "modified": "2026-07-16T14:41:32.062919",
-        "room_name": "A-2",
-        "room_number": 2,
-        "room_status": 1,
-        "room_code": "4444",
-        "location": "Bathroom, Upstairs",
-        "details": "We need a plumber to come out and look at the tub in the bathroom and the toilet in the other is stopped up.",
-        "property_id": 5735,
-        "property_address": {
-          "id": 7379,
-          "street1": "3414 Pebbleshores Drive",
-          "street2": "",
-          "city": "Dallas",
-          "state": "TX",
-          "zip": "75241",
-          "city_slug": "dallas-tx"
-        },
-        "reported_by": {
-          "id": 843823,
-          "name": "Deangelo Bell",
-          "role_id": 0,
-          "picture": "img/profiles/user_843823_5d6906af-9e86-460d-a3e7-24b580d293a5.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-07-16T14:41:32.059922",
-        "rating": null,
-        "extra_data": {
-          "checklist": {}
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
       }
     ]
   },
@@ -8220,6 +8176,6 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-07-24T07:20:42Z"
+    "run_scraped_at": "2026-07-24T10:00:18Z"
   }
 }
