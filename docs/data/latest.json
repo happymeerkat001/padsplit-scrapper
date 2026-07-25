@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-07-25T18:41:43Z",
+  "scraped_at": "2026-07-25T20:00:17Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6Mzk2Njky",
@@ -43,21 +43,43 @@
       },
       "isCancelled": false,
       "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA0ODk4MjE=",
-        "created": "2026-07-25T18:39:05.543506",
-        "text": "hello, i just arrived at the house and the door does not close",
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA0OTEwMDk=",
+        "created": "2026-07-25T19:44:17.099271",
+        "text": null,
         "deleted": null,
         "extra": null,
-        "messageType": "TEXT",
+        "messageType": "TICKET_UPDATE",
         "sender": {
-          "pk": 1209743,
-          "firstName": "Mark",
-          "lastName": "Renic",
-          "displayName": null
+          "pk": 339595,
+          "firstName": "Tinghui",
+          "lastName": "Li",
+          "displayName": ""
         },
         "attachments": [],
         "paymentExtensionStatus": null,
-        "ticketStatus": null,
+        "ticketStatus": {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMDY3NjEz",
+          "created": "2026-07-25T19:44:17.105476",
+          "status": "SUBMITTED",
+          "canRate": false,
+          "ticket": {
+            "id": "447208",
+            "author": {
+              "firstName": "Mark",
+              "lastName": "Renic",
+              "id": "1209743",
+              "displayName": null
+            },
+            "details": "door lock does not work and door does not close",
+            "location": "DOORLOCK",
+            "status": "SUBMITTED",
+            "rating": null,
+            "comment": null,
+            "category": "UNCLASSIFIED",
+            "onHoldReason": null,
+            "withdrawReason": null
+          }
+        },
         "bookingStatus": null
       },
       "member": {
@@ -66,6 +88,54 @@
         "isUnread": true
       },
       "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA0OTEwMDk=",
+          "text": null,
+          "created": "2026-07-25T19:44:17.099271",
+          "messageType": "TICKET_UPDATE",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
+            "pk": 339595,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Tinghui",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "",
+            "padmateProfileId": 278216
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMDY3NjEz",
+            "created": "2026-07-25T19:44:17.105476",
+            "status": "SUBMITTED",
+            "canRate": false,
+            "ticket": {
+              "id": "447208",
+              "author": {
+                "firstName": "Mark",
+                "lastName": "Renic",
+                "id": "1209743",
+                "displayName": null
+              },
+              "details": "door lock does not work and door does not close",
+              "location": "DOORLOCK",
+              "status": "SUBMITTED",
+              "rating": null,
+              "comment": null,
+              "category": "UNCLASSIFIED",
+              "onHoldReason": null,
+              "withdrawReason": null
+            }
+          },
+          "bookingStatus": null
+        },
         {
           "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA0ODk4MjE=",
           "text": "hello, i just arrived at the house and the door does not close",
@@ -8088,6 +8158,48 @@
   "tasks": {
     "Requests": [
       {
+        "id": 447208,
+        "status": "submitted",
+        "comment": null,
+        "category": "unclassified",
+        "media": [],
+        "created": "2026-07-25T19:44:17.068304",
+        "modified": "2026-07-25T19:44:17.068304",
+        "room_name": "",
+        "room_number": 3,
+        "room_status": 1,
+        "room_code": "1234",
+        "location": "Doorlock",
+        "details": "door lock does not work and door does not close",
+        "property_id": 20021,
+        "property_address": {
+          "id": 27496,
+          "street1": "1404 Pioneer Lane",
+          "street2": "",
+          "city": "Plano",
+          "state": "TX",
+          "zip": "75023",
+          "city_slug": "plano-tx"
+        },
+        "reported_by": {
+          "id": 1209743,
+          "name": "Mark Renic",
+          "role_id": 0,
+          "picture": "img/profiles/user_1209743_796805ed-3577-4485-8d88-1e54fe41adc9.jpg"
+        },
+        "assigned_to": null,
+        "on_hold_reason": null,
+        "update_status_at": "2026-07-25T19:44:17.069825",
+        "rating": null,
+        "extra_data": {},
+        "has_reused_code": true,
+        "moveout_photos_count": 0,
+        "days_to_complete": null,
+        "is_on_payment_plan": false,
+        "payment_plan_end_date": null,
+        "payment_plan_reason_note": null
+      },
+      {
         "id": 446619,
         "status": "submitted",
         "comment": null,
@@ -8459,6 +8571,6 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-07-25T18:41:43Z"
+    "run_scraped_at": "2026-07-25T20:00:17Z"
   }
 }
