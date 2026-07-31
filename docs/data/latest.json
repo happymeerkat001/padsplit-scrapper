@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-07-31T20:12:39Z",
+  "scraped_at": "2026-07-31T21:32:38Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzYxNDQy",
@@ -10844,7 +10844,7 @@
         "category": "room-turn",
         "media": [],
         "created": "2026-07-30T15:02:03.349588",
-        "modified": "2026-07-30T15:02:03.914404",
+        "modified": "2026-07-31T20:26:07.507377",
         "room_name": "",
         "room_number": 4,
         "room_status": 3,
@@ -10874,7 +10874,9 @@
         "extra_data": {
           "user_id": 833971,
           "occupancy_id": 229443,
-          "move_out_date": "2026-07-30"
+          "move_out_date": "2026-07-30",
+          "move_out_details": "Ticket \u202d#1371313 - Member was advised that $500 payment on Aug 16 is insufficient to bring his balance below the $300 threshold.",
+          "is_present_after_move_out": true
         },
         "has_reused_code": true,
         "moveout_photos_count": 0,
@@ -11366,6 +11368,6 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-07-31T20:12:39Z"
+    "run_scraped_at": "2026-07-31T21:32:38Z"
   }
 }
