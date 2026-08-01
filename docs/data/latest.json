@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-08-01T18:44:08Z",
+  "scraped_at": "2026-08-01T19:59:58Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzY1ODAx",
@@ -43,17 +43,17 @@
       },
       "isCancelled": false,
       "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA2NDY2MTE=",
-        "created": "2026-08-01T17:49:14.857901",
-        "text": "I think the dryer is broken or in the process of breaking. The \"Flow Sense\" keeps stopping my clothes from drying even though the lint trap is clear.",
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA2NDg2MTc=",
+        "created": "2026-08-01T19:27:34.149643",
+        "text": "Okay I\u2019ll ask maintenance to check it",
         "deleted": null,
         "extra": null,
         "messageType": "TEXT",
         "sender": {
-          "pk": 704121,
-          "firstName": "Ezekiel",
-          "lastName": "Walker",
-          "displayName": null
+          "pk": 318367,
+          "firstName": "Ang",
+          "lastName": "Li",
+          "displayName": "Cyndy Manager"
         },
         "attachments": [],
         "paymentExtensionStatus": null,
@@ -61,11 +61,37 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-07-18T16:09:28.308667",
+        "seenAt": "2026-08-01T19:27:36.210195",
         "isPinned": false,
-        "isUnread": true
+        "isUnread": false
       },
       "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA2NDg2MTc=",
+          "text": "Okay I\u2019ll ask maintenance to check it",
+          "created": "2026-08-01T19:27:34.149643",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
         {
           "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA2NDY2MTE=",
           "text": "I think the dryer is broken or in the process of breaking. The \"Flow Sense\" keeps stopping my clothes from drying even though the lint trap is clear.",
@@ -293,32 +319,6 @@
             "isActive": true,
             "displayName": "Cyndy Manager",
             "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTcyMDk2Mg==",
-          "text": "For cleaning the general areas, are we able to request general cleaning supplies? For example, for cleaning spots like the bathroom, are we able to get the bathroom stocked with the reusable rubber gloves and scrubbers and cleaning chemicals like Comet? When I looked in our bathroom, there was toilet bowl cleaner and there are a few cleaning chemicals in the kitchen area, but not much. Also, the shower curtains in the bathroom closet to me are tolerable, but rough, are shower curtains kept somewhere in the house where I can just replace what we have? They're not the machine washable curtains, so I can't just put them in the washer like I did the bathroom rugs.",
-          "created": "2026-06-17T04:59:29.743996",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjcwNDEyMQ==",
-            "pk": 704121,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_704121_1426cb63-1b11-482d-86f2-f896a08dfc8f.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_704121_1426cb63-1b11-482d-86f2-f896a08dfc8f.jpg",
-            "firstName": "Ezekiel",
-            "lastName": "Walker",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 641703
           },
           "attachments": [],
           "reactions": [],
@@ -9979,6 +9979,6 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-08-01T18:44:08Z"
+    "run_scraped_at": "2026-08-01T19:59:58Z"
   }
 }
