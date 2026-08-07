@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-08-07T11:33:33Z",
+  "scraped_at": "2026-08-07T12:30:24Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6Mjg3MjYy",
@@ -43,17 +43,17 @@
       },
       "isCancelled": false,
       "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA3NTIyMzg=",
-        "created": "2026-08-06T23:00:55.871110",
-        "text": "Hay cyndy maintenence didn't come today either I gotta go to social security tomorrow to change my direct deposit for Sept I dont gotta be home if he comes tomorrow right ",
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA3NTgzNjI=",
+        "created": "2026-08-07T11:48:35.113021",
+        "text": "No you don\u2019t have to be",
         "deleted": null,
         "extra": null,
         "messageType": "TEXT",
         "sender": {
-          "pk": 552038,
-          "firstName": "Michael",
-          "lastName": "Bouwens",
-          "displayName": "Mike"
+          "pk": 318367,
+          "firstName": "Ang",
+          "lastName": "Li",
+          "displayName": "Cyndy Manager"
         },
         "attachments": [],
         "paymentExtensionStatus": null,
@@ -61,11 +61,37 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-08-06T14:05:17.091571",
+        "seenAt": "2026-08-07T11:48:36.450036",
         "isPinned": false,
-        "isUnread": true
+        "isUnread": false
       },
       "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA3NTgzNjI=",
+          "text": "No you don\u2019t have to be",
+          "created": "2026-08-07T11:48:35.113021",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
         {
           "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA3NTIyMzg=",
           "text": "Hay cyndy maintenence didn't come today either I gotta go to social security tomorrow to change my direct deposit for Sept I dont gotta be home if he comes tomorrow right ",
@@ -299,32 +325,6 @@
           "paymentExtensionStatus": null,
           "ticketStatus": null,
           "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA2OTA4MTk=",
-          "text": "Hay cyndy maintenence never came today to fix my door lock or my cloths rack are they gonna come to.orrow",
-          "created": "2026-08-03T23:55:46.835980",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjU1MjAzOA==",
-            "pk": 552038,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_552038_3140b797-0af1-4958-a1f9-50e3016a0c88.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_552038_3140b797-0af1-4958-a1f9-50e3016a0c88.jpg",
-            "firstName": "Michael",
-            "lastName": "Bouwens",
-            "isActive": true,
-            "displayName": "Mike",
-            "padmateProfileId": 489797
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
         }
       ]
     },
@@ -388,9 +388,9 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-08-06T21:47:37.733966",
+        "seenAt": "2026-08-07T11:48:43.755346",
         "isPinned": false,
-        "isUnread": true
+        "isUnread": false
       },
       "recent_messages": [
         {
@@ -715,9 +715,9 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-08-06T19:26:39.872957",
+        "seenAt": "2026-08-07T11:48:47.598676",
         "isPinned": false,
-        "isUnread": true
+        "isUnread": false
       },
       "recent_messages": [
         {
@@ -8662,6 +8662,6 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-08-07T11:33:33Z"
+    "run_scraped_at": "2026-08-07T12:30:24Z"
   }
 }
