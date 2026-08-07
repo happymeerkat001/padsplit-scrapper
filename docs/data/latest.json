@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-08-07T06:54:23Z",
+  "scraped_at": "2026-08-07T08:31:42Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6Mjg3MjYy",
@@ -5812,7 +5812,7 @@
             },
             "details": "Collections",
             "location": "ROOM",
-            "status": "WITHDRAWN",
+            "status": "ARCHIVED",
             "rating": null,
             "comment": null,
             "category": "ROOM_TURN",
@@ -5964,7 +5964,7 @@
             },
             "details": "Room 2\u2019s door squeaks every time I go to close it.  I tried not to bother y\u2019all for the simple fact that I have tried to get some WD-40 on it. But to no avail did this work. I\u2019m afraid that it is bothering my pad mates.  Perhaps the lube needs to get between the hinge joints to take affect.",
             "location": "ROOM",
-            "status": "COMPLETED",
+            "status": "ARCHIVED",
             "rating": null,
             "comment": null,
             "category": "UNCLASSIFIED",
@@ -8652,97 +8652,6 @@
         "is_on_payment_plan": false,
         "payment_plan_end_date": null,
         "payment_plan_reason_note": null
-      },
-      {
-        "id": 448694,
-        "status": "completed",
-        "comment": null,
-        "category": "room-turn",
-        "media": [],
-        "created": "2026-07-28T12:31:01.030283",
-        "modified": "2026-08-06T14:00:18.744256",
-        "room_name": "Room 4",
-        "room_number": 4,
-        "room_status": 1,
-        "room_code": "5411",
-        "location": "Room",
-        "details": "Room transfer",
-        "property_id": 8127,
-        "property_address": {
-          "id": 10664,
-          "street1": "10235 Ridge Oak Street",
-          "street2": "",
-          "city": "Dallas",
-          "state": "TX",
-          "zip": "75227",
-          "city_slug": "dallas-tx"
-        },
-        "reported_by": {
-          "id": 675098,
-          "name": "Leonard Gray",
-          "role_id": 0,
-          "picture": "img/profiles/user_675098_a595a757-2695-4fae-883f-4c2b1e0565a8.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-07-28T12:31:01.030669",
-        "rating": null,
-        "extra_data": {
-          "user_id": 675098,
-          "checklist": {},
-          "occupancy_id": 307174,
-          "move_out_date": "2026-07-28"
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
-      },
-      {
-        "id": 435844,
-        "status": "completed",
-        "comment": null,
-        "category": "unclassified",
-        "media": [],
-        "created": "2026-07-04T02:44:37.208209",
-        "modified": "2026-07-30T12:08:54.855716",
-        "room_name": "",
-        "room_number": 2,
-        "room_status": 1,
-        "room_code": "1234",
-        "location": "Room",
-        "details": "Room 2\u2019s door squeaks every time I go to close it.  I tried not to bother y\u2019all for the simple fact that I have tried to get some WD-40 on it. But to no avail did this work. I\u2019m afraid that it is bothering my pad mates.  Perhaps the lube needs to get between the hinge joints to take affect.",
-        "property_id": 9369,
-        "property_address": {
-          "id": 12545,
-          "street1": "3406 Green Hill Drive",
-          "street2": "",
-          "city": "Arlington",
-          "state": "TX",
-          "zip": "76014",
-          "city_slug": "arlington-tx"
-        },
-        "reported_by": {
-          "id": 196954,
-          "name": "Jennifer Clemons",
-          "role_id": 0,
-          "picture": "img/profiles/user_196954_909e88e5-985d-466d-a415-acbf2b9116b4.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-07-30T12:08:54.851307",
-        "rating": null,
-        "extra_data": {
-          "checklist": {}
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
       }
     ]
   },
@@ -8753,6 +8662,6 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-08-07T06:54:23Z"
+    "run_scraped_at": "2026-08-07T08:31:42Z"
   }
 }
