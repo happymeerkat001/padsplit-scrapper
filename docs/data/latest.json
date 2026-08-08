@@ -1,6 +1,130 @@
 {
-  "scraped_at": "2026-08-08T10:54:25Z",
+  "scraped_at": "2026-08-08T11:46:41Z",
   "messages": [
+    {
+      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6NDExMjc5",
+      "title": "Johan Gonzalez Rangel",
+      "chatType": "HOST_SUPPORT_CHAT",
+      "isArchived": false,
+      "occupancy": {
+        "moveInDate": "2026-08-10",
+        "moveOutDate": null,
+        "conditionalEligibilityApplied": null,
+        "room": {
+          "pk": 28753,
+          "roomNumber": 4
+        },
+        "user": {
+          "picture": "img/profiles/user_1201975_0ae8aa52-ae5f-482a-85ec-b670cb18b944.jpg",
+          "firstName": "Johan",
+          "lastName": "Gonzalez Rangel",
+          "displayName": null
+        }
+      },
+      "property": {
+        "host": {
+          "firstName": "Tinghui",
+          "lastName": "Li",
+          "displayName": "",
+          "picture": ""
+        },
+        "description": "Move into a cozy House today! Newly-renovated and comfortable, this is the perfect place to call home. \n\nThe kitchen comes equipped with a fridge, sink, oven, stovetop, as well as garbage disposal, making it the perfect spot to whip up a meal or two.\n\nThe neighbourhood is near highways, and you won\u2019t be far from all Dallas has to offer.",
+        "address": {
+          "street1": "10235 Ridge Oak Street",
+          "street2": "",
+          "zip": "75227",
+          "city": {
+            "name": "Dallas",
+            "state": {
+              "name": "Texas"
+            }
+          }
+        }
+      },
+      "isCancelled": false,
+      "lastMessage": {
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA3ODAyMzY=",
+        "created": "2026-08-08T11:14:22.541809",
+        "text": "Hello, my name is Johan Gonzalez. I am moving to the dallas area this weekend and i liked your home. This is my first time using padsplit, so i am a bit unfamiliar with how things go. I am a respectful and responsible person, and try my best to be kind with others. I will be starting my job soon hopefully either Wednesday or next monday so i might be at the home alot the first week. I am a pipefitter/welder with the local union, and once apprenticeship school starts in September i will be extremely busy and probably not be home for the majority of the day. If you have any more questions please reach out to me. Thank you.",
+        "deleted": null,
+        "extra": null,
+        "messageType": "OPEN_REQUEST",
+        "sender": {
+          "pk": 1201975,
+          "firstName": "Johan",
+          "lastName": "Gonzalez Rangel",
+          "displayName": null
+        },
+        "attachments": [],
+        "paymentExtensionStatus": null,
+        "ticketStatus": null,
+        "bookingStatus": null
+      },
+      "member": {
+        "seenAt": null,
+        "isPinned": false,
+        "isUnread": true
+      },
+      "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA3ODAyMzY=",
+          "text": "Hello, my name is Johan Gonzalez. I am moving to the dallas area this weekend and i liked your home. This is my first time using padsplit, so i am a bit unfamiliar with how things go. I am a respectful and responsible person, and try my best to be kind with others. I will be starting my job soon hopefully either Wednesday or next monday so i might be at the home alot the first week. I am a pipefitter/welder with the local union, and once apprenticeship school starts in September i will be extremely busy and probably not be home for the majority of the day. If you have any more questions please reach out to me. Thank you.",
+          "created": "2026-08-08T11:14:22.541809",
+          "messageType": "OPEN_REQUEST",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjEyMDE5NzU=",
+            "pk": 1201975,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_1201975_0ae8aa52-ae5f-482a-85ec-b670cb18b944.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1201975_0ae8aa52-ae5f-482a-85ec-b670cb18b944.jpg",
+            "firstName": "Johan",
+            "lastName": "Gonzalez Rangel",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 1138790
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA3ODAyMjI=",
+          "text": null,
+          "created": "2026-08-08T11:10:32.126853",
+          "messageType": "BOOKING_STATUS",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
+            "pk": 339595,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Tinghui",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "",
+            "padmateProfileId": 278216
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZUJvb2tpbmdTdGF0dXM6MzI5MjEx",
+            "created": "2026-08-08T11:10:32.140616",
+            "status": "PENDING",
+            "verificationTimeInHours": 24
+          }
+        }
+      ]
+    },
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzU5OTY2",
       "title": "Dede Evans",
@@ -7958,6 +8082,6 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-08-08T10:54:25Z"
+    "run_scraped_at": "2026-08-08T11:46:41Z"
   }
 }
