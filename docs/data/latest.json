@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-08-11T11:07:52Z",
+  "scraped_at": "2026-08-11T11:59:33Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6NDEzMTI2",
@@ -43,29 +43,105 @@
       },
       "isCancelled": false,
       "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA4MzY4ODg=",
-        "created": "2026-08-11T10:03:20.290905",
-        "text": null,
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA4Mzc1ODE=",
+        "created": "2026-08-11T11:56:29.628980",
+        "text": "If you need better ones I could I email the entire file. I cannot upload it here,",
         "deleted": null,
         "extra": null,
-        "messageType": "CHAT_OPENED",
+        "messageType": "TEXT",
         "sender": {
-          "pk": 318367,
-          "firstName": "Ang",
-          "lastName": "Li",
-          "displayName": "Cyndy Manager"
+          "pk": 904975,
+          "firstName": "Jabari",
+          "lastName": "Abbu",
+          "displayName": "Jb"
         },
-        "attachments": [],
+        "attachments": [
+          {
+            "mediaType": "PICTURE",
+            "deleted": null
+          },
+          {
+            "mediaType": "PICTURE",
+            "deleted": null
+          }
+        ],
         "paymentExtensionStatus": null,
         "ticketStatus": null,
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-08-11T10:03:21.412962",
+        "seenAt": "2026-08-11T11:41:59.927312",
         "isPinned": false,
-        "isUnread": false
+        "isUnread": true
       },
       "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA4Mzc1ODE=",
+          "text": "If you need better ones I could I email the entire file. I cannot upload it here,",
+          "created": "2026-08-11T11:56:29.628980",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkwNDk3NQ==",
+            "pk": 904975,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_904975_1f221956-ca3c-4d4c-ba21-11211b3c2755.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_904975_1f221956-ca3c-4d4c-ba21-11211b3c2755.jpg",
+            "firstName": "Jabari",
+            "lastName": "Abbu",
+            "isActive": true,
+            "displayName": "Jb",
+            "padmateProfileId": 842449
+          },
+          "attachments": [
+            {
+              "id": "TWVzc2VuZ2VyQXR0YWNobWVudFR5cGU6ODUyMzMw",
+              "deleted": null,
+              "mediaType": "PICTURE",
+              "location": "img/chat/message/attachments/message_10837581_f6ff2fca-8af8-4673-a2f3-94445f996f78.png",
+              "filename": "IMG_6658.png"
+            },
+            {
+              "id": "TWVzc2VuZ2VyQXR0YWNobWVudFR5cGU6ODUyMzI5",
+              "deleted": null,
+              "mediaType": "PICTURE",
+              "location": "img/chat/message/attachments/message_10837581_19972c4f-6710-4460-b2d1-bfe46cd028b5.png",
+              "filename": "IMG_6659.png"
+            }
+          ],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA4Mzc0NzM=",
+          "text": "Thank you. To help us complete the review process, could you please upload a recent pay stub or any document that shows proof of income?",
+          "created": "2026-08-11T11:41:58.837215",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
         {
           "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA4MzY4ODg=",
           "text": null,
@@ -9856,6 +9932,6 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-08-11T11:07:52Z"
+    "run_scraped_at": "2026-08-11T11:59:33Z"
   }
 }
