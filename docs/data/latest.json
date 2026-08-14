@@ -1,6 +1,437 @@
 {
-  "scraped_at": "2026-08-14T06:45:10Z",
+  "scraped_at": "2026-08-14T08:03:52Z",
   "messages": [
+    {
+      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MjExMTQ0",
+      "title": "Anthony Yancey",
+      "chatType": "HOST_SUPPORT_CHAT",
+      "isArchived": false,
+      "occupancy": {
+        "moveInDate": "2025-10-04",
+        "moveOutDate": "2026-08-12",
+        "conditionalEligibilityApplied": null,
+        "room": {
+          "pk": 32867,
+          "roomNumber": 1
+        },
+        "user": {
+          "picture": "img/profiles/user_753899_563b2db5-08c5-48b8-8675-03ee4e06653f.jpg",
+          "firstName": "Anthony",
+          "lastName": "Yancey",
+          "displayName": null
+        }
+      },
+      "property": {
+        "host": {
+          "firstName": "Ang",
+          "lastName": "Li",
+          "displayName": "Cyndy Manager",
+          "picture": ""
+        },
+        "description": "Your new home awaits! This homey Arlington home is waiting for you. This PadSplit has a Backyard, and it\u2019s newly-renovated and comfortable.\n\nThe kitchen comes equipped with a fridge, sink, oven, stovetop, as well as upgraded appliances.\n\nThe neighbourhood is close to public transit, which means you won\u2019t be far from all Arlington has to offer.",
+        "address": {
+          "street1": "3406 Green Hill Drive",
+          "street2": "",
+          "zip": "76014",
+          "city": {
+            "name": "Arlington",
+            "state": {
+              "name": "Texas"
+            }
+          }
+        }
+      },
+      "isCancelled": false,
+      "lastMessage": {
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA4OTg3MDE=",
+        "created": "2026-08-14T07:07:44.209644",
+        "text": null,
+        "deleted": null,
+        "extra": null,
+        "messageType": "TICKET_UPDATE",
+        "sender": {
+          "pk": 318367,
+          "firstName": "Ang",
+          "lastName": "Li",
+          "displayName": "Cyndy Manager"
+        },
+        "attachments": [],
+        "paymentExtensionStatus": null,
+        "ticketStatus": {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMTAzNDc4",
+          "created": "2026-08-14T07:07:44.237991",
+          "status": "SUBMITTED",
+          "canRate": false,
+          "ticket": {
+            "id": "457024",
+            "author": {
+              "firstName": "Anthony",
+              "lastName": "Yancey",
+              "id": "753899",
+              "displayName": null
+            },
+            "details": "Collections",
+            "location": "ROOM",
+            "status": "SUBMITTED",
+            "rating": null,
+            "comment": null,
+            "category": "ROOM_TURN",
+            "onHoldReason": null,
+            "withdrawReason": null
+          }
+        },
+        "bookingStatus": null
+      },
+      "member": {
+        "seenAt": "2026-08-12T15:53:28.208159",
+        "isPinned": false,
+        "isUnread": true
+      },
+      "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA4OTg3MDE=",
+          "text": null,
+          "created": "2026-08-14T07:07:44.209644",
+          "messageType": "TICKET_UPDATE",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMTAzNDc4",
+            "created": "2026-08-14T07:07:44.237991",
+            "status": "SUBMITTED",
+            "canRate": false,
+            "ticket": {
+              "id": "457024",
+              "author": {
+                "firstName": "Anthony",
+                "lastName": "Yancey",
+                "id": "753899",
+                "displayName": null
+              },
+              "details": "Collections",
+              "location": "ROOM",
+              "status": "SUBMITTED",
+              "rating": null,
+              "comment": null,
+              "category": "ROOM_TURN",
+              "onHoldReason": null,
+              "withdrawReason": null
+            }
+          },
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA4NzU2MDY=",
+          "text": null,
+          "created": "2026-08-13T01:14:16.731192",
+          "messageType": "TICKET_UPDATE",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMTAxNTY5",
+            "created": "2026-08-13T01:14:16.753413",
+            "status": "HOLD",
+            "canRate": false,
+            "ticket": {
+              "id": "457024",
+              "author": {
+                "firstName": "Anthony",
+                "lastName": "Yancey",
+                "id": "753899",
+                "displayName": null
+              },
+              "details": "Collections",
+              "location": "ROOM",
+              "status": "SUBMITTED",
+              "rating": null,
+              "comment": null,
+              "category": "ROOM_TURN",
+              "onHoldReason": null,
+              "withdrawReason": null
+            }
+          },
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA4NzUwNzk=",
+          "text": "I did speak with the PadSplit team today and made them aware that I have not received payment and they are saying I should receive it by tomorrow afternoon ",
+          "created": "2026-08-13T00:54:11.579484",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjc1Mzg5OQ==",
+            "pk": 753899,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_753899_563b2db5-08c5-48b8-8675-03ee4e06653f.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_753899_563b2db5-08c5-48b8-8675-03ee4e06653f.jpg",
+            "firstName": "Anthony",
+            "lastName": "Yancey",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 691450
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA4NjQ1NDQ=",
+          "text": "Alright",
+          "created": "2026-08-12T15:53:26.975356",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA4NjQ1MDM=",
+          "text": "That\u2019s ok , I have been going back and forth with these people to get my money and hearing a bunch of excuses but I am trying to get the money together ",
+          "created": "2026-08-12T15:51:20.769411",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjc1Mzg5OQ==",
+            "pk": 753899,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_753899_563b2db5-08c5-48b8-8675-03ee4e06653f.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_753899_563b2db5-08c5-48b8-8675-03ee4e06653f.jpg",
+            "firstName": "Anthony",
+            "lastName": "Yancey",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 691450
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA4NjAzNDI=",
+          "text": "Sorry I missed you call",
+          "created": "2026-08-12T12:49:53.487741",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA4NjAzMzQ=",
+          "text": "Hi Anthony",
+          "created": "2026-08-12T12:49:44.313360",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA4NTc4OTQ=",
+          "text": null,
+          "created": "2026-08-12T08:02:03.026744",
+          "messageType": "TICKET_UPDATE",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMDk5ODIw",
+            "created": "2026-08-12T08:02:03.030449",
+            "status": "SUBMITTED",
+            "canRate": false,
+            "ticket": {
+              "id": "457024",
+              "author": {
+                "firstName": "Anthony",
+                "lastName": "Yancey",
+                "id": "753899",
+                "displayName": null
+              },
+              "details": "Collections",
+              "location": "ROOM",
+              "status": "SUBMITTED",
+              "rating": null,
+              "comment": null,
+              "category": "ROOM_TURN",
+              "onHoldReason": null,
+              "withdrawReason": null
+            }
+          },
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA3ODgxNjI=",
+          "text": null,
+          "created": "2026-08-08T18:21:14.714056",
+          "messageType": "PAYMENT_EXTENSION_APPROVED",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": {
+            "newDate": null,
+            "status": "APPROVED",
+            "id": "TWVzc2VuZ2VyUGF5bWVudEV4dGVuc2lvblN0YXR1c1R5cGU6NjMwMjc=",
+            "created": "2026-08-08T18:21:14.720265",
+            "changedFromDate": null,
+            "date": "2026-08-11",
+            "paymentExtensionRequest": {
+              "id": "53291",
+              "reason": "Other",
+              "comment": "",
+              "minimumPayment": "91.00",
+              "status": "APPROVED",
+              "dateChanged": "2026-08-08T18:21:14.602034",
+              "endDate": "2026-08-11"
+            }
+          },
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTEzNzkyMg==",
+          "text": "Hi everyone,\n\nThank you all for being part of the home. This is a friendly reminder for everyone to continue being respectful of one another and mindful of shared living spaces.\n\nPlease remember the following house and PadSplit rules:\n\n\u2022 Loud music should always be kept at a considerate volume, regardless of the time of day.  \n\u2022 Please close the front door firmly behind you, but avoid slamming it.  \n\u2022 Guests are not permitted inside the home at any time.  \n\u2022 Common courtesy should be practiced daily. Everyone has different schedules, so please be respectful and considerate of your housemates.  \n\u2022 Clean up after yourself after using shared spaces, including washing dishes and cleaning the toilet after use.  \n\u2022 Keeping the home clean is everyone\u2019s responsibility, not just one person\u2019s. Please do your part to maintain a clean and comfortable environment for all residents.  \n\nPlease continue following all house rules and PadSplit policies to help maintain a peaceful and respectful home for everyone.\n\nFailure to follow house rules may result in warnings or further consequences if issues continue.\n\nThank you all for your cooperation and understanding.",
+          "created": "2026-05-18T15:25:05.975702",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": true,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        }
+      ]
+    },
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6NDE0MzYz",
       "title": "Kyree Evans",
@@ -4524,415 +4955,6 @@
             "isActive": true,
             "displayName": "Cyndy Manager",
             "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        }
-      ]
-    },
-    {
-      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MjExMTQ0",
-      "title": "Anthony Yancey",
-      "chatType": "HOST_SUPPORT_CHAT",
-      "isArchived": false,
-      "occupancy": {
-        "moveInDate": "2025-10-04",
-        "moveOutDate": "2026-08-12",
-        "conditionalEligibilityApplied": null,
-        "room": {
-          "pk": 32867,
-          "roomNumber": 1
-        },
-        "user": {
-          "picture": "img/profiles/user_753899_563b2db5-08c5-48b8-8675-03ee4e06653f.jpg",
-          "firstName": "Anthony",
-          "lastName": "Yancey",
-          "displayName": null
-        }
-      },
-      "property": {
-        "host": {
-          "firstName": "Ang",
-          "lastName": "Li",
-          "displayName": "Cyndy Manager",
-          "picture": ""
-        },
-        "description": "Your new home awaits! This homey Arlington home is waiting for you. This PadSplit has a Backyard, and it\u2019s newly-renovated and comfortable.\n\nThe kitchen comes equipped with a fridge, sink, oven, stovetop, as well as upgraded appliances.\n\nThe neighbourhood is close to public transit, which means you won\u2019t be far from all Arlington has to offer.",
-        "address": {
-          "street1": "3406 Green Hill Drive",
-          "street2": "",
-          "zip": "76014",
-          "city": {
-            "name": "Arlington",
-            "state": {
-              "name": "Texas"
-            }
-          }
-        }
-      },
-      "isCancelled": false,
-      "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA4NzU2MDY=",
-        "created": "2026-08-13T01:14:16.731192",
-        "text": null,
-        "deleted": null,
-        "extra": null,
-        "messageType": "TICKET_UPDATE",
-        "sender": {
-          "pk": 318367,
-          "firstName": "Ang",
-          "lastName": "Li",
-          "displayName": "Cyndy Manager"
-        },
-        "attachments": [],
-        "paymentExtensionStatus": null,
-        "ticketStatus": {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMTAxNTY5",
-          "created": "2026-08-13T01:14:16.753413",
-          "status": "HOLD",
-          "canRate": false,
-          "ticket": {
-            "id": "457024",
-            "author": {
-              "firstName": "Anthony",
-              "lastName": "Yancey",
-              "id": "753899",
-              "displayName": null
-            },
-            "details": "Collections",
-            "location": "ROOM",
-            "status": "HOLD",
-            "rating": null,
-            "comment": null,
-            "category": "ROOM_TURN",
-            "onHoldReason": null,
-            "withdrawReason": null
-          }
-        },
-        "bookingStatus": null
-      },
-      "member": {
-        "seenAt": "2026-08-12T15:53:28.208159",
-        "isPinned": false,
-        "isUnread": true
-      },
-      "recent_messages": [
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA4NzU2MDY=",
-          "text": null,
-          "created": "2026-08-13T01:14:16.731192",
-          "messageType": "TICKET_UPDATE",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": {
-            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMTAxNTY5",
-            "created": "2026-08-13T01:14:16.753413",
-            "status": "HOLD",
-            "canRate": false,
-            "ticket": {
-              "id": "457024",
-              "author": {
-                "firstName": "Anthony",
-                "lastName": "Yancey",
-                "id": "753899",
-                "displayName": null
-              },
-              "details": "Collections",
-              "location": "ROOM",
-              "status": "HOLD",
-              "rating": null,
-              "comment": null,
-              "category": "ROOM_TURN",
-              "onHoldReason": null,
-              "withdrawReason": null
-            }
-          },
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA4NzUwNzk=",
-          "text": "I did speak with the PadSplit team today and made them aware that I have not received payment and they are saying I should receive it by tomorrow afternoon ",
-          "created": "2026-08-13T00:54:11.579484",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjc1Mzg5OQ==",
-            "pk": 753899,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_753899_563b2db5-08c5-48b8-8675-03ee4e06653f.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_753899_563b2db5-08c5-48b8-8675-03ee4e06653f.jpg",
-            "firstName": "Anthony",
-            "lastName": "Yancey",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 691450
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA4NjQ1NDQ=",
-          "text": "Alright",
-          "created": "2026-08-12T15:53:26.975356",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA4NjQ1MDM=",
-          "text": "That\u2019s ok , I have been going back and forth with these people to get my money and hearing a bunch of excuses but I am trying to get the money together ",
-          "created": "2026-08-12T15:51:20.769411",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjc1Mzg5OQ==",
-            "pk": 753899,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_753899_563b2db5-08c5-48b8-8675-03ee4e06653f.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_753899_563b2db5-08c5-48b8-8675-03ee4e06653f.jpg",
-            "firstName": "Anthony",
-            "lastName": "Yancey",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 691450
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA4NjAzNDI=",
-          "text": "Sorry I missed you call",
-          "created": "2026-08-12T12:49:53.487741",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA4NjAzMzQ=",
-          "text": "Hi Anthony",
-          "created": "2026-08-12T12:49:44.313360",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA4NTc4OTQ=",
-          "text": null,
-          "created": "2026-08-12T08:02:03.026744",
-          "messageType": "TICKET_UPDATE",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": {
-            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMDk5ODIw",
-            "created": "2026-08-12T08:02:03.030449",
-            "status": "SUBMITTED",
-            "canRate": false,
-            "ticket": {
-              "id": "457024",
-              "author": {
-                "firstName": "Anthony",
-                "lastName": "Yancey",
-                "id": "753899",
-                "displayName": null
-              },
-              "details": "Collections",
-              "location": "ROOM",
-              "status": "HOLD",
-              "rating": null,
-              "comment": null,
-              "category": "ROOM_TURN",
-              "onHoldReason": null,
-              "withdrawReason": null
-            }
-          },
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA3ODgxNjI=",
-          "text": null,
-          "created": "2026-08-08T18:21:14.714056",
-          "messageType": "PAYMENT_EXTENSION_APPROVED",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": {
-            "newDate": null,
-            "status": "APPROVED",
-            "id": "TWVzc2VuZ2VyUGF5bWVudEV4dGVuc2lvblN0YXR1c1R5cGU6NjMwMjc=",
-            "created": "2026-08-08T18:21:14.720265",
-            "changedFromDate": null,
-            "date": "2026-08-11",
-            "paymentExtensionRequest": {
-              "id": "53291",
-              "reason": "Other",
-              "comment": "",
-              "minimumPayment": "91.00",
-              "status": "APPROVED",
-              "dateChanged": "2026-08-08T18:21:14.602034",
-              "endDate": "2026-08-11"
-            }
-          },
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTEzNzkyMg==",
-          "text": "Hi everyone,\n\nThank you all for being part of the home. This is a friendly reminder for everyone to continue being respectful of one another and mindful of shared living spaces.\n\nPlease remember the following house and PadSplit rules:\n\n\u2022 Loud music should always be kept at a considerate volume, regardless of the time of day.  \n\u2022 Please close the front door firmly behind you, but avoid slamming it.  \n\u2022 Guests are not permitted inside the home at any time.  \n\u2022 Common courtesy should be practiced daily. Everyone has different schedules, so please be respectful and considerate of your housemates.  \n\u2022 Clean up after yourself after using shared spaces, including washing dishes and cleaning the toilet after use.  \n\u2022 Keeping the home clean is everyone\u2019s responsibility, not just one person\u2019s. Please do your part to maintain a clean and comfortable environment for all residents.  \n\nPlease continue following all house rules and PadSplit policies to help maintain a peaceful and respectful home for everyone.\n\nFailure to follow house rules may result in warnings or further consequences if issues continue.\n\nThank you all for your cooperation and understanding.",
-          "created": "2026-05-18T15:25:05.975702",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": true,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTA4MDI2MA==",
-          "text": "No problem Cyndy ",
-          "created": "2026-05-15T17:36:12.780310",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjc1Mzg5OQ==",
-            "pk": 753899,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_753899_563b2db5-08c5-48b8-8675-03ee4e06653f.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_753899_563b2db5-08c5-48b8-8675-03ee4e06653f.jpg",
-            "firstName": "Anthony",
-            "lastName": "Yancey",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 691450
           },
           "attachments": [],
           "reactions": [],
@@ -11394,6 +11416,54 @@
   "tasks": {
     "Requests": [
       {
+        "id": 457024,
+        "status": "submitted",
+        "comment": null,
+        "category": "room-turn",
+        "media": [],
+        "created": "2026-08-12T08:02:03.008073",
+        "modified": "2026-08-14T07:07:44.174630",
+        "room_name": "",
+        "room_number": 1,
+        "room_status": 3,
+        "room_code": "7845",
+        "location": "Room",
+        "details": "Collections",
+        "property_id": 9369,
+        "property_address": {
+          "id": 12545,
+          "street1": "3406 Green Hill Drive",
+          "street2": "",
+          "city": "Arlington",
+          "state": "TX",
+          "zip": "76014",
+          "city_slug": "arlington-tx"
+        },
+        "reported_by": {
+          "id": 753899,
+          "name": "Anthony Yancey",
+          "role_id": 0,
+          "picture": "img/profiles/user_753899_563b2db5-08c5-48b8-8675-03ee4e06653f.jpg"
+        },
+        "assigned_to": null,
+        "on_hold_reason": null,
+        "update_status_at": "2026-08-14T07:07:44.159477",
+        "rating": null,
+        "extra_data": {
+          "user_id": 753899,
+          "occupancy_id": 219335,
+          "move_out_date": "2026-08-12",
+          "move_out_details": "Host#1411985: Approved PTS -_mm to pay $195 on 8/13",
+          "is_present_after_move_out": true
+        },
+        "has_reused_code": true,
+        "moveout_photos_count": 0,
+        "days_to_complete": null,
+        "is_on_payment_plan": false,
+        "payment_plan_end_date": null,
+        "payment_plan_reason_note": null
+      },
+      {
         "id": 458008,
         "status": "submitted",
         "comment": null,
@@ -11872,103 +11942,6 @@
         "is_on_payment_plan": false,
         "payment_plan_end_date": null,
         "payment_plan_reason_note": null
-      },
-      {
-        "id": 453931,
-        "status": "completed",
-        "comment": null,
-        "category": "room-turn",
-        "media": [],
-        "created": "2026-08-06T15:04:42.855578",
-        "modified": "2026-08-06T19:01:55.757218",
-        "room_name": "A-1",
-        "room_number": 1,
-        "room_status": 1,
-        "room_code": "9999",
-        "location": "Room",
-        "details": "Collections",
-        "property_id": 5735,
-        "property_address": {
-          "id": 7379,
-          "street1": "3414 Pebbleshores Drive",
-          "street2": "",
-          "city": "Dallas",
-          "state": "TX",
-          "zip": "75241",
-          "city_slug": "dallas-tx"
-        },
-        "reported_by": {
-          "id": 980298,
-          "name": "Christian Wayne",
-          "role_id": 0,
-          "picture": "img/profiles/user_980298_79ae8b22-b125-427c-abf2-926700a3dce7.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-08-06T15:04:42.856358",
-        "rating": null,
-        "extra_data": {
-          "user_id": 980298,
-          "checklist": {},
-          "occupancy_id": 335014,
-          "move_out_date": "2026-08-06"
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
-      }
-    ],
-    "Other": [
-      {
-        "id": 457024,
-        "status": "hold",
-        "comment": null,
-        "category": "room-turn",
-        "media": [],
-        "created": "2026-08-12T08:02:03.008073",
-        "modified": "2026-08-13T01:15:32.120412",
-        "room_name": "",
-        "room_number": 1,
-        "room_status": 3,
-        "room_code": "7845",
-        "location": "Room",
-        "details": "Collections",
-        "property_id": 9369,
-        "property_address": {
-          "id": 12545,
-          "street1": "3406 Green Hill Drive",
-          "street2": "",
-          "city": "Arlington",
-          "state": "TX",
-          "zip": "76014",
-          "city_slug": "arlington-tx"
-        },
-        "reported_by": {
-          "id": 753899,
-          "name": "Anthony Yancey",
-          "role_id": 0,
-          "picture": "img/profiles/user_753899_563b2db5-08c5-48b8-8675-03ee4e06653f.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-08-13T01:14:16.637888",
-        "rating": null,
-        "extra_data": {
-          "user_id": 753899,
-          "occupancy_id": 219335,
-          "move_out_date": "2026-08-12",
-          "move_out_details": "Host#1411985: Approved PTS -_mm to pay $195 on 8/13",
-          "is_present_after_move_out": true
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": true,
-        "payment_plan_end_date": "2026-08-13",
-        "payment_plan_reason_note": ""
       }
     ]
   },
@@ -11979,6 +11952,6 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-08-14T06:45:10Z"
+    "run_scraped_at": "2026-08-14T08:03:52Z"
   }
 }
