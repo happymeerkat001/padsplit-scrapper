@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-08-16T17:58:11Z",
+  "scraped_at": "2026-08-16T18:48:51Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MjExMTQ0",
@@ -43,51 +43,55 @@
       },
       "isCancelled": false,
       "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA5NTUwNzg=",
-        "created": "2026-08-16T17:43:12.154807",
-        "text": null,
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA5NTU2NDc=",
+        "created": "2026-08-16T18:19:25.104547",
+        "text": "Thank you for working with me , I appreciate your support during these difficult times I strive to be a man of my word as I have been dealing with a lot of issues over the last few months but do the best I can to handle all obligations and responsibilities ",
         "deleted": null,
         "extra": null,
-        "messageType": "TICKET_UPDATE",
+        "messageType": "TEXT",
         "sender": {
-          "pk": 318367,
-          "firstName": "Ang",
-          "lastName": "Li",
-          "displayName": "Cyndy Manager"
+          "pk": 753899,
+          "firstName": "Anthony",
+          "lastName": "Yancey",
+          "displayName": null
         },
         "attachments": [],
         "paymentExtensionStatus": null,
-        "ticketStatus": {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMTA3NDA4",
-          "created": "2026-08-16T17:43:12.161044",
-          "status": "WITHDRAWN",
-          "canRate": false,
-          "ticket": {
-            "id": "457024",
-            "author": {
-              "firstName": "Anthony",
-              "lastName": "Yancey",
-              "id": "753899",
-              "displayName": null
-            },
-            "details": "Collections",
-            "location": "ROOM",
-            "status": "WITHDRAWN",
-            "rating": null,
-            "comment": null,
-            "category": "ROOM_TURN",
-            "onHoldReason": null,
-            "withdrawReason": null
-          }
-        },
+        "ticketStatus": null,
         "bookingStatus": null
       },
       "member": {
         "seenAt": "2026-08-16T17:43:30.293062",
         "isPinned": false,
-        "isUnread": false
+        "isUnread": true
       },
       "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA5NTU2NDc=",
+          "text": "Thank you for working with me , I appreciate your support during these difficult times I strive to be a man of my word as I have been dealing with a lot of issues over the last few months but do the best I can to handle all obligations and responsibilities ",
+          "created": "2026-08-16T18:19:25.104547",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjc1Mzg5OQ==",
+            "pk": 753899,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_753899_563b2db5-08c5-48b8-8675-03ee4e06653f.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_753899_563b2db5-08c5-48b8-8675-03ee4e06653f.jpg",
+            "firstName": "Anthony",
+            "lastName": "Yancey",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 691450
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
         {
           "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA5NTUwNzg=",
           "text": null,
@@ -366,32 +370,6 @@
           "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA4NjAzNDI=",
           "text": "Sorry I missed you call",
           "created": "2026-08-12T12:49:53.487741",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA4NjAzMzQ=",
-          "text": "Hi Anthony",
-          "created": "2026-08-12T12:49:44.313360",
           "messageType": "TEXT",
           "deleted": null,
           "isBroadcast": false,
@@ -11379,6 +11357,6 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-08-16T17:58:11Z"
+    "run_scraped_at": "2026-08-16T18:48:51Z"
   }
 }
