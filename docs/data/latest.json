@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-08-18T11:43:38Z",
+  "scraped_at": "2026-08-18T12:13:59Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MjI3MDQ1",
@@ -43,51 +43,55 @@
       },
       "isCancelled": false,
       "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA5ODY0NDI=",
-        "created": "2026-08-18T07:07:43.556459",
-        "text": null,
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA5ODc0MDI=",
+        "created": "2026-08-18T11:51:36.626309",
+        "text": "You didn\u2019t make payment?",
         "deleted": null,
         "extra": null,
-        "messageType": "TICKET_UPDATE",
+        "messageType": "TEXT",
         "sender": {
-          "pk": 339595,
-          "firstName": "Tinghui",
+          "pk": 318367,
+          "firstName": "Ang",
           "lastName": "Li",
-          "displayName": ""
+          "displayName": "Cyndy Manager"
         },
         "attachments": [],
         "paymentExtensionStatus": null,
-        "ticketStatus": {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMTEwMjIx",
-          "created": "2026-08-18T07:07:43.564241",
-          "status": "SUBMITTED",
-          "canRate": false,
-          "ticket": {
-            "id": "449889",
-            "author": {
-              "firstName": "Keithreaon",
-              "lastName": "Burks",
-              "id": "833971",
-              "displayName": null
-            },
-            "details": "Collections",
-            "location": "ROOM",
-            "status": "SUBMITTED",
-            "rating": null,
-            "comment": null,
-            "category": "ROOM_TURN",
-            "onHoldReason": null,
-            "withdrawReason": null
-          }
-        },
+        "ticketStatus": null,
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-08-18T00:33:53.574652",
+        "seenAt": "2026-08-18T11:51:37.589015",
         "isPinned": false,
-        "isUnread": true
+        "isUnread": false
       },
       "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA5ODc0MDI=",
+          "text": "You didn\u2019t make payment?",
+          "created": "2026-08-18T11:51:36.626309",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
         {
           "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA5ODY0NDI=",
           "text": null,
@@ -365,32 +369,6 @@
           "paymentExtensionStatus": null,
           "ticketStatus": null,
           "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA4NjA0NzA=",
-          "text": "Hi, did you make payment on Monday?",
-          "created": "2026-08-12T12:59:22.117085",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
         }
       ]
     },
@@ -454,7 +432,7 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-08-18T03:56:58.956760",
+        "seenAt": "2026-08-18T11:51:46.179553",
         "isPinned": false,
         "isUnread": false
       },
@@ -789,7 +767,7 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-08-18T03:57:42.935093",
+        "seenAt": "2026-08-18T11:52:23.114219",
         "isPinned": false,
         "isUnread": false
       },
@@ -10221,6 +10199,6 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-08-18T11:43:38Z"
+    "run_scraped_at": "2026-08-18T12:13:59Z"
   }
 }
