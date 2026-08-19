@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-08-19T12:03:18Z",
+  "scraped_at": "2026-08-19T13:12:24Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6Mjc5ODE5",
@@ -43,9 +43,9 @@
       },
       "isCancelled": false,
       "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEwMDgzNzE=",
-        "created": "2026-08-19T11:24:47.385025",
-        "text": "Good morning, im ready to pay",
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEwMTAxNjM=",
+        "created": "2026-08-19T13:01:01.315626",
+        "text": "This week I wont be able to pay alot,only 120",
         "deleted": null,
         "extra": null,
         "messageType": "TEXT",
@@ -61,11 +61,111 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-08-19T01:22:54.286989",
+        "seenAt": "2026-08-19T13:01:29.967900",
         "isPinned": false,
-        "isUnread": true
+        "isUnread": false
       },
       "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEwMTAxNjM=",
+          "text": "This week I wont be able to pay alot,only 120",
+          "created": "2026-08-19T13:01:01.315626",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjk0OTMyNQ==",
+            "pk": 949325,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_949325_ccf738aa-2c7a-4e7e-bdba-4e8c0d9d21e0.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_949325_ccf738aa-2c7a-4e7e-bdba-4e8c0d9d21e0.jpg",
+            "firstName": "Nicklaus",
+            "lastName": "Nichols",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 886787
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEwMDk3MTU=",
+          "text": "It\u2019s open now",
+          "created": "2026-08-19T12:47:57.429469",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEwMDk3MDk=",
+          "text": null,
+          "created": "2026-08-19T12:47:45.291095",
+          "messageType": "TICKET_UPDATE",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjcwMTEyNw==",
+            "pk": 701127,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 638709
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMTEyNjA1",
+            "created": "2026-08-19T12:47:45.302776",
+            "status": "HOLD",
+            "canRate": false,
+            "ticket": {
+              "id": "460637",
+              "author": {
+                "firstName": "Nicklaus",
+                "lastName": "Nichols",
+                "id": "949325",
+                "displayName": null
+              },
+              "details": "Collections",
+              "location": "ROOM",
+              "status": "HOLD",
+              "rating": null,
+              "comment": null,
+              "category": "ROOM_TURN",
+              "onHoldReason": null,
+              "withdrawReason": null
+            }
+          },
+          "bookingStatus": null
+        },
         {
           "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEwMDgzNzE=",
           "text": "Good morning, im ready to pay",
@@ -130,7 +230,7 @@
               },
               "details": "Collections",
               "location": "ROOM",
-              "status": "SUBMITTED",
+              "status": "HOLD",
               "rating": null,
               "comment": null,
               "category": "ROOM_TURN",
@@ -335,106 +435,6 @@
           "paymentExtensionStatus": null,
           "ticketStatus": null,
           "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA4NjAzMzM=",
-          "text": "Im ready to pay",
-          "created": "2026-08-12T12:49:36.112363",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjk0OTMyNQ==",
-            "pk": 949325,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_949325_ccf738aa-2c7a-4e7e-bdba-4e8c0d9d21e0.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_949325_ccf738aa-2c7a-4e7e-bdba-4e8c0d9d21e0.jpg",
-            "firstName": "Nicklaus",
-            "lastName": "Nichols",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 886787
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA4NDE5MTU=",
-          "text": null,
-          "created": "2026-08-11T15:11:21.423533",
-          "messageType": "TICKET_UPDATE",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjcwMTEyNw==",
-            "pk": 701127,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 638709
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": {
-            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMDk4MjMw",
-            "created": "2026-08-11T15:11:21.434681",
-            "status": "SUBMITTED",
-            "canRate": false,
-            "ticket": {
-              "id": "456721",
-              "author": {
-                "firstName": "Nicklaus",
-                "lastName": "Nichols",
-                "id": "949325",
-                "displayName": null
-              },
-              "details": "Collections",
-              "location": "ROOM",
-              "status": "WITHDRAWN",
-              "rating": null,
-              "comment": null,
-              "category": "ROOM_TURN",
-              "onHoldReason": null,
-              "withdrawReason": null
-            }
-          },
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA4MDg4OTg=",
-          "text": "Saturday would be better for me because I get off at 5 instead of 6",
-          "created": "2026-08-09T22:00:38.471573",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjk0OTMyNQ==",
-            "pk": 949325,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_949325_ccf738aa-2c7a-4e7e-bdba-4e8c0d9d21e0.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_949325_ccf738aa-2c7a-4e7e-bdba-4e8c0d9d21e0.jpg",
-            "firstName": "Nicklaus",
-            "lastName": "Nichols",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 886787
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
         }
       ]
     },
@@ -498,7 +498,7 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-08-19T02:48:35.403633",
+        "seenAt": "2026-08-19T12:49:04.286597",
         "isPinned": false,
         "isUnread": false
       },
@@ -783,7 +783,7 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-08-19T01:38:45.277141",
+        "seenAt": "2026-08-19T12:48:07.486385",
         "isPinned": false,
         "isUnread": false
       },
@@ -1110,7 +1110,7 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-08-19T01:25:06.831862",
+        "seenAt": "2026-08-19T12:48:45.464685",
         "isPinned": false,
         "isUnread": false
       },
@@ -4293,7 +4293,7 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-08-19T01:25:12.152170",
+        "seenAt": "2026-08-19T12:56:14.809612",
         "isPinned": false,
         "isUnread": false
       },
@@ -11225,52 +11225,6 @@
   "tasks": {
     "Requests": [
       {
-        "id": 460637,
-        "status": "submitted",
-        "comment": null,
-        "category": "room-turn",
-        "media": [],
-        "created": "2026-08-18T15:10:04.936605",
-        "modified": "2026-08-18T15:10:05.668294",
-        "room_name": "",
-        "room_number": 4,
-        "room_status": 3,
-        "room_code": "1234 ( give it when moving in )",
-        "location": "Room",
-        "details": "Collections",
-        "property_id": 15799,
-        "property_address": {
-          "id": 21682,
-          "street1": "3541 Parker Road East",
-          "street2": "",
-          "city": "Haltom City",
-          "state": "TX",
-          "zip": "76117",
-          "city_slug": "haltom-city-tx"
-        },
-        "reported_by": {
-          "id": 949325,
-          "name": "Nicklaus Nichols",
-          "role_id": 0,
-          "picture": "img/profiles/user_949325_ccf738aa-2c7a-4e7e-bdba-4e8c0d9d21e0.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-08-18T15:10:04.938718",
-        "rating": null,
-        "extra_data": {
-          "user_id": 949325,
-          "occupancy_id": 259469,
-          "move_out_date": "2026-08-18"
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
-      },
-      {
         "id": 460572,
         "status": "submitted",
         "comment": null,
@@ -11649,6 +11603,54 @@
         "payment_plan_end_date": null,
         "payment_plan_reason_note": null
       }
+    ],
+    "Other": [
+      {
+        "id": 460637,
+        "status": "hold",
+        "comment": null,
+        "category": "room-turn",
+        "media": [],
+        "created": "2026-08-18T15:10:04.936605",
+        "modified": "2026-08-19T12:47:45.212013",
+        "room_name": "",
+        "room_number": 4,
+        "room_status": 3,
+        "room_code": "1234 ( give it when moving in )",
+        "location": "Room",
+        "details": "Collections",
+        "property_id": 15799,
+        "property_address": {
+          "id": 21682,
+          "street1": "3541 Parker Road East",
+          "street2": "",
+          "city": "Haltom City",
+          "state": "TX",
+          "zip": "76117",
+          "city_slug": "haltom-city-tx"
+        },
+        "reported_by": {
+          "id": 949325,
+          "name": "Nicklaus Nichols",
+          "role_id": 0,
+          "picture": "img/profiles/user_949325_ccf738aa-2c7a-4e7e-bdba-4e8c0d9d21e0.jpg"
+        },
+        "assigned_to": null,
+        "on_hold_reason": null,
+        "update_status_at": "2026-08-19T12:47:45.181865",
+        "rating": null,
+        "extra_data": {
+          "user_id": 949325,
+          "occupancy_id": 259469,
+          "move_out_date": "2026-08-18"
+        },
+        "has_reused_code": true,
+        "moveout_photos_count": 0,
+        "days_to_complete": null,
+        "is_on_payment_plan": true,
+        "payment_plan_end_date": "2026-08-19",
+        "payment_plan_reason_note": ""
+      }
     ]
   },
   "run_status": {
@@ -11658,6 +11660,6 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-08-19T12:03:18Z"
+    "run_scraped_at": "2026-08-19T13:12:24Z"
   }
 }
