@@ -18,6 +18,7 @@ import urllib.error
 DATA_DIR = Path(__file__).parent / "docs" / "data"
 LATEST_PATH = DATA_DIR / "latest.json"
 STATS_PATH = DATA_DIR / "stats.json"
+HTTP_TIMEOUT = 30
 
 
 def load_data() -> Dict[str, Any]:
@@ -91,7 +92,7 @@ def send_to_slack(message: str) -> None:
         method="POST",
     )
     try:
-        with urllib.request.urlopen(req) as resp:
+        with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT) as resp:
             status = resp.getcode()
             if 200 <= status < 300:
                 print("Sent to Slack.")
@@ -118,7 +119,7 @@ def fetch_weather() -> Optional[str]:
         "&timezone=America%2FChicago"
     )
     try:
-        with urllib.request.urlopen(url) as resp:
+        with urllib.request.urlopen(url, timeout=HTTP_TIMEOUT) as resp:
             data = json.loads(resp.read().decode())
         times = data.get("daily", {}).get("time", []) or []
         highs = data.get("daily", {}).get("temperature_2m_max", []) or []

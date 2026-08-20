@@ -52,7 +52,7 @@ def call_minimax(prompt: str) -> str:
     max_retries = 3
     for attempt in range(max_retries):
         try:
-            with urllib.request.urlopen(req) as resp:
+            with urllib.request.urlopen(req, timeout=30) as resp:
                 result = json.loads(resp.read())
             return result.get("choices", [{}])[0].get("message", {}).get("content", "")
         except urllib.error.HTTPError as exc:
@@ -102,7 +102,7 @@ def send_to_slack(message: str) -> None:
         method="POST",
     )
     try:
-        with urllib.request.urlopen(req) as resp:
+        with urllib.request.urlopen(req, timeout=30) as resp:
             if 200 <= resp.getcode() < 300:
                 print("Sent to Slack.")
             else:

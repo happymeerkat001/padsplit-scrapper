@@ -58,11 +58,15 @@ def target_matches(target: str, candidate_strings: Iterable[str]) -> bool:
     if not target_tokens:
         return False
 
-    alpha_tokens = [token for token in target_tokens if not token.isdigit()]
     candidate_token_set: Set[str] = set()
     for candidate in candidate_strings:
         candidate_token_set.update(tokenize(candidate))
 
+    digit_tokens = [token for token in target_tokens if token.isdigit()]
+    alpha_tokens = [token for token in target_tokens if not token.isdigit()]
+
+    if alpha_tokens and digit_tokens:
+        return all(token in candidate_token_set for token in target_tokens)
     if alpha_tokens:
         return all(token in candidate_token_set for token in alpha_tokens)
     return any(token in candidate_token_set for token in target_tokens)

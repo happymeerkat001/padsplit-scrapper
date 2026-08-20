@@ -7,6 +7,7 @@ from typing import Dict, Set
 import firebase_admin
 from firebase_admin import credentials, firestore
 
+from repo_paths import DATA_DIR, load_latest_payload
 from scraper import create_session, load_credentials, login, update_task_status
 
 
@@ -14,17 +15,6 @@ def _load_json(path: Path, default):
     if not path.exists():
         return default
     return json.loads(path.read_text())
-
-
-def _load_latest_payload(base_dir: Path) -> Dict:
-    candidates = [
-        base_dir / "docs" / "data" / "latest.json",
-        base_dir / "output" / "latest.json",
-    ]
-    for path in candidates:
-        if path.exists():
-            return json.loads(path.read_text())
-    raise FileNotFoundError("Could not find latest.json in docs/data or output")
 
 
 def _load_processed_doc_ids(path: Path) -> Set[str]:
@@ -71,10 +61,9 @@ def _init_firestore_client() -> firestore.Client:
 
 
 def main() -> None:
-    base_dir = Path(__file__).resolve().parent
-    processed_path = base_dir / "docs" / "data" / "processed_firestore_docs.json"
+    processed_path = DATA_DIR / "processed_firestore_docs.json"
 
-    payload = _load_latest_payload(base_dir)
+    payload = load_latest_payload()
     task_map = _build_task_map(payload)
     processed_doc_ids = _load_processed_doc_ids(processed_path)
 

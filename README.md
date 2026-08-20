@@ -12,15 +12,20 @@ Multi-scraper data collection repo for:
 source venv/bin/activate
 ```
 
-Create `.env` at repo root with:
+Create `.env` at repo root (see `.env.example`):
 
 ```env
 PADSPLIT_EMAIL=
 PADSPLIT_PASSWORD=
 TCC_EMAIL=
 TCC_PASSWORD=
-ANTHROPIC_API_KEY=
 SLACK_WEBHOOK_URL=
+SLACK_WEBHOOK_TASKS=
+SLACK_WEBHOOK_MESSAGES=
+SLACK_BOT_TOKEN=
+SLACK_CHANNEL_ID=
+MINIMAX_API_KEY=
+FIREBASE_SERVICE_ACCOUNT_JSON=
 OBSIDIAN_DAILY_NOTES_DIR=
 ```
 
@@ -51,7 +56,6 @@ Run tests:
 ```bash
 python3 test_padsplit_scraper.py
 python3 test_thermostat_scraper.py
-python3 test_thermostat_set_temps.py
 python3 test_thermostat_schedule.py
 python3 test_obsidian_daily_digest.py
 ```
@@ -179,7 +183,7 @@ Meaning:
 Show installed thermostat schedules (not status):
 
 ```bash
-statuspython3 thermostat/schedule.py 
+python3 thermostat/schedule.py status
 ```
 
 `status` shows configured schedule time, cool, heat, target, and LaunchAgent label from installed plist files.

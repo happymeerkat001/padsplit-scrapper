@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 set -euo pipefail
 
-WORKSPACE="/Users/leon/Documents/Code/padsplit-scraper"
+WORKSPACE="$(cd "$(dirname "$0")" && pwd)"
 VENV="$WORKSPACE/venv/bin/python3"
 LOCK_DIR="/private/tmp/padsplit-scraper-afternoon.lock"
 
@@ -53,8 +53,9 @@ set -e
 # ------------------------------------------------
 
 echo "[$(date)] Running PadSplit scraper (messages only)..."
-"$VENV" "$WORKSPACE/padsplit_scraper/scraper.py" --messages-only
-echo "[$(date)] PadSplit scraper exit code: $?"
+if ! "$VENV" "$WORKSPACE/padsplit_scraper/scraper.py" --messages-only; then
+  echo "[$(date)] PadSplit scraper failed (exit code: $?)"
+fi
 
 echo "[$(date)] Afternoon run complete"
 

@@ -1,26 +1,16 @@
 import json
 import os
 from datetime import datetime, timedelta, timezone
-from pathlib import Path
 from typing import Dict, List, Optional
 
 import firebase_admin
 import requests
 from firebase_admin import credentials, firestore
 
+from repo_paths import DATA_DIR, load_latest_payload
+
 DEFAULT_TIMEOUT = (10, 30)
 SLACK_POST_URL = "https://slack.com/api/chat.postMessage"
-
-
-def _load_latest_payload(base_dir: Path) -> Dict:
-    candidates = [
-        base_dir / "docs" / "data" / "latest.json",
-        base_dir / "output" / "latest.json",
-    ]
-    for path in candidates:
-        if path.exists():
-            return json.loads(path.read_text())
-    raise FileNotFoundError("Could not find latest.json in docs/data or output")
 
 
 def _format_task_line(task: Dict) -> str:
@@ -124,8 +114,7 @@ def post_slack_message(text: str, *, token: Optional[str] = None, channel: Optio
 
 
 def main() -> None:
-    base_dir = Path(__file__).resolve().parent
-    payload = _load_latest_payload(base_dir)
+    payload = load_latest_payload()
     text = _build_digest(payload)
     app = _init_firestore_app()
     overdue = _load_ac_filter_dates(app)
@@ -141,7 +130,7 @@ def main() -> None:
         "thread_ts": data.get("ts"),
         "date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
     }
-    meta_path = base_dir / "docs" / "data" / "slack_digest_meta.json"
+    meta_path = DATA_DIR / "slack_digest_meta.json"
     meta_path.parent.mkdir(parents=True, exist_ok=True)
     meta_path.write_text(json.dumps(meta, indent=2) + "\n")
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 set -euo pipefail
 
-WORKSPACE="/Users/leon/Documents/Code/padsplit-scraper"
+WORKSPACE="$(cd "$(dirname "$0")" && pwd)"
 VENV="$WORKSPACE/venv/bin/python3"
 LOCK_DIR="/private/tmp/padsplit-scraper-morning.lock"
 
@@ -55,16 +55,19 @@ set -e
 # ------------------------------------------------
 
 echo "[$(date)] Running thermostat scraper..."
-"$VENV" "$WORKSPACE/thermostat/scraper.py"
-echo "[$(date)] Thermostat scraper exit code: $?"
+if ! "$VENV" "$WORKSPACE/thermostat/scraper.py"; then
+  echo "[$(date)] Thermostat scraper failed (exit code: $?)"
+fi
 
 echo "[$(date)] Running PadSplit scraper (messages + tasks)..."
-"$VENV" "$WORKSPACE/padsplit_scraper/scraper.py"
-echo "[$(date)] PadSplit scraper exit code: $?"
+if ! "$VENV" "$WORKSPACE/padsplit_scraper/scraper.py"; then
+  echo "[$(date)] PadSplit scraper failed (exit code: $?)"
+fi
 
 echo "[$(date)] Writing Obsidian daily digest..."
-"$VENV" "$WORKSPACE/obsidian_daily_digest.py"
-echo "[$(date)] Obsidian digest exit code: $?"
+if ! "$VENV" "$WORKSPACE/obsidian_daily_digest.py"; then
+  echo "[$(date)] Obsidian digest failed (exit code: $?)"
+fi
 
 echo "[$(date)] Morning run complete"
 

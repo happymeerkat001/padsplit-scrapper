@@ -7,6 +7,7 @@ from typing import Dict, List, Set, Tuple
 
 import requests
 
+from repo_paths import DATA_DIR, load_latest_payload
 from scraper import create_session, load_credentials, login, update_task_status
 
 DEFAULT_TIMEOUT = (10, 30)
@@ -64,17 +65,6 @@ def _load_json(path: Path, default):
     if not path.exists():
         return default
     return json.loads(path.read_text())
-
-
-def _load_latest_payload(base_dir: Path) -> Dict:
-    candidates = [
-        base_dir / "docs" / "data" / "latest.json",
-        base_dir / "output" / "latest.json",
-    ]
-    for path in candidates:
-        if path.exists():
-            return json.loads(path.read_text())
-    raise FileNotFoundError("Could not find latest.json in docs/data or output")
 
 
 def _tokenize(value: str) -> List[str]:
@@ -211,9 +201,8 @@ def _extract_completed_task_ids(text: str, matcher: Dict) -> List[int]:
 
 
 def main() -> None:
-    base_dir = Path(__file__).resolve().parent
-    meta_path = base_dir / "docs" / "data" / "slack_digest_meta.json"
-    processed_path = base_dir / "docs" / "data" / "processed_replies.json"
+    meta_path = DATA_DIR / "slack_digest_meta.json"
+    processed_path = DATA_DIR / "processed_replies.json"
 
     token = os.getenv("SLACK_BOT_TOKEN")
     if not token:
@@ -223,7 +212,7 @@ def main() -> None:
     if not isinstance(meta, dict) or not meta.get("channel") or not meta.get("thread_ts"):
         raise RuntimeError("Missing or invalid docs/data/slack_digest_meta.json")
 
-    payload = _load_latest_payload(base_dir)
+    payload = load_latest_payload()
     tasks = payload.get("tasks") or {}
     matcher = _build_address_matcher(tasks)
     processed_ts = _load_processed_replies(processed_path)

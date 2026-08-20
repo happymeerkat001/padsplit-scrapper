@@ -5,24 +5,19 @@ service cloud.firestore {
       allow read, write: if request.auth.uid == '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2';
     }
     match /notes/{document} {
-      allow read: if true;
-      allow write: if request.auth.uid == '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2';
+      allow read, write: if request.auth.uid == '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2';
     }
     match /task_messages/{id} {
-      allow read: if true;
-      allow write: if request.auth.uid == '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2';
+      allow read, write: if request.auth.uid == '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2';
     }
     match /manual_tasks/{id} {
-      allow read: if true;
-      allow write: if request.auth.uid == '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2';
+      allow read, write: if request.auth.uid == '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2';
     }
     match /vendors/{id} {
-      allow read: if true;
-      allow write: if request.auth.uid == '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2';
+      allow read, write: if request.auth.uid == '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2';
     }
     match /templates/{document} {
-      allow read: if true;
-      allow write: if request.auth.uid == '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2';
+      allow read, write: if request.auth.uid == '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2';
     }
     match /{document=**} {
       allow read, write: if false;
