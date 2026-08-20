@@ -1,6 +1,130 @@
 {
-  "scraped_at": "2026-08-20T03:11:57Z",
+  "scraped_at": "2026-08-20T04:01:50Z",
   "messages": [
+    {
+      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6NDE5MjQ1",
+      "title": "Terius Cooper",
+      "chatType": "HOST_SUPPORT_CHAT",
+      "isArchived": false,
+      "occupancy": {
+        "moveInDate": "2026-09-03",
+        "moveOutDate": null,
+        "conditionalEligibilityApplied": null,
+        "room": {
+          "pk": 71404,
+          "roomNumber": 6
+        },
+        "user": {
+          "picture": "img/profiles/user_607947_210a3700-3cc6-4822-a454-f3a9c4f5f501.jpg",
+          "firstName": "Terius",
+          "lastName": "Cooper",
+          "displayName": null
+        }
+      },
+      "property": {
+        "host": {
+          "firstName": "Tinghui",
+          "lastName": "Li",
+          "displayName": "",
+          "picture": ""
+        },
+        "description": "Enjoy living in a cozy House. This comfortable home is decorated with modern touches while providing the basic necessities. All that\u2019s missing is you!\n\nThe kitchen is equipped with a fridge, sink, oven, stovetop, as well as upgraded appliances. It\u2019s the perfect spot for you to cook at home and save money.\n\nThe surrounding location is near grocery stores, making it the perfect place to call home.",
+        "address": {
+          "street1": "1404 Pioneer Lane",
+          "street2": "",
+          "zip": "75023",
+          "city": {
+            "name": "Plano",
+            "state": {
+              "name": "Texas"
+            }
+          }
+        }
+      },
+      "isCancelled": false,
+      "lastMessage": {
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEwMjY3NTE=",
+        "created": "2026-08-20T03:27:03.571693",
+        "text": "I would love to stay at your Padsplit home.I\u2019m nice and a team working guy.i work at goodwill for now and image 900 every two weeks.i take care of my space like its my home ",
+        "deleted": null,
+        "extra": null,
+        "messageType": "OPEN_REQUEST",
+        "sender": {
+          "pk": 607947,
+          "firstName": "Terius",
+          "lastName": "Cooper",
+          "displayName": null
+        },
+        "attachments": [],
+        "paymentExtensionStatus": null,
+        "ticketStatus": null,
+        "bookingStatus": null
+      },
+      "member": {
+        "seenAt": null,
+        "isPinned": false,
+        "isUnread": true
+      },
+      "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEwMjY3NTE=",
+          "text": "I would love to stay at your Padsplit home.I\u2019m nice and a team working guy.i work at goodwill for now and image 900 every two weeks.i take care of my space like its my home ",
+          "created": "2026-08-20T03:27:03.571693",
+          "messageType": "OPEN_REQUEST",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjYwNzk0Nw==",
+            "pk": 607947,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_607947_210a3700-3cc6-4822-a454-f3a9c4f5f501.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_607947_210a3700-3cc6-4822-a454-f3a9c4f5f501.jpg",
+            "firstName": "Terius",
+            "lastName": "Cooper",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 545637
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEwMjY3MzE=",
+          "text": null,
+          "created": "2026-08-20T03:22:57.071406",
+          "messageType": "BOOKING_STATUS",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
+            "pk": 339595,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Tinghui",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "",
+            "padmateProfileId": 278216
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZUJvb2tpbmdTdGF0dXM6MzM1Mzkz",
+            "created": "2026-08-20T03:22:57.076653",
+            "status": "PENDING",
+            "verificationTimeInHours": 24
+          }
+        }
+      ]
+    },
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MjI3MDQ1",
       "title": "Keithreaon Burks",
@@ -12427,6 +12551,6 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-08-20T03:11:57Z"
+    "run_scraped_at": "2026-08-20T04:01:50Z"
   }
 }
