@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-08-20T07:58:57Z",
+  "scraped_at": "2026-08-20T08:57:59Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6Mjc5ODE5",
@@ -3140,7 +3140,7 @@
               },
               "details": "Collections",
               "location": "ROOM",
-              "status": "WITHDRAWN",
+              "status": "ARCHIVED",
               "rating": null,
               "comment": null,
               "category": "ROOM_TURN",
@@ -3188,7 +3188,7 @@
               },
               "details": "Collections",
               "location": "ROOM",
-              "status": "WITHDRAWN",
+              "status": "ARCHIVED",
               "rating": null,
               "comment": null,
               "category": "ROOM_TURN",
@@ -4584,7 +4584,7 @@
               },
               "details": "Collections",
               "location": "ROOM",
-              "status": "WITHDRAWN",
+              "status": "ARCHIVED",
               "rating": null,
               "comment": null,
               "category": "ROOM_TURN",
@@ -4710,7 +4710,7 @@
               },
               "details": "Collections",
               "location": "ROOM",
-              "status": "WITHDRAWN",
+              "status": "ARCHIVED",
               "rating": null,
               "comment": null,
               "category": "ROOM_TURN",
@@ -12535,54 +12535,6 @@
         "is_on_payment_plan": false,
         "payment_plan_end_date": null,
         "payment_plan_reason_note": null
-      },
-      {
-        "id": 422197,
-        "status": "completed",
-        "comment": null,
-        "category": "room-turn",
-        "media": [],
-        "created": "2026-06-07T15:02:46.049327",
-        "modified": "2026-08-12T18:13:27.252297",
-        "room_name": "",
-        "room_number": 6,
-        "room_status": 1,
-        "room_code": "2516",
-        "location": "Room",
-        "details": "Collections",
-        "property_id": 8840,
-        "property_address": {
-          "id": 11718,
-          "street1": "2516 Sylvia Street",
-          "street2": "",
-          "city": "Dallas",
-          "state": "TX",
-          "zip": "75241",
-          "city_slug": "dallas-tx"
-        },
-        "reported_by": {
-          "id": 870317,
-          "name": "Paris Irby",
-          "role_id": 0,
-          "picture": "img/profiles/user_870317_cec7fc1d-8225-487c-bbf9-365a6268ce15.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-08-12T18:13:27.247236",
-        "rating": null,
-        "extra_data": {
-          "user_id": 870317,
-          "checklist": {},
-          "occupancy_id": 285261,
-          "move_out_date": "2026-06-07",
-          "is_present_after_move_out": true
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
       }
     ]
   },
@@ -12593,6 +12545,6 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-08-20T07:58:57Z"
+    "run_scraped_at": "2026-08-20T08:57:59Z"
   }
 }
