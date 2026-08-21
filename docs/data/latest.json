@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-08-21T20:00:26Z",
+  "scraped_at": "2026-08-21T20:42:49Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzM0NTk2",
@@ -43,9 +43,9 @@
       },
       "isCancelled": false,
       "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEwNjA2MDM=",
-        "created": "2026-08-21T19:37:33.841054",
-        "text": "So I don\u2019t owe or I do.",
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEwNjE2NDM=",
+        "created": "2026-08-21T20:31:16.665247",
+        "text": "Thanks for your response.",
         "deleted": null,
         "extra": null,
         "messageType": "TEXT",
@@ -61,11 +61,63 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-08-21T19:36:17.688861",
+        "seenAt": "2026-08-21T20:30:56.660465",
         "isPinned": false,
         "isUnread": true
       },
       "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEwNjE2NDM=",
+          "text": "Thanks for your response.",
+          "created": "2026-08-21T20:31:16.665247",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjEwNjc1MTA=",
+            "pk": 1067510,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_1067510_12faffc2-05e3-4796-ab7c-a885faed6457.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1067510_12faffc2-05e3-4796-ab7c-a885faed6457.jpg",
+            "firstName": "Carlos",
+            "lastName": "Green",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 1004777
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEwNjE2Mzk=",
+          "text": "You don\u2019t owe",
+          "created": "2026-08-21T20:30:55.317921",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
         {
           "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEwNjA2MDM=",
           "text": "So I don\u2019t owe or I do.",
@@ -288,14 +340,81 @@
           "paymentExtensionStatus": null,
           "ticketStatus": null,
           "bookingStatus": null
+        }
+      ]
+    },
+    {
+      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzU5OTY2",
+      "title": "Dede Evans",
+      "chatType": "HOST_SUPPORT_CHAT",
+      "isArchived": false,
+      "occupancy": {
+        "moveInDate": "2026-05-31",
+        "moveOutDate": null,
+        "conditionalEligibilityApplied": null,
+        "room": {
+          "pk": 21177,
+          "roomNumber": 4
         },
+        "user": {
+          "picture": "img/profiles/user_1018032_e149da99-ebc9-4022-920b-f095ed06a5b6.jpg",
+          "firstName": "Doretta",
+          "lastName": "Evans",
+          "displayName": "Dede"
+        }
+      },
+      "property": {
+        "host": {
+          "firstName": "Tinghui",
+          "lastName": "Li",
+          "displayName": "",
+          "picture": ""
+        },
+        "description": "Your new home awaits! This cozy Dallas home is waiting for you. This PadSplit has a Backyard and Dining area, and is newly-renovated and cozy.\n\nThis home has a full kitchen, onsite laundry and parking and is very commutable close to public transit and multiple highways.  Located right between I35E, I45 and I20.\n\nThe neighborhood is quiet, which means you won\u2019t be far from all Dallas has to offer.\nThe image on satellite is a few years old and please come and see the house by yourself before you make any judgement.",
+        "address": {
+          "street1": "3414 Pebbleshores Drive",
+          "street2": "",
+          "zip": "75241",
+          "city": {
+            "name": "Dallas",
+            "state": {
+              "name": "Texas"
+            }
+          }
+        }
+      },
+      "isCancelled": false,
+      "lastMessage": {
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEwNjE1NDY=",
+        "created": "2026-08-21T20:26:11.021477",
+        "text": "Hi Dede, I'm new on the host desk and want to correct my last note. The $5 is not for sending a photo. We reward members who help take care of the house. When the pest stations arrive, placing them is the job, and a photo after lets us add the credit. Members who cause issues get fined, and repeat problems can lose the room. I'll let you know when they get to the common area. Thank you.",
+        "deleted": null,
+        "extra": null,
+        "messageType": "TEXT",
+        "sender": {
+          "pk": 318367,
+          "firstName": "Ang",
+          "lastName": "Li",
+          "displayName": "Cyndy Manager"
+        },
+        "attachments": [],
+        "paymentExtensionStatus": null,
+        "ticketStatus": null,
+        "bookingStatus": null
+      },
+      "member": {
+        "seenAt": "2026-08-21T20:30:23.528113",
+        "isPinned": false,
+        "isUnread": false
+      },
+      "recent_messages": [
         {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTY3NjM3MQ==",
-          "text": "House Cleaning Fee Update\n\nThank you to everyone who responded regarding the cleaning arrangement.\n\nBased on the responses received, the cleaning service will begin this week. The cost will be $15 per week per member and will be added to the rent for those participating in the cleaning service.\nOnly Roshwan isn\u2019t participating so after today I will send a breakdown \nThe cleaner will service the shared spaces, including the kitchen, bathrooms, living areas, hallways, and trash removal.\n\nIf you have any questions, concerns, or observations regarding this arrangement, please let me know today so we can address them before the service begins.\n\nThank you for your cooperation in helping keep the home clean and comfortable for everyone.",
-          "created": "2026-06-15T14:42:42.094315",
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEwNjE1NDY=",
+          "text": "Hi Dede, I'm new on the host desk and want to correct my last note. The $5 is not for sending a photo. We reward members who help take care of the house. When the pest stations arrive, placing them is the job, and a photo after lets us add the credit. Members who cause issues get fined, and repeat problems can lose the room. I'll let you know when they get to the common area. Thank you.",
+          "created": "2026-08-21T20:26:11.021477",
           "messageType": "TEXT",
           "deleted": null,
-          "isBroadcast": true,
+          "isBroadcast": false,
           "extra": null,
           "sender": {
             "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
@@ -316,12 +435,12 @@
           "bookingStatus": null
         },
         {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTYyNTMyNw==",
-          "text": "House Cleaning Arrangement And Your Response Needed\n\nWe\u2019ve noticed a decline in cleaning lately. Some padmates are keeping up, others aren\u2019t, and the shared spaces are suffering because of it.\nPadSplit rules require everyone to clean up after themselves, but since coordinating hasn\u2019t been working, we\u2019ve decided to bring in a cleaner twice a week to handle shared spaces only.\n\nWhat the cleaner covers:\nShared spaces only kitchen, bathroom, living areas, hallways. The cleaner will also handle trash removal.\nWhat\u2019s expected from you:\n\t\u2022\tSeparate trash from recycling and package properly before cleaning days\n\t\u2022\tDo not unnecessarily dirty shared spaces between cleans as the cleaner comes twice a week, not daily\n\t\u2022\tClean up after yourself as PadSplit rules require\n\nYou have two options:\nA) Pay A small weekly fee added to your rent to cover the cleaner\n\nB) You personally clean the shared spaces twice a week to the same standard as the cleaner\nThe fee amount depends on how many people choose to pay, so we need everyone to respond before we can confirm the number.\nPlease reply with A or B within 48 hours of receiving this message.\nNo response will be taken as agreement to pay (Option A).\n\u200b",
-          "created": "2026-06-12T15:12:29.199986",
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEwNTI5Mjk=",
+          "text": "Hi Dede, we are sending rat bait stations to the house. They will be delivered to the common area, so please keep an eye out for an Amazon box so it does not get left outside or mixed up.\n\nIt is 2 refillable Tomcat stations (child and dog resistant). Please:\n1. Wear gloves. Do not touch the bait with bare hands.\n2. Load 1 or 2 bait blocks into each station (push the tab up, squeeze the cartridge prongs, load, then click it back in).\n3. Place them along walls or in corners where you have seen rats or mice. One inside, one outside near the trash if you can. Keep them off kitchen counters and away from food.\n4. Check the clear window and refill if the bait is gone.\n\nIf you place them and send me a photo of both stations where they sit, we will add a $5 credit to your next month\u2019s account. Thank you!",
+          "created": "2026-08-21T14:36:43.625433",
           "messageType": "TEXT",
           "deleted": null,
-          "isBroadcast": true,
+          "isBroadcast": false,
           "extra": null,
           "sender": {
             "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
@@ -334,6 +453,214 @@
             "isActive": true,
             "displayName": "Cyndy Manager",
             "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEwNDc0ODQ=",
+          "text": "Thank you having pest control to come out. The secondary trash will help with that situation on the outside at least. But it needs to be handled inside and out quickly before it becomes an infestation. We don't want that, nor do you as the owner of this property.  At least, I'm assuming you are the owner. Both the names listed as the host and \"Cyndy\". I chose to speak to you directly as opposed to making it a big deal in our group chat thing here on Padsplit. \nI'd also like to get this keypad access resolved ASAP. I'd rather use the pad, not a key. Thank you. Have a good night.",
+          "created": "2026-08-21T03:40:02.884682",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjEwMTgwMzI=",
+            "pk": 1018032,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_1018032_e149da99-ebc9-4022-920b-f095ed06a5b6.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1018032_e149da99-ebc9-4022-920b-f095ed06a5b6.jpg",
+            "firstName": "Doretta",
+            "lastName": "Evans",
+            "isActive": true,
+            "displayName": "Dede",
+            "padmateProfileId": 955424
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEwNDYyMjY=",
+          "text": "Let me try to get second can",
+          "created": "2026-08-21T01:44:24.813350",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEwNDYxOTU=",
+          "text": "You have a house that's at full capacity. Either a large trash can is needed or a 2nd one. \nBy Thursday, trash can't fit. There's already issues with ants and mice. The guys have moved the trash to the end of the driveway to \"help\".",
+          "created": "2026-08-21T01:42:25.972940",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjEwMTgwMzI=",
+            "pk": 1018032,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_1018032_e149da99-ebc9-4022-920b-f095ed06a5b6.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1018032_e149da99-ebc9-4022-920b-f095ed06a5b6.jpg",
+            "firstName": "Doretta",
+            "lastName": "Evans",
+            "isActive": true,
+            "displayName": "Dede",
+            "padmateProfileId": 955424
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEwNDYxOTQ=",
+          "text": "We are connecting pet control for rats ",
+          "created": "2026-08-21T01:42:24.868690",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEwNDYxNjA=",
+          "text": "No, ma'am. Maintenence never came. For the issue with the mice nor the keypad problem to my door.",
+          "created": "2026-08-21T01:39:59.892618",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjEwMTgwMzI=",
+            "pk": 1018032,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_1018032_e149da99-ebc9-4022-920b-f095ed06a5b6.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1018032_e149da99-ebc9-4022-920b-f095ed06a5b6.jpg",
+            "firstName": "Doretta",
+            "lastName": "Evans",
+            "isActive": true,
+            "displayName": "Dede",
+            "padmateProfileId": 955424
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEwNDYwNjc=",
+          "text": "Hi Dede! Just following up on the maintenance issue you reported. Did the maintenance guy come by and address the problem? Please let us know if everything has been fixed or if you still need assistance.",
+          "created": "2026-08-21T01:31:58.824691",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA5NTg4MTI=",
+          "text": "Will let you know when she come. Thanks ",
+          "created": "2026-08-16T21:42:24.634132",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA5NTg4MDU=",
+          "text": "When do you plan on having someone to come out to deal with the rat problem? I think I will put it in our group chat messenger.",
+          "created": "2026-08-16T21:41:57.709751",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjEwMTgwMzI=",
+            "pk": 1018032,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_1018032_e149da99-ebc9-4022-920b-f095ed06a5b6.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1018032_e149da99-ebc9-4022-920b-f095ed06a5b6.jpg",
+            "firstName": "Doretta",
+            "lastName": "Evans",
+            "isActive": true,
+            "displayName": "Dede",
+            "padmateProfileId": 955424
           },
           "attachments": [],
           "reactions": [],
@@ -1018,333 +1345,6 @@
             "isActive": true,
             "displayName": null,
             "padmateProfileId": 771482
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        }
-      ]
-    },
-    {
-      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzU5OTY2",
-      "title": "Dede Evans",
-      "chatType": "HOST_SUPPORT_CHAT",
-      "isArchived": false,
-      "occupancy": {
-        "moveInDate": "2026-05-31",
-        "moveOutDate": null,
-        "conditionalEligibilityApplied": null,
-        "room": {
-          "pk": 21177,
-          "roomNumber": 4
-        },
-        "user": {
-          "picture": "img/profiles/user_1018032_e149da99-ebc9-4022-920b-f095ed06a5b6.jpg",
-          "firstName": "Doretta",
-          "lastName": "Evans",
-          "displayName": "Dede"
-        }
-      },
-      "property": {
-        "host": {
-          "firstName": "Tinghui",
-          "lastName": "Li",
-          "displayName": "",
-          "picture": ""
-        },
-        "description": "Your new home awaits! This cozy Dallas home is waiting for you. This PadSplit has a Backyard and Dining area, and is newly-renovated and cozy.\n\nThis home has a full kitchen, onsite laundry and parking and is very commutable close to public transit and multiple highways.  Located right between I35E, I45 and I20.\n\nThe neighborhood is quiet, which means you won\u2019t be far from all Dallas has to offer.\nThe image on satellite is a few years old and please come and see the house by yourself before you make any judgement.",
-        "address": {
-          "street1": "3414 Pebbleshores Drive",
-          "street2": "",
-          "zip": "75241",
-          "city": {
-            "name": "Dallas",
-            "state": {
-              "name": "Texas"
-            }
-          }
-        }
-      },
-      "isCancelled": false,
-      "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEwNTI5Mjk=",
-        "created": "2026-08-21T14:36:43.625433",
-        "text": "Hi Dede, we are sending rat bait stations to the house. They will be delivered to the common area, so please keep an eye out for an Amazon box so it does not get left outside or mixed up.\n\nIt is 2 refillable Tomcat stations (child and dog resistant). Please:\n1. Wear gloves. Do not touch the bait with bare hands.\n2. Load 1 or 2 bait blocks into each station (push the tab up, squeeze the cartridge prongs, load, then click it back in).\n3. Place them along walls or in corners where you have seen rats or mice. One inside, one outside near the trash if you can. Keep them off kitchen counters and away from food.\n4. Check the clear window and refill if the bait is gone.\n\nIf you place them and send me a photo of both stations where they sit, we will add a $5 credit to your next month\u2019s account. Thank you!",
-        "deleted": null,
-        "extra": null,
-        "messageType": "TEXT",
-        "sender": {
-          "pk": 318367,
-          "firstName": "Ang",
-          "lastName": "Li",
-          "displayName": "Cyndy Manager"
-        },
-        "attachments": [],
-        "paymentExtensionStatus": null,
-        "ticketStatus": null,
-        "bookingStatus": null
-      },
-      "member": {
-        "seenAt": "2026-08-21T19:10:51.267008",
-        "isPinned": false,
-        "isUnread": false
-      },
-      "recent_messages": [
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEwNTI5Mjk=",
-          "text": "Hi Dede, we are sending rat bait stations to the house. They will be delivered to the common area, so please keep an eye out for an Amazon box so it does not get left outside or mixed up.\n\nIt is 2 refillable Tomcat stations (child and dog resistant). Please:\n1. Wear gloves. Do not touch the bait with bare hands.\n2. Load 1 or 2 bait blocks into each station (push the tab up, squeeze the cartridge prongs, load, then click it back in).\n3. Place them along walls or in corners where you have seen rats or mice. One inside, one outside near the trash if you can. Keep them off kitchen counters and away from food.\n4. Check the clear window and refill if the bait is gone.\n\nIf you place them and send me a photo of both stations where they sit, we will add a $5 credit to your next month\u2019s account. Thank you!",
-          "created": "2026-08-21T14:36:43.625433",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEwNDc0ODQ=",
-          "text": "Thank you having pest control to come out. The secondary trash will help with that situation on the outside at least. But it needs to be handled inside and out quickly before it becomes an infestation. We don't want that, nor do you as the owner of this property.  At least, I'm assuming you are the owner. Both the names listed as the host and \"Cyndy\". I chose to speak to you directly as opposed to making it a big deal in our group chat thing here on Padsplit. \nI'd also like to get this keypad access resolved ASAP. I'd rather use the pad, not a key. Thank you. Have a good night.",
-          "created": "2026-08-21T03:40:02.884682",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjEwMTgwMzI=",
-            "pk": 1018032,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_1018032_e149da99-ebc9-4022-920b-f095ed06a5b6.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1018032_e149da99-ebc9-4022-920b-f095ed06a5b6.jpg",
-            "firstName": "Doretta",
-            "lastName": "Evans",
-            "isActive": true,
-            "displayName": "Dede",
-            "padmateProfileId": 955424
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEwNDYyMjY=",
-          "text": "Let me try to get second can",
-          "created": "2026-08-21T01:44:24.813350",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEwNDYxOTU=",
-          "text": "You have a house that's at full capacity. Either a large trash can is needed or a 2nd one. \nBy Thursday, trash can't fit. There's already issues with ants and mice. The guys have moved the trash to the end of the driveway to \"help\".",
-          "created": "2026-08-21T01:42:25.972940",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjEwMTgwMzI=",
-            "pk": 1018032,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_1018032_e149da99-ebc9-4022-920b-f095ed06a5b6.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1018032_e149da99-ebc9-4022-920b-f095ed06a5b6.jpg",
-            "firstName": "Doretta",
-            "lastName": "Evans",
-            "isActive": true,
-            "displayName": "Dede",
-            "padmateProfileId": 955424
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEwNDYxOTQ=",
-          "text": "We are connecting pet control for rats ",
-          "created": "2026-08-21T01:42:24.868690",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEwNDYxNjA=",
-          "text": "No, ma'am. Maintenence never came. For the issue with the mice nor the keypad problem to my door.",
-          "created": "2026-08-21T01:39:59.892618",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjEwMTgwMzI=",
-            "pk": 1018032,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_1018032_e149da99-ebc9-4022-920b-f095ed06a5b6.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1018032_e149da99-ebc9-4022-920b-f095ed06a5b6.jpg",
-            "firstName": "Doretta",
-            "lastName": "Evans",
-            "isActive": true,
-            "displayName": "Dede",
-            "padmateProfileId": 955424
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEwNDYwNjc=",
-          "text": "Hi Dede! Just following up on the maintenance issue you reported. Did the maintenance guy come by and address the problem? Please let us know if everything has been fixed or if you still need assistance.",
-          "created": "2026-08-21T01:31:58.824691",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA5NTg4MTI=",
-          "text": "Will let you know when she come. Thanks ",
-          "created": "2026-08-16T21:42:24.634132",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA5NTg4MDU=",
-          "text": "When do you plan on having someone to come out to deal with the rat problem? I think I will put it in our group chat messenger.",
-          "created": "2026-08-16T21:41:57.709751",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjEwMTgwMzI=",
-            "pk": 1018032,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_1018032_e149da99-ebc9-4022-920b-f095ed06a5b6.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1018032_e149da99-ebc9-4022-920b-f095ed06a5b6.jpg",
-            "firstName": "Doretta",
-            "lastName": "Evans",
-            "isActive": true,
-            "displayName": "Dede",
-            "padmateProfileId": 955424
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTA5NTg3ODI=",
-          "text": "Let me know in advance, please! I'm at wrk and shouldn't be on my phone. It was a typo.",
-          "created": "2026-08-16T21:40:44.894235",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjEwMTgwMzI=",
-            "pk": 1018032,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_1018032_e149da99-ebc9-4022-920b-f095ed06a5b6.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1018032_e149da99-ebc9-4022-920b-f095ed06a5b6.jpg",
-            "firstName": "Doretta",
-            "lastName": "Evans",
-            "isActive": true,
-            "displayName": "Dede",
-            "padmateProfileId": 955424
           },
           "attachments": [],
           "reactions": [],
@@ -13217,6 +13217,6 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-08-21T20:00:26Z"
+    "run_scraped_at": "2026-08-21T20:42:49Z"
   }
 }
