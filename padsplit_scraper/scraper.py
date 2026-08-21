@@ -22,6 +22,13 @@ GRAPHQL_URL = f"{BASE_URL}/api/graphql/"
 PARTNER_PROPERTIES_URL = f"{BASE_URL}/api/partner/properties/"
 PARTNER_ROOMS_URL = f"{BASE_URL}/api/partner/rooms/"
 PARTNER_EARNINGS_URL = f"{BASE_URL}/api/partner/earnings/"
+# Host SPA HostFinancesStore.loadFinances() after the 2026 earnings redesign.
+PARTNER_FINANCES_URL = f"{BASE_URL}/api/partner/finances/"
+EARNINGS_CANDIDATE_URLS = (
+    PARTNER_FINANCES_URL,
+    PARTNER_EARNINGS_URL,
+)
+EARNINGS_LIST_KEYS = ("revenue", "earnings", "results", "data", "items")
 PARTNER_MONTHLY_FLIP_URL = f"{BASE_URL}/api/partner/metrics/properties/monthly-average-days-to-flip/"
 PARTNER_MONTHLY_OCCUPANCY_URL = f"{BASE_URL}/api/partner/metrics/properties/monthly-average-occupancy/"
 PARTNER_TENURE_SUMMARY_URL = f"{BASE_URL}/api/partner/metrics/properties/total-average-tenure-days/"
@@ -618,26 +625,47 @@ def fetch_rooms(session: requests.Session, creds: Dict[str, str], page_size: int
 
 
 def fetch_earnings(session: requests.Session, creds: Dict[str, str]) -> Dict[str, Any]:
-    """Fetch monthly earnings history."""
+    """Fetch monthly earnings history from the current or legacy partner API."""
 
     headers = {
         "Accept": "application/json",
         "Referer": f"{BASE_URL}/host/earnings",
     }
-    resp = _authed_request(
-        session,
-        "GET",
-        PARTNER_EARNINGS_URL,
-        creds=creds,
-        login_fn=login,
-        headers=headers,
-        timeout=DEFAULT_TIMEOUT,
-    )
-    resp.raise_for_status()
-    payload = resp.json()
-    if not isinstance(payload, dict):
-        return {}
-    return payload
+    attempts: List[str] = []
+    last_http_error: Optional[requests.exceptions.HTTPError] = None
+    for url in EARNINGS_CANDIDATE_URLS:
+        resp = _authed_request(
+            session,
+            "GET",
+            url,
+            creds=creds,
+            login_fn=login,
+            headers=headers,
+            timeout=DEFAULT_TIMEOUT,
+        )
+        if resp.status_code in (404, 410):
+            attempts.append(f"{url} (HTTP {resp.status_code})")
+            try:
+                resp.raise_for_status()
+            except requests.exceptions.HTTPError as exc:
+                last_http_error = exc
+            continue
+        resp.raise_for_status()
+        payload = resp.json() if resp.content else {}
+        if isinstance(payload, list):
+            payload = {"results": payload}
+        if not isinstance(payload, dict) or not _earnings_payload_looks_valid(payload):
+            attempts.append(f"{url} (unrecognized contract)")
+            continue
+        if url != PARTNER_EARNINGS_URL:
+            sys.stderr.write(f"# Earnings fetched from {url}\n")
+        return payload
+
+    detail = ", ".join(attempts) or "no candidate URLs"
+    message = f"partner earnings API is gone or moved; tried {detail}"
+    if last_http_error is not None:
+        raise RuntimeError(message) from last_http_error
+    raise RuntimeError(message)
 
 
 def fetch_performance_history(session: requests.Session, creds: Dict[str, str]) -> Dict[str, Dict[str, Any]]:
@@ -854,12 +882,51 @@ def _room_property_label(room: Dict[str, Any]) -> str:
     return "Unknown Property"
 
 
-def _extract_earnings_rows(earnings_payload: Dict[str, Any]) -> List[Dict[str, Any]]:
-    for key in ("earnings", "results", "data", "items"):
+def _earnings_list_from_payload(earnings_payload: Any) -> Optional[List[Any]]:
+    if isinstance(earnings_payload, list):
+        return earnings_payload
+    if not isinstance(earnings_payload, dict):
+        return None
+    for key in EARNINGS_LIST_KEYS:
         val = earnings_payload.get(key)
         if isinstance(val, list):
-            return [x for x in val if isinstance(x, dict)]
-    return []
+            return val
+    return None
+
+
+def _earnings_payload_looks_valid(earnings_payload: Any) -> bool:
+    return _earnings_list_from_payload(earnings_payload) is not None
+
+
+def _normalize_earnings_row(row: Dict[str, Any]) -> Dict[str, Any]:
+    """Map the post-redesign camelCase finance fields onto the stored snake_case rows."""
+
+    aliases = {
+        "gross_revenue": ("gross_revenue", "grossRevenue"),
+        "processing_fee": ("processing_fee", "processingFee"),
+        "management_fee": ("management_fee", "managementFee"),
+        "booking_fee": ("booking_fee", "bookingFee"),
+        "gross_adjustments": ("gross_adjustments", "grossAdjustments"),
+        "total_payout_amount": ("total_payout_amount", "totalPayoutAmount"),
+        "net_revenue": ("net_revenue", "netRevenue"),
+        "is_in_flight": ("is_in_flight", "isInFlight"),
+        "property_count": ("property_count", "propertyCount"),
+        "payout_amount": ("payout_amount", "payoutAmount"),
+    }
+    normalized = dict(row)
+    for dest, sources in aliases.items():
+        if dest in normalized and normalized[dest] is not None:
+            continue
+        for src in sources:
+            if src in row and row[src] is not None:
+                normalized[dest] = row[src]
+                break
+    return normalized
+
+
+def _extract_earnings_rows(earnings_payload: Dict[str, Any]) -> List[Dict[str, Any]]:
+    rows = _earnings_list_from_payload(earnings_payload) or []
+    return [_normalize_earnings_row(x) for x in rows if isinstance(x, dict)]
 
 
 def _find_net_revenue(row: Dict[str, Any]) -> float:
