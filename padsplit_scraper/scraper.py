@@ -651,7 +651,11 @@ def fetch_earnings(session: requests.Session, creds: Dict[str, str]) -> Dict[str
                 last_http_error = exc
             continue
         resp.raise_for_status()
-        payload = resp.json() if resp.content else {}
+        try:
+            payload = resp.json() if resp.content else {}
+        except ValueError:
+            attempts.append(f"{url} (unrecognized contract)")
+            continue
         if isinstance(payload, list):
             payload = {"results": payload}
         if not isinstance(payload, dict) or not _earnings_payload_looks_valid(payload):

@@ -33,6 +33,8 @@ class FakeResponse:
             self.content = json.dumps(payload).encode()
 
     def json(self):
+        if self._payload is None:
+            raise json.JSONDecodeError("Expecting value", "", 0)
         return self._payload
 
     def raise_for_status(self) -> None:
@@ -311,6 +313,27 @@ class PadSplitScraperTests(unittest.TestCase):
         legacy_payload = {"results": [{"month": "2026-04-01", "net_revenue": 111.0}]}
         responses = {
             scraper.PARTNER_FINANCES_URL: FakeResponse(404, url=scraper.PARTNER_FINANCES_URL),
+            scraper.PARTNER_EARNINGS_URL: FakeResponse(200, legacy_payload, url=scraper.PARTNER_EARNINGS_URL),
+        }
+
+        def fake_authed_request(_session, _method, url, **_kwargs):
+            return responses[url]
+
+        with patch.object(scraper, "_authed_request", side_effect=fake_authed_request):
+            payload = scraper.fetch_earnings(session, {"email": "user", "password": "pw"})
+
+        self.assertEqual(payload, legacy_payload)
+
+    def test_fetch_earnings_skips_non_json_success_and_tries_next_candidate(self) -> None:
+        session = Mock()
+        legacy_payload = {"results": [{"month": "2026-04-01", "net_revenue": 111.0}]}
+        html = FakeResponse(
+            200,
+            url=scraper.PARTNER_FINANCES_URL,
+            content=b"<!DOCTYPE html><html><body>PadSplit</body></html>",
+        )
+        responses = {
+            scraper.PARTNER_FINANCES_URL: html,
             scraper.PARTNER_EARNINGS_URL: FakeResponse(200, legacy_payload, url=scraper.PARTNER_EARNINGS_URL),
         }
 
