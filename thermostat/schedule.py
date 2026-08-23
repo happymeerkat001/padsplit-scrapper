@@ -42,11 +42,11 @@ def _post_temp_alert(webhook_url: str, target: str, temp_f: float) -> None:
     try:
         requests.post(
             webhook_url,
-            json={"text": f"Leanna temp {temp_f:.0f}\u00b0F \u2014 below {LOW_TEMP_THRESHOLD_F}\u00b0F threshold"},
+            json={"content": f"Leanna temp {temp_f:.0f}\u00b0F \u2014 below {LOW_TEMP_THRESHOLD_F}\u00b0F threshold"},
             timeout=10,
         )
     except Exception as exc:
-        _logger.error("Slack temp alert failed: %s", exc)
+        _logger.error("Discord temp alert failed: %s", exc)
 
 
 def _should_send_temp_alert() -> bool:
@@ -474,7 +474,7 @@ def enforce_command() -> int:
             login(session, creds["email"], creds["password"])
             raw_locations = fetch_locations(session)
             location_names = fetch_location_names(session)
-            slack_webhook = os.getenv("SLACK_WEBHOOK_URL")
+            discord_webhook = os.getenv("DISCORD_WEBHOOK_URL")
 
             for norm_target, slots in schedules.items():
                 active_slot = find_active_slot(slots, now)
@@ -490,7 +490,7 @@ def enforce_command() -> int:
                 status_heat = ui_data.get("StatusHeat")
 
                 live_temp = ui_data.get("DispTemperature")
-                if slack_webhook and live_temp is not None and LOW_TEMP_ALERT_TARGET in norm_target:
+                if discord_webhook and live_temp is not None and LOW_TEMP_ALERT_TARGET in norm_target:
                     try:
                         live_temp_f = float(live_temp)
                     except (TypeError, ValueError):
@@ -500,10 +500,10 @@ def enforce_command() -> int:
                             _record_temp_alert()
                             threading.Thread(
                                 target=_post_temp_alert,
-                                args=(slack_webhook, norm_target, live_temp_f),
+                                args=(discord_webhook, norm_target, live_temp_f),
                                 daemon=True,
                             ).start()
-                            logger.info("[alert] %s temp %.0f\u00b0F \u2014 Slack notified", norm_target, live_temp_f)
+                            logger.info("[alert] %s temp %.0f\u00b0F \u2014 Discord notified", norm_target, live_temp_f)
 
                 if (
                     live_cool is not None

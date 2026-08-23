@@ -2,7 +2,7 @@
 """AI message summarizer for PadSplit data.
 
 Reads padsplit_scraper/output/latest.json, sends the messages to MiniMax AI
-for summarization, and posts the result to Slack via SLACK_WEBHOOK_MESSAGES.
+for summarization, and posts the result to Discord via DISCORD_WEBHOOK_MESSAGES.
 """
 
 import json
@@ -89,13 +89,20 @@ def call_minimax(prompt: str) -> str:
     sys.exit("MiniMax API: all retries exhausted")
 
 
-def send_to_slack(message: str) -> None:
-    webhook = (os.getenv("SLACK_WEBHOOK_MESSAGES") or "").strip()
+DISCORD_MESSAGE_LIMIT = 2000
+TRUNCATION_SUFFIX = "... [truncated]"
+
+
+def send_to_discord(message: str) -> None:
+    webhook = (os.getenv("DISCORD_WEBHOOK_MESSAGES") or "").strip()
     if not webhook:
-        print("SLACK_WEBHOOK_MESSAGES not set — skipping Slack send.")
+        print("DISCORD_WEBHOOK_MESSAGES not set — skipping Discord send.")
         return
 
-    payload = json.dumps({"text": message}).encode()
+    if len(message) > DISCORD_MESSAGE_LIMIT:
+        message = message[: DISCORD_MESSAGE_LIMIT - len(TRUNCATION_SUFFIX)] + TRUNCATION_SUFFIX
+
+    payload = json.dumps({"content": message}).encode()
     req = urllib.request.Request(
         webhook,
         data=payload,
@@ -105,13 +112,13 @@ def send_to_slack(message: str) -> None:
     try:
         with urllib.request.urlopen(req) as resp:
             if 200 <= resp.getcode() < 300:
-                print("Sent to Slack.")
+                print("Sent to Discord.")
             else:
-                print(f"Slack webhook returned status {resp.getcode()}.")
+                print(f"Discord webhook returned status {resp.getcode()}.")
     except urllib.error.HTTPError as exc:
-        print(f"Slack webhook HTTP error: {exc.code} {exc.reason}")
+        print(f"Discord webhook HTTP error: {exc.code} {exc.reason}")
     except urllib.error.URLError as exc:
-        print(f"Slack webhook URL error: {exc}")
+        print(f"Discord webhook URL error: {exc}")
 
 
 def main() -> None:
@@ -128,7 +135,7 @@ def main() -> None:
     print(f"AI Response:\n{summary}")
     print("=" * 50 + "\n")
 
-    send_to_slack(summary)
+    send_to_discord(summary)
 
 
 if __name__ == "__main__":
