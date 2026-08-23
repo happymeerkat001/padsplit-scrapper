@@ -21,7 +21,7 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.append(str(ROOT_DIR))
 
-from padsplit_scraper.slack_notifier import post_slack_message
+from padsplit_scraper.discord_notifier import post_discord_message
 from thermostat.scraper import (
     PORTAL_URL,
     TIMEOUT,
@@ -290,9 +290,9 @@ def apply_device_changes(
             msg = f"Thermostat set_temps: {succeeded}/{total} OK. Failed: {names}. Target: {target_mode}"
             sys.stderr.write(f"[alert] {msg}\n")
             try:
-                post_slack_message(msg)
+                post_discord_message(msg)
             except Exception as exc:
-                sys.stderr.write(f"[alert] Slack notify failed: {exc}\n")
+                sys.stderr.write(f"[alert] Discord notify failed: {exc}\n")
             raise RuntimeError(msg)
 
 

@@ -391,20 +391,20 @@ def select_candidates(payload: Dict, state: Dict, scope_filter: str) -> List[Tup
     return candidates
 
 
-def send_critical_slack_alert(draft: Dict) -> None:
+def send_critical_discord_alert(draft: Dict) -> None:
     try:
-        from padsplit_scraper.slack_notifier import post_slack_message
+        from padsplit_scraper.discord_notifier import post_discord_message
 
         text = (
-            "@channel Critical PadSplit tenant message\n"
+            "@everyone Critical PadSplit tenant message\n"
             f"Tenant: {draft['tenant_name']} | Room: {draft.get('room_number') or '?'}\n"
             f"Property: {draft.get('property') or 'Unknown'}\n"
             f"Thread: {PADSPLIT_THREAD_URL.format(chat_id=draft['chat_id'])}\n"
             f"Message: {draft['inbound_message']}"
         )
-        post_slack_message(text)
+        post_discord_message(text)
     except Exception as exc:
-        print(f"Critical Slack alert failed: {exc}", file=sys.stderr)
+        print(f"Critical Discord alert failed: {exc}", file=sys.stderr)
 
 
 def make_draft(thread: Dict, message: Dict, message_id: str, last_message_at: str, use_ai: bool) -> Dict:
@@ -473,7 +473,7 @@ def main() -> None:
         drafts.append(draft)
         update_state(state, draft)
         if draft["urgency"] == "critical":
-            send_critical_slack_alert(draft)
+            send_critical_discord_alert(draft)
 
     output = {"generated_at": iso_utc(now), "drafts": drafts}
     save_json(DRAFTS_PATH, output)

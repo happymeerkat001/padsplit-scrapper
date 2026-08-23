@@ -13,7 +13,7 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.append(str(ROOT_DIR))
 
-from padsplit_scraper.slack_notifier import post_slack_message
+from padsplit_scraper.discord_notifier import post_discord_message
 
 PORTAL_URL = "https://mytotalconnectcomfort.com/portal"
 LOCATIONS_BASE_URL = f"{PORTAL_URL}/Location/GetLocationListData?page={{page}}&filter="
@@ -293,10 +293,10 @@ def notify_stale_fallback(scraped_at: str) -> None:
         "Morning pipeline continuing."
     )
     try:
-        post_slack_message(message)
-        sys.stderr.write("[fallback] Sent Slack stale-data alert\n")
+        post_discord_message(message)
+        sys.stderr.write("[fallback] Sent Discord stale-data alert\n")
     except Exception as exc:
-        sys.stderr.write(f"[fallback] Failed to send Slack stale-data alert: {exc}\n")
+        sys.stderr.write(f"[fallback] Failed to send Discord stale-data alert: {exc}\n")
 
 
 def main() -> int:
