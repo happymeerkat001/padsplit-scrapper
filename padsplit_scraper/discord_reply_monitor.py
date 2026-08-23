@@ -10,7 +10,7 @@ import requests
 from scraper import create_session, load_credentials, login, update_task_status
 
 DEFAULT_TIMEOUT = (10, 30)
-SLACK_REPLIES_URL = "https://slack.com/api/conversations.replies"
+DISCORD_API_BASE = "https://discord.com/api/v10"
 COMPLETE_RE = re.compile(r"\bComplete\b", re.IGNORECASE)
 STREET_ABBREVIATIONS = {
     "st": "street",
@@ -156,15 +156,19 @@ def _save_processed_replies(path: Path, processed_ts: Set[str]) -> None:
     path.write_text(json.dumps(payload, indent=2) + "\n")
 
 
-def _fetch_replies(token: str, channel: str, thread_ts: str) -> List[Dict]:
-    headers = {"Authorization": f"Bearer {token}"}
-    params = {"channel": channel, "ts": thread_ts, "inclusive": "true", "limit": 200}
-    response = requests.get(SLACK_REPLIES_URL, headers=headers, params=params, timeout=DEFAULT_TIMEOUT)
+def _fetch_replies(token: str, channel: str, message_id: str) -> List[Dict]:
+    headers = {"Authorization": f"Bot {token}"}
+    params = {"after": message_id, "limit": 100}
+    response = requests.get(
+        f"{DISCORD_API_BASE}/channels/{channel}/messages",
+        headers=headers,
+        params=params,
+        timeout=DEFAULT_TIMEOUT,
+    )
     response.raise_for_status()
-    data = response.json()
-    if not data.get("ok"):
-        raise RuntimeError(f"Slack API error: {data}")
-    return data.get("messages") or []
+    messages = response.json() or []
+    # Discord returns newest-first; process oldest-first to match prior Slack behavior.
+    return list(reversed(messages))
 
 
 def _find_matching_tasks(text: str, matcher: Dict) -> Tuple[str, List[int]]:
@@ -212,23 +216,23 @@ def _extract_completed_task_ids(text: str, matcher: Dict) -> List[int]:
 
 def main() -> None:
     base_dir = Path(__file__).resolve().parent
-    meta_path = base_dir / "docs" / "data" / "slack_digest_meta.json"
+    meta_path = base_dir / "docs" / "data" / "discord_digest_meta.json"
     processed_path = base_dir / "docs" / "data" / "processed_replies.json"
 
-    token = os.getenv("SLACK_BOT_TOKEN")
+    token = os.getenv("DISCORD_BOT_TOKEN")
     if not token:
-        raise RuntimeError("Missing SLACK_BOT_TOKEN")
+        raise RuntimeError("Missing DISCORD_BOT_TOKEN")
 
     meta = _load_json(meta_path, None)
-    if not isinstance(meta, dict) or not meta.get("channel") or not meta.get("thread_ts"):
-        raise RuntimeError("Missing or invalid docs/data/slack_digest_meta.json")
+    if not isinstance(meta, dict) or not meta.get("channel") or not meta.get("message_id"):
+        raise RuntimeError("Missing or invalid docs/data/discord_digest_meta.json")
 
     payload = _load_latest_payload(base_dir)
     tasks = payload.get("tasks") or {}
     matcher = _build_address_matcher(tasks)
     processed_ts = _load_processed_replies(processed_path)
 
-    replies = _fetch_replies(token, str(meta["channel"]), str(meta["thread_ts"]))
+    replies = _fetch_replies(token, str(meta["channel"]), str(meta["message_id"]))
 
     creds = load_credentials()
     updated_count = 0
@@ -237,19 +241,19 @@ def main() -> None:
         login(session, creds["email"], creds["password"])
 
         for reply in replies:
-            reply_ts = str(reply.get("ts") or "")
-            if not reply_ts or reply_ts == str(meta["thread_ts"]):
+            reply_id = str(reply.get("id") or "")
+            if not reply_id:
                 continue
-            if reply_ts in processed_ts:
+            if reply_id in processed_ts:
                 continue
 
-            text = str(reply.get("text") or "")
+            text = str(reply.get("content") or "")
             task_ids = _extract_completed_task_ids(text, matcher)
             for task_id in task_ids:
                 update_task_status(session, creds, task_id, "completed")
                 updated_count += 1
 
-            processed_ts.add(reply_ts)
+            processed_ts.add(reply_id)
 
     _save_processed_replies(processed_path, processed_ts)
     print(f"Processed replies: {len(replies)} | Updated PadSplit tasks: {updated_count}")
