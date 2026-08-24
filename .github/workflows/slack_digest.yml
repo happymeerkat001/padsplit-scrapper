@@ -15,6 +15,15 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Verify Discord secret is set
+        env:
+          DISCORD_WEBHOOK_TASKS: ${{ secrets.DISCORD_WEBHOOK_TASKS }}
+        run: |
+          if [ -z "$DISCORD_WEBHOOK_TASKS" ]; then
+            echo "::error::DISCORD_WEBHOOK_TASKS secret is not set — task digests cannot be sent to Discord."
+            exit 1
+          fi
+
       - name: Send task digest to Discord
         env:
           DISCORD_WEBHOOK_TASKS: ${{ secrets.DISCORD_WEBHOOK_TASKS }}
