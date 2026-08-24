@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-08-24T15:23:46Z",
+  "scraped_at": "2026-08-24T16:16:39Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MjExMTQ0",
@@ -43,51 +43,107 @@
       },
       "isCancelled": false,
       "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTExMTA0Mjc=",
-        "created": "2026-08-24T15:11:24.734226",
-        "text": null,
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTExMTIxNjk=",
+        "created": "2026-08-24T16:13:59.804176",
+        "text": "Between Wednesday and Friday I am working on a weekly basis to get caught up ",
         "deleted": null,
         "extra": null,
-        "messageType": "TICKET_UPDATE",
+        "messageType": "TEXT",
         "sender": {
-          "pk": 318367,
-          "firstName": "Ang",
-          "lastName": "Li",
-          "displayName": "Cyndy Manager"
+          "pk": 753899,
+          "firstName": "Anthony",
+          "lastName": "Yancey",
+          "displayName": null
         },
         "attachments": [],
         "paymentExtensionStatus": null,
-        "ticketStatus": {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMTIxMzYw",
-          "created": "2026-08-24T15:11:24.749260",
-          "status": "SUBMITTED",
-          "canRate": false,
-          "ticket": {
-            "id": "463747",
-            "author": {
-              "firstName": "Anthony",
-              "lastName": "Yancey",
-              "id": "753899",
-              "displayName": null
-            },
-            "details": "Collections",
-            "location": "ROOM",
-            "status": "SUBMITTED",
-            "rating": null,
-            "comment": null,
-            "category": "ROOM_TURN",
-            "onHoldReason": null,
-            "withdrawReason": null
-          }
-        },
+        "ticketStatus": null,
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-08-24T14:26:56.292910",
+        "seenAt": "2026-08-24T15:59:56.310982",
         "isPinned": false,
-        "isUnread": false
+        "isUnread": true
       },
       "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTExMTIxNjk=",
+          "text": "Between Wednesday and Friday I am working on a weekly basis to get caught up ",
+          "created": "2026-08-24T16:13:59.804176",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjc1Mzg5OQ==",
+            "pk": 753899,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_753899_563b2db5-08c5-48b8-8675-03ee4e06653f.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_753899_563b2db5-08c5-48b8-8675-03ee4e06653f.jpg",
+            "firstName": "Anthony",
+            "lastName": "Yancey",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 691450
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTExMTE4MjU=",
+          "text": "When are you able to?",
+          "created": "2026-08-24T15:59:55.096044",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTExMTEyOTM=",
+          "text": "I  am not able to right now ",
+          "created": "2026-08-24T15:35:58.309404",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjc1Mzg5OQ==",
+            "pk": 753899,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_753899_563b2db5-08c5-48b8-8675-03ee4e06653f.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_753899_563b2db5-08c5-48b8-8675-03ee4e06653f.jpg",
+            "firstName": "Anthony",
+            "lastName": "Yancey",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 691450
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
         {
           "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTExMTA0Mjc=",
           "text": null,
@@ -270,84 +326,6 @@
           "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTExMDE3MDc=",
           "text": "I am having trouble coming up with the 126 dollars  I am trying to get everything squared off. I don\u2019t have any place to go ",
           "created": "2026-08-24T00:18:00.862171",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjc1Mzg5OQ==",
-            "pk": 753899,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_753899_563b2db5-08c5-48b8-8675-03ee4e06653f.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_753899_563b2db5-08c5-48b8-8675-03ee4e06653f.jpg",
-            "firstName": "Anthony",
-            "lastName": "Yancey",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 691450
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEwNzgyNjM=",
-          "text": "thank you for the update. I understand that you\u2019re doing your best and that things are challenging right now. Unfortunately, I don\u2019t have the ability to modify payment requirements or deadlines. To avoid any impact on your membership, I encourage you to make any payment you can before the due date and continue working toward bringing the balance",
-          "created": "2026-08-22T18:02:54.356643",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEwNzQ3MTI=",
-          "text": "I don\u2019t have 126  dollars right now and I can\u2019t control my payments and of course because I need it everything is behind ",
-          "created": "2026-08-22T15:32:05.022682",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjc1Mzg5OQ==",
-            "pk": 753899,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_753899_563b2db5-08c5-48b8-8675-03ee4e06653f.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_753899_563b2db5-08c5-48b8-8675-03ee4e06653f.jpg",
-            "firstName": "Anthony",
-            "lastName": "Yancey",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 691450
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEwNzQ2NDU=",
-          "text": "I made a payment of 160  yesterday but today I got a message asking for 126 by Sunday or my membership will be cancelled I\u2019m doing the best I can right now but I don\u2019t like to make promises I can\u2019t keep  ",
-          "created": "2026-08-22T15:29:17.267551",
           "messageType": "TEXT",
           "deleted": null,
           "isBroadcast": false,
@@ -12560,6 +12538,6 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-08-24T15:23:46Z"
+    "run_scraped_at": "2026-08-24T16:16:39Z"
   }
 }
