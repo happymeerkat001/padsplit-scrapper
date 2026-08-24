@@ -24,3 +24,7 @@ logs/
 
 *.log
 padsplit_scraper/output/latest.json
+
+# Discord runtime state (regenerated each run, not checked in)
+docs/data/discord_digest_meta.json
+docs/data/processed_replies.json
