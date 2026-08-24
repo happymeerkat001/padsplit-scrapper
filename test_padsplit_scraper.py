@@ -8,6 +8,7 @@ from unittest.mock import Mock, call, patch
 
 import requests
 
+import padsplit_scraper.persist as persist
 import padsplit_scraper.scraper as scraper
 
 
@@ -110,8 +111,8 @@ class PadSplitScraperTests(unittest.TestCase):
             docs_data_dir = root / "docs" / "data"
 
             with (
-                patch.object(scraper, "OUTPUT_DIR", output_dir),
-                patch.object(scraper, "DOCS_DATA_DIR", docs_data_dir),
+                patch.object(persist, "OUTPUT_DIR", output_dir),
+                patch.object(persist, "DOCS_DATA_DIR", docs_data_dir),
                 patch.object(scraper, "load_credentials", return_value={"email": "user", "password": "pw"}),
                 patch.object(scraper, "create_session", return_value=DummySession()),
                 patch.object(scraper, "login") as login_mock,
@@ -155,8 +156,8 @@ class PadSplitScraperTests(unittest.TestCase):
             docs_data_dir = root / "docs" / "data"
 
             with (
-                patch.object(scraper, "OUTPUT_DIR", output_dir),
-                patch.object(scraper, "DOCS_DATA_DIR", docs_data_dir),
+                patch.object(persist, "OUTPUT_DIR", output_dir),
+                patch.object(persist, "DOCS_DATA_DIR", docs_data_dir),
                 patch.object(scraper, "load_credentials", return_value={"email": "user", "password": "pw"}),
                 patch.object(scraper, "create_session", return_value=DummySession()),
                 patch.object(scraper, "login"),
@@ -206,8 +207,8 @@ class PadSplitScraperTests(unittest.TestCase):
             monthly_path.write_text(json.dumps(prior_monthly_history, indent=2))
 
             with (
-                patch.object(scraper, "OUTPUT_DIR", output_dir),
-                patch.object(scraper, "DOCS_DATA_DIR", docs_data_dir),
+                patch.object(persist, "OUTPUT_DIR", output_dir),
+                patch.object(persist, "DOCS_DATA_DIR", docs_data_dir),
                 patch.object(scraper, "load_credentials", return_value={"email": "user", "password": "pw"}),
                 patch.object(scraper, "create_session", return_value=DummySession()),
                 patch.object(scraper, "login"),

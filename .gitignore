@@ -1,21 +1,26 @@
 # Environment Variables (CRITICAL: Keeps your passwords and API keys safe)
-.env
+.env*
 
 # AI Coding Assistant Settings (keep commands/ for project slash commands)
 .claude/*
 !.claude/commands/
+.antigravitycli/
 
 # Scraped Data Output (Ignores timestamped files, keeps latest.json)
 padsplit_scraper/output/202*.json
+padsplit_scraper/output/drafts.json
+padsplit_scraper/output/drafted_messages.json
 thermostat/output/202*.json
+thermostat/temp_alert_state.json
 
 
-# Python Virtual Environment & Cacheå
+# Python Virtual Environment & Cache
 venv/
 __pycache__/
 *.pyc
 
+# Runtime logs
+logs/
 
 *.log
 padsplit_scraper/output/latest.json
-

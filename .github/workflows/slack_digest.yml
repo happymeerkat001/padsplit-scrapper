@@ -1,4 +1,4 @@
-name: Slack Digests
+name: Discord Digests
 
 on:
   schedule:
@@ -15,7 +15,16 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Send task digest to Slack
+      - name: Verify Discord secret is set
         env:
-          SLACK_WEBHOOK_TASKS: ${{ secrets.SLACK_WEBHOOK_TASKS }}
-        run: python slack_notifier.py
+          DISCORD_WEBHOOK_TASKS: ${{ secrets.DISCORD_WEBHOOK_TASKS }}
+        run: |
+          if [ -z "$DISCORD_WEBHOOK_TASKS" ]; then
+            echo "::error::DISCORD_WEBHOOK_TASKS secret is not set — task digests cannot be sent to Discord."
+            exit 1
+          fi
+
+      - name: Send task digest to Discord
+        env:
+          DISCORD_WEBHOOK_TASKS: ${{ secrets.DISCORD_WEBHOOK_TASKS }}
+        run: python slack_task_digest.py

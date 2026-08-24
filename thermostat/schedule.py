@@ -3,6 +3,8 @@
 
 import argparse
 import json
+import logging
+import logging.handlers
 import os
 import plistlib
 import re
@@ -14,15 +16,59 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
+import requests
+
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 LAUNCH_AGENT_DIR = Path.home() / "Library" / "LaunchAgents"
 PLIST_PREFIX = "com.padsplit.thermostat."
+ENFORCER_LABEL = f"{PLIST_PREFIX}enforcer"
 PYTHON_PATH = ROOT_DIR / "venv" / "bin" / "python3"
+PYTHON = PYTHON_PATH
 SET_TEMPS_PATH = ROOT_DIR / "thermostat" / "set_temps.py"
-LOG_DIR = ROOT_DIR / "thermostat"
+LOG_DIR = ROOT_DIR / "logs"
+SCHEDULES_PATH = ROOT_DIR / "thermostat" / "config" / "schedules.json"
+ENFORCER_LOG_PATH = LOG_DIR / "enforcer.log"
 LATEST_SNAPSHOT_PATH = ROOT_DIR / "thermostat" / "output" / "latest.json"
 _LAST_LIVE_FETCH_ERROR: Optional[str] = None
+
+LOW_TEMP_ALERT_TARGET = "leanna"
+LOW_TEMP_THRESHOLD_F = 74
+TEMP_ALERT_STATE_PATH = LOG_DIR / "temp_alert_state.json"
+
+
+def _post_temp_alert(webhook_url: str, target: str, temp_f: float) -> None:
+    _logger = logging.getLogger(__name__)
+    try:
+        requests.post(
+            webhook_url,
+            json={"content": f"Leanna temp {temp_f:.0f}\u00b0F \u2014 below {LOW_TEMP_THRESHOLD_F}\u00b0F threshold"},
+            timeout=10,
+        )
+    except Exception as exc:
+        _logger.error("Discord temp alert failed: %s", exc)
+
+
+def _should_send_temp_alert() -> bool:
+    """True if no alert sent in last hour (file-based debounce, Unix timestamp)."""
+    try:
+        state = json.loads(TEMP_ALERT_STATE_PATH.read_text())
+        import time as _time
+
+        if _time.time() - float(state["last_alerted"]) < 3600:
+            return False
+    except (FileNotFoundError, KeyError, ValueError, OSError):
+        pass
+    return True
+
+
+def _record_temp_alert() -> None:
+    import time as _time
+
+    try:
+        TEMP_ALERT_STATE_PATH.write_text(json.dumps({"last_alerted": _time.time()}))
+    except OSError:
+        pass
 
 
 @dataclass(frozen=True)
@@ -70,6 +116,64 @@ def parse_slot(values: Sequence[str]) -> Slot:
     except ValueError as exc:
         raise argparse.ArgumentTypeError("--slot COOL and HEAT must be integers") from exc
     return Slot(hour=hour, minute=minute, cool=cool, heat=heat)
+
+
+def slot_to_dict(slot: Slot) -> Dict[str, int]:
+    return {"hour": slot.hour, "minute": slot.minute, "cool": slot.cool, "heat": slot.heat}
+
+
+def slot_from_dict(value: Dict[str, object]) -> Slot:
+    return Slot(
+        hour=int(value["hour"]),
+        minute=int(value["minute"]),
+        cool=int(value["cool"]),
+        heat=int(value["heat"]),
+    )
+
+
+def load_schedules() -> Dict[str, List[Slot]]:
+    try:
+        payload = json.loads(SCHEDULES_PATH.read_text())
+    except FileNotFoundError:
+        return {}
+    except (json.JSONDecodeError, OSError) as exc:
+        raise RuntimeError(f"Failed to load schedules from {SCHEDULES_PATH}: {exc}") from exc
+    if not isinstance(payload, dict):
+        raise RuntimeError(f"Invalid schedules file {SCHEDULES_PATH}: expected object")
+
+    schedules: Dict[str, List[Slot]] = {}
+    for target, slots in payload.items():
+        if not isinstance(target, str) or not isinstance(slots, list):
+            raise RuntimeError(f"Invalid schedules file {SCHEDULES_PATH}: malformed entry for {target!r}")
+        schedules[target] = [slot_from_dict(slot) for slot in slots if isinstance(slot, dict)]
+    return schedules
+
+
+def save_schedules(data: Dict[str, List[Slot]]) -> None:
+    existing = load_schedules() if SCHEDULES_PATH.exists() else {}
+    merged = dict(existing)
+    for target, slots in data.items():
+        merged[target] = sorted(slots, key=lambda slot: (slot.hour, slot.minute))
+
+    payload = {
+        target: [slot_to_dict(slot) for slot in slots]
+        for target, slots in sorted(merged.items())
+    }
+    SCHEDULES_PATH.parent.mkdir(parents=True, exist_ok=True)
+    tmp_path = SCHEDULES_PATH.with_suffix(".json.tmp")
+    with tmp_path.open("w") as handle:
+        json.dump(payload, handle, indent=2)
+        handle.write("\n")
+    os.replace(tmp_path, SCHEDULES_PATH)
+
+
+def find_active_slot(slots: List[Slot], now: datetime) -> Slot:
+    if not slots:
+        raise RuntimeError("Cannot find active slot for an empty schedule")
+    sorted_slots = sorted(slots, key=lambda slot: (slot.hour, slot.minute))
+    current = (now.hour, now.minute)
+    active = [slot for slot in sorted_slots if (slot.hour, slot.minute) <= current]
+    return active[-1] if active else sorted_slots[-1]
 
 
 def sanitize_label(name: str) -> str:
@@ -122,6 +226,40 @@ def build_plist(slug: str, slot: Slot, target_args: Sequence[str]) -> str:
     return plistlib.dumps(build_plist_dict(slug, slot, target_args)).decode("utf-8")
 
 
+def enforcer_plist_path() -> Path:
+    return LAUNCH_AGENT_DIR / f"{ENFORCER_LABEL}.plist"
+
+
+def build_enforcer_plist() -> Dict:
+    return {
+        "Label": ENFORCER_LABEL,
+        "ProgramArguments": [
+            str(PYTHON),
+            str(ROOT_DIR / "thermostat" / "schedule.py"),
+            "enforce",
+        ],
+        "WorkingDirectory": str(ROOT_DIR),
+        "StartInterval": 1800,
+        "StandardOutPath": str(LOG_DIR / "enforcer.stdout.log"),
+        "StandardErrorPath": str(LOG_DIR / "enforcer.stderr.log"),
+        "EnvironmentVariables": {"PATH": "/usr/local/bin:/usr/bin:/bin"},
+    }
+
+
+def install_enforcer_if_needed() -> None:
+    LAUNCH_AGENT_DIR.mkdir(parents=True, exist_ok=True)
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
+    loaded = loaded_labels()
+    path = enforcer_plist_path()
+    if ENFORCER_LABEL in loaded:
+        return
+    path.write_bytes(plistlib.dumps(build_enforcer_plist()))
+    result = launchctl(["launchctl", "load", str(path)])
+    if result.returncode != 0:
+        stderr = result.stderr.strip() or result.stdout.strip() or "unknown launchctl error"
+        raise RuntimeError(f"Failed to load enforcer LaunchAgent {path}: {stderr}")
+
+
 def launchctl(args: Sequence[str]) -> subprocess.CompletedProcess:
     return subprocess.run(args, capture_output=True, text=True, check=False)
 
@@ -130,8 +268,16 @@ def managed_plists() -> List[Path]:
     return sorted(LAUNCH_AGENT_DIR.glob(f"{PLIST_PREFIX}*.plist"))
 
 
+def calendar_plists() -> List[Path]:
+    return [path for path in managed_plists() if path.name != f"{ENFORCER_LABEL}.plist"]
+
+
 def target_plists(slug: str) -> List[Path]:
-    return sorted(LAUNCH_AGENT_DIR.glob(f"{PLIST_PREFIX}{slug}.*.plist"))
+    return [
+        path
+        for path in sorted(LAUNCH_AGENT_DIR.glob(f"{PLIST_PREFIX}{slug}.*.plist"))
+        if path.name != f"{ENFORCER_LABEL}.plist"
+    ]
 
 
 def unload_and_remove(paths: Iterable[Path]) -> None:
@@ -165,10 +311,12 @@ def install_schedule(target_slug: str, target_args: Sequence[str], slots: Sequen
 def install_command(args: argparse.Namespace) -> int:
     slots = [parse_slot(values) for values in args.slot]
     if args.all:
-        install_schedule("all", ["--all"], slots)
+        raise RuntimeError("Global enforcer schedules must be installed per --target, not --all")
     else:
         slug = sanitize_label(args.target)
-        install_schedule(slug, ["--target", args.target], slots)
+        save_schedules({normalize_location_name(args.target): slots})
+        install_enforcer_if_needed()
+        unload_and_remove(target_plists(slug))
     return 0
 
 
@@ -207,7 +355,185 @@ def loaded_labels() -> set[str]:
 
 
 def normalize_location_name(value: str) -> str:
-    return value.lower().strip()
+    return " ".join(value.lower().split())
+
+
+def resolve_schedule_target(target: str, schedules: Dict[str, List[Slot]]) -> str:
+    normalized_target = normalize_location_name(target)
+    matches = [
+        candidate
+        for candidate in schedules
+        if normalized_target == candidate
+        or normalized_target in candidate
+        or candidate in normalized_target
+    ]
+    if len(matches) == 1:
+        return matches[0]
+    if not matches:
+        available = ", ".join(sorted(schedules))
+        raise RuntimeError(f'No configured schedule matched target "{target}". Available: {available}')
+    matched = ", ".join(sorted(matches))
+    raise RuntimeError(f'Ambiguous schedule target "{target}". Matches: {matched}')
+
+
+def setup_enforcer_logging() -> logging.Logger:
+    logger = logging.getLogger("thermostat.enforcer")
+    logger.setLevel(logging.INFO)
+    logger.handlers.clear()
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
+
+    formatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
+    file_handler = logging.handlers.RotatingFileHandler(
+        ENFORCER_LOG_PATH,
+        maxBytes=1_000_000,
+        backupCount=3,
+    )
+    file_handler.setFormatter(formatter)
+    stream_handler = logging.StreamHandler(sys.stdout)
+    stream_handler.setFormatter(formatter)
+
+    logger.addHandler(file_handler)
+    logger.addHandler(stream_handler)
+    return logger
+
+
+def find_device_for_target(
+    norm_target: str,
+    raw_locations: Sequence[Dict],
+    location_names: Dict[int, str],
+) -> Tuple[Optional[int], Optional[Dict]]:
+    for location in raw_locations:
+        location_id = location.get("LocationID")
+        candidates = []
+        if isinstance(location_id, int) and location_names.get(location_id):
+            candidates.append(location_names[location_id])
+        if location.get("Name"):
+            candidates.append(str(location["Name"]))
+        # Fallback: device's own Name field (mirrors scraper.py build_output logic)
+        first_device = next((d for d in (location.get("Devices") or []) if isinstance(d, dict)), None)
+        if first_device and first_device.get("Name"):
+            candidates.append(str(first_device["Name"]))
+
+        normalized_candidates = [normalize_location_name(candidate) for candidate in candidates]
+        matched = any(
+            norm_target == candidate or norm_target in candidate or candidate in norm_target
+            for candidate in normalized_candidates
+            if candidate
+        )
+        if not matched:
+            continue
+
+        for device in location.get("Devices") or []:
+            if not isinstance(device, dict):
+                continue
+            device_id = device.get("DeviceID")
+            if device_id is not None:
+                return int(device_id), device
+    return None, None
+
+
+def status_is_permanent_hold(value: object) -> bool:
+    try:
+        return int(value) == 1
+    except (TypeError, ValueError):
+        return False
+
+
+def enforce_command() -> int:
+    logger = setup_enforcer_logging()
+    try:
+        try:
+            from thermostat.scraper import (
+                create_session,
+                fetch_device_uidata,
+                fetch_location_names,
+                fetch_locations,
+                load_credentials,
+                login,
+            )
+            from thermostat.set_temps import set_hold_payload, submit_device_change
+        except ImportError:
+            from scraper import (  # type: ignore[no-redef]
+                create_session,
+                fetch_device_uidata,
+                fetch_location_names,
+                fetch_locations,
+                load_credentials,
+                login,
+            )
+            from set_temps import set_hold_payload, submit_device_change  # type: ignore[no-redef]
+
+        schedules = load_schedules()
+        if not schedules:
+            logger.warning("No schedules configured. Run: schedule.py install --target ...")
+            return 0
+
+        creds = load_credentials()
+        now = datetime.now()
+        with create_session() as session:
+            login(session, creds["email"], creds["password"])
+            raw_locations = fetch_locations(session)
+            location_names = fetch_location_names(session)
+            discord_webhook = os.getenv("DISCORD_WEBHOOK_URL")
+
+            for norm_target, slots in schedules.items():
+                active_slot = find_active_slot(slots, now)
+                device_id, _device = find_device_for_target(norm_target, raw_locations, location_names)
+                if device_id is None:
+                    logger.warning("[skip] %s: no matching device found", norm_target)
+                    continue
+
+                ui_data = fetch_device_uidata(session, device_id)
+                live_cool = ui_data.get("CoolSetpoint")
+                live_heat = ui_data.get("HeatSetpoint")
+                status_cool = ui_data.get("StatusCool")
+                status_heat = ui_data.get("StatusHeat")
+
+                live_temp = ui_data.get("DispTemperature")
+                if discord_webhook and live_temp is not None and LOW_TEMP_ALERT_TARGET in norm_target:
+                    try:
+                        live_temp_f = float(live_temp)
+                    except (TypeError, ValueError):
+                        logger.warning("[alert] %s: invalid live temperature %r", norm_target, live_temp)
+                    else:
+                        if live_temp_f < LOW_TEMP_THRESHOLD_F and _should_send_temp_alert():
+                            _record_temp_alert()
+                            threading.Thread(
+                                target=_post_temp_alert,
+                                args=(discord_webhook, norm_target, live_temp_f),
+                                daemon=True,
+                            ).start()
+                            logger.info("[alert] %s temp %.0f\u00b0F \u2014 Discord notified", norm_target, live_temp_f)
+
+                if (
+                    live_cool is not None
+                    and live_heat is not None
+                    and int(round(float(live_cool))) == active_slot.cool
+                    and int(round(float(live_heat))) == active_slot.heat
+                    and status_is_permanent_hold(status_cool)
+                    and status_is_permanent_hold(status_heat)
+                ):
+                    logger.info(
+                        "[skip] %s: cool=%d heat=%d (Permanent Hold)",
+                        norm_target,
+                        active_slot.cool,
+                        active_slot.heat,
+                    )
+                    continue
+
+                payload = set_hold_payload(device_id, active_slot.cool, active_slot.heat)
+                ok = submit_device_change(session, device_id, payload, norm_target)
+                logger.info(
+                    "[set] %s: cool=%d heat=%d -> %s",
+                    norm_target,
+                    active_slot.cool,
+                    active_slot.heat,
+                    "OK" if ok else "FAIL",
+                )
+        return 0
+    except Exception:
+        logger.exception("Enforcer failed")
+        return 1
 
 
 def load_live_snapshot() -> Tuple[Dict[str, Dict[str, object]], Optional[str]]:
@@ -243,15 +569,26 @@ def fetch_live_setpoints() -> Optional[Dict[str, Dict[str, object]]]:
 
     def worker() -> None:
         try:
-            from thermostat.scraper import (
-                create_session,
-                extract_device,
-                fetch_device_uidata,
-                fetch_locations,
-                fetch_location_names,
-                load_credentials,
-                login,
-            )
+            try:
+                from thermostat.scraper import (
+                    create_session,
+                    extract_device,
+                    fetch_device_uidata,
+                    fetch_locations,
+                    fetch_location_names,
+                    load_credentials,
+                    login,
+                )
+            except ImportError:
+                from scraper import (  # type: ignore[no-redef]
+                    create_session,
+                    extract_device,
+                    fetch_device_uidata,
+                    fetch_locations,
+                    fetch_location_names,
+                    load_credentials,
+                    login,
+                )
 
             creds = load_credentials()
             snapshot: Dict[str, Dict[str, object]] = {}
@@ -294,9 +631,9 @@ def fetch_live_setpoints() -> Optional[Dict[str, Dict[str, object]]]:
 
     thread = threading.Thread(target=worker, name="schedule-live-fetch", daemon=True)
     thread.start()
-    thread.join(timeout=30)
+    thread.join(timeout=90)
     if thread.is_alive():
-        _LAST_LIVE_FETCH_ERROR = "timed out after 30s"
+        _LAST_LIVE_FETCH_ERROR = "timed out after 90s"
         return None
     if error["message"]:
         _LAST_LIVE_FETCH_ERROR = error["message"]
@@ -408,8 +745,8 @@ def plist_summary(path: Path) -> Dict[str, str]:
     }
 
 
-def status_command() -> int:
-    paths = managed_plists()
+def legacy_status_command(paths: Optional[List[Path]] = None) -> int:
+    paths = calendar_plists() if paths is None else paths
     if not paths:
         print("No thermostat schedules installed.")
         return 0
@@ -451,6 +788,64 @@ def status_command() -> int:
     return 0
 
 
+def format_last_run(path: Path) -> str:
+    try:
+        return datetime.fromtimestamp(path.stat().st_mtime).strftime("%Y-%m-%d %H:%M")
+    except OSError:
+        return "---"
+
+
+def status_command(args: argparse.Namespace) -> int:
+    if not SCHEDULES_PATH.exists():
+        return legacy_status_command()
+
+    schedules = load_schedules()
+    if args.target:
+        target = resolve_schedule_target(args.target, schedules)
+        print(f"Configured schedule for {target}:")
+        for slot in schedules[target]:
+            print(f"{slot.display:<9} cool={slot.cool} heat={slot.heat}")
+        return 0
+
+    loaded = loaded_labels()
+    legacy_paths = calendar_plists()
+    legacy_summaries = [plist_summary(path) for path in legacy_paths]
+    legacy_targets = {normalize_location_name(summary["target"]) for summary in legacy_summaries}
+
+    print(
+        f"{'STATE':<12} {'LABEL':<10} {'TIME':<9} {'SCHED_COOL':<11} {'SCHED_HEAT':<11} "
+        f"{'LAST_RUN':<16} TARGET"
+    )
+    enforcer_state = "loaded" if ENFORCER_LABEL in loaded else "not-loaded"
+    print(
+        f"{enforcer_state:<12} {'[enforcer]':<10} {'---':<9} {'---':<11} {'---':<11} "
+        f"{format_last_run(ENFORCER_LOG_PATH):<16} {ENFORCER_LABEL}"
+    )
+
+    now = datetime.now()
+    for target, slots in sorted(schedules.items()):
+        active_slot = find_active_slot(slots, now)
+        state = "[hybrid]" if target in legacy_targets else "configured"
+        print(
+            f"{state:<12} {'[enforcer]':<10} {active_slot.display:<9} {active_slot.cool:<11} "
+            f"{active_slot.heat:<11} {'---':<16} {target}"
+        )
+
+    for summary in legacy_summaries:
+        norm_target = normalize_location_name(summary["target"])
+        state = "[hybrid]" if norm_target in schedules else (
+            "loaded" if summary["label"] in loaded else "file-only"
+        )
+        print(
+            f"{state:<12} {'[calendar]':<10} {summary['time']:<9} {summary['cool']:<11} "
+            f"{summary['heat']:<11} {'---':<16} {summary['target']}"
+        )
+
+    if any(normalize_location_name(summary["target"]) in schedules for summary in legacy_summaries):
+        print("[note] Hybrid targets still have old calendar plists. Re-run install for those targets.")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Manage thermostat LaunchAgent schedules")
     subparsers = parser.add_subparsers(dest="command")
@@ -478,7 +873,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Also restore TCC schedule for the same target scope.",
     )
 
-    subparsers.add_parser("status", help="Show installed thermostat schedules")
+    status_parser = subparsers.add_parser("status", help="Show installed thermostat schedules")
+    status_parser.add_argument(
+        "--target",
+        help='Show the full configured schedule for one thermostat location, e.g. "6623 Leanna".',
+    )
+    subparsers.add_parser("enforce", help="Enforce configured thermostat schedules")
     return parser
 
 
@@ -487,14 +887,16 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     args = parser.parse_args(argv)
 
     if not args.command:
-        parser.error("specify install, uninstall, or status")
+        parser.error("specify install, uninstall, status, or enforce")
 
     if args.command == "install":
         return install_command(args)
     if args.command == "uninstall":
         return uninstall_command(args)
     if args.command == "status":
-        return status_command()
+        return status_command(args)
+    if args.command == "enforce":
+        return enforce_command()
     parser.error(f"unsupported command {args.command}")
     return 2
 

@@ -7,6 +7,7 @@ from zoneinfo import ZoneInfo
 from obsidian_daily_digest import (
     END_MARKER,
     START_MARKER,
+    format_draft_replies,
     get_daily_note_path,
     upsert_managed_block,
     write_daily_digest,
@@ -22,14 +23,14 @@ def sample_padsplit_payload() -> dict:
         "tasks": {
             "Requests": [
                 {
-                    "property_address": {"street1": "10235 Ridge Oak"},
+                    "property_address": {"street1": "10235 Ridge Oak", "city": "Dallas", "state": "TX"},
                     "details": "Leak under kitchen sink",
                     "room_number": 5,
                 }
             ],
             "Open": [
                 {
-                    "property_address": {"street1": "4100 N Main St"},
+                    "property_address": {"street1": "4100 N Main St", "city": "Fort Worth", "state": "TX"},
                     "details": "Replace hallway smoke detector",
                     "room_number": 1,
                 }
@@ -106,7 +107,8 @@ def test_write_daily_digest_creates_note_when_missing() -> None:
         content = note_path.read_text()
         assert note_path.name == "2026-04-13.md"
         assert "## PadSplit Daily Digest" in content
-        assert "Leak under kitchen sink" in content
+        assert "10235 Ridge Oak, Dallas, TX: Requests Room 5: Leak under kitchen sink" in content
+        assert "4100 N Main St, Fort Worth, TX: Open Room 1: Replace hallway smoke detector" in content
         assert "Roshawn Porter (Room 5)" in content
         assert "10235 Ridge Oak: 73.0F, heat 68.0F, cool 78.0F, humidity 49.0%" in content
 
@@ -144,6 +146,37 @@ def test_write_daily_digest_handles_missing_thermostat() -> None:
         assert "Thermostat data unavailable." in content
 
 
+def test_format_draft_replies_requires_contract_fields() -> None:
+    lines = format_draft_replies(
+        {
+            "drafts": [
+                {
+                    "chat_id": "chat_123",
+                    "message_id": "msg_456",
+                    "tenant_name": "Roshawn Porter",
+                    "room_number": 5,
+                    "property": "10235 Ridge Oak",
+                    "category": "maintenance",
+                    "urgency": "high",
+                    "inbound_at": "2026-04-13T10:30:00Z",
+                    "draft_reply": "Hi Roshawn, thanks for letting me know.",
+                },
+                {
+                    "chat_id": "missing_message_id",
+                    "tenant_name": "Malformed",
+                    "draft_reply": "Skip me",
+                },
+            ]
+        }
+    )
+
+    rendered = "\n".join(lines)
+    assert "### Draft Replies" in rendered
+    assert "Roshawn Porter" in rendered
+    assert "Open PadSplit thread" in rendered
+    assert "Malformed" not in rendered
+
+
 def test_get_daily_note_path_requires_existing_directory() -> None:
     missing = Path(tempfile.gettempdir()) / "codex-missing-obsidian-dir"
     if missing.exists():
@@ -161,6 +194,7 @@ if __name__ == "__main__":
         test_write_daily_digest_creates_note_when_missing,
         test_write_daily_digest_is_idempotent_for_same_note,
         test_write_daily_digest_handles_missing_thermostat,
+        test_format_draft_replies_requires_contract_fields,
         test_get_daily_note_path_requires_existing_directory,
     ]
     for test in tests:

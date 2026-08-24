@@ -19,10 +19,24 @@ release_lock() {
   rmdir "$LOCK_DIR" 2>/dev/null || true
 }
 
+run_phase() {
+  label=$1
+  shift
+  echo "[$(date)] Running $label..."
+  if "$@"; then
+    echo "[$(date)] $label completed"
+  else
+    status=$?
+    echo "[$(date)] $label failed with exit code $status; continuing so rolling outputs can be committed" >&2
+  fi
+}
+
 commit_and_push() {
   msg=$1
   git -C "$WORKSPACE" add \
     padsplit_scraper/output/latest.json \
+    padsplit_scraper/output/drafts.json \
+    padsplit_scraper/output/drafted_messages.json \
     padsplit_scraper/output/stats.json \
     thermostat/output/latest.json \
     docs/data/latest.json \
@@ -54,17 +68,10 @@ git -C "$WORKSPACE" pull --rebase
 set -e
 # ------------------------------------------------
 
-echo "[$(date)] Running thermostat scraper..."
-"$VENV" "$WORKSPACE/thermostat/scraper.py"
-echo "[$(date)] Thermostat scraper exit code: $?"
-
-echo "[$(date)] Running PadSplit scraper (messages + tasks)..."
-"$VENV" "$WORKSPACE/padsplit_scraper/scraper.py"
-echo "[$(date)] PadSplit scraper exit code: $?"
-
-echo "[$(date)] Writing Obsidian daily digest..."
-"$VENV" "$WORKSPACE/obsidian_daily_digest.py"
-echo "[$(date)] Obsidian digest exit code: $?"
+run_phase "thermostat scraper" "$VENV" "$WORKSPACE/thermostat/scraper.py"
+run_phase "PadSplit scraper (messages + tasks)" "$VENV" "$WORKSPACE/padsplit_scraper/scraper.py"
+run_phase "PadSplit draft replies" "$VENV" "$WORKSPACE/message_drafter.py"
+run_phase "Obsidian daily digest" "$VENV" "$WORKSPACE/obsidian_daily_digest.py"
 
 echo "[$(date)] Morning run complete"
 

@@ -2,6 +2,7 @@
 import argparse
 import json
 import os
+import sys
 from collections import defaultdict
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -17,6 +18,7 @@ START_MARKER = "<!-- padsplit-daily-digest:start -->"
 END_MARKER = "<!-- padsplit-daily-digest:end -->"
 PADSPLIT_DATA_PATH = Path(__file__).parent / "padsplit_scraper" / "output" / "latest.json"
 THERMOSTAT_DATA_PATH = Path(__file__).parent / "thermostat" / "output" / "latest.json"
+DRAFTS_PATH = Path(__file__).parent / "padsplit_scraper" / "output" / "drafts.json"
 RECENT_MESSAGE_LIMIT = 5
 TASKS_PER_ADDRESS_LIMIT = 3
 THERMOSTAT_LIMIT = 10
@@ -68,11 +70,20 @@ def get_counts(tasks: Dict) -> Tuple[int, int, int]:
     return requests_count, open_count, complete_count
 
 
+def format_task_address(task: Dict) -> str:
+    property_address = task.get("property_address") or {}
+    street = normalize_whitespace(property_address.get("street1")) or "Unknown address"
+    city = normalize_whitespace(property_address.get("city"))
+    state = normalize_whitespace(property_address.get("state"))
+    locality = ", ".join(part for part in (city, state) if part)
+    return f"{street}, {locality}" if locality else street
+
+
 def format_task_groups(tasks: Dict) -> List[str]:
     grouped: Dict[str, List[Tuple[str, str, Optional[int]]]] = defaultdict(list)
     for bucket in ("Requests", "Open"):
         for task in tasks.get(bucket, []) or []:
-            address = ((task.get("property_address") or {}).get("street1") or "Unknown address").strip()
+            address = format_task_address(task)
             details = normalize_whitespace(task.get("details") or task.get("description")) or "(no details)"
             room_number = task.get("room_number")
             grouped[address].append((bucket, details, room_number))
@@ -177,7 +188,59 @@ def format_thermostat_lines(payload: Optional[Dict]) -> List[str]:
     return lines or ["- Thermostat data unavailable."]
 
 
-def render_block(padsplit_payload: Dict, thermostat_payload: Optional[Dict], generated_at: datetime) -> str:
+def load_drafts_payload(path: Path = DRAFTS_PATH) -> Optional[Dict]:
+    if not path.exists():
+        return None
+    try:
+        payload = json.loads(path.read_text())
+    except json.JSONDecodeError:
+        return None
+    return payload if isinstance(payload, dict) else None
+
+
+def format_draft_replies(drafts_payload: Optional[Dict]) -> List[str]:
+    if not drafts_payload:
+        return []
+
+    drafts = drafts_payload.get("drafts") or []
+    if not drafts:
+        return []
+
+    lines = ["", "### Draft Replies"]
+    rendered_count = 0
+    for draft in drafts:
+        chat_id = draft.get("chat_id")
+        message_id = draft.get("message_id")
+        if not chat_id or not message_id:
+            print(f"Skipping malformed draft without chat_id/message_id: {draft.get('id')}", file=sys.stderr)
+            continue
+        tenant_name = draft.get("tenant_name") or "Unknown tenant"
+        room = f" Room {draft.get('room_number')}" if draft.get("room_number") is not None else ""
+        property_name = draft.get("property") or "Unknown property"
+        category = draft.get("category") or "general"
+        urgency = draft.get("urgency") or "low"
+        inbound_at = format_local_timestamp(draft.get("inbound_at"))
+        thread_url = draft.get("thread_url") or f"https://www.padsplit.com/host/communication/{chat_id}"
+        reply = normalize_whitespace(draft.get("draft_reply")) or "(empty draft)"
+
+        lines.extend(
+            [
+                f"- **{urgency.upper()}** {tenant_name}{room} at {property_name}",
+                f"  - Category: {category} | Inbound: {inbound_at} | [Open PadSplit thread]({thread_url})",
+                f"  - Draft: {reply}",
+            ]
+        )
+        rendered_count += 1
+
+    return lines if rendered_count else []
+
+
+def render_block(
+    padsplit_payload: Dict,
+    thermostat_payload: Optional[Dict],
+    generated_at: datetime,
+    drafts_payload: Optional[Dict] = None,
+) -> str:
     tasks = padsplit_payload.get("tasks") or {}
     req_count, open_count, complete_count = get_counts(tasks)
     lines = [
@@ -192,6 +255,7 @@ def render_block(padsplit_payload: Dict, thermostat_payload: Optional[Dict], gen
         "",
         "### Recent Tenant Messages",
         *select_recent_tenant_messages(padsplit_payload),
+        *format_draft_replies(drafts_payload),
         "",
         "### Thermostat",
     ]
@@ -223,11 +287,12 @@ def write_daily_digest(
     thermostat_payload: Optional[Dict],
     daily_notes_dir: Path,
     generated_at: Optional[datetime] = None,
+    drafts_payload: Optional[Dict] = None,
 ) -> Path:
     generated_at = generated_at or datetime.now(LOCAL_TZ)
     note_path = get_daily_note_path(daily_notes_dir, generated_at)
     existing = note_path.read_text() if note_path.exists() else ""
-    block = render_block(padsplit_payload, thermostat_payload, generated_at)
+    block = render_block(padsplit_payload, thermostat_payload, generated_at, drafts_payload=drafts_payload)
     note_path.write_text(upsert_managed_block(existing, block))
     return note_path
 
@@ -249,10 +314,12 @@ def main() -> None:
 
     padsplit_payload = load_json(PADSPLIT_DATA_PATH)
     thermostat_payload = load_json(THERMOSTAT_DATA_PATH) if THERMOSTAT_DATA_PATH.exists() else None
+    drafts_payload = load_drafts_payload()
     note_path = write_daily_digest(
         padsplit_payload=padsplit_payload,
         thermostat_payload=thermostat_payload,
         daily_notes_dir=Path(raw_dir).expanduser(),
+        drafts_payload=drafts_payload,
     )
     print(f"Wrote Obsidian digest to {note_path}")
 

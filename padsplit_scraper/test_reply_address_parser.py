@@ -1,4 +1,4 @@
-from slack_reply_monitor import _build_address_matcher, _extract_completed_task_ids
+from discord_reply_monitor import _build_address_matcher, _extract_completed_task_ids
 
 
 def _sample_tasks():

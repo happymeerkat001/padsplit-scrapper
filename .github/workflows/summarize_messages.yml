@@ -15,8 +15,17 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Verify Discord secret is set
+        env:
+          DISCORD_WEBHOOK_MESSAGES: ${{ secrets.DISCORD_WEBHOOK_MESSAGES }}
+        run: |
+          if [ -z "$DISCORD_WEBHOOK_MESSAGES" ]; then
+            echo "::error::DISCORD_WEBHOOK_MESSAGES secret is not set — message summaries cannot be sent to Discord."
+            exit 1
+          fi
+
       - name: Summarize messages with MiniMax AI
         env:
           MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
-          SLACK_WEBHOOK_MESSAGES: ${{ secrets.SLACK_WEBHOOK_MESSAGES }}
+          DISCORD_WEBHOOK_MESSAGES: ${{ secrets.DISCORD_WEBHOOK_MESSAGES }}
         run: python message_summarizer.py

@@ -20,7 +20,7 @@ PADSPLIT_PASSWORD=
 TCC_EMAIL=
 TCC_PASSWORD=
 ANTHROPIC_API_KEY=
-SLACK_WEBHOOK_URL=
+DISCORD_WEBHOOK_URL=
 OBSIDIAN_DAILY_NOTES_DIR=
 ```
 
@@ -44,6 +44,16 @@ Write Obsidian daily digest:
 
 ```bash
 python3 obsidian_daily_digest.py
+```
+
+Generate message drafts:
+
+```bash
+# Dry run — template matching only, no API calls
+python3 message_drafter.py --template-only --stdout
+
+# Live run — calls Claude API, writes drafts.json
+python3 message_drafter.py --stdout
 ```
 
 Run tests:
@@ -88,8 +98,10 @@ Resume note:
 Logs:
 
 ```text
-thermostat/set_temps.stderr.log
+logs/
 ```
+
+All runtime and LaunchAgent logs are ignored under `logs/`.
 
 Unload launch agent:
 
@@ -104,9 +116,9 @@ Install one-house schedule:
 ```bash
 python3 thermostat/schedule.py install \
   --target "6623 Leanna" \
-  --slot 7:00am 76 68 \
-  --slot 8:30am 77 68 \
-  --slot 6:00pm 78 68
+  --slot 7:00am 74 68 \
+  --slot 8:30am 75 68 \
+  --slot 6:00pm 74 68
 ```
 
 Re-running `install` for same target replaces that target's existing schedule.
@@ -115,11 +127,11 @@ Install one-house schedule with more slots:
 
 ```bash
 python3 thermostat/schedule.py install \
-  --target "1404 PIONEER" \
-  --slot 8:00am 76 62 \
-  --slot 2:00pm 77 62 \
-  --slot 5:30pm 77 62 \
-  --slot 7:00pm 76 62
+  --target "3414 pebbleshores" \
+  --slot 8:00am 74 62 \
+  --slot 2:00pm 75 62 \
+  --slot 5:30pm 75 62 \
+  --slot 7:00pm 74 62
 ```
 
 Install same schedule for all houses:
@@ -179,10 +191,18 @@ Meaning:
 Show installed thermostat schedules (not status):
 
 ```bash
-statuspython3 thermostat/schedule.py 
+python3 thermostat/schedule.py status
 ```
 
 `status` shows configured schedule time, cool, heat, target, and LaunchAgent label from installed plist files.
+
+Show the full configured schedule for one house:
+
+```bash
+python3 thermostat/schedule.py status --target "3406 Green Hill"
+```
+
+This prints every configured slot time plus cool/heat values for that target.
 
 Time format:
 
@@ -192,9 +212,10 @@ Time format:
 Generated files:
 
 - LaunchAgents are written under `~/Library/LaunchAgents/` as `com.padsplit.thermostat.<target>.<hhmm>.plist`.
-- Slot logs are written to `thermostat/schedule-<target>-<hhmm>.stdout.log` and `.stderr.log`.
+- Slot logs are written to `logs/schedule-<target>-<hhmm>.stdout.log` and `.stderr.log`.
 
 Current limitation:
 
-- `python3 thermostat/schedule.py status` shows only schedule-managed thermostat LaunchAgents created by `thermostat/schedule.py`.
+- ``python3 thermostat/schedule.py status`` shows only schedule-managed thermostat LaunchAgents created by `thermostat/schedule.py`.
+- ``python3 thermostat/schedule.py status --target "6623 Leanna"`` shows the full configured schedule for that house from `thermostat/config/schedules.json`.
 - It does not show the older legacy `com.padsplit.thermostat-set-temps.plist`.

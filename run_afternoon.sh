@@ -19,6 +19,18 @@ release_lock() {
   rmdir "$LOCK_DIR" 2>/dev/null || true
 }
 
+run_phase() {
+  label=$1
+  shift
+  echo "[$(date)] Running $label..."
+  if "$@"; then
+    echo "[$(date)] $label completed"
+  else
+    status=$?
+    echo "[$(date)] $label failed with exit code $status; continuing so rolling outputs can be committed" >&2
+  fi
+}
+
 commit_and_push() {
   msg=$1
   git -C "$WORKSPACE" add \
@@ -52,9 +64,7 @@ git -C "$WORKSPACE" pull --rebase
 set -e
 # ------------------------------------------------
 
-echo "[$(date)] Running PadSplit scraper (messages only)..."
-"$VENV" "$WORKSPACE/padsplit_scraper/scraper.py" --messages-only
-echo "[$(date)] PadSplit scraper exit code: $?"
+run_phase "PadSplit scraper (messages only)" "$VENV" "$WORKSPACE/padsplit_scraper/scraper.py" --messages-only
 
 echo "[$(date)] Afternoon run complete"
 
