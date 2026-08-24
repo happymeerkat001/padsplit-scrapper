@@ -125,7 +125,7 @@ def post_discord_message(text: str, *, token: Optional[str] = None, channel: Opt
 
 
 def main() -> None:
-    base_dir = Path(__file__).resolve().parent
+    base_dir = Path(__file__).resolve().parent.parent  # repo root (docs/data lives here)
     payload = _load_latest_payload(base_dir)
     text = _build_digest(payload)
     app = _init_firestore_app()

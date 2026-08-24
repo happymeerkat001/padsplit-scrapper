@@ -71,7 +71,7 @@ def _init_firestore_client() -> firestore.Client:
 
 
 def main() -> None:
-    base_dir = Path(__file__).resolve().parent
+    base_dir = Path(__file__).resolve().parent.parent  # repo root (docs/data lives here)
     processed_path = base_dir / "docs" / "data" / "processed_firestore_docs.json"
 
     payload = _load_latest_payload(base_dir)

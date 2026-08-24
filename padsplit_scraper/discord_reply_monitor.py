@@ -215,7 +215,7 @@ def _extract_completed_task_ids(text: str, matcher: Dict) -> List[int]:
 
 
 def main() -> None:
-    base_dir = Path(__file__).resolve().parent
+    base_dir = Path(__file__).resolve().parent.parent  # repo root (docs/data lives here)
     meta_path = base_dir / "docs" / "data" / "discord_digest_meta.json"
     processed_path = base_dir / "docs" / "data" / "processed_replies.json"
 

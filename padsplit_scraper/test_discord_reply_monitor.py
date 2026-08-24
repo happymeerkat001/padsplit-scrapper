@@ -45,8 +45,11 @@ class MainGuardTests(unittest.TestCase):
     @patch.dict("os.environ", {"DISCORD_BOT_TOKEN": "token"})
     def test_missing_meta_file_raises(self):
         with tempfile.TemporaryDirectory() as tmpdir:
-            base_dir = Path(tmpdir)
-            with patch.object(monitor, "__file__", str(base_dir / "discord_reply_monitor.py")):
+            # module lives under padsplit_scraper/; main() walks to repo root
+            repo_root = Path(tmpdir)
+            module_path = repo_root / "padsplit_scraper" / "discord_reply_monitor.py"
+            module_path.parent.mkdir(parents=True, exist_ok=True)
+            with patch.object(monitor, "__file__", str(module_path)):
                 with self.assertRaisesRegex(RuntimeError, "discord_digest_meta.json"):
                     monitor.main()
 
