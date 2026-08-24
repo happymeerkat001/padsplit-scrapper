@@ -218,7 +218,8 @@ class MessageSummarizerTests(unittest.TestCase):
 
         with patch.object(message_summarizer.os, "getenv", return_value="https://discord.test/webhook"), \
              patch.object(message_summarizer.urllib.request, "urlopen", side_effect=error):
-            send_to_discord("hello")  # should not raise
+            with self.assertRaises(SystemExit):
+                send_to_discord("hello")
 
     def test_send_to_discord_truncates_long_content(self) -> None:
         long_message = "x" * (DISCORD_MESSAGE_LIMIT + 500)

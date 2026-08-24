@@ -179,7 +179,11 @@ def send_to_discord(message: str) -> None:
     req = urllib.request.Request(
         webhook,
         data=payload,
-        headers={"Content-Type": "application/json"},
+        headers={
+            "Content-Type": "application/json",
+            # Discord's edge blocks urllib's default "Python-urllib/x.y" UA (Cloudflare error 1010).
+            "User-Agent": "padsplit-scraper (https://github.com/happymeerkat001/padsplit-scrapper, 1.0)",
+        },
         method="POST",
     )
     try:
@@ -187,11 +191,11 @@ def send_to_discord(message: str) -> None:
             if 200 <= resp.getcode() < 300:
                 print("Sent to Discord.")
             else:
-                print(f"Discord webhook returned status {resp.getcode()}.")
+                sys.exit(f"Discord webhook returned status {resp.getcode()}.")
     except urllib.error.HTTPError as exc:
-        print(f"Discord webhook HTTP error: {exc.code} {exc.reason}")
+        sys.exit(f"Discord webhook HTTP error: {exc.code} {exc.reason}")
     except urllib.error.URLError as exc:
-        print(f"Discord webhook URL error: {exc}")
+        sys.exit(f"Discord webhook URL error: {exc}")
 
 
 def main() -> None:
