@@ -20,8 +20,26 @@ class DummySession:
 
 
 class FakeResponse:
-    def __init__(self, status_code: int):
+    def __init__(self, status_code: int, payload=None, url: str = "", content: bytes | None = None):
         self.status_code = status_code
+        self._payload = payload
+        self.url = url
+        self.request = Mock(url=url)
+        if content is not None:
+            self.content = content
+        elif payload is None:
+            self.content = b""
+        else:
+            self.content = json.dumps(payload).encode()
+
+    def json(self):
+        if self._payload is None:
+            raise json.JSONDecodeError("Expecting value", "", 0)
+        return self._payload
+
+    def raise_for_status(self) -> None:
+        if self.status_code >= 400:
+            raise requests.exceptions.HTTPError(f"HTTP {self.status_code}", response=self)
 
 
 def recent_chat() -> list[dict]:
@@ -233,6 +251,169 @@ class PadSplitScraperTests(unittest.TestCase):
             self.assertEqual(stats_payload["kpis"]["score"], 77)
             self.assertEqual(stats_payload["run_status"]["state"], "degraded")
             self.assertEqual(json.loads(monthly_path.read_text()), prior_monthly_history)
+
+    def test_extract_earnings_rows_normalizes_finances_revenue_contract(self) -> None:
+        rows = scraper._extract_earnings_rows(
+            {
+                "id": "host-1",
+                "revenue": [
+                    {
+                        "id": "2026-05",
+                        "month": "2026-05-01",
+                        "grossRevenue": 1000.0,
+                        "processingFee": 0.0,
+                        "managementFee": 80.0,
+                        "netRevenue": 920.0,
+                        "isInFlight": False,
+                    }
+                ],
+            }
+        )
+
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["net_revenue"], 920.0)
+        self.assertEqual(rows[0]["gross_revenue"], 1000.0)
+        self.assertEqual(rows[0]["management_fee"], 80.0)
+        self.assertFalse(rows[0]["is_in_flight"])
+        self.assertEqual(rows[0]["month"], "2026-05-01")
+
+    def test_fetch_earnings_uses_partner_finances_when_legacy_path_is_gone(self) -> None:
+        session = Mock()
+        finances_payload = {
+            "id": "host-1",
+            "revenue": [
+                {
+                    "id": "2026-08",
+                    "month": "2026-08-01",
+                    "grossRevenue": 500.0,
+                    "processingFee": 0.0,
+                    "managementFee": 40.0,
+                    "netRevenue": 460.0,
+                    "isInFlight": True,
+                }
+            ],
+        }
+        responses = {
+            scraper.PARTNER_FINANCES_URL: FakeResponse(200, finances_payload, url=scraper.PARTNER_FINANCES_URL),
+            scraper.PARTNER_EARNINGS_URL: FakeResponse(404, url=scraper.PARTNER_EARNINGS_URL),
+        }
+
+        def fake_authed_request(_session, _method, url, **_kwargs):
+            return responses[url]
+
+        with patch.object(scraper, "_authed_request", side_effect=fake_authed_request) as authed_mock:
+            payload = scraper.fetch_earnings(session, {"email": "user", "password": "pw"})
+
+        self.assertEqual(payload["revenue"][0]["netRevenue"], 460.0)
+        self.assertEqual(authed_mock.call_args_list[0].args[2], scraper.PARTNER_FINANCES_URL)
+        self.assertEqual(authed_mock.call_count, 1)
+
+    def test_fetch_earnings_falls_back_to_legacy_partner_earnings(self) -> None:
+        session = Mock()
+        legacy_payload = {"results": [{"month": "2026-04-01", "net_revenue": 111.0}]}
+        responses = {
+            scraper.PARTNER_FINANCES_URL: FakeResponse(404, url=scraper.PARTNER_FINANCES_URL),
+            scraper.PARTNER_EARNINGS_URL: FakeResponse(200, legacy_payload, url=scraper.PARTNER_EARNINGS_URL),
+        }
+
+        def fake_authed_request(_session, _method, url, **_kwargs):
+            return responses[url]
+
+        with patch.object(scraper, "_authed_request", side_effect=fake_authed_request):
+            payload = scraper.fetch_earnings(session, {"email": "user", "password": "pw"})
+
+        self.assertEqual(payload, legacy_payload)
+
+    def test_fetch_earnings_skips_non_json_success_and_tries_next_candidate(self) -> None:
+        session = Mock()
+        legacy_payload = {"results": [{"month": "2026-04-01", "net_revenue": 111.0}]}
+        html = FakeResponse(
+            200,
+            url=scraper.PARTNER_FINANCES_URL,
+            content=b"<!DOCTYPE html><html><body>PadSplit</body></html>",
+        )
+        responses = {
+            scraper.PARTNER_FINANCES_URL: html,
+            scraper.PARTNER_EARNINGS_URL: FakeResponse(200, legacy_payload, url=scraper.PARTNER_EARNINGS_URL),
+        }
+
+        def fake_authed_request(_session, _method, url, **_kwargs):
+            return responses[url]
+
+        with patch.object(scraper, "_authed_request", side_effect=fake_authed_request):
+            payload = scraper.fetch_earnings(session, {"email": "user", "password": "pw"})
+
+        self.assertEqual(payload, legacy_payload)
+
+    def test_fetch_earnings_fails_honestly_when_all_candidate_urls_are_gone(self) -> None:
+        session = Mock()
+        responses = {
+            scraper.PARTNER_FINANCES_URL: FakeResponse(404, url=scraper.PARTNER_FINANCES_URL),
+            scraper.PARTNER_EARNINGS_URL: FakeResponse(404, url=scraper.PARTNER_EARNINGS_URL),
+        }
+
+        def fake_authed_request(_session, _method, url, **_kwargs):
+            return responses[url]
+
+        with patch.object(scraper, "_authed_request", side_effect=fake_authed_request):
+            with self.assertRaises(RuntimeError) as raised:
+                scraper.fetch_earnings(session, {"email": "user", "password": "pw"})
+
+        message = str(raised.exception)
+        self.assertIn("partner earnings API is gone or moved", message)
+        self.assertIn(scraper.PARTNER_FINANCES_URL, message)
+        self.assertIn(scraper.PARTNER_EARNINGS_URL, message)
+        self.assertIn("HTTP 404", message)
+        self.assertIsInstance(raised.exception.__cause__, requests.exceptions.HTTPError)
+
+    def test_earnings_endpoint_gone_reuses_prior_stats_with_explicit_degraded_status(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            output_dir = root / "output"
+            docs_data_dir = root / "docs" / "data"
+            output_dir.mkdir(parents=True, exist_ok=True)
+            docs_data_dir.mkdir(parents=True, exist_ok=True)
+
+            prior_stats = {
+                "scraped_at": "2026-05-26T01:32:03Z",
+                "rooms": [{"id": 88}],
+                "properties": [{"id": 99}],
+                "earnings": [{"month": "2026-05-01", "net_revenue": 1234}],
+                "kpis": {"score": 77},
+            }
+            (output_dir / "stats.json").write_text(json.dumps(prior_stats, indent=2))
+
+            gone = RuntimeError(
+                "partner earnings API is gone or moved; tried "
+                f"{scraper.PARTNER_FINANCES_URL} (HTTP 404), "
+                f"{scraper.PARTNER_EARNINGS_URL} (HTTP 404)"
+            )
+            gone.__cause__ = requests.exceptions.HTTPError("HTTP 404")
+
+            with (
+                patch.object(scraper, "OUTPUT_DIR", output_dir),
+                patch.object(scraper, "DOCS_DATA_DIR", docs_data_dir),
+                patch.object(scraper, "load_credentials", return_value={"email": "user", "password": "pw"}),
+                patch.object(scraper, "create_session", return_value=DummySession()),
+                patch.object(scraper, "login"),
+                patch.object(scraper, "fetch_messages", return_value=recent_chat()),
+                patch.object(scraper, "fetch_thread_messages", return_value=[{"id": "message-1"}]),
+                patch.object(scraper, "fetch_tasks", return_value={"Requests": [{"id": 1, "status": "submitted"}]}),
+                patch.object(scraper, "fetch_rooms", return_value=[{"id": 1}]),
+                patch.object(scraper, "fetch_properties_stats", return_value=[{"id": 9}]),
+                patch.object(scraper, "fetch_earnings", side_effect=gone),
+            ):
+                exit_code = scraper.main([])
+
+            self.assertEqual(exit_code, 0)
+            latest_payload = json.loads((output_dir / "latest.json").read_text())
+            stats_payload = json.loads((output_dir / "stats.json").read_text())
+            self.assertEqual(latest_payload["run_status"]["state"], "degraded")
+            self.assertEqual(latest_payload["run_status"]["failed_phase"], "earnings_stats")
+            self.assertTrue(latest_payload["run_status"]["fallback_used"])
+            self.assertIn("partner earnings API is gone or moved", latest_payload["run_status"]["error_message"])
+            self.assertEqual(stats_payload["scraped_at"], "2026-05-26T01:32:03Z")
+            self.assertEqual(stats_payload["earnings"][0]["net_revenue"], 1234)
 
     def test_auth_refresh_uses_forced_login_only_after_second_auth_failure(self) -> None:
         session = Mock()
