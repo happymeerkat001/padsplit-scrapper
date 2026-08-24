@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-08-24T14:27:13Z",
+  "scraped_at": "2026-08-24T15:23:46Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MjExMTQ0",
@@ -8,7 +8,7 @@
       "isArchived": false,
       "occupancy": {
         "moveInDate": "2025-10-04",
-        "moveOutDate": null,
+        "moveOutDate": "2026-08-24",
         "conditionalEligibilityApplied": null,
         "room": {
           "pk": 32867,
@@ -43,12 +43,12 @@
       },
       "isCancelled": false,
       "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTExMDkxMjc=",
-        "created": "2026-08-24T14:26:55.119189",
-        "text": "Do you want to make payment now?",
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTExMTA0Mjc=",
+        "created": "2026-08-24T15:11:24.734226",
+        "text": null,
         "deleted": null,
         "extra": null,
-        "messageType": "TEXT",
+        "messageType": "TICKET_UPDATE",
         "sender": {
           "pk": 318367,
           "firstName": "Ang",
@@ -57,7 +57,29 @@
         },
         "attachments": [],
         "paymentExtensionStatus": null,
-        "ticketStatus": null,
+        "ticketStatus": {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMTIxMzYw",
+          "created": "2026-08-24T15:11:24.749260",
+          "status": "SUBMITTED",
+          "canRate": false,
+          "ticket": {
+            "id": "463747",
+            "author": {
+              "firstName": "Anthony",
+              "lastName": "Yancey",
+              "id": "753899",
+              "displayName": null
+            },
+            "details": "Collections",
+            "location": "ROOM",
+            "status": "SUBMITTED",
+            "rating": null,
+            "comment": null,
+            "category": "ROOM_TURN",
+            "onHoldReason": null,
+            "withdrawReason": null
+          }
+        },
         "bookingStatus": null
       },
       "member": {
@@ -66,6 +88,54 @@
         "isUnread": false
       },
       "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTExMTA0Mjc=",
+          "text": null,
+          "created": "2026-08-24T15:11:24.734226",
+          "messageType": "TICKET_UPDATE",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Cyndy Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMTIxMzYw",
+            "created": "2026-08-24T15:11:24.749260",
+            "status": "SUBMITTED",
+            "canRate": false,
+            "ticket": {
+              "id": "463747",
+              "author": {
+                "firstName": "Anthony",
+                "lastName": "Yancey",
+                "id": "753899",
+                "displayName": null
+              },
+              "details": "Collections",
+              "location": "ROOM",
+              "status": "SUBMITTED",
+              "rating": null,
+              "comment": null,
+              "category": "ROOM_TURN",
+              "onHoldReason": null,
+              "withdrawReason": null
+            }
+          },
+          "bookingStatus": null
+        },
         {
           "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTExMDkxMjc=",
           "text": "Do you want to make payment now?",
@@ -293,32 +363,6 @@
             "isActive": true,
             "displayName": null,
             "padmateProfileId": 691450
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEwNzAzMjQ=",
-          "text": "Hi Anthony, Good morning. I\u2019m following up on your payment.",
-          "created": "2026-08-22T12:27:30.322447",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Cyndy Manager",
-            "padmateProfileId": 257098
           },
           "attachments": [],
           "reactions": [],
@@ -12046,6 +12090,52 @@
   "tasks": {
     "Requests": [
       {
+        "id": 463747,
+        "status": "submitted",
+        "comment": null,
+        "category": "room-turn",
+        "media": [],
+        "created": "2026-08-24T15:11:24.669303",
+        "modified": "2026-08-24T15:11:25.331370",
+        "room_name": "",
+        "room_number": 1,
+        "room_status": 3,
+        "room_code": "7845",
+        "location": "Room",
+        "details": "Collections",
+        "property_id": 9369,
+        "property_address": {
+          "id": 12545,
+          "street1": "3406 Green Hill Drive",
+          "street2": "",
+          "city": "Arlington",
+          "state": "TX",
+          "zip": "76014",
+          "city_slug": "arlington-tx"
+        },
+        "reported_by": {
+          "id": 753899,
+          "name": "Anthony Yancey",
+          "role_id": 0,
+          "picture": "img/profiles/user_753899_563b2db5-08c5-48b8-8675-03ee4e06653f.jpg"
+        },
+        "assigned_to": null,
+        "on_hold_reason": null,
+        "update_status_at": "2026-08-24T15:11:24.673816",
+        "rating": null,
+        "extra_data": {
+          "user_id": 753899,
+          "occupancy_id": 219335,
+          "move_out_date": "2026-08-24"
+        },
+        "has_reused_code": true,
+        "moveout_photos_count": 0,
+        "days_to_complete": null,
+        "is_on_payment_plan": false,
+        "payment_plan_end_date": null,
+        "payment_plan_reason_note": null
+      },
+      {
         "id": 463166,
         "status": "submitted",
         "comment": null,
@@ -12470,6 +12560,6 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-08-24T14:27:13Z"
+    "run_scraped_at": "2026-08-24T15:23:46Z"
   }
 }
