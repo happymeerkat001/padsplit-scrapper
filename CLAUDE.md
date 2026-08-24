@@ -57,13 +57,13 @@ No build step or linter configuration; tests use direct Python execution.
 **Key files:**
 - `padsplit_scraper/scraper.py` — main Padsplit scraper; GraphQL queries, property/earnings/metrics collection
 - `thermostat/scraper.py` — thermostat portal scraper; HTTP session + fallback logic
-- `padsplit_scraper/slack_notifier.py` — Slack webhook alerts on error
-- `slack_task_digest.py` — scheduled DFW weather and task digest
+- `padsplit_scraper/discord_notifier.py` — Discord bot alerts on error
+- `slack_task_digest.py` — scheduled DFW weather and task digest, posts to Discord
 - `padsplit_scraper/firestore_status_monitor.py` — Firestore integration
 - `obsidian_daily_digest.py` — daily note generation from scraped data
 - `docs/data/` — aggregated outputs: `latest.json`, `stats.json`, `monthly_history.json`
 
-**Error handling pattern**: scrapers use partial-success logic — if one property fails, continue and report via Slack rather than aborting entirely. `.env` is loaded from project root by all scripts.
+**Error handling pattern**: scrapers use partial-success logic — if one property fails, continue and report via Discord rather than aborting entirely. `.env` is loaded from project root by all scripts.
 
 ## Environment
 
@@ -78,6 +78,10 @@ ANTHROPIC_API_KEY=
 ANTHROPIC_MODEL=claude-3-5-haiku-latest
 MINIMAX_API_KEY=
 MINIMAX_MODEL=MiniMax-M2.5
-SLACK_WEBHOOK_URL=
+DISCORD_WEBHOOK_MESSAGES=
+DISCORD_WEBHOOK_TASKS=
+DISCORD_WEBHOOK_URL=
+DISCORD_BOT_TOKEN=
+DISCORD_CHANNEL_ID=
 OBSIDIAN_DAILY_NOTES_DIR=
 ```

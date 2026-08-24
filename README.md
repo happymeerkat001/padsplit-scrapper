@@ -20,7 +20,7 @@ PADSPLIT_PASSWORD=
 TCC_EMAIL=
 TCC_PASSWORD=
 ANTHROPIC_API_KEY=
-SLACK_WEBHOOK_URL=
+DISCORD_WEBHOOK_URL=
 OBSIDIAN_DAILY_NOTES_DIR=
 ```
 
@@ -116,9 +116,9 @@ Install one-house schedule:
 ```bash
 python3 thermostat/schedule.py install \
   --target "6623 Leanna" \
-  --slot 7:00am 76 68 \
-  --slot 8:30am 77 68 \
-  --slot 6:00pm 78 68
+  --slot 7:00am 74 68 \
+  --slot 8:30am 75 68 \
+  --slot 6:00pm 74 68
 ```
 
 Re-running `install` for same target replaces that target's existing schedule.

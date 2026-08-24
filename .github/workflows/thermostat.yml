@@ -43,11 +43,11 @@ jobs:
           git pull --rebase
           git push
 
-      - name: Notify Slack on failure
+      - name: Notify Discord on failure
         if: failure()
-        uses: slackapi/slack-github-action@v2
-        with:
-          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
-          webhook-type: incoming-webhook
-          payload: |
-            {"text": "❌ Thermostat scrape failed\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          curl -sf -X POST "$DISCORD_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d "{\"content\": \"❌ Thermostat scrape failed\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}"

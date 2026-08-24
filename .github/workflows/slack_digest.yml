@@ -1,4 +1,4 @@
-name: Slack Digests
+name: Discord Digests
 
 on:
   schedule:
@@ -15,7 +15,7 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Send task digest to Slack
+      - name: Send task digest to Discord
         env:
-          SLACK_WEBHOOK_TASKS: ${{ secrets.SLACK_WEBHOOK_TASKS }}
+          DISCORD_WEBHOOK_TASKS: ${{ secrets.DISCORD_WEBHOOK_TASKS }}
         run: python slack_task_digest.py

@@ -109,7 +109,7 @@ class ThermostatScraperTests(unittest.TestCase):
 
         self.assertEqual(sleep_mock.call_count, 2)
 
-    def test_successful_fresh_scrape_writes_current_output_and_skips_slack(self) -> None:
+    def test_successful_fresh_scrape_writes_current_output_and_skips_discord(self) -> None:
         fresh_output = sample_output("2026-05-04T11:00:00Z")
         with tempfile.TemporaryDirectory() as tmpdir:
             out_dir = Path(tmpdir)
@@ -119,20 +119,20 @@ class ThermostatScraperTests(unittest.TestCase):
                 patch.object(scraper, "create_session", return_value=DummySession()),
                 patch.object(scraper, "login") as login_mock,
                 patch.object(scraper, "fetch_fresh_output", return_value=fresh_output),
-                patch.object(scraper, "post_slack_message") as slack_mock,
+                patch.object(scraper, "post_discord_message") as discord_mock,
                 patch.object(scraper, "print_report"),
             ):
                 exit_code = scraper.main()
 
             self.assertEqual(exit_code, 0)
             login_mock.assert_called_once()
-            slack_mock.assert_not_called()
+            discord_mock.assert_not_called()
             latest_path = out_dir / "latest.json"
             timestamped_path = out_dir / "2026-05-04T11-00-00Z.json"
             self.assertEqual(json.loads(latest_path.read_text()), fresh_output)
             self.assertEqual(json.loads(timestamped_path.read_text()), fresh_output)
 
-    def test_timeout_after_login_uses_stale_snapshot_and_sends_one_slack_alert(self) -> None:
+    def test_timeout_after_login_uses_stale_snapshot_and_sends_one_discord_alert(self) -> None:
         stale_output = sample_output("2026-04-27T12:16:16Z")
         with tempfile.TemporaryDirectory() as tmpdir:
             out_dir = Path(tmpdir)
@@ -149,7 +149,7 @@ class ThermostatScraperTests(unittest.TestCase):
                     "fetch_fresh_output",
                     side_effect=requests.exceptions.Timeout("vendor timeout"),
                 ),
-                patch.object(scraper, "post_slack_message") as slack_mock,
+                patch.object(scraper, "post_discord_message") as discord_mock,
                 patch.object(scraper, "print_report"),
             ):
                 original_latest = latest_path.read_text()
@@ -157,7 +157,7 @@ class ThermostatScraperTests(unittest.TestCase):
 
             self.assertEqual(exit_code, 0)
             login_mock.assert_called_once()
-            slack_mock.assert_called_once_with(
+            discord_mock.assert_called_once_with(
                 "⚠️ Thermostat API Alert: Timeout detected. Using stale data from 2026-04-27T12:16:16Z. "
                 "Morning pipeline continuing."
             )
@@ -176,12 +176,12 @@ class ThermostatScraperTests(unittest.TestCase):
                     "fetch_fresh_output",
                     side_effect=requests.exceptions.Timeout("vendor timeout"),
                 ),
-                patch.object(scraper, "post_slack_message") as slack_mock,
+                patch.object(scraper, "post_discord_message") as discord_mock,
                 patch.object(scraper, "print_report"),
             ):
                 with self.assertRaises(RuntimeError):
                     scraper.main()
-                slack_mock.assert_not_called()
+                discord_mock.assert_not_called()
 
             (out_dir / "latest.json").write_text("{bad json")
             with (
@@ -194,12 +194,12 @@ class ThermostatScraperTests(unittest.TestCase):
                     "fetch_fresh_output",
                     side_effect=requests.exceptions.Timeout("vendor timeout"),
                 ),
-                patch.object(scraper, "post_slack_message") as slack_mock,
+                patch.object(scraper, "post_discord_message") as discord_mock,
                 patch.object(scraper, "print_report"),
             ):
                 with self.assertRaises(RuntimeError):
                     scraper.main()
-                slack_mock.assert_not_called()
+                discord_mock.assert_not_called()
 
     def test_login_failure_does_not_use_stale_fallback_or_send_alert(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -211,15 +211,15 @@ class ThermostatScraperTests(unittest.TestCase):
                 patch.object(scraper, "load_credentials", return_value={"email": "user", "password": "pw"}),
                 patch.object(scraper, "create_session", return_value=DummySession()),
                 patch.object(scraper, "login", side_effect=RuntimeError("bad credentials")),
-                patch.object(scraper, "post_slack_message") as slack_mock,
+                patch.object(scraper, "post_discord_message") as discord_mock,
                 patch.object(scraper, "print_report"),
             ):
                 with self.assertRaises(RuntimeError):
                     scraper.main()
 
-                slack_mock.assert_not_called()
+                discord_mock.assert_not_called()
 
-    def test_slack_alert_uses_stale_snapshot_timestamp(self) -> None:
+    def test_discord_alert_uses_stale_snapshot_timestamp(self) -> None:
         stale_output = sample_output("2026-05-01T06:15:00Z")
         with tempfile.TemporaryDirectory() as tmpdir:
             out_dir = Path(tmpdir)
@@ -235,13 +235,13 @@ class ThermostatScraperTests(unittest.TestCase):
                     "fetch_fresh_output",
                     side_effect=requests.exceptions.ConnectionError("socket hangup"),
                 ),
-                patch.object(scraper, "post_slack_message") as slack_mock,
+                patch.object(scraper, "post_discord_message") as discord_mock,
                 patch.object(scraper, "print_report"),
             ):
                 exit_code = scraper.main()
 
             self.assertEqual(exit_code, 0)
-            alert_message = slack_mock.call_args.args[0]
+            alert_message = discord_mock.call_args.args[0]
             self.assertIn("2026-05-01T06:15:00Z", alert_message)
 
 
