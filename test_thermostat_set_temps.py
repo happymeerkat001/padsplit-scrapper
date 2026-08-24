@@ -178,13 +178,13 @@ class ThermostatSetTempsTests(unittest.TestCase):
             patch.object(set_temps, "fetch_locations", return_value=sample_locations()),
             patch.object(set_temps, "fetch_location_names", return_value={7712909: "LEANNA", 7715771: "RIDGE OAK"}),
             patch.object(set_temps, "submit_device_change", return_value=False),
-            patch.object(set_temps, "post_slack_message") as slack_mock,
+            patch.object(set_temps, "post_discord_message") as discord_mock,
             patch.object(set_temps.time, "sleep"),
         ):
             with self.assertRaisesRegex(RuntimeError, "Failed: LEANNA"):
                 set_temps.apply_device_changes(targets=["6623 Leanna"])
 
-        slack_mock.assert_called_once()
+        discord_mock.assert_called_once()
 
     def test_main_requires_target_or_all(self) -> None:
         with self.assertRaises(SystemExit) as exc:

@@ -357,6 +357,23 @@ class ThermostatScheduleTests(unittest.TestCase):
             self.assertIn("Configured schedule for 6623 leanna:", text)
             self.assertIn("8:00 AM", text)
 
+    @patch("thermostat.schedule.requests.post")
+    def test_post_temp_alert_sends_discord_content_payload(self, mock_post) -> None:
+        schedule._post_temp_alert("https://discord.test/webhook", "6623 leanna", 70.0)
+
+        mock_post.assert_called_once()
+        _, kwargs = mock_post.call_args
+        self.assertIn("content", kwargs["json"])
+        self.assertNotIn("text", kwargs["json"])
+        self.assertIn("Leanna temp 70°F", kwargs["json"]["content"])
+
+    @patch("thermostat.schedule.requests.post", side_effect=Exception("boom"))
+    def test_post_temp_alert_logs_discord_failure(self, mock_post) -> None:
+        with self.assertLogs("thermostat.schedule", level="ERROR") as logs:
+            schedule._post_temp_alert("https://discord.test/webhook", "6623 leanna", 70.0)
+
+        self.assertTrue(any("Discord temp alert failed" in msg for msg in logs.output))
+
 
 if __name__ == "__main__":
     unittest.main()

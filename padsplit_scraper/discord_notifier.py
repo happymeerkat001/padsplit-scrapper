@@ -9,7 +9,7 @@ import requests
 from firebase_admin import credentials, firestore
 
 DEFAULT_TIMEOUT = (10, 30)
-SLACK_POST_URL = "https://slack.com/api/chat.postMessage"
+DISCORD_API_BASE = "https://discord.com/api/v10"
 
 
 def _load_latest_payload(base_dir: Path) -> Dict:
@@ -40,7 +40,7 @@ def _build_digest(payload: Dict) -> str:
     lines = [
         f"Daily maintenance digest ({datetime.now(timezone.utc).strftime('%Y-%m-%d UTC')})",
         f"Requests: {len(requests_items)} | Open: {len(open_items)}",
-        "Reply in this thread with: <address> Complete",
+        "Reply in this channel with: <address> Complete",
         "",
         "Top requests:",
     ]
@@ -102,29 +102,30 @@ def _load_ac_filter_dates(app: firebase_admin.App) -> List[Dict]:
     return overdue
 
 
-def post_slack_message(text: str, *, token: Optional[str] = None, channel: Optional[str] = None) -> Dict:
-    token = token or os.getenv("SLACK_BOT_TOKEN")
-    channel = channel or os.getenv("SLACK_CHANNEL_ID")
+def post_discord_message(text: str, *, token: Optional[str] = None, channel: Optional[str] = None) -> Dict:
+    token = token or os.getenv("DISCORD_BOT_TOKEN")
+    channel = channel or os.getenv("DISCORD_CHANNEL_ID")
     if not token or not channel:
-        raise RuntimeError("Missing SLACK_BOT_TOKEN or SLACK_CHANNEL_ID")
+        raise RuntimeError("Missing DISCORD_BOT_TOKEN or DISCORD_CHANNEL_ID")
 
     headers = {
-        "Authorization": f"Bearer {token}",
-        "Content-Type": "application/json; charset=utf-8",
+        "Authorization": f"Bot {token}",
+        "Content-Type": "application/json",
     }
-    body = {"channel": channel, "text": text, "unfurl_links": False, "unfurl_media": False}
-    response = requests.post(SLACK_POST_URL, headers=headers, json=body, timeout=DEFAULT_TIMEOUT)
+    body = {"content": text}
+    response = requests.post(
+        f"{DISCORD_API_BASE}/channels/{channel}/messages",
+        headers=headers,
+        json=body,
+        timeout=DEFAULT_TIMEOUT,
+    )
     response.raise_for_status()
 
-    data = response.json()
-    if not data.get("ok"):
-        raise RuntimeError(f"Slack API error: {data}")
-
-    return data
+    return response.json()
 
 
 def main() -> None:
-    base_dir = Path(__file__).resolve().parent
+    base_dir = Path(__file__).resolve().parent.parent  # repo root (docs/data lives here)
     payload = _load_latest_payload(base_dir)
     text = _build_digest(payload)
     app = _init_firestore_app()
@@ -134,14 +135,14 @@ def main() -> None:
         for item in overdue:
             lines.append(f"- {item['address']} ({item['slug']}): last changed {item['ac_filter_date']}")
         text += "\n".join(lines)
-    data = post_slack_message(text)
+    data = post_discord_message(text)
 
     meta = {
-        "channel": data.get("channel", os.getenv("SLACK_CHANNEL_ID")),
-        "thread_ts": data.get("ts"),
+        "channel": data.get("channel_id", os.getenv("DISCORD_CHANNEL_ID")),
+        "message_id": data.get("id"),
         "date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
     }
-    meta_path = base_dir / "docs" / "data" / "slack_digest_meta.json"
+    meta_path = base_dir / "docs" / "data" / "discord_digest_meta.json"
     meta_path.parent.mkdir(parents=True, exist_ok=True)
     meta_path.write_text(json.dumps(meta, indent=2) + "\n")
 

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Simple Slack task digest for PadSplit data.
+"""Simple Discord task digest for PadSplit data.
 
 Reads tasks from docs/data/latest.json and KPI stats from docs/data/stats.json,
-then posts a combined digest to Slack if SLACK_WEBHOOK_TASKS is set.
+then posts a combined digest to Discord if DISCORD_WEBHOOK_TASKS is set.
 """
 
 import json
@@ -77,30 +77,37 @@ def format_vacancy_alert(vacancy_rooms: List[Dict[str, Any]]) -> Optional[str]:
     return "\n".join(lines)
 
 
-def send_to_slack(message: str) -> None:
-    webhook = os.environ.get("SLACK_WEBHOOK_TASKS")
+DISCORD_MESSAGE_LIMIT = 2000
+TRUNCATION_SUFFIX = "... [truncated]"
+
+
+def send_to_discord(message: str) -> None:
+    webhook = os.environ.get("DISCORD_WEBHOOK_TASKS")
     if not webhook:
-        print("SLACK_WEBHOOK_TASKS not set — skipping POST.")
+        print("DISCORD_WEBHOOK_TASKS not set — skipping POST.")
         return
 
-    payload = json.dumps({"text": message}).encode()
+    if len(message) > DISCORD_MESSAGE_LIMIT:
+        message = message[: DISCORD_MESSAGE_LIMIT - len(TRUNCATION_SUFFIX)] + TRUNCATION_SUFFIX
+
+    payload = json.dumps({"content": message}).encode()
     req = urllib.request.Request(
         webhook,
         data=payload,
-        headers={"Content-Type": "application/json"},
+        headers={"Content-Type": "application/json", "User-Agent": "padsplit-scraper (slack_task_digest)"},
         method="POST",
     )
     try:
         with urllib.request.urlopen(req) as resp:
             status = resp.getcode()
             if 200 <= status < 300:
-                print("Sent to Slack.")
+                print("Sent to Discord.")
             else:
-                print(f"Slack webhook returned status {status}.")
+                print(f"Discord webhook returned status {status}.")
     except urllib.error.HTTPError as exc:
-        print(f"Slack webhook HTTP error: {exc.code} {exc.reason}")
+        print(f"Discord webhook HTTP error: {exc.code} {exc.reason}")
     except urllib.error.URLError as exc:
-        print(f"Slack webhook URL error: {exc}")
+        print(f"Discord webhook URL error: {exc}")
 
 
 def fetch_weather() -> Optional[str]:
@@ -149,7 +156,7 @@ def main() -> None:
     task_block = format_message(grouped, total_req, total_open)
     message = "\n\n".join(filter(None, [weather_block, vacancy_block, task_block]))
     print(message)
-    send_to_slack(message)
+    send_to_discord(message)
 
 
 if __name__ == "__main__":
