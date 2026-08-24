@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-08-24T07:44:59Z",
+  "scraped_at": "2026-08-24T08:30:31Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzYxNDQy",
@@ -61,9 +61,9 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-08-23T13:41:33.565462",
+        "seenAt": "2026-08-24T07:52:44.417722",
         "isPinned": false,
-        "isUnread": true
+        "isUnread": false
       },
       "recent_messages": [
         {
@@ -613,7 +613,7 @@
               },
               "details": "Collections",
               "location": "ROOM",
-              "status": "WITHDRAWN",
+              "status": "ARCHIVED",
               "rating": null,
               "comment": null,
               "category": "ROOM_TURN",
@@ -12492,6 +12492,6 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-08-24T07:44:59Z"
+    "run_scraped_at": "2026-08-24T08:30:31Z"
   }
 }
