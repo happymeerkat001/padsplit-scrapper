@@ -17,9 +17,9 @@ import urllib.request
 
 API = "https://discord.com/api/v10"
 MANAGE_CHANNELS = 0x10
-RENAMES = {
-    "ops": "ai-tasks-temp",
-    "ai-summaries": "ai-msg-summaries",
+TARGETS = {
+    "ai-tasks-temp": ("ops",),
+    "ai-msg-summaries": ("ai-summaries", "ai-message-summaries"),
 }
 PREFERRED_GUILDS = ("Liaison Ops", "WORK", "ANG's server")
 USER_AGENT = "padsplit-scraper (https://github.com/happymeerkat001/padsplit-scrapper, 1.0)"
@@ -90,8 +90,9 @@ def main() -> None:
             for channel in channels
             if channel.get("type") == 0
         }
+        wanted = set(TARGETS) | {alias for aliases in TARGETS.values() for alias in aliases}
         print(f"Guild {guild.get('name')}: " + ", ".join(f"#{name}" for name in sorted(names)))
-        if any(old in names or new in names for old, new in RENAMES.items()):
+        if wanted.intersection(names):
             target_guild = guild
             text_channels = names
             break
@@ -102,10 +103,16 @@ def main() -> None:
     print(f"Using guild: {target_guild.get('name')}")
     renamed = 0
     missing_permissions = False
-    for old_name, new_name in RENAMES.items():
-        channel = text_channels.get(old_name) or text_channels.get(new_name)
+    for new_name, aliases in TARGETS.items():
+        channel = text_channels.get(new_name)
         if channel is None:
-            sys.exit(f"Channel #{old_name} (or #{new_name}) not found in {target_guild.get('name')}")
+            for alias in aliases:
+                channel = text_channels.get(alias)
+                if channel is not None:
+                    break
+        if channel is None:
+            print(f"Channel #{new_name} (aliases: {', '.join(aliases)}) not found in {target_guild.get('name')}")
+            continue
         current = channel.get("name") or ""
         if current == new_name:
             print(f"#{current} already named {new_name} ({channel['id']})")
