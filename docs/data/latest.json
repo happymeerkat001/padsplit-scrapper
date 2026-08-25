@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-08-25T10:52:08Z",
+  "scraped_at": "2026-08-25T11:46:13Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6NDE0MzYz",
@@ -43,17 +43,17 @@
       },
       "isCancelled": false,
       "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTExMjY5MzQ=",
-        "created": "2026-08-25T07:13:11.890637",
-        "text": "When are you available to meet the maintenance guy at your place?",
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTExMjc1NjE=",
+        "created": "2026-08-25T11:28:01.183863",
+        "text": "I do have work this morning and I get off at 3pm so is 3 okay ?",
         "deleted": null,
         "extra": null,
         "messageType": "TEXT",
         "sender": {
-          "pk": 318367,
-          "firstName": "Ang",
-          "lastName": "Li",
-          "displayName": "Cyndy Manager"
+          "pk": 1192505,
+          "firstName": "Kyree",
+          "lastName": "Evans",
+          "displayName": null
         },
         "attachments": [],
         "paymentExtensionStatus": null,
@@ -61,11 +61,37 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-08-25T07:13:12.757175",
+        "seenAt": "2026-08-25T11:28:43.957645",
         "isPinned": false,
         "isUnread": false
       },
       "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTExMjc1NjE=",
+          "text": "I do have work this morning and I get off at 3pm so is 3 okay ?",
+          "created": "2026-08-25T11:28:01.183863",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjExOTI1MDU=",
+            "pk": 1192505,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_1192505_b70aeb80-88f4-43c2-82e4-c9725b94f1a3.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1192505_b70aeb80-88f4-43c2-82e4-c9725b94f1a3.jpg",
+            "firstName": "Kyree",
+            "lastName": "Evans",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 1129347
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
         {
           "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTExMjY5MzQ=",
           "text": "When are you available to meet the maintenance guy at your place?",
@@ -293,32 +319,6 @@
             "isActive": true,
             "displayName": "Cyndy Manager",
             "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEwMDMzOTU=",
-          "text": "Hey I just got off of work and I\u2019m started a new job and was told I get paid next Thursday or Friday. But I will still be putting money towards weekly rent as well just wanna let you know.",
-          "created": "2026-08-18T23:53:32.796768",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjExOTI1MDU=",
-            "pk": 1192505,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_1192505_b70aeb80-88f4-43c2-82e4-c9725b94f1a3.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1192505_b70aeb80-88f4-43c2-82e4-c9725b94f1a3.jpg",
-            "firstName": "Kyree",
-            "lastName": "Evans",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 1129347
           },
           "attachments": [],
           "reactions": [],
@@ -12868,6 +12868,6 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-08-25T10:52:08Z"
+    "run_scraped_at": "2026-08-25T11:46:13Z"
   }
 }
