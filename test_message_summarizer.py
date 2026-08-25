@@ -137,8 +137,10 @@ class MessageSummarizerTests(unittest.TestCase):
 
         rendered = render_summary(urgent_items, messages_by_id)
 
-        self.assertIn("10235 Ridge Oak, Dallas, TX — Room 2 — 2026-07-26T10:00:00Z — Water leak", rendered)
-        self.assertIn("4100 N Main St, Fort Worth, TX — Room 7 — 2026-07-26T10:05:00Z — Gas smell", rendered)
+        self.assertIn("10235 Ridge Oak, Dallas, TX — Room 2 — 2026-07-26T10:00:00Z", rendered)
+        self.assertIn("Water leak", rendered)
+        self.assertIn("4100 N Main St, Fort Worth, TX — Room 7 — 2026-07-26T10:05:00Z", rendered)
+        self.assertIn("Gas smell", rendered)
 
     def test_render_summary_skips_unknown_chat_and_keeps_valid_item(self) -> None:
         messages_by_id = {"chat-1": {"occupancy": {"room": {"roomNumber": 2}}, "property": {"address": {"street1": "10235 Ridge Oak", "city": {"name": "Dallas", "state": {"name": "TX"}}}}}}
@@ -161,7 +163,148 @@ class MessageSummarizerTests(unittest.TestCase):
             {"chat-1": {}},
         )
 
-        self.assertIn("Unknown — Room Unknown — now — Water leak", rendered)
+        self.assertIn("Unknown — Room Unknown — now", rendered)
+        self.assertIn("Water leak", rendered)
+        self.assertNotIn("Tenant:", rendered)
+
+    def test_render_summary_quotes_tenant_last_message(self) -> None:
+        chat = {
+            "title": "Jeremy Hodges",
+            "occupancy": {
+                "room": {"roomNumber": 8},
+                "user": {"firstName": "Jeremy", "lastName": "Hodges"},
+            },
+            "property": {
+                "address": {
+                    "street1": "3541 Parker Road East",
+                    "city": {"name": "Haltom City", "state": {"name": "Texas"}},
+                }
+            },
+            "lastMessage": {
+                "text": "Ima pay up Friday",
+                "sender": {"firstName": "Jeremy", "lastName": "Hodges"},
+            },
+        }
+
+        rendered = render_summary(
+            [{"chat_id": "chat-1", "summary": "Payment delay", "sent_at": "now"}],
+            {"chat-1": chat},
+        )
+
+        self.assertEqual(
+            rendered,
+            "3541 Parker Road East, Haltom City, Texas — Room 8 — now\n"
+            "Tenant: Ima pay up Friday\n"
+            "Payment delay",
+        )
+
+    def test_render_summary_falls_back_to_recent_tenant_message(self) -> None:
+        chat = {
+            "title": "Jeremy Hodges",
+            "occupancy": {
+                "room": {"roomNumber": 8},
+                "user": {"firstName": "Jeremy", "lastName": "Hodges"},
+            },
+            "property": {
+                "address": {
+                    "street1": "3541 Parker Road East",
+                    "city": {"name": "Haltom City", "state": {"name": "Texas"}},
+                }
+            },
+            "lastMessage": {
+                "text": "Checking on payment",
+                "created": "2026-08-25T21:00:00",
+                "sender": {"firstName": "Ang", "lastName": "Li"},
+            },
+            "recent_messages": [
+                {
+                    "text": "Checking on payment",
+                    "created": "2026-08-25T21:00:00",
+                    "sender": {"firstName": "Ang", "lastName": "Li"},
+                },
+                {
+                    "text": "Ima pay up Friday",
+                    "created": "2026-08-25T20:45:00",
+                    "sender": {"firstName": "Jeremy", "lastName": "Hodges"},
+                },
+                {
+                    "text": "Older tenant note",
+                    "created": "2026-08-25T18:00:00",
+                    "sender": {"firstName": "Jeremy", "lastName": "Hodges"},
+                },
+            ],
+        }
+
+        rendered = render_summary(
+            [{"chat_id": "chat-1", "summary": "Payment delay", "sent_at": "now"}],
+            {"chat-1": chat},
+        )
+
+        self.assertIn("Tenant: Ima pay up Friday", rendered)
+        self.assertNotIn("Checking on payment", rendered)
+        self.assertNotIn("Older tenant note", rendered)
+
+    def test_render_summary_omits_tenant_line_when_no_tenant_text(self) -> None:
+        chat = {
+            "title": "Jeremy Hodges",
+            "occupancy": {
+                "room": {"roomNumber": 8},
+                "user": {"firstName": "Jeremy", "lastName": "Hodges"},
+            },
+            "property": {
+                "address": {
+                    "street1": "3541 Parker Road East",
+                    "city": {"name": "Haltom City", "state": {"name": "Texas"}},
+                }
+            },
+            "lastMessage": {
+                "text": "",
+                "sender": {"firstName": "Jeremy", "lastName": "Hodges"},
+            },
+            "recent_messages": [
+                {
+                    "text": None,
+                    "created": "2026-08-25T21:00:00",
+                    "sender": {"firstName": "Jeremy", "lastName": "Hodges"},
+                },
+                {
+                    "text": "Host follow-up",
+                    "created": "2026-08-25T20:00:00",
+                    "sender": {"firstName": "Ang", "lastName": "Li"},
+                },
+            ],
+        }
+
+        rendered = render_summary(
+            [{"chat_id": "chat-1", "summary": "Payment delay", "sent_at": "now"}],
+            {"chat-1": chat},
+        )
+
+        self.assertEqual(
+            rendered,
+            "3541 Parker Road East, Haltom City, Texas — Room 8 — now\n"
+            "Payment delay",
+        )
+
+    def test_render_summary_separates_items_with_blank_line(self) -> None:
+        messages_by_id = {
+            "chat-1": {
+                "occupancy": {"room": {"roomNumber": 2}},
+                "property": {"address": {"street1": "10235 Ridge Oak", "city": {"name": "Dallas", "state": {"name": "TX"}}}},
+            },
+            "chat-2": {
+                "occupancy": {"room": {"roomNumber": 7}},
+                "property": {"address": {"street1": "4100 N Main St", "city": {"name": "Fort Worth", "state": {"name": "TX"}}}},
+            },
+        }
+        rendered = render_summary(
+            [
+                {"chat_id": "chat-1", "summary": "Water leak", "sent_at": "now"},
+                {"chat_id": "chat-2", "summary": "Gas smell", "sent_at": "later"},
+            ],
+            messages_by_id,
+        )
+        self.assertIn("\n\n", rendered)
 
     def test_main_sends_rendered_summary_for_valid_json(self) -> None:
         prompts, sent_messages = self.run_main_with(
@@ -169,7 +312,10 @@ class MessageSummarizerTests(unittest.TestCase):
         )
 
         self.assertEqual(len(prompts), 1)
-        self.assertEqual(sent_messages, ["10235 Ridge Oak, Dallas, TX — Room 2 — now — Water leak"])
+        self.assertEqual(
+            sent_messages,
+            ["10235 Ridge Oak, Dallas, TX — Room 2 — now\nWater leak"],
+        )
 
     def test_main_retries_with_json_reinforcement_after_invalid_response(self) -> None:
         prompts, sent_messages = self.run_main_with(
@@ -178,7 +324,10 @@ class MessageSummarizerTests(unittest.TestCase):
 
         self.assertEqual(len(prompts), 2)
         self.assertIn("Your last response was not valid JSON", prompts[1])
-        self.assertEqual(sent_messages, ["10235 Ridge Oak, Dallas, TX — Room 2 — now — Water leak"])
+        self.assertEqual(
+            sent_messages,
+            ["10235 Ridge Oak, Dallas, TX — Room 2 — now\nWater leak"],
+        )
 
     def test_main_sends_visible_fallback_when_both_responses_are_invalid(self) -> None:
         _, sent_messages = self.run_main_with(["not json", "still not json"])
