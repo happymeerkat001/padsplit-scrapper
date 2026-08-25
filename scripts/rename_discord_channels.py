@@ -3,6 +3,8 @@
 
 #ops -> #ai-tasks-temp
 #ai-summaries -> #ai-msg-summaries
+
+Requires DISCORD_BOT_TOKEN with Manage Channels in the target guild.
 """
 
 from __future__ import annotations
@@ -14,6 +16,7 @@ import urllib.error
 import urllib.request
 
 API = "https://discord.com/api/v10"
+MANAGE_CHANNELS = 0x10
 RENAMES = {
     "ops": "ai-tasks-temp",
     "ai-summaries": "ai-msg-summaries",
@@ -40,13 +43,33 @@ def api(token: str, method: str, path: str, body: dict | None = None):
             return json.loads(raw) if raw else None
     except urllib.error.HTTPError as exc:
         detail = exc.read().decode("utf-8", errors="replace")
-        sys.exit(f"Discord {method} {path} failed: {exc.code} {exc.reason} {detail}")
+        raise RuntimeError(f"Discord {method} {path} failed: {exc.code} {exc.reason} {detail}") from exc
+
+
+def invite_url(token: str) -> str | None:
+    try:
+        app = api(token, "GET", "/oauth2/applications/@me") or {}
+    except RuntimeError as exc:
+        print(f"Could not load application id: {exc}")
+        return None
+    app_id = app.get("id")
+    if not app_id:
+        return None
+    # Manage Channels (0x10) so a re-invite can grant the missing permission.
+    return (
+        f"https://discord.com/oauth2/authorize?client_id={app_id}"
+        f"&permissions={MANAGE_CHANNELS}&scope=bot"
+    )
 
 
 def main() -> None:
     token = (os.getenv("DISCORD_BOT_TOKEN") or "").strip()
     if not token:
         sys.exit("Missing DISCORD_BOT_TOKEN")
+
+    url = invite_url(token)
+    if url:
+        print(f"Manage Channels invite: {url}")
 
     guilds = api(token, "GET", "/users/@me/guilds") or []
     print("Bot guilds:", [guild.get("name") for guild in guilds])
@@ -67,6 +90,7 @@ def main() -> None:
             for channel in channels
             if channel.get("type") == 0
         }
+        print(f"Guild {guild.get('name')}: " + ", ".join(f"#{name}" for name in sorted(names)))
         if any(old in names or new in names for old, new in RENAMES.items()):
             target_guild = guild
             text_channels = names
@@ -77,6 +101,7 @@ def main() -> None:
 
     print(f"Using guild: {target_guild.get('name')}")
     renamed = 0
+    missing_permissions = False
     for old_name, new_name in RENAMES.items():
         channel = text_channels.get(old_name) or text_channels.get(new_name)
         if channel is None:
@@ -85,9 +110,23 @@ def main() -> None:
         if current == new_name:
             print(f"#{current} already named {new_name} ({channel['id']})")
             continue
-        result = api(token, "PATCH", f"/channels/{channel['id']}", {"name": new_name}) or {}
+        try:
+            result = api(token, "PATCH", f"/channels/{channel['id']}", {"name": new_name}) or {}
+        except RuntimeError as exc:
+            print(exc)
+            if "50013" in str(exc) or "Missing Permissions" in str(exc):
+                missing_permissions = True
+                continue
+            sys.exit(1)
         print(f"Renamed #{current} -> #{result.get('name')} ({channel['id']})")
         renamed += 1
+
+    if missing_permissions:
+        url = invite_url(token)
+        print("Bot is in the server but lacks Manage Channels.")
+        if url:
+            print(f"Re-invite the bot with Manage Channels, then re-run this script:\n{url}")
+        sys.exit(1)
 
     print(f"Done. Renamed {renamed} channel(s).")
 
