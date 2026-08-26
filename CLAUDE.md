@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Multi-scraper data collection system for:
 - **Padsplit** (`padsplit_scraper/`): rental property metrics (occupancy, earnings, flip rates) via GraphQL/REST APIs
 - **Thermostat** (`thermostat/`): HVAC data from mytotalconnectcomfort.com
-- Outputs versioned JSON to `padsplit_scraper/output/`, `thermostat/output/`, and `docs/data/`
+- Outputs versioned JSON to `padsplit_scraper/output/`, `thermostat/output/`, and `docs/data/` (`latest.json`, `stats.json`, `occupancy.json`)
 
 ## Running Scrapers
 
@@ -28,6 +28,7 @@ python3 thermostat/scraper.py
 
 ```bash
 python3 test_padsplit_scraper.py
+python3 test_padsplit_occupancy.py
 python3 test_thermostat_scraper.py
 python3 test_thermostat_set_temps.py
 python3 test_thermostat_schedule.py
@@ -56,12 +57,13 @@ No build step or linter configuration; tests use direct Python execution.
 
 **Key files:**
 - `padsplit_scraper/scraper.py` — main Padsplit scraper; GraphQL queries, property/earnings/metrics collection
+- `padsplit_scraper/occupancy.py` — presence from messages + tasks (`occupancy.json`). `kpis.vacancy_rooms` is listed-status, not presence.
 - `thermostat/scraper.py` — thermostat portal scraper; HTTP session + fallback logic
 - `padsplit_scraper/discord_notifier.py` — Discord bot alerts on error
 - `slack_task_digest.py` — scheduled DFW weather and task digest, posts to Discord
 - `padsplit_scraper/firestore_status_monitor.py` — Firestore integration
 - `obsidian_daily_digest.py` — daily note generation from scraped data
-- `docs/data/` — aggregated outputs: `latest.json`, `stats.json`, `monthly_history.json`
+- `docs/data/` — aggregated outputs: `latest.json`, `stats.json`, `occupancy.json`, `monthly_history.json`
 
 **Error handling pattern**: scrapers use partial-success logic — if one property fails, continue and report via Discord rather than aborting entirely. `.env` is loaded from project root by all scripts.
 

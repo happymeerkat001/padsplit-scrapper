@@ -146,7 +146,16 @@ class PadSplitScraperTests(unittest.TestCase):
             self.assertEqual(stats_payload["kpis"]["score"], 92)
             self.assertEqual(monthly_history["months"][-1]["month"], latest_payload["scraped_at"][:7])
 
-            timestamped_files = [path for path in output_dir.glob("*.json") if path.name not in {"latest.json", "stats.json"}]
+            occupancy_payload = json.loads((output_dir / "occupancy.json").read_text())
+            docs_occupancy = json.loads((docs_data_dir / "occupancy.json").read_text())
+            self.assertEqual(occupancy_payload["derived_from"], ["messages", "tasks"])
+            self.assertEqual(docs_occupancy["derived_from"], ["messages", "tasks"])
+
+            timestamped_files = [
+                path
+                for path in output_dir.glob("*.json")
+                if path.name not in {"latest.json", "stats.json", "occupancy.json"}
+            ]
             self.assertEqual(len(timestamped_files), 1)
 
     def test_messages_only_skips_tasks_and_stats_fetches(self) -> None:
@@ -154,6 +163,9 @@ class PadSplitScraperTests(unittest.TestCase):
             root = Path(tmpdir)
             output_dir = root / "output"
             docs_data_dir = root / "docs" / "data"
+            output_dir.mkdir(parents=True, exist_ok=True)
+            seeded_occupancy = {"scraped_at": "keep-me", "rooms": [{"address": "1025 Broken Crest", "room_number": 3}]}
+            (output_dir / "occupancy.json").write_text(json.dumps(seeded_occupancy, indent=2))
 
             with (
                 patch.object(persist, "OUTPUT_DIR", output_dir),
@@ -181,6 +193,7 @@ class PadSplitScraperTests(unittest.TestCase):
             self.assertEqual(latest_payload["run_status"]["mode"], "messages_only")
             self.assertNotIn("tasks", latest_payload)
             self.assertFalse((output_dir / "stats.json").exists())
+            self.assertEqual(json.loads((output_dir / "occupancy.json").read_text()), seeded_occupancy)
             self.assertFalse((docs_data_dir / "monthly_history.json").exists())
 
     def test_stats_failure_reuses_prior_stats_and_marks_run_degraded(self) -> None:
@@ -205,6 +218,8 @@ class PadSplitScraperTests(unittest.TestCase):
             (output_dir / "stats.json").write_text(json.dumps(prior_stats, indent=2))
             monthly_path = docs_data_dir / "monthly_history.json"
             monthly_path.write_text(json.dumps(prior_monthly_history, indent=2))
+            seeded_occupancy = {"scraped_at": "2026-05-01T12:00:00Z", "derived_from": ["messages", "tasks"], "rooms": []}
+            (output_dir / "occupancy.json").write_text(json.dumps(seeded_occupancy, indent=2))
 
             with (
                 patch.object(persist, "OUTPUT_DIR", output_dir),
@@ -234,6 +249,40 @@ class PadSplitScraperTests(unittest.TestCase):
             self.assertEqual(stats_payload["kpis"]["score"], 77)
             self.assertEqual(stats_payload["run_status"]["state"], "degraded")
             self.assertEqual(json.loads(monthly_path.read_text()), prior_monthly_history)
+            occupancy_payload = json.loads((output_dir / "occupancy.json").read_text())
+            self.assertEqual(occupancy_payload["derived_from"], ["messages", "tasks"])
+            self.assertNotEqual(occupancy_payload.get("scraped_at"), "2026-05-01T12:00:00Z")
+
+    def test_occupancy_failure_does_not_abort_degraded_stats_run(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            output_dir = root / "output"
+            docs_data_dir = root / "docs" / "data"
+            output_dir.mkdir(parents=True, exist_ok=True)
+            (output_dir / "stats.json").write_text(json.dumps({"scraped_at": "2026-05-01T12:00:00Z", "kpis": {"score": 77}}, indent=2))
+
+            with (
+                patch.object(persist, "OUTPUT_DIR", output_dir),
+                patch.object(persist, "DOCS_DATA_DIR", docs_data_dir),
+                patch.object(scraper, "load_credentials", return_value={"email": "user", "password": "pw"}),
+                patch.object(scraper, "create_session", return_value=DummySession()),
+                patch.object(scraper, "login"),
+                patch.object(scraper, "fetch_messages", return_value=recent_chat()),
+                patch.object(scraper, "fetch_thread_messages", return_value=[{"id": "message-1"}]),
+                patch.object(scraper, "fetch_tasks", return_value={"Requests": [{"id": 1, "status": "submitted"}]}),
+                patch.object(scraper, "compute_occupancy", side_effect=RuntimeError("bad room")),
+                patch.object(
+                    scraper,
+                    "fetch_rooms",
+                    side_effect=requests.exceptions.ConnectionError("socket hangup"),
+                ),
+            ):
+                exit_code = scraper.main([])
+
+            self.assertEqual(exit_code, 0)
+            latest_payload = json.loads((output_dir / "latest.json").read_text())
+            self.assertEqual(latest_payload["run_status"]["state"], "degraded")
+            self.assertIn("tasks", latest_payload)
 
     def test_auth_refresh_uses_forced_login_only_after_second_auth_failure(self) -> None:
         session = Mock()

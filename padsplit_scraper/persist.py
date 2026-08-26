@@ -23,6 +23,19 @@ def _stats_output_path() -> Path:
     return OUTPUT_DIR / "stats.json"
 
 
+def _occupancy_output_path() -> Path:
+    return OUTPUT_DIR / "occupancy.json"
+
+
+def _docs_occupancy_path() -> Path:
+    return DOCS_DATA_DIR / "occupancy.json"
+
+
+def _persist_occupancy_payload(payload: Dict[str, Any]) -> None:
+    _write_json(_occupancy_output_path(), payload)
+    _write_json(_docs_occupancy_path(), payload)
+
+
 def _timestamped_output_path(scraped_at: str) -> Path:
     return OUTPUT_DIR / f"{scraped_at.replace(':', '-')}.json"
 
