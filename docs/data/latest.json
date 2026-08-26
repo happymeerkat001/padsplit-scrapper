@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-08-26T02:00:30Z",
+  "scraped_at": "2026-08-26T03:32:25Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzMwNzQ0",
@@ -61,9 +61,9 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-08-25T23:26:15.592045",
+        "seenAt": "2026-08-26T02:34:35.835306",
         "isPinned": false,
-        "isUnread": true
+        "isUnread": false
       },
       "recent_messages": [
         {
@@ -388,9 +388,9 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-08-26T00:21:33.869885",
+        "seenAt": "2026-08-26T02:34:24.504299",
         "isPinned": false,
-        "isUnread": true
+        "isUnread": false
       },
       "recent_messages": [
         {
@@ -9442,7 +9442,7 @@
       "isArchived": false,
       "occupancy": {
         "moveInDate": "2026-05-04",
-        "moveOutDate": null,
+        "moveOutDate": "2026-09-02",
         "conditionalEligibilityApplied": null,
         "room": {
           "pk": 99239,
@@ -11238,6 +11238,54 @@
   "tasks": {
     "Requests": [
       {
+        "id": 463747,
+        "status": "submitted",
+        "comment": null,
+        "category": "room-turn",
+        "media": [],
+        "created": "2026-08-24T15:11:24.669303",
+        "modified": "2026-08-26T02:06:51.358039",
+        "room_name": "",
+        "room_number": 1,
+        "room_status": 3,
+        "room_code": "7845",
+        "location": "Room",
+        "details": "Collections",
+        "property_id": 9369,
+        "property_address": {
+          "id": 12545,
+          "street1": "3406 Green Hill Drive",
+          "street2": "",
+          "city": "Arlington",
+          "state": "TX",
+          "zip": "76014",
+          "city_slug": "arlington-tx"
+        },
+        "reported_by": {
+          "id": 753899,
+          "name": "Anthony Yancey",
+          "role_id": 0,
+          "picture": "img/profiles/user_753899_563b2db5-08c5-48b8-8675-03ee4e06653f.jpg"
+        },
+        "assigned_to": null,
+        "on_hold_reason": null,
+        "update_status_at": "2026-08-24T15:11:24.673816",
+        "rating": null,
+        "extra_data": {
+          "user_id": 753899,
+          "occupancy_id": 219335,
+          "move_out_date": "2026-08-24",
+          "move_out_details": "Pay to Stay request\nAwaiting for approval\nAmount to Pay: $321\nPayment date: 08/28\nHost Ticket \u202d#1453819\u202c",
+          "is_present_after_move_out": true
+        },
+        "has_reused_code": true,
+        "moveout_photos_count": 0,
+        "days_to_complete": null,
+        "is_on_payment_plan": false,
+        "payment_plan_end_date": null,
+        "payment_plan_reason_note": null
+      },
+      {
         "id": 464338,
         "status": "submitted",
         "comment": null,
@@ -11327,52 +11375,6 @@
         },
         "has_reused_code": true,
         "moveout_photos_count": 5,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
-      },
-      {
-        "id": 463747,
-        "status": "submitted",
-        "comment": null,
-        "category": "room-turn",
-        "media": [],
-        "created": "2026-08-24T15:11:24.669303",
-        "modified": "2026-08-24T15:11:25.331370",
-        "room_name": "",
-        "room_number": 1,
-        "room_status": 3,
-        "room_code": "7845",
-        "location": "Room",
-        "details": "Collections",
-        "property_id": 9369,
-        "property_address": {
-          "id": 12545,
-          "street1": "3406 Green Hill Drive",
-          "street2": "",
-          "city": "Arlington",
-          "state": "TX",
-          "zip": "76014",
-          "city_slug": "arlington-tx"
-        },
-        "reported_by": {
-          "id": 753899,
-          "name": "Anthony Yancey",
-          "role_id": 0,
-          "picture": "img/profiles/user_753899_563b2db5-08c5-48b8-8675-03ee4e06653f.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-08-24T15:11:24.673816",
-        "rating": null,
-        "extra_data": {
-          "user_id": 753899,
-          "occupancy_id": 219335,
-          "move_out_date": "2026-08-24"
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
         "days_to_complete": null,
         "is_on_payment_plan": false,
         "payment_plan_end_date": null,
@@ -11804,6 +11806,6 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-08-26T02:00:30Z"
+    "run_scraped_at": "2026-08-26T03:32:25Z"
   }
 }
