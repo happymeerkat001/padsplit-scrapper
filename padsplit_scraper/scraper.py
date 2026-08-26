@@ -23,6 +23,11 @@ except ModuleNotFoundError:  # Support the cron entry point: python3 padsplit_sc
     from kpis import _extract_earnings_rows, _parse_iso, _to_num, compute_kpis, compute_monthly_kpis
 
 try:
+    from padsplit_scraper.occupancy import compute_occupancy
+except ModuleNotFoundError:  # Support the cron entry point: python3 padsplit_scraper/scraper.py
+    from occupancy import compute_occupancy
+
+try:
     from padsplit_scraper.persist import (
         _build_monthly_history_payload,
         _build_run_status,
@@ -31,6 +36,7 @@ try:
         _load_score_history,
         _monthly_history_path,
         _persist_latest_payload,
+        _persist_occupancy_payload,
         _stats_output_path,
         _write_json,
     )
@@ -43,6 +49,7 @@ except ModuleNotFoundError:  # Support the cron entry point: python3 padsplit_sc
         _load_score_history,
         _monthly_history_path,
         _persist_latest_payload,
+        _persist_occupancy_payload,
         _stats_output_path,
         _write_json,
     )
@@ -860,6 +867,12 @@ def run(messages_only: bool = False) -> int:
         payload["tasks"] = fetched_tasks
         tasks_for_kpis = fetched_tasks
         out_path = _persist_latest_payload(payload, scraped_at=scraped_at, write_timestamped=True)
+
+        try:
+            occupancy_payload = compute_occupancy(messages, fetched_tasks, datetime.now(timezone.utc))
+            _persist_occupancy_payload(occupancy_payload)
+        except Exception as exc:
+            sys.stderr.write(f"# Occupancy derivation failed; continuing scrape: {exc}\n")
 
         try:
             rooms = _run_phase("Fetching room stats...", "room_stats", lambda: fetch_rooms(session, creds))

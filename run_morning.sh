@@ -38,9 +38,11 @@ commit_and_push() {
     padsplit_scraper/output/drafts.json \
     padsplit_scraper/output/drafted_messages.json \
     padsplit_scraper/output/stats.json \
+    padsplit_scraper/output/occupancy.json \
     thermostat/output/latest.json \
     docs/data/latest.json \
     docs/data/stats.json \
+    docs/data/occupancy.json \
     docs/data/monthly_history.json \
     docs/thermostat/latest.json 2>/dev/null || true
 

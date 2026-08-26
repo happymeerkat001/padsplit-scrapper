@@ -67,6 +67,7 @@ jobs:
           mkdir -p docs/data
           cp padsplit_scraper/output/latest.json docs/data/latest.json
           cp padsplit_scraper/output/stats.json docs/data/stats.json || echo "stats.json not found, skipping"
+          cp padsplit_scraper/output/occupancy.json docs/data/occupancy.json || echo "occupancy.json not found, skipping"
 
       - name: Diagnose token permissions
         run: |
@@ -91,7 +92,7 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git pull --rebase --autostash
-          git add docs/data/latest.json docs/data/stats.json docs/data/monthly_history.json
+          git add docs/data/latest.json docs/data/stats.json docs/data/occupancy.json docs/data/monthly_history.json
           git diff --cached --quiet || git commit -m "chore: scrape $(date -u +%Y-%m-%dT%H:%M:%SZ)"
           git push origin HEAD:${{ github.ref_name }}
 
