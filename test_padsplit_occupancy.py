@@ -375,6 +375,87 @@ class PadSplitOccupancyTests(unittest.TestCase):
         self.assertFalse(hasattr(occupancy.compute_occupancy, "stats"))
         self.assertNotIn("stats.json", occupancy.__file__)
 
+    def test_operator_lists_split_incoming_holdover_and_rent_ready(self) -> None:
+        payload = occupancy.compute_occupancy(
+            [
+                curtis_chat(),
+                {
+                    "occupancy": {
+                        "moveInDate": "2026-08-29",
+                        "moveOutDate": "2026-08-25",
+                        "user": {"firstName": "Incoming"},
+                        "room": {"roomNumber": 7},
+                    },
+                    "property": {"address": {"street1": "5509 Burton Avenue"}},
+                    "lastMessage": {"created": "2026-08-26T20:00:00"},
+                },
+            ],
+            {
+                "Eviction": [eviction_433568()],
+                "Complete": [
+                    {
+                        "id": 99,
+                        "status": "completed",
+                        "category": "room-turn",
+                        "room_number": 4,
+                        "property_address": {"street1": "1404 Pioneer Lane"},
+                        "extra_data": {"move_out_date": "2026-08-10"},
+                        "moveout_photos_count": 2,
+                    }
+                ],
+            },
+            NOW,
+        )
+        lists = occupancy.operator_lists(payload["rooms"], NOW.date())
+        incoming_keys = [(row["address"], row["room_number"], row["next_move_in"]) for row in lists["incoming"]]
+        self.assertEqual(incoming_keys, [("5509 Burton Avenue", 7, "2026-08-29")])
+        holdover = find_room({"rooms": lists["occupied_after_move_out"]}, address_contains="Broken Crest", room_number=3)
+        self.assertTrue(holdover["occupant_present"])
+        self.assertFalse(holdover["rent_ready"])
+        self.assertFalse(holdover["seo_eligible"])
+        ready = find_room({"rooms": lists["rent_ready"]}, address_contains="Pioneer", room_number=4)
+        self.assertTrue(ready["rent_ready"])
+        self.assertTrue(ready["vacant"])
+
+    def test_past_next_move_in_is_not_incoming(self) -> None:
+        rooms = [
+            {
+                "address": "5509 Burton Avenue",
+                "room_number": 7,
+                "occupant_present": True,
+                "listed_move_out": None,
+                "next_move_in": "2026-08-25",
+                "vacant": False,
+                "rent_ready": False,
+            }
+        ]
+        lists = occupancy.operator_lists(rooms, NOW.date())
+        self.assertEqual(lists["incoming"], [])
+
+    def test_live_occupancy_json_broken_crest_rm3_and_incoming(self) -> None:
+        from pathlib import Path
+        import json
+
+        path = Path(__file__).resolve().parent / "docs" / "data" / "occupancy.json"
+        payload = json.loads(path.read_text())
+        row = find_room(payload, address_contains="1025 Broken Crest", room_number=3)
+        assert_allowlist(self, row)
+        self.assertEqual(row["property_id"], 31523)
+        self.assertTrue(row["occupant_present"])
+        self.assertFalse(row["rent_ready"])
+        self.assertFalse(row["seo_eligible"])
+        self.assertNotIn("room_code", row)
+        for room in payload["rooms"]:
+            self.assertNotIn("room_code", room)
+            self.assertEqual(set(room.keys()), ROW_KEYS)
+        scraped = datetime.fromisoformat(payload["scraped_at"].replace("Z", "+00:00")).astimezone(CHICAGO).date()
+        lists = occupancy.operator_lists(payload["rooms"], scraped)
+        incoming_dates = {row["next_move_in"] for row in lists["incoming"]}
+        self.assertTrue(incoming_dates)
+        self.assertTrue(all(date >= today.isoformat() for date in incoming_dates if date))
+        holdover_keys = {(row["address"], row["room_number"]) for row in lists["occupied_after_move_out"]}
+        self.assertIn(("1025 Broken Crest", 3), holdover_keys)
+
 
 if __name__ == "__main__":
     unittest.main()

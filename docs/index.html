@@ -166,6 +166,34 @@
     .wd-low { font-size: 0.85rem; color: var(--muted); margin-top: 0.15rem; }
     .weather-day.heat-warn .wd-high { color: var(--error); }
     .weather-day.freeze-warn .wd-low { color: var(--accent); }
+    .occupancy-split {
+      margin-bottom: 2rem;
+    }
+    .occupancy-split .source-note {
+      margin: -0.35rem 0 0.85rem;
+      font-size: 0.9rem;
+    }
+    .occupancy-counts {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    .occupancy-lists {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1rem;
+    }
+    .occupancy-lists table { min-width: 0; }
+    .stale-pill {
+      background: rgba(251, 191, 36, 0.14);
+      color: var(--warn);
+    }
+    .notes-section { margin-top: 2rem; }
+    .notes-section h2 { margin: 0 0 0.75rem; font-size: 1.2rem; }
+    .notes-card { background: linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0)); border: 1px solid rgba(148,163,184,.15); border-radius: 12px; padding: 1rem; }
+    .notes-textarea { width: 100%; min-height: 120px; background: rgba(255,255,255,.04); border: 1px solid rgba(148,163,184,.2); border-radius: 8px; color: var(--text); font-family: inherit; font-size: .9rem; line-height: 1.5; padding: .65rem .75rem; resize: vertical; outline: none; box-sizing: border-box; }
+    .notes-copy-btn svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
   </style>
 </head>
@@ -175,6 +203,7 @@
     <div class="header-meta">
       <span class="pill" id="last-updated">Loading…</span>
       <span class="muted" id="refresh-info">Auto-refresh in 300s</span>
+      <a href="#occupancy-section" class="header-link">Occupancy</a>
       <a href="./private-messages.html" class="header-link">Tenant Messages</a>
       <a href="./templates.html" class="header-link">Templates</a>
       <a href="./codes.html" class="header-link">Codes</a>
@@ -183,6 +212,21 @@
       <button id="signout-btn" class="header-link" style="background:none;border:none;cursor:pointer;padding:0">Sign out</button>
     </div>
   </header>
+
+  <section class="occupancy-split" id="occupancy-section">
+    <div class="flex-between">
+      <h2>Live occupancy</h2>
+      <span class="pill" id="occupancy-updated">Loading occupancy.json…</span>
+    </div>
+    <p class="muted source-note">
+      Presence from messages + tasks (<code>occupancy.json</code>).
+      This is not <code>stats.json</code> listed-status.
+      <a href="./stats.html" class="header-link">Stale KPI stats</a> stay on the Stats page.
+    </p>
+    <div id="occupancy-content">
+      <div class="loading">Fetching occupancy.json …</div>
+    </div>
+  </section>
 
   <div id="content">
     <div class="loading">Fetching latest.json …</div>
@@ -256,6 +300,132 @@
       if (!s) return '—';
       const d = new Date(s);
       return isNaN(d.getTime()) ? s : d.toLocaleString();
+    }
+
+    function chicagoToday(now = new Date()) {
+      return new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'America/Chicago',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      }).format(now);
+    }
+
+    function escapeText(value) {
+      return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;',
+      }[ch]));
+    }
+
+    function roomLabel(room) {
+      const address = room.address || 'Unknown address';
+      return room.room_number == null || room.room_number === ''
+        ? address
+        : `${address} Rm ${room.room_number}`;
+    }
+
+    function operatorLists(rooms, today) {
+      const incoming = [];
+      const rentReady = [];
+      const occupiedAfterMoveOut = [];
+      const vacantNotReady = [];
+      for (const room of Array.isArray(rooms) ? rooms : []) {
+        const nextMoveIn = room.next_move_in || null;
+        const listed = room.listed_move_out || null;
+        if (nextMoveIn && nextMoveIn >= today) incoming.push(room);
+        if (room.rent_ready === true) rentReady.push(room);
+        if (room.occupant_present === true && listed && listed < today) occupiedAfterMoveOut.push(room);
+        if (room.vacant === true && room.rent_ready !== true) vacantNotReady.push(room);
+      }
+      incoming.sort((a, b) => String(a.next_move_in || '').localeCompare(String(b.next_move_in || ''))
+        || String(a.address || '').localeCompare(String(b.address || '')));
+      return { incoming, rentReady, occupiedAfterMoveOut, vacantNotReady };
+    }
+
+    function occupancyTable(headers, rowsHtml, emptyText, colSpan) {
+      return `
+        <div class="table-wrap">
+          <table>
+            <thead><tr>${headers.map((h) => `<th>${h}</th>`).join('')}</tr></thead>
+            <tbody>${rowsHtml || `<tr><td colspan="${colSpan}" class="muted">${emptyText}</td></tr>`}</tbody>
+          </table>
+        </div>`;
+    }
+
+    function renderOccupancy(data) {
+      const rooms = Array.isArray(data.rooms) ? data.rooms : [];
+      const today = chicagoToday();
+      const lists = operatorLists(rooms, today);
+      const present = rooms.filter((room) => room.occupant_present === true).length;
+      const vacant = rooms.filter((room) => room.vacant === true).length;
+      document.getElementById('occupancy-updated').textContent = `Updated ${fmtDate(data.scraped_at)}`;
+
+      const counts = [
+        ['Rooms seen', rooms.length],
+        ['Present', present],
+        ['Vacant', vacant],
+        ['Incoming', lists.incoming.length],
+        ['Occupied after move-out', lists.occupiedAfterMoveOut.length],
+        ['Rent-ready', lists.rentReady.length],
+      ];
+      const incomingRows = lists.incoming.map((room) => `
+        <tr>
+          <td>${escapeText(roomLabel(room))}</td>
+          <td>${escapeText(room.next_move_in)}</td>
+          <td>${room.occupant_present ? 'Present' : 'Vacant'}</td>
+        </tr>`).join('');
+      const holdoverRows = lists.occupiedAfterMoveOut.map((room) => `
+        <tr>
+          <td>${escapeText(roomLabel(room))}</td>
+          <td>${escapeText(room.listed_move_out || '—')}</td>
+          <td>${room.open_eviction_ticket_ids?.length ? 'Eviction open' : (room.open_hold_ticket_ids?.length ? 'Hold open' : 'Present')}</td>
+        </tr>`).join('');
+      const readyRows = lists.rentReady.map((room) => `
+        <tr>
+          <td>${escapeText(roomLabel(room))}</td>
+          <td>${escapeText(room.days_vacant ?? 0)}</td>
+        </tr>`).join('');
+      const vacantRows = lists.vacantNotReady.map((room) => `
+        <tr>
+          <td>${escapeText(roomLabel(room))}</td>
+          <td>${escapeText(room.days_vacant ?? 0)}</td>
+          <td>${room.turned ? 'Turned' : 'Not turned'}</td>
+        </tr>`).join('');
+
+      document.getElementById('occupancy-content').innerHTML = `
+        <div class="occupancy-counts">
+          ${counts.map(([label, value]) => `
+            <div class="card">
+              <h3>${label}</h3>
+              <div class="status">${value}</div>
+            </div>`).join('')}
+        </div>
+        <div class="occupancy-lists">
+          <div class="card">
+            <h3>Incoming move-ins</h3>
+            <div class="muted">Future move-in dates from live occupancy.json</div>
+            ${occupancyTable(['Room', 'Move-in', 'Status'], incomingRows, 'No upcoming move-ins.', 3)}
+          </div>
+          <div class="card">
+            <h3>Occupied after listed move-out</h3>
+            <div class="muted">Still present. Not rent-ready until a human marks vacant + turned.</div>
+            ${occupancyTable(['Room', 'Listed move-out', 'Flag'], holdoverRows, 'No holdovers.', 3)}
+          </div>
+          <div class="card">
+            <h3>Rent-ready</h3>
+            <div class="muted">Vacant and turned. Not listed-status from stats.json.</div>
+            ${occupancyTable(['Room', 'Days vacant'], readyRows, 'No rent-ready rooms.', 2)}
+          </div>
+          <div class="card">
+            <h3>Vacant, not rent-ready</h3>
+            <div class="muted">Empty but not turned.</div>
+            ${occupancyTable(['Room', 'Days vacant', 'Turn'], vacantRows, 'No vacant rooms waiting on a turn.', 3)}
+          </div>
+        </div>`;
     }
 
     function getImportantIds() {
@@ -663,6 +833,19 @@
       .catch(err => {
         document.getElementById('thermostat-section').innerHTML =
           `<div class="card error" style="margin-bottom:1rem">Thermostat data unavailable (${err.message}).</div>`;
+      });
+
+    fetch('./data/occupancy.json', { cache: 'no-cache' })
+      .then(r => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .then(renderOccupancy)
+      .catch(err => {
+        document.getElementById('occupancy-updated').textContent = 'Occupancy unavailable';
+        document.getElementById('occupancy-content').innerHTML =
+          `<div class="card error">Failed to load occupancy.json (${err.message}).</div>`;
+        console.error(err);
       });
 
     fetch('./data/latest.json', { cache: 'no-cache' })
