@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-08-27T05:07:26Z",
+  "scraped_at": "2026-08-27T16:33:19Z",
   "derived_from": [
     "messages",
     "tasks"
@@ -222,7 +222,9 @@
       "occupant_present": true,
       "listed_move_out": "2026-08-23",
       "next_move_in": null,
-      "open_turn_ticket_ids": [],
+      "open_turn_ticket_ids": [
+        463166
+      ],
       "open_eviction_ticket_ids": [],
       "open_hold_ticket_ids": [],
       "move_out_photos": 0,
@@ -233,13 +235,15 @@
       "seo_eligible": false
     },
     {
-      "property_id": null,
+      "property_id": 31523,
       "address": "1025 Broken Crest",
       "room_number": 9,
       "occupant_present": true,
       "listed_move_out": "2026-08-27",
       "next_move_in": null,
-      "open_turn_ticket_ids": [],
+      "open_turn_ticket_ids": [
+        465219
+      ],
       "open_eviction_ticket_ids": [],
       "open_hold_ticket_ids": [],
       "move_out_photos": 0,
@@ -250,13 +254,15 @@
       "seo_eligible": false
     },
     {
-      "property_id": null,
+      "property_id": 20021,
       "address": "1404 Pioneer Lane",
       "room_number": 1,
       "occupant_present": true,
       "listed_move_out": "2026-08-27",
       "next_move_in": null,
-      "open_turn_ticket_ids": [],
+      "open_turn_ticket_ids": [
+        465194
+      ],
       "open_eviction_ticket_ids": [],
       "open_hold_ticket_ids": [],
       "move_out_photos": 0,
@@ -355,19 +361,17 @@
       "property_id": 20021,
       "address": "1404 Pioneer Lane",
       "room_number": 7,
-      "occupant_present": true,
+      "occupant_present": false,
       "listed_move_out": "2026-08-23",
       "next_move_in": null,
-      "open_turn_ticket_ids": [
-        462976
-      ],
+      "open_turn_ticket_ids": [],
       "open_eviction_ticket_ids": [],
       "open_hold_ticket_ids": [],
       "move_out_photos": 0,
-      "vacant": false,
+      "vacant": true,
       "turned": false,
       "rent_ready": false,
-      "days_vacant": 0,
+      "days_vacant": 4,
       "seo_eligible": false
     },
     {
