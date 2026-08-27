@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import unittest
+from pathlib import Path
 
 import slack_task_digest
 
@@ -38,7 +39,7 @@ class SlackTaskDigestTests(unittest.TestCase):
     def test_load_data_returns_latest_without_merging_stats_kpis(self) -> None:
         source = slack_task_digest.load_data.__code__.co_names
         self.assertNotIn("STATS_PATH", source)
-        digest_source = open(slack_task_digest.__file__).read()
+        digest_source = Path(slack_task_digest.__file__).read_text()
         self.assertNotIn("format_vacancy_alert", digest_source)
         self.assertNotIn('merged["kpis"]', digest_source)
 

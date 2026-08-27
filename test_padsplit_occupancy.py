@@ -452,7 +452,9 @@ class PadSplitOccupancyTests(unittest.TestCase):
         lists = occupancy.operator_lists(payload["rooms"], scraped)
         incoming_dates = {row["next_move_in"] for row in lists["incoming"]}
         self.assertTrue(incoming_dates)
-        self.assertTrue(all(date >= today.isoformat() for date in incoming_dates if date))
+        self.assertTrue(all(move_in >= scraped.isoformat() for move_in in incoming_dates if move_in))
+        incoming_keys = {(row["address"], row["room_number"], row["next_move_in"]) for row in lists["incoming"]}
+        self.assertIn(("5509 Burton Avenue", 7, "2026-08-29"), incoming_keys)
         holdover_keys = {(row["address"], row["room_number"]) for row in lists["occupied_after_move_out"]}
         self.assertIn(("1025 Broken Crest", 3), holdover_keys)
 
