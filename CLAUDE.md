@@ -19,6 +19,9 @@ source venv/bin/activate
 python3 padsplit_scraper/scraper.py
 python3 thermostat/scraper.py
 
+# PadSplit Ops mention listener (long-running; wakes Slate, does not reply)
+python3 padsplit_scraper/discord_slate_wake.py
+
 # Scheduled runs (also commit/push rolling output to git)
 ./run_morning.sh    # padsplit + thermostat
 ./run_afternoon.sh  # padsplit only
@@ -34,6 +37,7 @@ python3 test_thermostat_set_temps.py
 python3 test_thermostat_schedule.py
 python3 test_obsidian_daily_digest.py
 python3 padsplit_scraper/test_reply_address_parser.py
+python3 test_discord_slate_wake.py
 ```
 
 No build step or linter configuration; tests use direct Python execution.
@@ -44,6 +48,11 @@ No build step or linter configuration; tests use direct Python execution.
   `com.padsplit.scraper.morning` and `com.padsplit.scraper.afternoon`; their
   plist files live in `~/Library/LaunchAgents/` and call `run_morning.sh` and
   `run_afternoon.sh`.
+- PadSplit Ops mention wake (`padsplit_scraper/discord_slate_wake.py`) is a
+  long-running Discord gateway process, not a scheduled scrape. Keep it alive
+  (launchd KeepAlive or equivalent) with `DISCORD_BOT_TOKEN`,
+  `SLATE_ASK_WEBHOOK_URL`, and `SLATE_ASK_WEBHOOK_KEY`. It does not answer in
+  Discord.
 - Thermostat schedule enforcement is launchd-managed by
   `com.padsplit.thermostat.enforcer`. Do not change `thermostat/set_temps.py`
   or enforcement behavior without a safe occupied-schedule test window.
@@ -60,6 +69,7 @@ No build step or linter configuration; tests use direct Python execution.
 - `padsplit_scraper/occupancy.py` — presence from messages + tasks (`occupancy.json`). `kpis.vacancy_rooms` is listed-status, not presence.
 - `thermostat/scraper.py` — thermostat portal scraper; HTTP session + fallback logic
 - `padsplit_scraper/discord_notifier.py` — Discord bot alerts on error
+- `padsplit_scraper/discord_slate_wake.py` — PadSplit Ops gateway listener; @mention in #ask-ai-agent or #communication-mgmt POSTs to Slate (notify-only)
 - `slack_task_digest.py` — scheduled DFW weather and task digest, posts to Discord
 - `padsplit_scraper/firestore_status_monitor.py` — Firestore integration
 - `obsidian_daily_digest.py` — daily note generation from scraped data
@@ -85,5 +95,7 @@ DISCORD_WEBHOOK_TASKS=
 DISCORD_WEBHOOK_URL=
 DISCORD_BOT_TOKEN=
 DISCORD_CHANNEL_ID=
+SLATE_ASK_WEBHOOK_URL=
+SLATE_ASK_WEBHOOK_KEY=
 OBSIDIAN_DAILY_NOTES_DIR=
 ```
