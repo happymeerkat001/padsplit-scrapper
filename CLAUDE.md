@@ -33,6 +33,7 @@ python3 test_thermostat_scraper.py
 python3 test_thermostat_set_temps.py
 python3 test_thermostat_schedule.py
 python3 test_obsidian_daily_digest.py
+python3 test_slack_task_digest.py
 python3 padsplit_scraper/test_reply_address_parser.py
 ```
 
@@ -57,10 +58,10 @@ No build step or linter configuration; tests use direct Python execution.
 
 **Key files:**
 - `padsplit_scraper/scraper.py` — main Padsplit scraper; GraphQL queries, property/earnings/metrics collection
-- `padsplit_scraper/occupancy.py` — presence from messages + tasks (`occupancy.json`). `kpis.vacancy_rooms` is listed-status, not presence.
+- `padsplit_scraper/occupancy.py` — presence from messages + tasks (`occupancy.json`), plus an incoming house/room/date list. `kpis.vacancy_rooms` is listed-status, not presence; dashboards and the task digest do not treat it as occupancy.
 - `thermostat/scraper.py` — thermostat portal scraper; HTTP session + fallback logic
 - `padsplit_scraper/discord_notifier.py` — Discord bot alerts on error
-- `slack_task_digest.py` — scheduled DFW weather and task digest, posts to Discord
+- `slack_task_digest.py` — scheduled DFW weather and task digest, posts to Discord. Does not read stats listed-status as occupancy.
 - `padsplit_scraper/firestore_status_monitor.py` — Firestore integration
 - `obsidian_daily_digest.py` — daily note generation from scraped data
 - `docs/data/` — aggregated outputs: `latest.json`, `stats.json`, `occupancy.json`, `monthly_history.json`

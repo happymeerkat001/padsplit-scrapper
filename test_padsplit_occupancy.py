@@ -36,6 +36,43 @@ FORBIDDEN_KEYS = {
     "details",
     "has_reused_code",
 }
+INCOMING_ITEM_KEYS = {
+    "address",
+    "room_number",
+    "date",
+}
+ENVELOPE_KEYS = {
+    "scraped_at",
+    "derived_from",
+    "rooms",
+    "incoming",
+}
+
+
+def kenneth_chat() -> dict:
+    return {
+        "id": "chat-kenneth",
+        "title": "Kenneth Jackson Ll",
+        "chatType": "HOST_SUPPORT_CHAT",
+        "isArchived": False,
+        "occupancy": {
+            "moveInDate": "2026-08-29",
+            "moveOutDate": "2026-08-25",
+            "room": {"pk": 1, "roomNumber": 7},
+            "user": {
+                "firstName": "Kenneth",
+                "lastName": "Jackson",
+                "displayName": None,
+            },
+        },
+        "property": {"address": {"street1": "5509 Burton Avenue"}},
+        "lastMessage": {
+            "created": "2026-08-26T12:00:00",
+            "text": "Move-in Friday",
+            "messageType": "TEXT",
+            "attachments": [],
+        },
+    }
 
 
 def curtis_chat(*, street: str = "1025 Broken Crest") -> dict:
@@ -121,6 +158,10 @@ class PadSplitOccupancyTests(unittest.TestCase):
         self.assertEqual(row["open_eviction_ticket_ids"], [433568])
         self.assertEqual(row["open_turn_ticket_ids"], [])
         self.assertEqual(payload["derived_from"], ["messages", "tasks"])
+        self.assertEqual(set(payload.keys()), ENVELOPE_KEYS)
+        after = occupancy.occupied_after_move_out(payload["rooms"], NOW.date())
+        self.assertEqual([item["room_number"] for item in after], [3])
+        self.assertEqual(payload["incoming"], [])
 
     def test_broken_crest_rd_joins_same_row(self) -> None:
         payload = occupancy.compute_occupancy(
@@ -374,6 +415,59 @@ class PadSplitOccupancyTests(unittest.TestCase):
     def test_does_not_read_stats(self) -> None:
         self.assertFalse(hasattr(occupancy.compute_occupancy, "stats"))
         self.assertNotIn("stats.json", occupancy.__file__)
+
+    def test_incoming_is_house_room_date_only(self) -> None:
+        payload = occupancy.compute_occupancy([kenneth_chat(), curtis_chat()], {"Eviction": [eviction_433568()]}, NOW)
+        self.assertEqual(set(payload.keys()), ENVELOPE_KEYS)
+        self.assertEqual(
+            payload["incoming"],
+            [{"address": "5509 Burton Avenue", "room_number": 7, "date": "2026-08-29"}],
+        )
+        self.assertEqual(set(payload["incoming"][0].keys()), INCOMING_ITEM_KEYS)
+        serialized = str(payload["incoming"])
+        self.assertNotIn("Kenneth", serialized)
+        self.assertNotIn("Jackson", serialized)
+        self.assertNotIn("room_code", serialized)
+        burton = find_room(payload, address_contains="5509 Burton", room_number=7)
+        self.assertEqual(burton["next_move_in"], "2026-08-29")
+        self.assertTrue(burton["occupant_present"])
+        self.assertFalse(burton["rent_ready"])
+        self.assertFalse(burton["seo_eligible"])
+        after = occupancy.occupied_after_move_out(payload["rooms"], NOW.date())
+        self.assertTrue(any(row["address"] == "1025 Broken Crest" and row["room_number"] == 3 for row in after))
+        self.assertFalse(any(row.get("rent_ready") for row in after))
+
+    def test_incoming_sorted_and_skips_past_move_in(self) -> None:
+        later = {
+            "occupancy": {
+                "moveInDate": "2026-09-03",
+                "moveOutDate": None,
+                "user": {"firstName": "Terius"},
+                "room": {"roomNumber": 6},
+            },
+            "property": {"address": {"street1": "1404 Pioneer Lane"}},
+            "lastMessage": {"created": "2026-08-20T00:00:00"},
+        }
+        past = {
+            "occupancy": {
+                "moveInDate": "2026-08-20",
+                "moveOutDate": None,
+                "user": {"firstName": "Past"},
+                "room": {"roomNumber": 1},
+            },
+            "property": {"address": {"street1": "100 Old Movein"}},
+            "lastMessage": {"created": "2026-08-21T00:00:00"},
+        }
+        payload = occupancy.compute_occupancy([later, kenneth_chat(), past], {}, NOW)
+        self.assertEqual(
+            payload["incoming"],
+            [
+                {"address": "5509 Burton Avenue", "room_number": 7, "date": "2026-08-29"},
+                {"address": "1404 Pioneer Lane", "room_number": 6, "date": "2026-09-03"},
+            ],
+        )
+        self.assertNotIn("Terius", str(payload["incoming"]))
+        self.assertNotIn("Past", str(payload["incoming"]))
 
 
 if __name__ == "__main__":

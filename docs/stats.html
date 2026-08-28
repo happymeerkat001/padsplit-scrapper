@@ -318,6 +318,12 @@
       grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
     }
     .empty { color: var(--muted); font-size: 0.92rem; }
+    .stale-banner {
+      border-color: rgba(251,191,36,0.45);
+      background: rgba(251,191,36,0.08);
+    }
+    .stale-banner h2 { color: var(--warn); }
+    .stale-banner p { margin: 0; color: var(--text); font-size: 0.92rem; line-height: 1.45; }
 
     @media (max-width: 900px) {
       .score-grid { grid-template-columns: 1fr; }
@@ -350,6 +356,11 @@
   </header>
 
   <div class="stack">
+    <section class="card stale-banner" id="stats-stale-banner">
+      <h2>stats.json is not occupancy</h2>
+      <p id="stats-stale-copy">Loading stats freshness…</p>
+    </section>
+
     <section class="card">
       <h2>Manager Score Card</h2>
       <div class="score-grid">
@@ -419,27 +430,22 @@
     </section>
 
     <section class="card">
-      <h2>Occupancy Summary</h2>
+      <h2>Presence (occupancy.json)</h2>
       <div class="stats-grid" id="occupancy-cards"></div>
     </section>
 
     <div class="section-grid">
       <section class="card">
-        <h2>Vacancy Detail (Listed Rooms)</h2>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Property</th>
-                <th>Room</th>
-                <th>Days Listed</th>
-                <th>Base Price</th>
-                <th>Last Price</th>
-              </tr>
-            </thead>
-            <tbody id="vacancy-body"></tbody>
-          </table>
-        </div>
+        <h2>Incoming</h2>
+        <ul class="mini-list" id="incoming-list"></ul>
+      </section>
+      <section class="card">
+        <h2>Rent-ready</h2>
+        <ul class="mini-list" id="rent-ready-list"></ul>
+      </section>
+      <section class="card">
+        <h2>Occupied after move-out</h2>
+        <ul class="mini-list" id="occupied-after-list"></ul>
       </section>
 
       <section class="card">
@@ -531,10 +537,6 @@
     function toNum(v) {
       const n = Number(v);
       return Number.isFinite(n) ? n : 0;
-    }
-
-    function money(v) {
-      return `$${toNum(v).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
     }
 
     function naira(v) {
@@ -637,7 +639,6 @@
     }
 
     function deriveManualDefaults(kpis) {
-      const vacancyRooms = Array.isArray(kpis.vacancy_rooms) ? kpis.vacancy_rooms : [];
       const flipRooms = Array.isArray(kpis.flip_rooms) ? kpis.flip_rooms : [];
       let remainingHustle = Math.min(20, Math.max(0, Math.round(toNum(kpis.subjective_score))));
       return {
@@ -645,7 +646,7 @@
         avg_tenure_days: toNum(kpis.avg_tenure_days),
         rooms_over_14d: Math.round(toNum(kpis.rooms_over_14d)),
         listed_count: Math.round(toNum(kpis.listed)),
-        rooms_over_21d: vacancyRooms.filter(room => toNum(room.days_listed) > 21).length,
+        rooms_over_21d: 0,
         avg_flip_days: toNum(kpis.avg_flip_days),
         flip_rooms_over_5d: flipRooms.filter(room => toNum(room.days_in_flip) > 5).length,
         open_tickets: Math.round(toNum(kpis.open_tickets)),
@@ -775,17 +776,54 @@
       setScoreCard(scrapedKpis, { manualActive: false });
     }
 
-    function setOccupancyCards(kpis) {
+    function chicagoToday() {
+      return new Date().toLocaleDateString("en-CA", { timeZone: "America/Chicago" });
+    }
+
+    function incomingFromOccupancy(data) {
+      if (Array.isArray(data.incoming)) return data.incoming;
+      return (data.rooms || [])
+        .filter(room => room.next_move_in)
+        .map(room => ({
+          address: room.address,
+          room_number: room.room_number,
+          date: room.next_move_in,
+        }));
+    }
+
+    function occupiedAfterMoveOut(rooms) {
+      const today = chicagoToday();
+      return (rooms || []).filter(room => (
+        room.occupant_present && room.listed_move_out && room.listed_move_out < today
+      ));
+    }
+
+    function fillMiniList(id, items, dateKey) {
+      const el = document.getElementById(id);
+      el.innerHTML = "";
+      if (!items.length) {
+        el.innerHTML = '<li><span class="empty">None</span><span></span></li>';
+        return;
+      }
+      for (const item of items) {
+        const li = document.createElement("li");
+        li.innerHTML = `<span>${item.address || "—"} Rm ${item.room_number ?? "—"}</span><span>${item[dateKey] || item.date || "—"}</span>`;
+        el.appendChild(li);
+      }
+    }
+
+    function setOccupancyCards(occupancy) {
       const cards = document.getElementById("occupancy-cards");
+      const rooms = occupancy.rooms || [];
+      const incoming = incomingFromOccupancy(occupancy);
+      const occupiedAfter = occupiedAfterMoveOut(rooms);
       const rows = [
-        ["Occupancy", pct(kpis.occupancy_pct)],
-        ["Total Rooms", Math.round(toNum(kpis.total_rooms))],
-        ["Occupied", Math.round(toNum(kpis.occupied))],
-        ["Listed", Math.round(toNum(kpis.listed))],
-        ["Flip", Math.round(toNum(kpis.flip))],
-        ["Move-in", Math.round(toNum(kpis.move_in))],
-        ["Avg Listed Days", toNum(kpis.avg_listed_days).toFixed(1)],
-        ["Rooms >14d", Math.round(toNum(kpis.rooms_over_14d))],
+        ["Rooms in file", rooms.length],
+        ["Present", rooms.filter(room => room.occupant_present).length],
+        ["Vacant", rooms.filter(room => room.vacant).length],
+        ["Rent-ready", rooms.filter(room => room.rent_ready).length],
+        ["Occupied after move-out", occupiedAfter.length],
+        ["Incoming", incoming.length],
       ];
       cards.innerHTML = "";
       for (const [label, value] of rows) {
@@ -796,27 +834,20 @@
       }
     }
 
-    function renderVacancy(kpis) {
-      const body = document.getElementById("vacancy-body");
-      body.innerHTML = "";
-      const rooms = Array.isArray(kpis.vacancy_rooms) ? kpis.vacancy_rooms : [];
-      if (!rooms.length) {
-        body.innerHTML = '<tr><td colspan="5" class="empty">No listed rooms.</td></tr>';
-        return;
-      }
-      for (const room of rooms) {
-        const days = toNum(room.days_listed);
-        const tr = document.createElement("tr");
-        if (days > 14) tr.className = "warn-row";
-        tr.innerHTML = `
-          <td>${room.property || "-"}</td>
-          <td>${room.room_number ?? "-"}</td>
-          <td>${days.toFixed(1)}</td>
-          <td>${money(room.base_price)}</td>
-          <td>${money(room.last_room_price)}</td>
-        `;
-        body.appendChild(tr);
-      }
+    function renderOccupancyLists(occupancy) {
+      const rooms = occupancy.rooms || [];
+      fillMiniList("incoming-list", incomingFromOccupancy(occupancy), "date");
+      fillMiniList("rent-ready-list", rooms.filter(room => room.rent_ready), "listed_move_out");
+      fillMiniList("occupied-after-list", occupiedAfterMoveOut(rooms), "listed_move_out");
+    }
+
+    function renderStaleBanner(data) {
+      const copy = document.getElementById("stats-stale-copy");
+      const run = data && typeof data.run_status === "object" ? data.run_status : {};
+      const scraped = fmtDate(data.scraped_at);
+      const state = run.state || "unknown";
+      const phase = run.failed_phase ? ` Failed phase: ${run.failed_phase}.` : "";
+      copy.textContent = `This file is listed-status / earnings snapshot from ${scraped} (${state}). It is not presence. Incoming, rent-ready, and occupied-after-move-out come from occupancy.json. Do not treat listed rooms as vacant.${phase}`;
     }
 
     function renderRetention(kpis) {
@@ -925,25 +956,31 @@
 
     async function init() {
       try {
-        const res = await fetch("./data/stats.json", { cache: "no-cache" });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
+        const [statsRes, occupancyRes] = await Promise.all([
+          fetch("./data/stats.json", { cache: "no-cache" }),
+          fetch("./data/occupancy.json", { cache: "no-cache" }),
+        ]);
+        if (!statsRes.ok) throw new Error(`stats.json HTTP ${statsRes.status}`);
+        const data = await statsRes.json();
         const kpis = data && typeof data.kpis === "object" ? data.kpis : {};
         scrapedKpis = kpis;
         document.getElementById("updated").textContent = `Updated ${fmtDate(data.scraped_at)}`;
+        renderStaleBanner(data);
         fillManualForm(deriveManualDefaults(kpis));
         setScoreCard(kpis, { manualActive: false });
-        setOccupancyCards(kpis);
-        renderVacancy(kpis);
         renderRetention(kpis);
         renderFlipRooms(kpis);
         renderTickets(kpis);
         renderPerProperty(kpis);
         document.getElementById("manual-apply-btn").addEventListener("click", applyManualInputs);
         document.getElementById("manual-reset-btn").addEventListener("click", resetManualInputs);
+        if (!occupancyRes.ok) throw new Error(`occupancy.json HTTP ${occupancyRes.status}`);
+        const occupancy = await occupancyRes.json();
+        setOccupancyCards(occupancy);
+        renderOccupancyLists(occupancy);
       } catch (err) {
         document.getElementById("updated").textContent = "Failed to load stats";
-        document.body.insertAdjacentHTML("beforeend", `<div class="error" style="margin-top:1rem">Failed to load data/stats.json: ${err.message}</div>`);
+        document.body.insertAdjacentHTML("beforeend", `<div class="error" style="margin-top:1rem">Failed to load dashboard data: ${err.message}</div>`);
       }
     }
 

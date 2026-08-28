@@ -40,6 +40,7 @@ def compute_occupancy(
         "scraped_at": _scraped_at(now),
         "derived_from": ["messages", "tasks"],
         "rooms": rows,
+        "incoming": _incoming_from_rooms(rows),
     }
 
 
@@ -144,6 +145,31 @@ def _finalize_row(state: Dict[str, Any], today: date) -> Dict[str, Any]:
         "days_vacant": days_vacant,
         "seo_eligible": seo_eligible,
     }
+
+
+def _incoming_from_rooms(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    incoming = [
+        {
+            "address": row.get("address") or "",
+            "room_number": row.get("room_number"),
+            "date": row.get("next_move_in"),
+        }
+        for row in rows
+        if row.get("next_move_in")
+    ]
+    incoming.sort(key=lambda item: (str(item["date"]), str(item["address"] or ""), _room_sort_key(item.get("room_number"))))
+    return incoming
+
+
+def occupied_after_move_out(rooms: List[Dict[str, Any]], today: date) -> List[Dict[str, Any]]:
+    result: List[Dict[str, Any]] = []
+    for row in rooms:
+        if not row.get("occupant_present"):
+            continue
+        listed = _date_only(row.get("listed_move_out"))
+        if listed is not None and listed < today:
+            result.append(row)
+    return result
 
 
 def _room_state(

@@ -166,6 +166,16 @@
     .wd-low { font-size: 0.85rem; color: var(--muted); margin-top: 0.15rem; }
     .weather-day.heat-warn .wd-high { color: var(--error); }
     .weather-day.freeze-warn .wd-low { color: var(--accent); }
+    .occupancy-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1rem;
+    }
+    .occupancy-row {
+      padding: 0.45rem 0;
+      border-bottom: 1px solid rgba(148,163,184,0.12);
+    }
+    .occupancy-row:last-child { border-bottom: none; }
 
   </style>
 </head>
@@ -183,6 +193,10 @@
       <button id="signout-btn" class="header-link" style="background:none;border:none;cursor:pointer;padding:0">Sign out</button>
     </div>
   </header>
+
+  <section class="section" id="occupancy-section">
+    <div class="loading">Fetching occupancy.json …</div>
+  </section>
 
   <div id="content">
     <div class="loading">Fetching latest.json …</div>
@@ -212,7 +226,7 @@
   </section>
 
   <footer>
-    Data auto-refreshes every 5 minutes from <code>padsplit_scraper/output/latest.json</code>. Pages is public; repo history stays private.
+    Data auto-refreshes every 5 minutes from <code>latest.json</code> and <code>occupancy.json</code>. Pages is public; repo history stays private. Codes stay on the gated Codes page.
   </footer>
 
   <script type="module">
@@ -665,6 +679,68 @@
           `<div class="card error" style="margin-bottom:1rem">Thermostat data unavailable (${err.message}).</div>`;
       });
 
+    function chicagoToday() {
+      return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
+    }
+
+    function incomingFromOccupancy(data) {
+      if (Array.isArray(data.incoming)) return data.incoming;
+      return (data.rooms || [])
+        .filter(room => room.next_move_in)
+        .map(room => ({
+          address: room.address,
+          room_number: room.room_number,
+          date: room.next_move_in,
+        }));
+    }
+
+    function occupiedAfterMoveOut(rooms) {
+      const today = chicagoToday();
+      return (rooms || []).filter(room => (
+        room.occupant_present && room.listed_move_out && room.listed_move_out < today
+      ));
+    }
+
+    function occupancyListHtml(items, dateKey) {
+      if (!items.length) {
+        return '<div class="muted">None</div>';
+      }
+      return items.map(item => `
+        <div class="flex-between occupancy-row">
+          <div>${item.address || '—'} <span class="muted">Rm ${item.room_number ?? '—'}</span></div>
+          <span class="chip">${item[dateKey] || item.date || '—'}</span>
+        </div>
+      `).join('');
+    }
+
+    function renderOccupancy(data) {
+      const section = document.getElementById('occupancy-section');
+      const rooms = data.rooms || [];
+      const incoming = incomingFromOccupancy(data);
+      const rentReady = rooms.filter(room => room.rent_ready);
+      const occupiedAfter = occupiedAfterMoveOut(rooms);
+      section.innerHTML = `
+        <div class="flex-between" style="margin-bottom:0.75rem">
+          <h2>Occupancy</h2>
+          <span class="muted" style="font-size:0.85rem">Updated ${fmtDate(data.scraped_at)} · presence, not listed status</span>
+        </div>
+        <div class="occupancy-grid">
+          <div class="card">
+            <div class="flex-between"><h3>Incoming</h3><span class="badge">${incoming.length}</span></div>
+            ${occupancyListHtml(incoming, 'date')}
+          </div>
+          <div class="card">
+            <div class="flex-between"><h3>Rent-ready</h3><span class="badge">${rentReady.length}</span></div>
+            ${occupancyListHtml(rentReady, 'listed_move_out')}
+          </div>
+          <div class="card">
+            <div class="flex-between"><h3>Occupied after move-out</h3><span class="badge">${occupiedAfter.length}</span></div>
+            ${occupancyListHtml(occupiedAfter, 'listed_move_out')}
+          </div>
+        </div>
+      `;
+    }
+
     fetch('./data/latest.json', { cache: 'no-cache' })
       .then(r => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -674,6 +750,18 @@
       .catch(err => {
         document.getElementById('content').innerHTML =
           `<div class="card error">Failed to load latest.json (${err.message}).</div>`;
+        console.error(err);
+      });
+
+    fetch('./data/occupancy.json', { cache: 'no-cache' })
+      .then(r => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .then(renderOccupancy)
+      .catch(err => {
+        document.getElementById('occupancy-section').innerHTML =
+          `<div class="card error">Failed to load occupancy.json (${err.message}).</div>`;
         console.error(err);
       });
 
