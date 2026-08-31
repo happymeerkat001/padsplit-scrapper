@@ -72,7 +72,7 @@ No build step or linter configuration; tests use direct Python execution.
 - `padsplit_scraper/occupancy.py` — presence from messages + tasks (`occupancy.json`). `kpis.vacancy_rooms` is listed-status, not presence.
 - `thermostat/scraper.py` — thermostat portal scraper; HTTP session + fallback logic
 - `padsplit_scraper/discord_notifier.py` — Discord bot alerts on error
-- `padsplit_scraper/discord_slate_wake.py` — PadSplit Ops gateway listener; @mention in #ask-ai-agent or #communication-mgmt POSTs to Slate (notify-only). Same process ACKs Joe Done-button taps on task posts in #to-do-joe and #ai-tasks-temp. Post tasks with `post_ops_task()` so those two channels get a real Done button.
+- `padsplit_scraper/discord_slate_wake.py` — PadSplit Ops gateway listener; @mention in #ask-ai-agent or #communication-mgmt POSTs to Slate (notify-only). Same process ACKs Done-button taps on task posts in #to-do-joe and #ai-tasks-temp. Post tasks with `post_ops_task()` so those two channels get a real Done button.
 - `slack_task_digest.py` — scheduled DFW weather and task digest, posts to Discord
 - `padsplit_scraper/firestore_status_monitor.py` — Firestore integration
 - `obsidian_daily_digest.py` — daily note generation from scraped data

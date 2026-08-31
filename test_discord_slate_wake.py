@@ -7,12 +7,9 @@ from unittest.mock import MagicMock, patch
 from padsplit_scraper.discord_slate_wake import (
     AI_TASKS_TEMP_CHANNEL_ID,
     ASK_AI_AGENT_CHANNEL_ID,
-    CALLBACK_CHANNEL_MESSAGE_WITH_SOURCE,
     CALLBACK_DEFERRED_UPDATE_MESSAGE,
     CALLBACK_UPDATE_MESSAGE,
-    EPHEMERAL_FLAG,
     GENERAL_CHANNEL_ID,
-    JOE_DISCORD_USER_ID,
     LIAISON_OPS_GUILD_ID,
     PADSPLIT_OPS_APPLICATION_ID,
     TASK_DONE_CUSTOM_ID,
@@ -272,6 +269,7 @@ class RuntimeConfigTests(unittest.TestCase):
 
 
 NOW = datetime(2026, 8, 31, 19, 45, tzinfo=timezone.utc)
+JOE_USER_ID = "1540500758116565113"
 OTHER_USER_ID = "111222333444555666"
 
 
@@ -313,11 +311,24 @@ def _task_message(
 def _interaction(
     *,
     custom_id: str = TASK_DONE_CUSTOM_ID,
-    user_id: str = JOE_DISCORD_USER_ID,
+    user_id: str = JOE_USER_ID,
     channel_id: str = TODO_JOE_CHANNEL_ID,
     message: Optional[dict] = None,
     guild_id: str = LIAISON_OPS_GUILD_ID,
+    username: str = "joe",
+    global_name: str = "Joe",
+    nick: str = "",
+    bot: bool = False,
 ) -> dict:
+    user = {
+        "id": user_id,
+        "username": username,
+        "global_name": global_name,
+        "bot": bot,
+    }
+    member = {"user": user}
+    if nick:
+        member["nick"] = nick
     return {
         "id": "interaction-id",
         "token": "interaction-token",
@@ -325,7 +336,7 @@ def _interaction(
         "channel_id": channel_id,
         "guild_id": guild_id,
         "data": {"custom_id": custom_id, "component_type": 2},
-        "member": {"user": {"id": user_id, "username": "joe"}},
+        "member": member,
         "message": message if message is not None else _task_message(channel_id=channel_id),
     }
 
@@ -378,7 +389,7 @@ class TaskButtonPayloadTests(unittest.TestCase):
 
 
 class TaskButtonInteractionTests(unittest.TestCase):
-    def test_joe_tap_ticks_message(self) -> None:
+    def test_member_tap_ticks_message(self) -> None:
         callback = build_task_interaction_callback(_interaction(), now=NOW)
         self.assertIsNotNone(callback)
         self.assertEqual(callback["type"], CALLBACK_UPDATE_MESSAGE)
@@ -392,18 +403,32 @@ class TaskButtonInteractionTests(unittest.TestCase):
         ]
         self.assertEqual(custom_ids, [TASK_UNDO_CUSTOM_ID])
 
-    def test_non_joe_tap_does_not_tick(self) -> None:
+    def test_non_joe_member_tap_ticks(self) -> None:
         original = _task_message()
         callback = build_task_interaction_callback(
-            _interaction(user_id=OTHER_USER_ID, message=original),
+            _interaction(
+                user_id=OTHER_USER_ID,
+                username="angli",
+                global_name="Ang",
+                message=original,
+            ),
             now=NOW,
         )
-        self.assertEqual(callback["type"], CALLBACK_CHANNEL_MESSAGE_WITH_SOURCE)
-        self.assertEqual(callback["data"]["flags"], EPHEMERAL_FLAG)
-        self.assertNotIn("components", callback["data"])
-        self.assertEqual(original["content"], "Fix lock at Burton")
-        self.assertTrue(original["components"][0]["components"][0]["custom_id"] == TASK_DONE_CUSTOM_ID)
-        self.assertFalse(original["components"][0]["components"][0]["disabled"])
+        self.assertEqual(callback["type"], CALLBACK_UPDATE_MESSAGE)
+        content = callback["data"]["content"]
+        self.assertIn("~~Fix lock at Burton~~", content)
+        self.assertIn("✅ Done · Ang · 2026-08-31T19:45:00Z", content)
+        self.assertEqual(
+            callback["data"]["components"][0]["components"][0]["custom_id"],
+            TASK_UNDO_CUSTOM_ID,
+        )
+
+    def test_bot_tap_does_not_tick(self) -> None:
+        callback = build_task_interaction_callback(
+            _interaction(user_id="555666777888999000", bot=True, username="other-bot"),
+            now=NOW,
+        )
+        self.assertEqual(callback["type"], CALLBACK_DEFERRED_UPDATE_MESSAGE)
 
     def test_joe_undo_within_window_restores_open_button(self) -> None:
         ticked = _task_message(

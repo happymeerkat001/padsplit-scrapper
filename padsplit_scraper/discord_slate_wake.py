@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""PadSplit Ops Discord gateway: Slate mention-wake plus Joe Done buttons.
+"""PadSplit Ops Discord gateway: Slate mention-wake plus task Done buttons.
 
 Uses the existing PadSplit Ops Discord application (DISCORD_BOT_TOKEN).
 Mention-wake is notify-only and never replies in Discord. Button taps edit
-the same task message (no chatty replies). Joe tapping Done is his claim
-only — not proof for pay.
+the same task message (no chatty replies). Tapping Done is a claim only —
+not proof for pay.
 """
 
 from __future__ import annotations
@@ -43,9 +43,7 @@ CHANNEL_NAME_FALLBACKS = {
     GENERAL_CHANNEL_ID: "communication-mgmt",
 }
 
-# Joe's board of record and PadSplit ticket / temp tasks. Buttons only here.
-JOE_DISCORD_USER_ID = "1540500758116565113"
-JOE_DISPLAY_NAME = "Joe"
+# #to-do-joe and PadSplit ticket / temp tasks. Buttons only here.
 TODO_JOE_CHANNEL_ID = "1541435122006630471"
 AI_TASKS_TEMP_CHANNEL_ID = "1540475874955231343"
 TASK_BUTTON_CHANNEL_IDS = frozenset({TODO_JOE_CHANNEL_ID, AI_TASKS_TEMP_CHANNEL_ID})
@@ -63,10 +61,8 @@ LIST_TASKS_LIMIT = 100
 
 # Interaction types / callbacks (Discord API v10).
 INTERACTION_TYPE_MESSAGE_COMPONENT = 3
-CALLBACK_CHANNEL_MESSAGE_WITH_SOURCE = 4
 CALLBACK_DEFERRED_UPDATE_MESSAGE = 6
 CALLBACK_UPDATE_MESSAGE = 7
-EPHEMERAL_FLAG = 64
 COMPONENT_ACTION_ROW = 1
 COMPONENT_BUTTON = 2
 BUTTON_STYLE_SECONDARY = 2
@@ -301,7 +297,7 @@ def parse_task_done_footer(content: str) -> Optional[Tuple[str, str]]:
     return match.group("who"), match.group("when")
 
 
-def mark_task_content_done(content: str, *, who: str = JOE_DISPLAY_NAME, when: str) -> str:
+def mark_task_content_done(content: str, *, who: str, when: str) -> str:
     original = restore_task_content(content).strip()
     return f"~~{original}~~\n\n{TASK_DONE_MARKER} · {who} · {when}"
 
@@ -314,21 +310,19 @@ def restore_task_content(content: str) -> str:
     return stripped
 
 
-def interaction_user_id(interaction: Dict) -> str:
+def interaction_user(interaction: Dict) -> Dict:
     member = interaction.get("member") or {}
     user = member.get("user") or interaction.get("user") or {}
-    return str(user.get("id") or "")
+    return user if isinstance(user, dict) else {}
 
 
-def is_joe_user(user_id: str) -> bool:
-    return str(user_id or "") == JOE_DISCORD_USER_ID
+def interaction_user_id(interaction: Dict) -> str:
+    return str(interaction_user(interaction).get("id") or "")
 
 
-def _ephemeral_callback(content: str) -> Dict[str, Any]:
-    return {
-        "type": CALLBACK_CHANNEL_MESSAGE_WITH_SOURCE,
-        "data": {"content": content, "flags": EPHEMERAL_FLAG},
-    }
+def interaction_display_name(interaction: Dict) -> str:
+    member = interaction.get("member") or {}
+    return author_display_name({"member": member, "author": interaction_user(interaction)})
 
 
 def _update_message_callback(content: str, components: List[Dict[str, Any]]) -> Dict[str, Any]:
@@ -363,16 +357,16 @@ def build_task_interaction_callback(
     content = str(message.get("content") or "")
     current_now = utc_now(now)
     when = format_iso_utc(current_now)
-    user_id = interaction_user_id(interaction)
-
-    if not is_joe_user(user_id):
-        return _ephemeral_callback("Only Joe can mark this done.")
+    actor = interaction_user(interaction)
+    if not interaction_user_id(interaction) or actor.get("bot"):
+        return {"type": CALLBACK_DEFERRED_UPDATE_MESSAGE}
+    who = interaction_display_name(interaction)
 
     if custom_id == TASK_DONE_CUSTOM_ID:
         if parse_task_done_footer(content) or TASK_UNDO_CUSTOM_ID in message_custom_ids(message):
             return {"type": CALLBACK_DEFERRED_UPDATE_MESSAGE}
         return _update_message_callback(
-            mark_task_content_done(content, who=JOE_DISPLAY_NAME, when=when),
+            mark_task_content_done(content, who=who, when=when),
             task_undo_components(),
         )
 
@@ -450,7 +444,7 @@ def post_ops_task(
     token: Optional[str] = None,
     poster=None,
 ) -> Dict[str, Any]:
-    """POST a task as PadSplit Ops. Adds a Done button only in the two Joe boards."""
+    """POST a task as PadSplit Ops. Adds a Done button only in the two task boards."""
     text = (content or "").strip()
     if not text:
         raise ValueError("Task content is required")
@@ -911,7 +905,7 @@ class PadSplitOpsGateway:
 
 def main(argv: Optional[List[str]] = None) -> None:
     parser = argparse.ArgumentParser(
-        description="PadSplit Ops gateway (mention-wake + Joe Done buttons)"
+        description="PadSplit Ops gateway (mention-wake + task Done buttons)"
     )
     parser.add_argument(
         "command",

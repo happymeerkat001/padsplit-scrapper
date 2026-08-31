@@ -36,7 +36,7 @@ python3 padsplit_scraper/scraper.py
 python3 thermostat/scraper.py
 ```
 
-PadSplit Ops mention listener (same `DISCORD_BOT_TOKEN`; notify-only webhook to Slate). The same process handles Joe Done-button taps on task posts in `#to-do-joe` and `#ai-tasks-temp`. Post those tasks with `post_ops_task()` so they get a real message-component button.
+PadSplit Ops mention listener (same `DISCORD_BOT_TOKEN`; notify-only webhook to Slate). The same process handles Done-button taps on task posts in `#to-do-joe` and `#ai-tasks-temp`. Post those tasks with `post_ops_task()` so they get a real message-component button.
 
 ```bash
 python3 padsplit_scraper/discord_slate_wake.py
