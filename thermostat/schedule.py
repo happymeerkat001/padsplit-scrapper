@@ -35,16 +35,34 @@ _LAST_LIVE_FETCH_ERROR: Optional[str] = None
 LOW_TEMP_ALERT_TARGET = "leanna"
 LOW_TEMP_THRESHOLD_F = 74
 TEMP_ALERT_STATE_PATH = LOG_DIR / "temp_alert_state.json"
+# Liaison Ops #ai-tasks-temp. Do not use DISCORD_WEBHOOK_URL (scrape / #padsplit-events).
+TEMP_ALERT_WEBHOOK_ENV = "DISCORD_WEBHOOK_TASKS"
+DISCORD_WEBHOOK_USER_AGENT = (
+    "padsplit-scraper (https://github.com/happymeerkat001/padsplit-scrapper, 1.0)"
+)
+
+
+def temp_alert_webhook_url() -> Optional[str]:
+    """Return the #ai-tasks-temp webhook, or None if unset.
+
+    Slack→Discord mapped this alert onto DISCORD_WEBHOOK_URL. That URL is the
+    scrape/events channel, so Leanna low-temp posts landed next to scraper
+    failure notices instead of PadSplit task alerts.
+    """
+    return (os.getenv(TEMP_ALERT_WEBHOOK_ENV) or "").strip() or None
 
 
 def _post_temp_alert(webhook_url: str, target: str, temp_f: float) -> None:
     _logger = logging.getLogger(__name__)
     try:
-        requests.post(
+        response = requests.post(
             webhook_url,
             json={"content": f"Leanna temp {temp_f:.0f}\u00b0F \u2014 below {LOW_TEMP_THRESHOLD_F}\u00b0F threshold"},
+            headers={"User-Agent": DISCORD_WEBHOOK_USER_AGENT},
             timeout=10,
         )
+        if not (200 <= response.status_code < 300):
+            _logger.error("Discord temp alert failed: status %s", response.status_code)
     except Exception as exc:
         _logger.error("Discord temp alert failed: %s", exc)
 
@@ -474,7 +492,7 @@ def enforce_command() -> int:
             login(session, creds["email"], creds["password"])
             raw_locations = fetch_locations(session)
             location_names = fetch_location_names(session)
-            discord_webhook = os.getenv("DISCORD_WEBHOOK_URL")
+            discord_webhook = temp_alert_webhook_url()
 
             for norm_target, slots in schedules.items():
                 active_slot = find_active_slot(slots, now)
