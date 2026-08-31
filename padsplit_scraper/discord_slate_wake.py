@@ -1,21 +1,25 @@
 #!/usr/bin/env python3
-"""Wake Grok Bot Slate when PadSplit Ops is @mentioned in allowlisted channels.
+"""PadSplit Ops Discord gateway: Slate mention-wake plus task Done buttons.
 
 Uses the existing PadSplit Ops Discord application (DISCORD_BOT_TOKEN).
-Notify-only: never replies in Discord.
+Mention-wake is notify-only and never replies in Discord. Button taps edit
+the same task message (no chatty replies). Tapping Done is a claim only —
+not proof for pay.
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
+import re
 import sys
 import threading
 import time
 from collections import OrderedDict
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, Iterable, Optional
+from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 import requests
 from dotenv import load_dotenv
@@ -38,6 +42,35 @@ CHANNEL_NAME_FALLBACKS = {
     ASK_AI_AGENT_CHANNEL_ID: "ask-ai-agent",
     GENERAL_CHANNEL_ID: "communication-mgmt",
 }
+
+# #to-do-joe and PadSplit ticket / temp tasks. Buttons only here.
+TODO_JOE_CHANNEL_ID = "1541435122006630471"
+AI_TASKS_TEMP_CHANNEL_ID = "1540475874955231343"
+TASK_BUTTON_CHANNEL_IDS = frozenset({TODO_JOE_CHANNEL_ID, AI_TASKS_TEMP_CHANNEL_ID})
+TASK_BUTTON_CHANNEL_NAMES = {
+    TODO_JOE_CHANNEL_ID: "to-do-joe",
+    AI_TASKS_TEMP_CHANNEL_ID: "ai-tasks-temp",
+}
+TASK_DONE_CUSTOM_ID = "task_done"
+TASK_UNDO_CUSTOM_ID = "task_undo"
+TASK_DONE_MARKER = "✅ Done"
+UNDO_WINDOW_SEC = 5 * 60
+STALE_OPEN_AFTER_SEC = 48 * 3600
+RECENTLY_TICKED_AFTER_SEC = 24 * 3600
+LIST_TASKS_LIMIT = 100
+
+# Interaction types / callbacks (Discord API v10).
+INTERACTION_TYPE_MESSAGE_COMPONENT = 3
+CALLBACK_DEFERRED_UPDATE_MESSAGE = 6
+CALLBACK_UPDATE_MESSAGE = 7
+COMPONENT_ACTION_ROW = 1
+COMPONENT_BUTTON = 2
+BUTTON_STYLE_SECONDARY = 2
+BUTTON_STYLE_SUCCESS = 3
+
+DONE_FOOTER_RE = re.compile(
+    r"\n\n✅ Done · (?P<who>.+?) · (?P<when>\S+)\s*$"
+)
 
 # GUILDS | GUILD_MESSAGES | MESSAGE_CONTENT
 GATEWAY_INTENTS = (1 << 0) | (1 << 9) | (1 << 15)
@@ -130,6 +163,443 @@ def post_slate_ask(payload: Dict, *, url: str, key: str) -> requests.Response:
     )
     response.raise_for_status()
     return response
+
+
+def parse_iso_datetime(value: str) -> Optional[datetime]:
+    raw = (value or "").strip()
+    if not raw:
+        return None
+    try:
+        dt = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
+
+
+def utc_now(now: Optional[datetime] = None) -> datetime:
+    if now is None:
+        return datetime.now(timezone.utc)
+    if now.tzinfo is None:
+        return now.replace(tzinfo=timezone.utc)
+    return now.astimezone(timezone.utc)
+
+
+def format_iso_utc(now: Optional[datetime] = None) -> str:
+    return utc_now(now).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def is_task_button_channel(channel_id: str) -> bool:
+    return str(channel_id or "") in TASK_BUTTON_CHANNEL_IDS
+
+
+def _button(*, custom_id: str, label: str, style: int, disabled: bool = False) -> Dict[str, Any]:
+    return {
+        "type": COMPONENT_BUTTON,
+        "style": style,
+        "custom_id": custom_id,
+        "label": label,
+        "disabled": disabled,
+    }
+
+
+def task_done_components() -> List[Dict[str, Any]]:
+    return [
+        {
+            "type": COMPONENT_ACTION_ROW,
+            "components": [
+                _button(
+                    custom_id=TASK_DONE_CUSTOM_ID,
+                    label="Done",
+                    style=BUTTON_STYLE_SUCCESS,
+                )
+            ],
+        }
+    ]
+
+
+def task_undo_components() -> List[Dict[str, Any]]:
+    return [
+        {
+            "type": COMPONENT_ACTION_ROW,
+            "components": [
+                _button(
+                    custom_id=TASK_UNDO_CUSTOM_ID,
+                    label="Undo",
+                    style=BUTTON_STYLE_SECONDARY,
+                )
+            ],
+        }
+    ]
+
+
+def task_done_disabled_components() -> List[Dict[str, Any]]:
+    return [
+        {
+            "type": COMPONENT_ACTION_ROW,
+            "components": [
+                _button(
+                    custom_id=TASK_DONE_CUSTOM_ID,
+                    label=TASK_DONE_MARKER,
+                    style=BUTTON_STYLE_SUCCESS,
+                    disabled=True,
+                )
+            ],
+        }
+    ]
+
+
+def build_ops_task_payload(content: str, channel_id: str) -> Dict[str, Any]:
+    """Message body for a PadSplit Ops task post. Buttons only on the two boards."""
+    payload: Dict[str, Any] = {"content": content}
+    if is_task_button_channel(channel_id):
+        payload["components"] = task_done_components()
+    return payload
+
+
+def flatten_message_components(message: Dict) -> List[Dict[str, Any]]:
+    rows = message.get("components") or []
+    buttons: List[Dict[str, Any]] = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        for item in row.get("components") or []:
+            if isinstance(item, dict):
+                buttons.append(item)
+    return buttons
+
+
+def message_custom_ids(message: Dict) -> List[str]:
+    return [str(item.get("custom_id") or "") for item in flatten_message_components(message)]
+
+
+def has_enabled_task_done_button(message: Dict) -> bool:
+    for item in flatten_message_components(message):
+        if str(item.get("custom_id") or "") != TASK_DONE_CUSTOM_ID:
+            continue
+        if not item.get("disabled"):
+            return True
+    return False
+
+
+def has_task_button_marker(message: Dict) -> bool:
+    custom_ids = set(message_custom_ids(message))
+    if TASK_DONE_CUSTOM_ID in custom_ids or TASK_UNDO_CUSTOM_ID in custom_ids:
+        return True
+    return TASK_DONE_MARKER in str(message.get("content") or "")
+
+
+def parse_task_done_footer(content: str) -> Optional[Tuple[str, str]]:
+    match = DONE_FOOTER_RE.search(content or "")
+    if not match:
+        return None
+    return match.group("who"), match.group("when")
+
+
+def mark_task_content_done(content: str, *, who: str, when: str) -> str:
+    original = restore_task_content(content).strip()
+    return f"~~{original}~~\n\n{TASK_DONE_MARKER} · {who} · {when}"
+
+
+def restore_task_content(content: str) -> str:
+    text = DONE_FOOTER_RE.sub("", content or "")
+    stripped = text.strip()
+    if stripped.startswith("~~") and stripped.endswith("~~") and len(stripped) >= 4:
+        return stripped[2:-2]
+    return stripped
+
+
+def interaction_user(interaction: Dict) -> Dict:
+    member = interaction.get("member") or {}
+    user = member.get("user") or interaction.get("user") or {}
+    return user if isinstance(user, dict) else {}
+
+
+def interaction_user_id(interaction: Dict) -> str:
+    return str(interaction_user(interaction).get("id") or "")
+
+
+def interaction_display_name(interaction: Dict) -> str:
+    member = interaction.get("member") or {}
+    return author_display_name({"member": member, "author": interaction_user(interaction)})
+
+
+def _update_message_callback(content: str, components: List[Dict[str, Any]]) -> Dict[str, Any]:
+    return {
+        "type": CALLBACK_UPDATE_MESSAGE,
+        "data": {"content": content, "components": components},
+    }
+
+
+def build_task_interaction_callback(
+    interaction: Dict,
+    *,
+    now: Optional[datetime] = None,
+) -> Optional[Dict[str, Any]]:
+    """Return the interaction callback body, or None if this is not our button."""
+    if not isinstance(interaction, dict):
+        return None
+    if int(interaction.get("type") or 0) != INTERACTION_TYPE_MESSAGE_COMPONENT:
+        return None
+    data = interaction.get("data") or {}
+    custom_id = str(data.get("custom_id") or "")
+    if custom_id not in {TASK_DONE_CUSTOM_ID, TASK_UNDO_CUSTOM_ID}:
+        return None
+    channel_id = str(interaction.get("channel_id") or "")
+    if not is_task_button_channel(channel_id):
+        return {"type": CALLBACK_DEFERRED_UPDATE_MESSAGE}
+    guild_id = str(interaction.get("guild_id") or "")
+    if guild_id and guild_id != LIAISON_OPS_GUILD_ID:
+        return {"type": CALLBACK_DEFERRED_UPDATE_MESSAGE}
+
+    message = interaction.get("message") or {}
+    content = str(message.get("content") or "")
+    current_now = utc_now(now)
+    when = format_iso_utc(current_now)
+    actor = interaction_user(interaction)
+    if not interaction_user_id(interaction) or actor.get("bot"):
+        return {"type": CALLBACK_DEFERRED_UPDATE_MESSAGE}
+    who = interaction_display_name(interaction)
+
+    if custom_id == TASK_DONE_CUSTOM_ID:
+        if parse_task_done_footer(content) or TASK_UNDO_CUSTOM_ID in message_custom_ids(message):
+            return {"type": CALLBACK_DEFERRED_UPDATE_MESSAGE}
+        return _update_message_callback(
+            mark_task_content_done(content, who=who, when=when),
+            task_undo_components(),
+        )
+
+    footer = parse_task_done_footer(content)
+    if footer is None:
+        return {"type": CALLBACK_DEFERRED_UPDATE_MESSAGE}
+    _who, done_at = footer
+    done_dt = parse_iso_datetime(done_at)
+    if done_dt is None or (current_now - done_dt).total_seconds() > UNDO_WINDOW_SEC:
+        return _update_message_callback(content, task_done_disabled_components())
+    return _update_message_callback(restore_task_content(content), task_done_components())
+
+
+def ack_interaction(
+    interaction: Dict,
+    callback: Dict,
+    *,
+    token: str = "",
+    poster=None,
+) -> requests.Response:
+    post = poster or requests.post
+    headers = {
+        "Content-Type": "application/json",
+        "User-Agent": USER_AGENT,
+    }
+    if token:
+        headers["Authorization"] = f"Bot {token}"
+    response = post(
+        (
+            f"{DISCORD_API_BASE}/interactions/"
+            f"{interaction.get('id')}/{interaction.get('token')}/callback"
+        ),
+        headers=headers,
+        json=callback,
+        timeout=DEFAULT_TIMEOUT,
+    )
+    response.raise_for_status()
+    return response
+
+
+def handle_interaction_create(
+    interaction: Dict,
+    *,
+    token: str,
+    now: Optional[datetime] = None,
+    poster=None,
+) -> bool:
+    callback = build_task_interaction_callback(interaction, now=now)
+    if callback is None:
+        return False
+    ack_interaction(interaction, callback, token=token, poster=poster)
+    custom_id = str((interaction.get("data") or {}).get("custom_id") or "")
+    user_id = interaction_user_id(interaction)
+    message_id = str((interaction.get("message") or {}).get("id") or "")
+    print(
+        f"Task button custom_id={custom_id} user={user_id} message={message_id} "
+        f"callback_type={callback.get('type')}",
+        flush=True,
+    )
+    return True
+
+
+def load_bot_token() -> str:
+    load_root_env()
+    token = (os.getenv("DISCORD_BOT_TOKEN") or "").strip()
+    if not token:
+        raise RuntimeError("Missing DISCORD_BOT_TOKEN")
+    return token
+
+
+def post_ops_task(
+    content: str,
+    channel_id: str,
+    *,
+    token: Optional[str] = None,
+    poster=None,
+) -> Dict[str, Any]:
+    """POST a task as PadSplit Ops. Adds a Done button only in the two task boards."""
+    text = (content or "").strip()
+    if not text:
+        raise ValueError("Task content is required")
+    bot_token = token if token is not None else load_bot_token()
+    post = poster or requests.post
+    response = post(
+        f"{DISCORD_API_BASE}/channels/{channel_id}/messages",
+        headers={
+            "Authorization": f"Bot {bot_token}",
+            "Content-Type": "application/json",
+            "User-Agent": USER_AGENT,
+        },
+        json=build_ops_task_payload(text, channel_id),
+        timeout=DEFAULT_TIMEOUT,
+    )
+    response.raise_for_status()
+    return response.json()
+
+
+def classify_ops_task_message(
+    message: Dict,
+    *,
+    now: Optional[datetime] = None,
+    stale_after_sec: int = STALE_OPEN_AFTER_SEC,
+    recently_ticked_sec: int = RECENTLY_TICKED_AFTER_SEC,
+) -> Optional[Dict[str, Any]]:
+    """Classify one Discord message as open or ticked from button/✅ Done state."""
+    if not isinstance(message, dict) or not has_task_button_marker(message):
+        return None
+    content = str(message.get("content") or "")
+    footer = parse_task_done_footer(content)
+    custom_ids = set(message_custom_ids(message))
+    ticked = bool(
+        footer
+        or TASK_UNDO_CUSTOM_ID in custom_ids
+        or (
+            TASK_DONE_CUSTOM_ID in custom_ids
+            and not has_enabled_task_done_button(message)
+        )
+        or (TASK_DONE_MARKER in content and not has_enabled_task_done_button(message))
+    )
+    who = footer[0] if footer else None
+    when = footer[1] if footer else None
+    current_now = utc_now(now)
+    created = parse_iso_datetime(str(message.get("timestamp") or ""))
+    done_dt = parse_iso_datetime(when or "")
+    age_sec = None
+    if created is not None:
+        age_sec = max(0, int((current_now - created).total_seconds()))
+    stale = (not ticked) and age_sec is not None and age_sec >= stale_after_sec
+    recently_ticked = False
+    if ticked and done_dt is not None:
+        recently_ticked = (current_now - done_dt).total_seconds() <= recently_ticked_sec
+    channel_id = str(message.get("channel_id") or "")
+    message_id = str(message.get("id") or "")
+    return {
+        "status": "ticked" if ticked else "open",
+        "who": who,
+        "when": when,
+        "stale": stale,
+        "recently_ticked": recently_ticked,
+        "channel_id": channel_id,
+        "channel_name": TASK_BUTTON_CHANNEL_NAMES.get(channel_id, channel_id),
+        "message_id": message_id,
+        "content": restore_task_content(content) if ticked else content,
+        "jump_url": (
+            f"https://discord.com/channels/{LIAISON_OPS_GUILD_ID}/{channel_id}/{message_id}"
+            if channel_id and message_id
+            else ""
+        ),
+        "timestamp": str(message.get("timestamp") or ""),
+    }
+
+
+def summarize_ops_task_messages(
+    messages: Iterable[Dict],
+    *,
+    bot_user_id: str = PADSPLIT_OPS_APPLICATION_ID,
+    now: Optional[datetime] = None,
+) -> Dict[str, Any]:
+    open_items: List[Dict[str, Any]] = []
+    ticked_items: List[Dict[str, Any]] = []
+    for message in messages:
+        author = (message or {}).get("author") or {}
+        if str(author.get("id") or "") != str(bot_user_id):
+            continue
+        classified = classify_ops_task_message(message, now=now)
+        if classified is None:
+            continue
+        if classified["status"] == "ticked":
+            ticked_items.append(classified)
+        else:
+            open_items.append(classified)
+    return {
+        "open_count": len(open_items),
+        "stale_unticked_count": sum(1 for item in open_items if item["stale"]),
+        "recently_ticked_count": sum(1 for item in ticked_items if item["recently_ticked"]),
+        "ticked_count": len(ticked_items),
+        "open": open_items,
+        "ticked": ticked_items,
+    }
+
+
+def fetch_channel_messages(
+    channel_id: str,
+    *,
+    token: str,
+    limit: int = LIST_TASKS_LIMIT,
+    getter=None,
+) -> List[Dict[str, Any]]:
+    get = getter or requests.get
+    response = get(
+        f"{DISCORD_API_BASE}/channels/{channel_id}/messages",
+        headers={
+            "Authorization": f"Bot {token}",
+            "User-Agent": USER_AGENT,
+        },
+        params={"limit": limit},
+        timeout=DEFAULT_TIMEOUT,
+    )
+    response.raise_for_status()
+    payload = response.json() or []
+    return payload if isinstance(payload, list) else []
+
+
+def list_ops_tasks(
+    *,
+    token: Optional[str] = None,
+    now: Optional[datetime] = None,
+    getter=None,
+    limit: int = LIST_TASKS_LIMIT,
+) -> Dict[str, Any]:
+    bot_token = token if token is not None else load_bot_token()
+    boards: Dict[str, Any] = {}
+    for channel_id in (TODO_JOE_CHANNEL_ID, AI_TASKS_TEMP_CHANNEL_ID):
+        messages = fetch_channel_messages(
+            channel_id,
+            token=bot_token,
+            limit=limit,
+            getter=getter,
+        )
+        summary = summarize_ops_task_messages(messages, now=now)
+        summary["channel_id"] = channel_id
+        summary["channel_name"] = TASK_BUTTON_CHANNEL_NAMES[channel_id]
+        boards[channel_id] = summary
+    return {
+        "open_count": sum(board["open_count"] for board in boards.values()),
+        "stale_unticked_count": sum(
+            board["stale_unticked_count"] for board in boards.values()
+        ),
+        "recently_ticked_count": sum(
+            board["recently_ticked_count"] for board in boards.values()
+        ),
+        "channels": boards,
+    }
 
 
 def load_runtime_config() -> Dict[str, str]:
@@ -346,6 +816,12 @@ class PadSplitOpsGateway:
         if event == "CHANNEL_DELETE":
             self.channel_names.pop(str(data.get("id") or ""), None)
             return
+        if event == "INTERACTION_CREATE":
+            try:
+                handle_interaction_create(data, token=self.token)
+            except Exception as exc:
+                print(f"Task button interaction failed: {exc}", flush=True)
+            return
         if event != "MESSAGE_CREATE":
             return
         try:
@@ -427,7 +903,20 @@ class PadSplitOpsGateway:
             time.sleep(delay)
 
 
-def main() -> None:
+def main(argv: Optional[List[str]] = None) -> None:
+    parser = argparse.ArgumentParser(
+        description="PadSplit Ops gateway (mention-wake + task Done buttons)"
+    )
+    parser.add_argument(
+        "command",
+        nargs="?",
+        choices=("list-tasks",),
+        help="list-tasks prints open vs ticked PadSplit Ops posts (JSON)",
+    )
+    args = parser.parse_args(sys.argv[1:] if argv is None else argv)
+    if args.command == "list-tasks":
+        print(json.dumps(list_ops_tasks(), indent=2))
+        return
     config = load_runtime_config()
     print(
         "Listening for @PadSplit Ops mentions in "

@@ -22,6 +22,9 @@ python3 thermostat/scraper.py
 # PadSplit Ops mention listener (long-running; wakes Slate, does not reply)
 python3 padsplit_scraper/discord_slate_wake.py
 
+# Classify recent PadSplit Ops task posts in #to-do-joe and #ai-tasks-temp
+python3 padsplit_scraper/discord_slate_wake.py list-tasks
+
 # Scheduled runs (also commit/push rolling output to git)
 ./run_morning.sh    # padsplit + thermostat
 ./run_afternoon.sh  # padsplit only
@@ -69,7 +72,7 @@ No build step or linter configuration; tests use direct Python execution.
 - `padsplit_scraper/occupancy.py` — presence from messages + tasks (`occupancy.json`). `kpis.vacancy_rooms` is listed-status, not presence.
 - `thermostat/scraper.py` — thermostat portal scraper; HTTP session + fallback logic
 - `padsplit_scraper/discord_notifier.py` — Discord bot alerts on error
-- `padsplit_scraper/discord_slate_wake.py` — PadSplit Ops gateway listener; @mention in #ask-ai-agent or #communication-mgmt POSTs to Slate (notify-only)
+- `padsplit_scraper/discord_slate_wake.py` — PadSplit Ops gateway listener; @mention in #ask-ai-agent or #communication-mgmt POSTs to Slate (notify-only). Same process ACKs Done-button taps on task posts in #to-do-joe and #ai-tasks-temp. Post tasks with `post_ops_task()` so those two channels get a real Done button.
 - `slack_task_digest.py` — scheduled DFW weather and task digest, posts to Discord
 - `padsplit_scraper/firestore_status_monitor.py` — Firestore integration
 - `obsidian_daily_digest.py` — daily note generation from scraped data
