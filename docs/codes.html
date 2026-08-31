@@ -111,6 +111,14 @@
       font-size: 0.92rem;
       table-layout: fixed;
     }
+    th {
+      padding: 0.35rem 0.45rem;
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 0.8rem;
+      text-align: left;
+      border-bottom: 1px solid rgba(148,163,184,0.14);
+    }
     td {
       padding: 0.35rem 0.45rem;
       border-bottom: 1px solid rgba(148,163,184,0.08);
@@ -120,6 +128,10 @@
       width: 34%;
       color: var(--muted);
       font-weight: 500;
+    }
+    table.room-table td:first-child,
+    table.room-table th:first-child {
+      width: 22%;
     }
     .code-input {
       width: 100%;
@@ -261,11 +273,12 @@
             { key: "wifi_tmobile", label: "T-Mobile", value: "TMOBILE-14a / g4eaa7cugt5" }
           ]},
           { label: "Rooms", fields: [
-            { key: "r1", label: "R1", value: "2721" },
-            { key: "r2", label: "R2", value: "5410" },
-            { key: "r3", label: "R3", value: "1069" },
-            { key: "r4", label: "R4", value: "3414" },
-            { key: "r5", label: "R5", value: "7520" }
+            { label: "R1", door: { key: "r1", value: "2721" }, lockbox: { key: "lockbox_1", value: "1010" } },
+            { label: "R2", door: { key: "r2", value: "5410" }, lockbox: { key: "lockbox_2", value: "1320" } },
+            { label: "R3", door: { key: "r3", value: "1069" }, lockbox: { key: "lockbox_3", value: "2121" } },
+            { label: "R4", door: { key: "r4", value: "3414" }, lockbox: { key: "lockbox_4", value: "5011" } },
+            { label: "R5", door: { key: "r5", value: "7520" }, lockbox: { key: "lockbox_5", value: "3002" } },
+            { label: "R6", door: { key: "r6", value: "" }, lockbox: { key: "lockbox_6", value: "4003" } }
           ]},
           { label: "Contact", fields: [
             { key: "responsible_tenant", label: "Responsible Tenant", value: "", placeholder: "Name, Phone" },
@@ -286,12 +299,12 @@
             { key: "wifi_tmobile", label: "T-Mobile", value: "TMOBILE-3FF9" }
           ]},
           { label: "Rooms", fields: [
-            { key: "r1", label: "R1", value: "7653" },
-            { key: "r2", label: "R2", value: "6512" },
-            { key: "r3", label: "R3", value: "1069" },
-            { key: "r4", label: "R4", value: "1304" },
-            { key: "r5", label: "R5", value: "5410" },
-            { key: "r6", label: "R6", value: "2024" }
+            { label: "R1", door: { key: "r1", value: "7653" }, lockbox: { key: "lockbox_1", value: "1212" } },
+            { label: "R2", door: { key: "r2", value: "6512" }, lockbox: { key: "lockbox_2", value: "3112" } },
+            { label: "R3", door: { key: "r3", value: "1069" }, lockbox: { key: "lockbox_3", value: "5132" } },
+            { label: "R4", door: { key: "r4", value: "1304" }, lockbox: { key: "lockbox_4", value: "2100" } },
+            { label: "R5", door: { key: "r5", value: "5410" }, lockbox: { key: "lockbox_5", value: "4245" } },
+            { label: "R6", door: { key: "r6", value: "2024" }, lockbox: { key: "lockbox_6", value: "4011" } }
           ]},
           { label: "Contact", fields: [
             { key: "responsible_tenant", label: "Responsible Tenant", value: "", placeholder: "Name, Phone" },
@@ -316,12 +329,12 @@
             { key: "tenant_login", label: "Tenant Login", value: "TomLi / Lemming6623" }
           ]},
           { label: "Rooms", fields: [
-            { key: "r1", label: "R1", value: "6510" },
-            { key: "r2", label: "R2", value: "1304" },
-            { key: "r3", label: "R3", value: "7653" },
-            { key: "r4", label: "R4", value: "5410" },
-            { key: "r5", label: "R5", value: "1069" },
-            { key: "r6", label: "R6", value: "3414" }
+            { label: "R1", door: { key: "r1", value: "6510" }, lockbox: { key: "lockbox_1", value: "2011" } },
+            { label: "R2", door: { key: "r2", value: "1304" }, lockbox: { key: "lockbox_2", value: "2400" } },
+            { label: "R3", door: { key: "r3", value: "7653" }, lockbox: { key: "lockbox_3", value: "1211" } },
+            { label: "R4", door: { key: "r4", value: "5410" }, lockbox: { key: "lockbox_4", value: "5168" } },
+            { label: "R5", door: { key: "r5", value: "1069" }, lockbox: { key: "lockbox_5", value: "3311" } },
+            { label: "R6", door: { key: "r6", value: "3414" }, lockbox: { key: "lockbox_6", value: "" } }
           ]},
           { label: "Contact", fields: [
             { key: "responsible_tenant", label: "Responsible Tenant", value: "", placeholder: "Name, Phone" },
@@ -343,12 +356,12 @@
             { key: "wifi_primary", label: "WiFi", value: "Tomli / Jilingma123" }
           ]},
           { label: "Rooms", fields: [
-            { key: "r1", label: "R1", value: "7845 (or 5613?)" },
-            { key: "r2", label: "R2", value: "4590" },
-            { key: "r3", label: "R3", value: "3506" },
-            { key: "r4", label: "R4", value: "1314" },
-            { key: "r5", label: "R5", value: "2398" },
-            { key: "r6", label: "R6", value: "6510" }
+            { label: "R1", door: { key: "r1", value: "7845 (or 5613?)" }, lockbox: { key: "lockbox_1", value: "2100" } },
+            { label: "R2", door: { key: "r2", value: "4590" }, lockbox: { key: "lockbox_2", value: "4132" } },
+            { label: "R3", door: { key: "r3", value: "3506" }, lockbox: { key: "lockbox_3", value: "5111" } },
+            { label: "R4", door: { key: "r4", value: "1314" }, lockbox: { key: "lockbox_4", value: "1111" } },
+            { label: "R5", door: { key: "r5", value: "2398" }, lockbox: { key: "lockbox_5", value: "4019" } },
+            { label: "R6", door: { key: "r6", value: "6510" }, lockbox: { key: "lockbox_6", value: "5168" } }
           ]},
           { label: "Contact", fields: [
             { key: "responsible_tenant", label: "Responsible Tenant", value: "", placeholder: "Name, Phone" },
@@ -370,13 +383,13 @@
             { key: "tmobile_line", label: "T-Mobile Line", value: "2144039718" }
           ]},
           { label: "Rooms", fields: [
-            { key: "r1", label: "R1", value: "1604" },
-            { key: "r2", label: "R2", value: "2406" },
-            { key: "r3", label: "R3", value: "3604" },
-            { key: "r4", label: "R4", value: "4406" },
-            { key: "r5", label: "R5", value: "5604" },
-            { key: "r6", label: "R6", value: "5006" },
-            { key: "r7", label: "R7", value: "7503" }
+            { label: "R1", door: { key: "r1", value: "1604" }, lockbox: { key: "lockbox_1", value: "8002" } },
+            { label: "R2", door: { key: "r2", value: "2406" }, lockbox: { key: "lockbox_2", value: "2011" } },
+            { label: "R3", door: { key: "r3", value: "3604" }, lockbox: { key: "lockbox_3", value: "1111" } },
+            { label: "R4", door: { key: "r4", value: "4406" }, lockbox: { key: "lockbox_4", value: "9001" } },
+            { label: "R5", door: { key: "r5", value: "5604" }, lockbox: { key: "lockbox_5", value: "5500" } },
+            { label: "R6", door: { key: "r6", value: "5006" }, lockbox: { key: "lockbox_6", value: "1968" } },
+            { label: "R7", door: { key: "r7", value: "7503" }, lockbox: { key: "lockbox_7", value: "7777" } }
           ]},
           { label: "Contact", fields: [
             { key: "responsible_tenant", label: "Responsible Tenant", value: "", placeholder: "Name, Phone" },
@@ -396,24 +409,14 @@
             { key: "wifi_primary", label: "Spectrum", value: "SpectrumSetup-35 / choicesystem718" }
           ]},
           { label: "Rooms", fields: [
-            { key: "r1", label: "R1", value: "1587" },
-            { key: "r2", label: "R2", value: "0411" },
-            { key: "r3", label: "R3", value: "9239" },
-            { key: "r4", label: "R4", value: "3454" },
-            { key: "r5", label: "R5", value: "2523" },
-            { key: "r6", label: "R6", value: "6584" },
-            { key: "r7", label: "R7", value: "9012" },
-            { key: "r8", label: "R8", value: "0629" }
-          ]},
-          { label: "Lockboxes", fields: [
-            { key: "lockbox_1", label: "1", value: "1244" },
-            { key: "lockbox_2", label: "2", value: "3344" },
-            { key: "lockbox_3", label: "3", value: "4011" },
-            { key: "lockbox_4", label: "4", value: "5312" },
-            { key: "lockbox_5", label: "5", value: "7233" },
-            { key: "lockbox_6", label: "6", value: "5168" },
-            { key: "lockbox_7", label: "7", value: "0228" },
-            { key: "lockbox_8", label: "8", value: "3211" }
+            { label: "R1", door: { key: "r1", value: "1587" }, lockbox: { key: "lockbox_1", value: "1244" } },
+            { label: "R2", door: { key: "r2", value: "0411" }, lockbox: { key: "lockbox_2", value: "3344" } },
+            { label: "R3", door: { key: "r3", value: "9239" }, lockbox: { key: "lockbox_3", value: "4011" } },
+            { label: "R4", door: { key: "r4", value: "3454" }, lockbox: { key: "lockbox_4", value: "5312" } },
+            { label: "R5", door: { key: "r5", value: "2523" }, lockbox: { key: "lockbox_5", value: "7233" } },
+            { label: "R6", door: { key: "r6", value: "6584" }, lockbox: { key: "lockbox_6", value: "5168" } },
+            { label: "R7", door: { key: "r7", value: "9012" }, lockbox: { key: "lockbox_7", value: "0228" } },
+            { label: "R8", door: { key: "r8", value: "0629" }, lockbox: { key: "lockbox_8", value: "3211" } }
           ]},
           { label: "Contact", fields: [
             { key: "responsible_tenant", label: "Responsible Tenant", value: "", placeholder: "Name, Phone" },
@@ -433,22 +436,13 @@
             { key: "wifi_primary", label: "Pioneer (Frontier)", value: "Pioneer (Frontier) / 9452413070" }
           ]},
           { label: "Rooms", fields: [
-            { key: "r1", label: "R1", value: "3450" },
-            { key: "r2", label: "R2", value: "9011" },
-            { key: "r3", label: "R3", value: "7712" },
-            { key: "r4", label: "R4", value: "0328 (or 1755?)" },
-            { key: "r5", label: "R5", value: "2846" },
-            { key: "r6", label: "R6", value: "8950" },
-            { key: "r7", label: "R7", value: "5252" }
-          ]},
-          { label: "Other", fields: [
-            { key: "keys_1", label: "Keys 1", value: "1111" },
-            { key: "keys_2", label: "Keys 2", value: "2010" },
-            { key: "keys_3", label: "Keys 3", value: "3111" },
-            { key: "keys_4", label: "Keys 4", value: "0400" },
-            { key: "keys_5", label: "Keys 5", value: "5115" },
-            { key: "keys_6", label: "Keys 6", value: "6330" },
-            { key: "keys_7", label: "Keys 7", value: "7222" }
+            { label: "R1", door: { key: "r1", value: "3450" }, lockbox: { key: "keys_1", value: "1111" } },
+            { label: "R2", door: { key: "r2", value: "9011" }, lockbox: { key: "keys_2", value: "2010" } },
+            { label: "R3", door: { key: "r3", value: "7712" }, lockbox: { key: "keys_3", value: "3111" } },
+            { label: "R4", door: { key: "r4", value: "0328 (or 1755?)" }, lockbox: { key: "keys_4", value: "0400" } },
+            { label: "R5", door: { key: "r5", value: "2846" }, lockbox: { key: "keys_5", value: "5115" } },
+            { label: "R6", door: { key: "r6", value: "8950" }, lockbox: { key: "keys_6", value: "6330" } },
+            { label: "R7", door: { key: "r7", value: "5252" }, lockbox: { key: "keys_7", value: "7222" } }
           ]},
           { label: "Contact", fields: [
             { key: "responsible_tenant", label: "Responsible Tenant", value: "", placeholder: "Name, Phone" },
@@ -469,22 +463,13 @@
             { key: "wifi_primary", label: "Spectrum", value: "SpectrumSetup-354C / parkingworth923" }
           ]},
           { label: "Rooms", fields: [
-            { key: "r1", label: "R1", value: "232323" },
-            { key: "r2", label: "R2", value: "242424" },
-            { key: "r3", label: "R3", value: "141414" },
-            { key: "r4", label: "R4", value: "456090" },
-            { key: "r5", label: "R5", value: "504530" },
-            { key: "r6", label: "R6", value: "313131" },
-            { key: "r7", label: "R7", value: "121212" }
-          ]},
-          { label: "Lockboxes", fields: [
-            { key: "lockbox_1", label: "1", value: "1100" },
-            { key: "lockbox_2", label: "2", value: "2110" },
-            { key: "lockbox_3", label: "3", value: "3000" },
-            { key: "lockbox_4", label: "4", value: "4321" },
-            { key: "lockbox_5", label: "5", value: "5220" },
-            { key: "lockbox_6", label: "6", value: "6111" },
-            { key: "lockbox_7", label: "7", value: "7222" }
+            { label: "R1", door: { key: "r1", value: "232323" }, lockbox: { key: "lockbox_1", value: "1100" } },
+            { label: "R2", door: { key: "r2", value: "242424" }, lockbox: { key: "lockbox_2", value: "2110" } },
+            { label: "R3", door: { key: "r3", value: "141414" }, lockbox: { key: "lockbox_3", value: "3000" } },
+            { label: "R4", door: { key: "r4", value: "456090" }, lockbox: { key: "lockbox_4", value: "4321" } },
+            { label: "R5", door: { key: "r5", value: "504530" }, lockbox: { key: "lockbox_5", value: "5220" } },
+            { label: "R6", door: { key: "r6", value: "313131" }, lockbox: { key: "lockbox_6", value: "6111" } },
+            { label: "R7", door: { key: "r7", value: "121212" }, lockbox: { key: "lockbox_7", value: "7222" } }
           ]},
           { label: "Contact", fields: [
             { key: "responsible_tenant", label: "Responsible Tenant", value: "", placeholder: "Name, Phone" },
@@ -504,15 +489,15 @@
             { key: "wifi_primary", label: "Spectrum", value: "SpectrumSetup-A402 / distinctbase477" }
           ]},
           { label: "Rooms", fields: [
-            { key: "r1", label: "R1", value: "9119 (lockbox)" },
-            { key: "r2", label: "R2", value: "0079 (lockbox)" },
-            { key: "r3", label: "R3", value: "7633 (lockbox)" },
-            { key: "r4", label: "R4", value: "1717" },
-            { key: "r5", label: "R5", value: "6964" },
-            { key: "r6", label: "R6", value: "5376" },
-            { key: "r7", label: "R7", value: "2573" },
-            { key: "r8", label: "R8", value: "6553" },
-            { key: "r9", label: "R9", value: "4554" }
+            { label: "R1", door: { key: "r1", value: "9119 (lockbox)" }, lockbox: { key: "lockbox_1", value: "" } },
+            { label: "R2", door: { key: "r2", value: "0079 (lockbox)" }, lockbox: { key: "lockbox_2", value: "" } },
+            { label: "R3", door: { key: "r3", value: "7633 (lockbox)" }, lockbox: { key: "lockbox_3", value: "" } },
+            { label: "R4", door: { key: "r4", value: "1717" }, lockbox: { key: "lockbox_4", value: "" } },
+            { label: "R5", door: { key: "r5", value: "6964" }, lockbox: { key: "lockbox_5", value: "" } },
+            { label: "R6", door: { key: "r6", value: "5376" }, lockbox: { key: "lockbox_6", value: "" } },
+            { label: "R7", door: { key: "r7", value: "2573" }, lockbox: { key: "lockbox_7", value: "" } },
+            { label: "R8", door: { key: "r8", value: "6553" }, lockbox: { key: "lockbox_8", value: "" } },
+            { label: "R9", door: { key: "r9", value: "4554" }, lockbox: { key: "lockbox_9", value: "" } }
           ]},
           { label: "Contact", fields: [
             { key: "responsible_tenant", label: "Responsible Tenant", value: "", placeholder: "Name, Phone" },
@@ -569,6 +554,78 @@
       if (ageMs > threeMonthsMs) input.classList.add('overdue');
     }
 
+    function fieldValue(savedValues, key, fallback) {
+      return Object.prototype.hasOwnProperty.call(savedValues, key)
+        ? savedValues[key]
+        : fallback;
+    }
+
+    function createCodeInput(propertySlug, field, savedValues, ariaLabel) {
+      const input = document.createElement('input');
+      input.type = field.type || 'text';
+      input.className = 'code-input';
+      input.dataset.prop = propertySlug;
+      input.dataset.field = field.key;
+      input.value = fieldValue(savedValues, field.key, field.value);
+      input.setAttribute('aria-label', ariaLabel);
+      updateAcFilterOverdueState(input);
+      input.addEventListener('input', () => updateAcFilterOverdueState(input));
+      if (field.placeholder) input.placeholder = field.placeholder;
+      return input;
+    }
+
+    function renderSimpleTable(property, section, savedValues) {
+      const table = document.createElement('table');
+      const tbody = document.createElement('tbody');
+      section.fields.forEach((field) => {
+        const tr = document.createElement('tr');
+        const tdLabel = document.createElement('td');
+        tdLabel.textContent = field.label;
+        const tdInput = document.createElement('td');
+        tdInput.appendChild(createCodeInput(property.slug, field, savedValues, field.label));
+        tr.appendChild(tdLabel);
+        tr.appendChild(tdInput);
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+      return table;
+    }
+
+    function renderRoomsTable(property, section, savedValues) {
+      const table = document.createElement('table');
+      table.className = 'room-table';
+      const thead = document.createElement('thead');
+      const headRow = document.createElement('tr');
+      ['Room', 'Door code', 'Lockbox'].forEach((text) => {
+        const th = document.createElement('th');
+        th.scope = 'col';
+        th.textContent = text;
+        headRow.appendChild(th);
+      });
+      thead.appendChild(headRow);
+      table.appendChild(thead);
+      const tbody = document.createElement('tbody');
+      section.fields.forEach((field) => {
+        const tr = document.createElement('tr');
+        const tdLabel = document.createElement('td');
+        tdLabel.textContent = field.label;
+        const tdDoor = document.createElement('td');
+        tdDoor.appendChild(createCodeInput(
+          property.slug, field.door, savedValues, `${field.label} door code`
+        ));
+        const tdBox = document.createElement('td');
+        tdBox.appendChild(createCodeInput(
+          property.slug, field.lockbox, savedValues, `${field.label} lockbox`
+        ));
+        tr.appendChild(tdLabel);
+        tr.appendChild(tdDoor);
+        tr.appendChild(tdBox);
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+      return table;
+    }
+
     function renderProperty(property, savedValues = {}) {
       const details = document.createElement('details');
       details.open = true;
@@ -589,33 +646,9 @@
         label.className = 'section-label';
         label.textContent = section.label;
         body.appendChild(label);
-
-        const table = document.createElement('table');
-        const tbody = document.createElement('tbody');
-
-        section.fields.forEach((field) => {
-          const tr = document.createElement('tr');
-          const tdLabel = document.createElement('td');
-          tdLabel.textContent = field.label;
-          const tdInput = document.createElement('td');
-          const input = document.createElement('input');
-          input.type = field.type || 'text';
-          input.className = 'code-input';
-          input.dataset.prop = property.slug;
-          input.dataset.field = field.key;
-          input.value = Object.prototype.hasOwnProperty.call(savedValues, field.key)
-            ? savedValues[field.key]
-            : field.value;
-          updateAcFilterOverdueState(input);
-          input.addEventListener('input', () => updateAcFilterOverdueState(input));
-          if (field.placeholder) input.placeholder = field.placeholder;
-          tdInput.appendChild(input);
-          tr.appendChild(tdLabel);
-          tr.appendChild(tdInput);
-          tbody.appendChild(tr);
-        });
-
-        table.appendChild(tbody);
+        const table = section.label === "Rooms"
+          ? renderRoomsTable(property, section, savedValues)
+          : renderSimpleTable(property, section, savedValues);
         body.appendChild(table);
       });
 
