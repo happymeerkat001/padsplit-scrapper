@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 import io
 import json
+import os
 import plistlib
 import tempfile
 import unittest
 from contextlib import redirect_stdout
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import thermostat.schedule as schedule
 
@@ -15,6 +16,34 @@ import thermostat.schedule as schedule
 class ThermostatScheduleTests(unittest.TestCase):
     def test_leanna_low_temp_alert_threshold_is_74f(self) -> None:
         self.assertEqual(schedule.LOW_TEMP_THRESHOLD_F, 74)
+
+    def test_temp_alert_uses_tasks_webhook_not_scraper_url(self) -> None:
+        env = {
+            "DISCORD_WEBHOOK_TASKS": "https://discord.example/tasks",
+            "DISCORD_WEBHOOK_URL": "https://discord.example/scraper",
+            "DISCORD_WEBHOOK_MESSAGES": "https://discord.example/messages",
+        }
+        with patch.dict(os.environ, env, clear=False):
+            self.assertEqual(schedule.temp_alert_webhook_url(), "https://discord.example/tasks")
+
+    def test_temp_alert_webhook_unset_does_not_fall_back_to_scraper_url(self) -> None:
+        with patch.dict(os.environ, {"DISCORD_WEBHOOK_URL": "https://discord.example/scraper"}, clear=False):
+            os.environ.pop("DISCORD_WEBHOOK_TASKS", None)
+            self.assertIsNone(schedule.temp_alert_webhook_url())
+
+    def test_post_temp_alert_posts_threshold_text_only(self) -> None:
+        response = Mock()
+        response.status_code = 204
+        with patch.object(schedule.requests, "post", return_value=response) as post_mock:
+            schedule._post_temp_alert("https://discord.example/tasks", "6623 leanna", 72.4)
+        post_mock.assert_called_once()
+        args, kwargs = post_mock.call_args
+        self.assertEqual(args[0], "https://discord.example/tasks")
+        content = kwargs["json"]["content"]
+        self.assertIn("Leanna temp 72", content)
+        self.assertIn("74", content)
+        self.assertNotIn("code", content.lower())
+        self.assertNotIn("pin", content.lower())
 
     def test_parse_time_accepts_supported_12_hour_formats(self) -> None:
         self.assertEqual(schedule.parse_time("7am"), (7, 0))
