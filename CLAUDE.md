@@ -22,6 +22,7 @@ python3 thermostat/scraper.py
 # Scheduled runs (also commit/push rolling output to git)
 ./run_morning.sh    # padsplit + thermostat
 ./run_afternoon.sh  # padsplit only
+./run_field_mms.sh  # Don-field group MMS (6am / 7pm CT; skip if both sources empty)
 ```
 
 ## Tests
@@ -34,6 +35,7 @@ python3 test_thermostat_set_temps.py
 python3 test_thermostat_schedule.py
 python3 test_obsidian_daily_digest.py
 python3 padsplit_scraper/test_reply_address_parser.py
+python3 test_field_mms.py
 ```
 
 No build step or linter configuration; tests use direct Python execution.
@@ -44,6 +46,10 @@ No build step or linter configuration; tests use direct Python execution.
   `com.padsplit.scraper.morning` and `com.padsplit.scraper.afternoon`; their
   plist files live in `~/Library/LaunchAgents/` and call `run_morning.sh` and
   `run_afternoon.sh`.
+- Don-field group MMS is launchd-managed by `com.padsplit.field-mms`
+  (`launchd/com.padsplit.field-mms.plist`) at 6:00am and 7:00pm CT daily,
+  including weekends. After merge + Mac pull: `python3 padsplit_scraper/field_mms.py --install-launchd`.
+  First send is the next 6am/7pm CT slot. Group MMS only (never a 1:1). CI must not send.
 - Thermostat schedule enforcement is launchd-managed by
   `com.padsplit.thermostat.enforcer`. Do not change `thermostat/set_temps.py`
   or enforcement behavior without a safe occupied-schedule test window.
@@ -60,6 +66,7 @@ No build step or linter configuration; tests use direct Python execution.
 - `padsplit_scraper/occupancy.py` — presence from messages + tasks (`occupancy.json`). `kpis.vacancy_rooms` is listed-status, not presence.
 - `thermostat/scraper.py` — thermostat portal scraper; HTTP session + fallback logic
 - `padsplit_scraper/discord_notifier.py` — Discord bot alerts on error
+- `padsplit_scraper/field_mms.py` — 6am/7pm CT Don-field group MMS (PadSplit host inbox + Discord #ai-tasks-temp)
 - `slack_task_digest.py` — scheduled DFW weather and task digest, posts to Discord
 - `padsplit_scraper/firestore_status_monitor.py` — Firestore integration
 - `obsidian_daily_digest.py` — daily note generation from scraped data

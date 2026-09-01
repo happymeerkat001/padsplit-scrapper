@@ -38,7 +38,10 @@ Run scheduled scripts:
 ```bash
 ./run_morning.sh
 ./run_afternoon.sh
+./run_field_mms.sh
 ```
+
+Don-field group MMS (6:00am and 7:00pm CT, every day) is Mac launchd only. Not live until merge + Mac pull + `python3 padsplit_scraper/field_mms.py --install-launchd`. Skips when PadSplit host messages and Discord `#ai-tasks-temp` are both empty. GitHub Actions must not send it.
 
 Write Obsidian daily digest:
 
@@ -64,6 +67,7 @@ python3 test_thermostat_scraper.py
 python3 test_thermostat_set_temps.py
 python3 test_thermostat_schedule.py
 python3 test_obsidian_daily_digest.py
+python3 test_field_mms.py
 ```
 
 ## Thermostat Set Temps
