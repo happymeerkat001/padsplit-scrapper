@@ -21,6 +21,9 @@ TCC_EMAIL=
 TCC_PASSWORD=
 ANTHROPIC_API_KEY=
 DISCORD_WEBHOOK_URL=
+DISCORD_BOT_TOKEN=
+SLATE_ASK_WEBHOOK_URL=
+SLATE_ASK_WEBHOOK_KEY=
 OBSIDIAN_DAILY_NOTES_DIR=
 ```
 
@@ -31,6 +34,12 @@ Run individual scrapers:
 ```bash
 python3 padsplit_scraper/scraper.py
 python3 thermostat/scraper.py
+```
+
+PadSplit Ops mention listener (same `DISCORD_BOT_TOKEN`; notify-only webhook to Slate):
+
+```bash
+python3 padsplit_scraper/discord_slate_wake.py
 ```
 
 Run scheduled scripts:
@@ -64,6 +73,7 @@ python3 test_thermostat_scraper.py
 python3 test_thermostat_set_temps.py
 python3 test_thermostat_schedule.py
 python3 test_obsidian_daily_digest.py
+python3 test_discord_slate_wake.py
 ```
 
 ## Thermostat Set Temps
