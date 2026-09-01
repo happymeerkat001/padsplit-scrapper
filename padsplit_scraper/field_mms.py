@@ -63,7 +63,7 @@ _SECRET_PATTERNS = (
     re.compile(r"(?i)\b(?:front\s+)?(?:door|room|gate|lock|entry|garage)\s+codes?\b[^.\n]*"),
     re.compile(r"(?i)\b(?:lock|door|room|gate)\s+codes?\s+(?:for\s+[^.\n]+?\s+)?(?:is|:|#)\s*\S+"),
     re.compile(r"(?i)\bcodes?\s*[:#]\s*\S+"),
-    re.compile(r"(?i)\b(?:wifi|wi-fi|ssid|network)\b[^.\n]*"),
+    re.compile(r"(?i)\b(?:wifi|wi-fi|ssid)\b[^.\n]*"),
     re.compile(r"(?i)\bpasswords?\s*[:#]?\s*\S+"),
     re.compile(r"\b\d{3}-\d{2}-\d{4}\b"),
     re.compile(r"(?i)\b(?:ssn|social\s+security)\b[^.\n]*"),
