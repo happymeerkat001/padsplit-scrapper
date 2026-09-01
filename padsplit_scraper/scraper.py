@@ -114,6 +114,7 @@ CHAT_LIST_QUERY = """
   chatType
   isArchived
   occupancy {
+    id
     moveInDate
     moveOutDate
     conditionalEligibilityApplied
@@ -851,6 +852,15 @@ def run(messages_only: bool = False) -> int:
 
         messages = _run_phase("Fetching messages...", "messages", lambda: fetch_messages(session, creds))
         _enrich_recent_threads(session, creds, messages)
+        try:
+            try:
+                from padsplit_scraper.new_booking import run_for_scraper
+            except ModuleNotFoundError:  # Support the cron entry point: python3 padsplit_scraper/scraper.py
+                from new_booking import run_for_scraper
+
+            run_for_scraper(session, creds, messages)
+        except Exception as exc:
+            sys.stderr.write(f"# New-booking first host message failed; continuing scrape: {exc}\n")
 
         scraped_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         payload: Dict[str, Any] = {"scraped_at": scraped_at, "messages": messages}

@@ -3,7 +3,8 @@
 
 Reads padsplit_scraper/output/latest.json, selects recent tenant-led threads,
 generates Claude draft replies, and writes padsplit_scraper/output/drafts.json.
-The script never sends PadSplit messages.
+The script never sends PadSplit messages. New-booking Hirevire first-host
+send lives in padsplit_scraper/new_booking.py and runs from the scraper.
 """
 
 from __future__ import annotations
