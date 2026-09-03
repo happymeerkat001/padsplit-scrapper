@@ -46,6 +46,8 @@ Don-field group MMS (6:00am and 7:00pm CT, every day) is Mac launchd only. Not l
 
 Monthly SEO / vacancy advice (9:00am CT on the 1st) is Mac launchd only. Not live until merge + Mac pull + `python3 padsplit_scraper/seo_monthly.py --install-launchd`. Uses live partner rooms + occupancy (stale `docs/data/stats.json` only if live fetch fails, and the report says so). Instant Book = skip. 10% promo / $0 move-in already assumed on. No auto price changes. Optional `#ai-tasks-temp` lines @Joe only. GitHub Actions must not post. Chief Grok Bot cron fallback stays until this LaunchAgent is loaded.
 
+Spanish Moss back-door lock-code automation (Sifely, v1) is Mac morning/afternoon only. Not live until Ang merges. Missing `SIFELY_API_KEY` is a Need-you no-op. GitHub Actions must not rotate locks or post Discord. Outbound Discord never includes lock-code digits.
+
 Write Obsidian daily digest:
 
 ```bash
@@ -72,6 +74,7 @@ python3 test_thermostat_schedule.py
 python3 test_obsidian_daily_digest.py
 python3 test_field_mms.py
 python3 test_seo_monthly.py
+python3 test_lock_codes.py
 ```
 
 ## Thermostat Set Temps

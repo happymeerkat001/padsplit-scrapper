@@ -72,6 +72,7 @@ set -e
 
 run_phase "thermostat scraper" "$VENV" "$WORKSPACE/thermostat/scraper.py"
 run_phase "PadSplit scraper (messages + tasks)" "$VENV" "$WORKSPACE/padsplit_scraper/scraper.py"
+run_phase "Spanish Moss lock codes" "$VENV" "$WORKSPACE/padsplit_scraper/lock_codes.py"
 run_phase "PadSplit draft replies" "$VENV" "$WORKSPACE/message_drafter.py"
 run_phase "Obsidian daily digest" "$VENV" "$WORKSPACE/obsidian_daily_digest.py"
 
