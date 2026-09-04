@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.padsplit.seo-monthly</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/bin/zsh</string>
+		<string>/Users/leon/Documents/Code/padsplit-scraper/run_seo_monthly.sh</string>
+	</array>
+	<key>WorkingDirectory</key>
+	<string>/Users/leon/Documents/Code/padsplit-scraper</string>
+	<key>StartCalendarInterval</key>
+	<dict>
+		<key>Day</key>
+		<integer>1</integer>
+		<key>Hour</key>
+		<integer>9</integer>
+		<key>Minute</key>
+		<integer>0</integer>
+	</dict>
+	<key>StandardOutPath</key>
+	<string>/Users/leon/Documents/Code/padsplit-scraper/logs/seo-monthly.stdout.log</string>
+	<key>StandardErrorPath</key>
+	<string>/Users/leon/Documents/Code/padsplit-scraper/logs/seo-monthly.stderr.log</string>
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>PATH</key>
+		<string>/usr/local/bin:/usr/bin:/bin</string>
+		<key>TZ</key>
+		<string>America/Chicago</string>
+	</dict>
+</dict>
+</plist>
