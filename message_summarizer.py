@@ -54,6 +54,66 @@ def format_address(chat: dict) -> str:
     return f"{street1}, {city_name}, {state_name}"
 
 
+def _normalize_whitespace(value: str | None) -> str:
+    return " ".join((value or "").split())
+
+
+def occupant_names(chat: dict) -> set[str]:
+    occupancy_user = ((chat.get("occupancy") or {}).get("user") or {})
+    names: set[str] = set()
+    title = _normalize_whitespace(chat.get("title")).lower()
+    if title:
+        names.add(title)
+    display_name = _normalize_whitespace(occupancy_user.get("displayName")).lower()
+    if display_name:
+        names.add(display_name)
+    full_name = _normalize_whitespace(
+        f"{occupancy_user.get('firstName') or ''} {occupancy_user.get('lastName') or ''}"
+    ).lower()
+    if full_name:
+        names.add(full_name)
+    return names
+
+
+def _sender_name(sender: dict) -> str:
+    return _normalize_whitespace(
+        sender.get("displayName")
+        or f"{sender.get('firstName') or ''} {sender.get('lastName') or ''}"
+    ).lower()
+
+
+def _is_tenant_sender(chat: dict, sender: dict) -> bool:
+    names = occupant_names(chat)
+    if not names:
+        return False
+    return _sender_name(sender) in names
+
+
+def extract_tenant_text(chat: dict) -> str | None:
+    last_message = chat.get("lastMessage") or {}
+    last_text = _normalize_whitespace(last_message.get("text"))
+    if (
+        last_text
+        and not last_message.get("deleted")
+        and _is_tenant_sender(chat, last_message.get("sender") or {})
+    ):
+        return last_text
+
+    candidates: list[tuple[str, str]] = []
+    for message in chat.get("recent_messages") or []:
+        text = _normalize_whitespace(message.get("text"))
+        if not text or message.get("deleted"):
+            continue
+        if not _is_tenant_sender(chat, message.get("sender") or {}):
+            continue
+        candidates.append((message.get("created") or "", text))
+
+    if not candidates:
+        return None
+    candidates.sort(key=lambda item: item[0], reverse=True)
+    return candidates[0][1]
+
+
 def parse_urgent_items(raw: str) -> list[dict]:
     content = raw.strip()
     if content.startswith("```") and content.endswith("```"):
@@ -83,7 +143,7 @@ def render_summary(urgent_items: list[dict], messages_by_id: dict) -> str:
     if not urgent_items:
         return "No urgent tenant messages."
 
-    lines = []
+    blocks = []
     for item in urgent_items:
         chat_id = item["chat_id"]
         chat = messages_by_id.get(chat_id)
@@ -95,9 +155,14 @@ def render_summary(urgent_items: list[dict], messages_by_id: dict) -> str:
         room = format_room(chat)
         sent_at = item.get("sent_at") or "Unknown"
         summary = item.get("summary") or "Unknown"
-        lines.append(f"{address} — Room {room} — {sent_at} — {summary}")
+        block_lines = [f"{address} — Room {room} — {sent_at}"]
+        tenant_text = extract_tenant_text(chat)
+        if tenant_text:
+            block_lines.append(f"Tenant: {tenant_text}")
+        block_lines.append(summary)
+        blocks.append("\n".join(block_lines))
 
-    return "\n".join(lines) if lines else "No urgent tenant messages."
+    return "\n\n".join(blocks) if blocks else "No urgent tenant messages."
 
 
 def call_minimax(prompt: str) -> str:
