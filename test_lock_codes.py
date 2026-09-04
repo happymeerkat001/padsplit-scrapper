@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
+import hashlib
+import json
 import tempfile
 import unittest
 from datetime import datetime
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 from zoneinfo import ZoneInfo
 
 from padsplit_scraper import lock_codes
@@ -133,6 +135,23 @@ class DecideTests(unittest.TestCase):
         self.assertIsNone(plan.discord_kind)
         self.assertFalse(plan.rotate_via_api)
 
+    def test_already_rotated_incomplete_delivery_redistributes(self) -> None:
+        plan = lock_codes.decide(
+            in_ci=False,
+            api_key_present=True,
+            api_available=True,
+            human_change=False,
+            pending_vacancy=True,
+            inbound_share=False,
+            already_rotated=True,
+        )
+        self.assertEqual(plan.action, "redistribute")
+        self.assertTrue(plan.update_digest)
+        self.assertTrue(plan.notify_padsplit)
+        self.assertTrue(plan.redistribute)
+        self.assertFalse(plan.rotate_via_api)
+        self.assertIsNone(plan.discord_kind)
+
     def test_no_action_when_nothing_changed(self) -> None:
         plan = lock_codes.decide(
             in_ci=False,
@@ -223,6 +242,11 @@ class ShareAndRedactionTests(unittest.TestCase):
         text = "Sifely share: Spanish Moss back door\nPasscode: REDACTED"
         self.assertEqual(lock_codes.parse_sifely_share_code(text), PLACEHOLDER)
         self.assertIsNone(lock_codes.parse_sifely_share_code("Sifely share Green Hill\nPasscode: REDACTED"))
+        self.assertIsNone(lock_codes.parse_sifely_share_code("Spanish Moss code changed."))
+        self.assertFalse(lock_codes.is_supported_passcode("changed"))
+        self.assertTrue(lock_codes.is_supported_passcode(PLACEHOLDER))
+        self.assertTrue(lock_codes.is_supported_passcode("0" * 6))
+        self.assertFalse(lock_codes.is_supported_passcode("1"))
 
     def test_redact_for_log_strips_keys_and_digit_runs(self) -> None:
         cleaned = lock_codes.redact_for_log("Authorization: sk-REDACTED body 12345678")
@@ -257,22 +281,29 @@ class ShareAndRedactionTests(unittest.TestCase):
 
 class HumanChangeAndHashTests(unittest.TestCase):
     def test_fingerprint_change_that_is_not_our_rotate_is_human(self) -> None:
-        previous = {"PWDID": lock_codes.hash_passcode("OLDREDACTED")}
-        current = {"PWDID": lock_codes.hash_passcode(PLACEHOLDER)}
+        previous = {"PWDID": lock_codes.hash_passcode("OLDREDACTED", key="REDACTED_HMAC")}
+        current = {"PWDID": lock_codes.hash_passcode(PLACEHOLDER, key="REDACTED_HMAC")}
         self.assertTrue(lock_codes.detect_human_change(current, previous, last_auto_rotate_hash=""))
 
     def test_our_rotate_hash_is_not_human(self) -> None:
-        digest = lock_codes.hash_passcode(PLACEHOLDER)
-        previous = {"PWDID": lock_codes.hash_passcode("OLDREDACTED")}
+        digest = lock_codes.hash_passcode(PLACEHOLDER, key="REDACTED_HMAC")
+        previous = {"PWDID": lock_codes.hash_passcode("OLDREDACTED", key="REDACTED_HMAC")}
         current = {"PWDID": digest}
         self.assertFalse(lock_codes.detect_human_change(current, previous, last_auto_rotate_hash=digest))
 
     def test_passcode_list_hashes_without_keeping_plaintext_in_result_keys(self) -> None:
         hashes = lock_codes.passcode_hashes_from_list(
-            [{"keyboardPwdId": "PWDID", "keyboardPwd": PLACEHOLDER}]
+            [{"keyboardPwdId": "PWDID", "keyboardPwd": PLACEHOLDER}],
+            key="REDACTED_HMAC",
         )
-        self.assertEqual(hashes["PWDID"], lock_codes.hash_passcode(PLACEHOLDER))
+        self.assertEqual(hashes["PWDID"], lock_codes.hash_passcode(PLACEHOLDER, key="REDACTED_HMAC"))
         self.assertNotIn(PLACEHOLDER, hashes)
+
+    def test_fingerprint_is_keyed_hmac_not_raw_sha256(self) -> None:
+        a = lock_codes.hash_passcode(PLACEHOLDER, key="REDACTED_HMAC")
+        b = lock_codes.hash_passcode(PLACEHOLDER, key="OTHER_HMAC")
+        self.assertNotEqual(a, b)
+        self.assertNotEqual(a, hashlib.sha256(PLACEHOLDER.encode("utf-8")).hexdigest())
 
 
 class RunFlowTests(unittest.TestCase):
@@ -401,6 +432,86 @@ class RunFlowTests(unittest.TestCase):
         self.assertEqual(digest, [PLACEHOLDER])
         self.assertEqual(padsplit, [PLACEHOLDER])
         self.assertEqual(posts, [])
+
+    def test_failed_digest_retries_without_second_rotate(self) -> None:
+        room = moss_room(vacant=True, photos=2)
+        lock = {"lockId": "LOCKID", "lockAlias": "Spanish Moss back", "lockName": "SM"}
+        old_codes = [{"keyboardPwdId": "PWDID", "keyboardPwd": "OLDREDACTED", "keyboardPwdName": "tenant"}]
+        new_codes = [{"keyboardPwdId": "PWDID", "keyboardPwd": PLACEHOLDER, "keyboardPwdName": "tenant"}]
+        changed: list[str] = []
+        digest_calls: list[str] = []
+
+        def digest_fn(code: str) -> bool:
+            digest_calls.append(code)
+            return len(digest_calls) > 1
+
+        with tempfile.TemporaryDirectory() as tmp:
+            state_path = Path(tmp) / "state.json"
+            with patch.object(lock_codes, "running_in_ci", return_value=False), \
+                 patch.object(lock_codes, "sifely_api_key", return_value="sk-REDACTED"), \
+                 patch.object(lock_codes, "list_locks", return_value=[lock]), \
+                 patch.object(lock_codes, "list_passcodes", return_value=old_codes), \
+                 patch.object(lock_codes, "change_passcode", side_effect=lambda *a, **k: changed.append("ok")):
+                first = lock_codes.run(
+                    now=NOW,
+                    dry_run=False,
+                    occupancy_rooms=[room],
+                    host_messages=[moss_member_thread()],
+                    post_discord=lambda text: None,
+                    update_digest=digest_fn,
+                    notify_members=lambda code: 1,
+                    generate_code=lambda: PLACEHOLDER,
+                    state_path=state_path,
+                )
+            state = json.loads(state_path.read_text())
+            self.assertEqual(first.action, "auto_rotate")
+            self.assertFalse(first.digest_updated)
+            self.assertNotIn(lock_codes.vacancy_key(room), state.get("rotated_vacancy_keys") or [])
+            self.assertIsNotNone(state.get("pending_delivery"))
+
+            with patch.object(lock_codes, "running_in_ci", return_value=False), \
+                 patch.object(lock_codes, "sifely_api_key", return_value="sk-REDACTED"), \
+                 patch.object(lock_codes, "list_locks", return_value=[lock]), \
+                 patch.object(lock_codes, "list_passcodes", return_value=new_codes), \
+                 patch.object(lock_codes, "change_passcode", side_effect=lambda *a, **k: changed.append("again")):
+                second = lock_codes.run(
+                    now=NOW,
+                    dry_run=False,
+                    occupancy_rooms=[room],
+                    host_messages=[moss_member_thread()],
+                    post_discord=lambda text: None,
+                    update_digest=digest_fn,
+                    notify_members=lambda code: 1,
+                    generate_code=lambda: PLACEHOLDER,
+                    state_path=state_path,
+                )
+            state = json.loads(state_path.read_text())
+        self.assertEqual(second.action, "redistribute")
+        self.assertTrue(second.digest_updated)
+        self.assertEqual(changed, ["ok"])
+        self.assertIn(lock_codes.vacancy_key(room), state.get("rotated_vacancy_keys") or [])
+        self.assertIsNone(state.get("pending_delivery"))
+
+    def test_sifely_application_error_is_unavailable(self) -> None:
+        with self.assertRaises(lock_codes.SifelyUnavailable):
+            lock_codes._unwrap_sifely({"errcode": 1, "errmsg": "gateway offline"})
+        with self.assertRaises(lock_codes.SifelyUnavailable):
+            lock_codes._unwrap_sifely({"code": 402, "data": {}})
+        self.assertEqual(lock_codes._unwrap_sifely({"errcode": 0, "description": "ok"}), {"errcode": 0, "description": "ok"})
+
+        session = MagicMock()
+        response = MagicMock()
+        response.status_code = 200
+        response.json.return_value = {"errcode": 1, "errmsg": "gateway offline"}
+        session.request.return_value = response
+        with self.assertRaises(lock_codes.SifelyUnavailable):
+            lock_codes.change_passcode(
+                "sk-REDACTED",
+                lock_id="LOCKID",
+                keyboard_pwd_id="PWDID",
+                new_code=PLACEHOLDER,
+                session=session,
+            )
 
     def test_new_tenants_is_the_only_discord_channel_constant_for_digits(self) -> None:
         self.assertEqual(lock_codes.DISCORD_NEW_TENANTS_CHANNEL_ID, "1542260130614354055")

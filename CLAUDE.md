@@ -110,5 +110,6 @@ DISCORD_CHANNEL_ID=
 SIFELY_API_KEY=          # raw sk- key, no Bearer; missing = Need-you no-op
 SIFELY_LOCK_ID=          # optional Spanish Moss back-door lock id
 SIFELY_KEYBOARD_PWD_ID=  # optional tenant passcode id
+LOCK_CODES_HMAC_KEY=     # optional fingerprint secret if SIFELY_API_KEY is unset in tests
 OBSIDIAN_DAILY_NOTES_DIR=
 ```
