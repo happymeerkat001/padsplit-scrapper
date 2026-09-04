@@ -31,6 +31,9 @@ python3 thermostat/scraper.py
 ```bash
 python3 test_padsplit_scraper.py
 python3 test_padsplit_occupancy.py
+python3 test_stats_freshness.py
+python3 test_slack_task_digest.py
+python3 test_dashboard_occupancy_ui.py
 python3 test_thermostat_scraper.py
 python3 test_thermostat_set_temps.py
 python3 test_thermostat_schedule.py
@@ -72,7 +75,7 @@ No build step or linter configuration; tests use direct Python execution.
 
 **Key files:**
 - `padsplit_scraper/scraper.py` — main Padsplit scraper; GraphQL queries, property/earnings/metrics collection
-- `padsplit_scraper/occupancy.py` — presence from messages + tasks (`occupancy.json`). `kpis.vacancy_rooms` is listed-status, not presence.
+- `padsplit_scraper/occupancy.py` — presence from messages + tasks (`occupancy.json`). `kpis.vacancy_rooms` is listed-status, not presence. Dashboard incoming / rent-ready / occupied-after-move-out lists read occupancy.json. `docs/stats.html` labels stats.json stale when degraded or older than 48h and does not treat vacancy_rooms as live occupancy.
 - `thermostat/scraper.py` — thermostat portal scraper; HTTP session + fallback logic
 - `padsplit_scraper/discord_notifier.py` — Discord bot alerts on error
 - `padsplit_scraper/field_mms.py` — 6am/7pm CT Don-field group MMS (PadSplit host inbox + Discord #ai-tasks-temp)

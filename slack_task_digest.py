@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Simple Discord task digest for PadSplit data.
 
-Reads tasks from docs/data/latest.json and KPI stats from docs/data/stats.json,
-then posts a combined digest to Discord if DISCORD_WEBHOOK_TASKS is set.
+Reads tasks from docs/data/latest.json and posts a combined digest to Discord
+if DISCORD_WEBHOOK_TASKS is set. Does not treat stats.json vacancy_rooms as
+occupancy; those are listed-status and may be stale.
 """
 
 import json
@@ -18,15 +19,12 @@ import urllib.error
 
 DATA_DIR = Path(__file__).parent / "docs" / "data"
 LATEST_PATH = DATA_DIR / "latest.json"
+# stats.json vacancy_rooms is listed-status and may be stale. Do not merge it here.
 STATS_PATH = DATA_DIR / "stats.json"
 
 
 def load_data() -> Dict[str, Any]:
-    latest = json.loads(LATEST_PATH.read_text())
-    stats = json.loads(STATS_PATH.read_text())
-    merged = dict(latest)
-    merged["kpis"] = stats.get("kpis") or {}
-    return merged
+    return json.loads(LATEST_PATH.read_text())
 
 
 def collect_tasks(tasks: Dict[str, List[Dict]]) -> Tuple[Dict[str, List[Tuple[str, str, Optional[int]]]], int, int]:
@@ -62,20 +60,18 @@ def format_message(grouped: Dict[str, List[Tuple[str, str, Optional[int]]]], tot
     return "\n".join(lines)
 
 
-def format_vacancy_alert(vacancy_rooms: List[Dict[str, Any]]) -> Optional[str]:
-    stale_rooms = [room for room in vacancy_rooms if float(room.get("days_listed") or 0) > 30]
-    if not stale_rooms:
-        return None
-
-    lines = [f"Vacancy Alert ({len(stale_rooms)} rooms 30+ days):"]
-    for room in stale_rooms:
-        property_name = room.get("property") or "Unknown Property"
-        room_number = room.get("room_number")
-        room_label = f"Room {room_number}" if room_number not in (None, "") else "Room ?"
-        days_listed = int(round(float(room.get("days_listed") or 0)))
-        base_price = float(room.get("base_price") or 0)
-        lines.append(f"{property_name} — {room_label} — {days_listed} days (listed ${base_price:.0f}/mo)")
-    return "\n".join(lines)
+def compose_message(
+    latest: Dict[str, Any],
+    *,
+    weather_block: Optional[str] = None,
+    kpis: Optional[Dict[str, Any]] = None,
+) -> str:
+    """Build the digest from live tasks. kpis/vacancy_rooms are ignored."""
+    del kpis
+    tasks = latest.get("tasks") or {}
+    grouped, total_req, total_open = collect_tasks(tasks)
+    task_block = format_message(grouped, total_req, total_open)
+    return "\n\n".join(filter(None, [weather_block, task_block]))
 
 
 DISCORD_MESSAGE_LIMIT = 2000
@@ -158,12 +154,7 @@ def fetch_weather() -> Optional[str]:
 def main() -> None:
     weather_block = fetch_weather()
     payload = load_data()
-    tasks = payload.get("tasks") or {}
-    vacancy_rooms = ((payload.get("kpis") or {}).get("vacancy_rooms") or [])
-    vacancy_block = format_vacancy_alert(vacancy_rooms)
-    grouped, total_req, total_open = collect_tasks(tasks)
-    task_block = format_message(grouped, total_req, total_open)
-    message = "\n\n".join(filter(None, [weather_block, vacancy_block, task_block]))
+    message = compose_message(payload, weather_block=weather_block)
     print(message)
     send_to_discord(message)
 

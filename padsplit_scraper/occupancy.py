@@ -43,6 +43,37 @@ def compute_occupancy(
     }
 
 
+def operator_lists(rooms: List[Dict[str, Any]], today: date) -> Dict[str, List[Dict[str, Any]]]:
+    """Split occupancy rows into operator lists. Incoming is future next_move_in only."""
+    incoming: List[Dict[str, Any]] = []
+    rent_ready: List[Dict[str, Any]] = []
+    occupied_after_move_out: List[Dict[str, Any]] = []
+    vacant_not_ready: List[Dict[str, Any]] = []
+    for room in rooms or []:
+        if not isinstance(room, dict):
+            continue
+        next_move_in = _date_only(room.get("next_move_in"))
+        listed = _date_only(room.get("listed_move_out"))
+        if next_move_in is not None and next_move_in >= today:
+            incoming.append(room)
+        if room.get("rent_ready") is True:
+            rent_ready.append(room)
+        if room.get("occupant_present") is True and listed is not None and listed < today:
+            occupied_after_move_out.append(room)
+        if room.get("vacant") is True and room.get("rent_ready") is not True:
+            vacant_not_ready.append(room)
+    incoming.sort(key=lambda row: (str(row.get("next_move_in") or ""), str(row.get("address") or ""), _room_sort_key(row.get("room_number"))))
+    rent_ready.sort(key=lambda row: (str(row.get("address") or ""), _room_sort_key(row.get("room_number"))))
+    occupied_after_move_out.sort(key=lambda row: (str(row.get("listed_move_out") or ""), str(row.get("address") or ""), _room_sort_key(row.get("room_number"))))
+    vacant_not_ready.sort(key=lambda row: (-int(row.get("days_vacant") or 0), str(row.get("address") or ""), _room_sort_key(row.get("room_number"))))
+    return {
+        "incoming": incoming,
+        "rent_ready": rent_ready,
+        "occupied_after_move_out": occupied_after_move_out,
+        "vacant_not_ready": vacant_not_ready,
+    }
+
+
 def _flatten_tasks(tasks_by_bucket: Optional[Dict[str, List[Dict[str, Any]]]]) -> List[Dict[str, Any]]:
     tickets: List[Dict[str, Any]] = []
     if not isinstance(tasks_by_bucket, dict):

@@ -318,6 +318,40 @@
       grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
     }
     .empty { color: var(--muted); font-size: 0.92rem; }
+    .stale-banner {
+      border: 1px solid rgba(251,191,36,0.4);
+      background: rgba(251,191,36,0.1);
+      color: var(--warn);
+      border-radius: 12px;
+      padding: 0.85rem 1rem;
+    }
+    .stale-banner strong { color: var(--warn); }
+    .stale-banner a { color: var(--accent); }
+    .stale-label {
+      display: inline-block;
+      margin-left: 0.45rem;
+      padding: 0.12rem 0.45rem;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      background: rgba(251,191,36,0.16);
+      color: var(--warn);
+    }
+    .fresh-label {
+      display: inline-block;
+      margin-left: 0.45rem;
+      padding: 0.12rem 0.45rem;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      background: rgba(34,197,94,0.14);
+      color: var(--success);
+    }
+    body.stats-stale .listed-status-card {
+      outline: 1px solid rgba(251,191,36,0.35);
+    }
 
     @media (max-width: 900px) {
       .score-grid { grid-template-columns: 1fr; }
@@ -343,6 +377,7 @@
     <h1>Manager KPI Dashboard</h1>
     <div class="header-meta">
       <span class="muted" id="updated">Loading...</span>
+      <a href="./index.html#occupancy-section" class="header-link">Live occupancy</a>
       <a href="./index.html" class="header-link">Dashboard</a>
       <a href="./templates.html" class="header-link">Templates</a>
       <a href="./codes.html" class="header-link">Codes</a>
@@ -350,6 +385,11 @@
   </header>
 
   <div class="stack">
+    <section class="stale-banner" id="stats-freshness" hidden>
+      <strong>Stats are stale.</strong>
+      <span id="stats-freshness-detail"></span>
+      Live presence is on the <a href="./index.html#occupancy-section">dashboard occupancy lists</a>, not this page.
+    </section>
     <section class="card">
       <h2>Manager Score Card</h2>
       <div class="score-grid">
@@ -418,14 +458,15 @@
       </a>
     </section>
 
-    <section class="card">
-      <h2>Occupancy Summary</h2>
+    <section class="card listed-status-card">
+      <h2>Listed-status summary <span id="occupancy-stale-label"></span></h2>
+      <p class="muted" id="occupancy-source-note" style="margin-top:-0.35rem">Partner listed-status from stats.json. This is not live occupancy from messages and tasks.</p>
       <div class="stats-grid" id="occupancy-cards"></div>
     </section>
 
     <div class="section-grid">
-      <section class="card">
-        <h2>Vacancy Detail (Listed Rooms)</h2>
+      <section class="card listed-status-card">
+        <h2>Listed rooms (not live occupancy) <span id="vacancy-stale-label"></span></h2>
         <div class="table-wrap">
           <table>
             <thead>
@@ -553,6 +594,55 @@
       if (!s) return "-";
       const d = new Date(s);
       return Number.isNaN(d.getTime()) ? s : d.toLocaleString();
+    }
+
+    function statsFreshness(data, now = new Date()) {
+      const run = data && typeof data.run_status === "object" && data.run_status ? data.run_status : {};
+      const scraped = data && data.scraped_at ? new Date(data.scraped_at) : null;
+      const degraded = run.state === "degraded" || run.fallback_used === true;
+      const missing = !scraped || Number.isNaN(scraped.getTime());
+      const ageMs = missing ? Infinity : (now.getTime() - scraped.getTime());
+      const stale = degraded || missing || ageMs > 48 * 60 * 60 * 1000;
+      return {
+        stale,
+        degraded,
+        scrapedAt: data && data.scraped_at,
+        runScrapedAt: run.run_scraped_at,
+        failedPhase: run.failed_phase,
+        state: run.state,
+      };
+    }
+
+    function applyStatsFreshness(data) {
+      const info = statsFreshness(data);
+      const banner = document.getElementById("stats-freshness");
+      const detail = document.getElementById("stats-freshness-detail");
+      const updated = document.getElementById("updated");
+      const occLabel = document.getElementById("occupancy-stale-label");
+      const vacLabel = document.getElementById("vacancy-stale-label");
+      if (info.stale) {
+        document.body.classList.add("stats-stale");
+        banner.hidden = false;
+        const parts = [];
+        if (info.scrapedAt) parts.push(`stats.json scraped ${fmtDate(info.scrapedAt)}`);
+        if (info.degraded) parts.push(`run ${info.state || "degraded"}` + (info.failedPhase ? ` (${info.failedPhase})` : ""));
+        if (info.runScrapedAt) parts.push(`last rewrite ${fmtDate(info.runScrapedAt)}`);
+        detail.textContent = parts.join(" · ");
+        updated.textContent = `Stale ${fmtDate(info.scrapedAt)}`;
+        occLabel.className = "stale-label";
+        occLabel.textContent = "Stale";
+        vacLabel.className = "stale-label";
+        vacLabel.textContent = "Stale listed-status";
+      } else {
+        document.body.classList.remove("stats-stale");
+        banner.hidden = true;
+        updated.textContent = `Updated ${fmtDate(info.scrapedAt)}`;
+        occLabel.className = "fresh-label";
+        occLabel.textContent = "Listed-status";
+        vacLabel.className = "fresh-label";
+        vacLabel.textContent = "Listed-status";
+      }
+      return info;
     }
 
     function scoreClass(score) {
@@ -778,14 +868,14 @@
     function setOccupancyCards(kpis) {
       const cards = document.getElementById("occupancy-cards");
       const rows = [
-        ["Occupancy", pct(kpis.occupancy_pct)],
+        ["Listed occupancy %", pct(kpis.occupancy_pct)],
         ["Total Rooms", Math.round(toNum(kpis.total_rooms))],
-        ["Occupied", Math.round(toNum(kpis.occupied))],
+        ["Marked occupied", Math.round(toNum(kpis.occupied))],
         ["Listed", Math.round(toNum(kpis.listed))],
         ["Flip", Math.round(toNum(kpis.flip))],
         ["Move-in", Math.round(toNum(kpis.move_in))],
         ["Avg Listed Days", toNum(kpis.avg_listed_days).toFixed(1)],
-        ["Rooms >14d", Math.round(toNum(kpis.rooms_over_14d))],
+        ["Rooms >14d listed", Math.round(toNum(kpis.rooms_over_14d))],
       ];
       cards.innerHTML = "";
       for (const [label, value] of rows) {
@@ -801,7 +891,7 @@
       body.innerHTML = "";
       const rooms = Array.isArray(kpis.vacancy_rooms) ? kpis.vacancy_rooms : [];
       if (!rooms.length) {
-        body.innerHTML = '<tr><td colspan="5" class="empty">No listed rooms.</td></tr>';
+        body.innerHTML = '<tr><td colspan="5" class="empty">No listed rooms in stale stats.json.</td></tr>';
         return;
       }
       for (const room of rooms) {
@@ -930,7 +1020,7 @@
         const data = await res.json();
         const kpis = data && typeof data.kpis === "object" ? data.kpis : {};
         scrapedKpis = kpis;
-        document.getElementById("updated").textContent = `Updated ${fmtDate(data.scraped_at)}`;
+        applyStatsFreshness(data);
         fillManualForm(deriveManualDefaults(kpis));
         setScoreCard(kpis, { manualActive: false });
         setOccupancyCards(kpis);
