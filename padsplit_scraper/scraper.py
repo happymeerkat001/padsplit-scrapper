@@ -858,6 +858,7 @@ def run(messages_only: bool = False) -> int:
             except ModuleNotFoundError:  # Support the cron entry point: python3 padsplit_scraper/scraper.py
                 from new_booking import run_for_scraper
 
+            # Booking-hit source is hostPendingBookingRequests, not the message digest.
             run_for_scraper(session, creds, messages)
         except Exception as exc:
             sys.stderr.write(f"# New-booking first host message failed; continuing scrape: {exc}\n")
