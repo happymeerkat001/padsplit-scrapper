@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
+import json
 import tempfile
 import unittest
 from datetime import datetime
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 from zoneinfo import ZoneInfo
 
 from padsplit_scraper import lock_codes
@@ -223,6 +224,8 @@ class ShareAndRedactionTests(unittest.TestCase):
         text = "Sifely share: Spanish Moss back door\nPasscode: REDACTED"
         self.assertEqual(lock_codes.parse_sifely_share_code(text), PLACEHOLDER)
         self.assertIsNone(lock_codes.parse_sifely_share_code("Sifely share Green Hill\nPasscode: REDACTED"))
+        self.assertIsNone(lock_codes.parse_sifely_share_code("Spanish Moss code changed."))
+        self.assertIsNone(lock_codes.parse_sifely_share_code("Spanish Moss pin is ready"))
 
     def test_redact_for_log_strips_keys_and_digit_runs(self) -> None:
         cleaned = lock_codes.redact_for_log("Authorization: sk-REDACTED body 12345678")
@@ -266,6 +269,11 @@ class HumanChangeAndHashTests(unittest.TestCase):
         previous = {"PWDID": lock_codes.hash_passcode("OLDREDACTED")}
         current = {"PWDID": digest}
         self.assertFalse(lock_codes.detect_human_change(current, previous, last_auto_rotate_hash=digest))
+
+    def test_hash_scheme_migration_is_not_human(self) -> None:
+        current = {"PWDID": lock_codes.hash_passcode(PLACEHOLDER)}
+        previous = {"PWDID": "legacy-unprefixed-digest"}
+        self.assertFalse(lock_codes.detect_human_change(current, previous, last_auto_rotate_hash=""))
 
     def test_passcode_list_hashes_without_keeping_plaintext_in_result_keys(self) -> None:
         hashes = lock_codes.passcode_hashes_from_list(
@@ -336,10 +344,13 @@ class RunFlowTests(unittest.TestCase):
                     notify_members=lambda code: padsplit.append(code) or 1,
                     state_path=state_path,
                 )
+            saved = json.loads(state_path.read_text())
         self.assertEqual(result.action, "announce_human")
         self.assertEqual(posts, ["Spanish Moss code changed."])
         self.assertEqual(digest, [])
         self.assertEqual(padsplit, [])
+        self.assertEqual(saved.get("rotated_vacancy_keys"), [])
+        self.assertFalse(saved.get("pending_distribution"))
 
     def test_auto_rotate_updates_digest_padsplit_and_digitless_discord(self) -> None:
         digest: list[str] = []
@@ -401,6 +412,93 @@ class RunFlowTests(unittest.TestCase):
         self.assertEqual(digest, [PLACEHOLDER])
         self.assertEqual(padsplit, [PLACEHOLDER])
         self.assertEqual(posts, [])
+
+    def test_sifely_application_error_is_unavailable(self) -> None:
+        self.assertEqual(
+            lock_codes._unwrap_sifely({"code": 200, "data": {"list": []}}),
+            {"list": []},
+        )
+        self.assertEqual(
+            lock_codes._unwrap_sifely({"code": 0, "data": {"ok": True}}),
+            {"ok": True},
+        )
+        with self.assertRaises(lock_codes.SifelyUnavailable):
+            lock_codes._unwrap_sifely({"code": 10003, "msg": "rejected"})
+        response = Mock()
+        response.status_code = 200
+        response.json.return_value = {"code": 10003, "errmsg": "gateway rejected"}
+        session = Mock()
+        session.request.return_value = response
+        with self.assertRaises(lock_codes.SifelyUnavailable):
+            lock_codes.change_passcode(
+                "sk-REDACTED",
+                lock_id="LOCKID",
+                keyboard_pwd_id="PWDID",
+                new_code=PLACEHOLDER,
+                session=session,
+            )
+
+    def test_failed_digest_retries_without_second_rotate(self) -> None:
+        digest_calls = {"n": 0}
+        changed: list[str] = []
+        lock = {"lockId": "LOCKID", "lockAlias": "Spanish Moss back", "lockName": "SM"}
+        old_codes = [
+            {"keyboardPwdId": "PWDID", "keyboardPwd": "OLDREDACTED", "keyboardPwdName": "tenant"}
+        ]
+        new_codes = [
+            {"keyboardPwdId": "PWDID", "keyboardPwd": PLACEHOLDER, "keyboardPwdName": "tenant"}
+        ]
+
+        def digest_fn(code: str) -> bool:
+            digest_calls["n"] += 1
+            return digest_calls["n"] > 1
+
+        with tempfile.TemporaryDirectory() as tmp:
+            state_path = Path(tmp) / "state.json"
+            with patch.object(lock_codes, "running_in_ci", return_value=False), \
+                 patch.object(lock_codes, "sifely_api_key", return_value="sk-REDACTED"), \
+                 patch.object(lock_codes, "list_locks", return_value=[lock]), \
+                 patch.object(lock_codes, "list_passcodes", return_value=old_codes), \
+                 patch.object(lock_codes, "change_passcode", side_effect=lambda *a, **k: changed.append("ok")):
+                first = lock_codes.run(
+                    now=NOW,
+                    dry_run=False,
+                    occupancy_rooms=[moss_room(vacant=True, photos=2)],
+                    host_messages=[moss_member_thread()],
+                    post_discord=lambda text: None,
+                    update_digest=digest_fn,
+                    notify_members=lambda code: 1,
+                    generate_code=lambda: PLACEHOLDER,
+                    state_path=state_path,
+                )
+            saved = json.loads(state_path.read_text())
+            self.assertEqual(first.action, "auto_rotate")
+            self.assertTrue(saved.get("pending_distribution"))
+            self.assertEqual(saved.get("rotated_vacancy_keys"), [])
+            self.assertEqual(changed, ["ok"])
+
+            with patch.object(lock_codes, "running_in_ci", return_value=False), \
+                 patch.object(lock_codes, "sifely_api_key", return_value="sk-REDACTED"), \
+                 patch.object(lock_codes, "list_locks", return_value=[lock]), \
+                 patch.object(lock_codes, "list_passcodes", return_value=new_codes), \
+                 patch.object(lock_codes, "change_passcode", side_effect=lambda *a, **k: changed.append("again")):
+                second = lock_codes.run(
+                    now=NOW,
+                    dry_run=False,
+                    occupancy_rooms=[moss_room(vacant=True, photos=2)],
+                    host_messages=[moss_member_thread()],
+                    post_discord=lambda text: None,
+                    update_digest=digest_fn,
+                    notify_members=lambda code: 1,
+                    generate_code=lambda: "SHOULD_NOT_GENERATE",
+                    state_path=state_path,
+                )
+            saved = json.loads(state_path.read_text())
+        self.assertEqual(second.action, "auto_rotate")
+        self.assertEqual(changed, ["ok"])
+        self.assertFalse(saved.get("pending_distribution"))
+        self.assertTrue(saved.get("rotated_vacancy_keys"))
+        self.assertEqual(digest_calls["n"], 2)
 
     def test_new_tenants_is_the_only_discord_channel_constant_for_digits(self) -> None:
         self.assertEqual(lock_codes.DISCORD_NEW_TENANTS_CHANNEL_ID, "1542260130614354055")
