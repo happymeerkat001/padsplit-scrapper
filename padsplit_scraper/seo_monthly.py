@@ -483,7 +483,7 @@ def _room_num(row: StaleRoom) -> str:
 
 
 def attach_discord_section(markdown: str, joe_lines: Sequence[str], *, posted: bool, reason: str) -> str:
-    header = "**Posted to #ai-tasks-temp:**" if posted else f"**Would post (dry-run — {reason}):**"
+    header = "**Posted to #ai-tasks-temp:**" if posted else f"**Would post ({reason}):**"
     block = "\n".join([header, "", *[f"> {line}" for line in joe_lines]])
     return sanitize_text(markdown.rstrip() + "\n" + block + "\n")
 

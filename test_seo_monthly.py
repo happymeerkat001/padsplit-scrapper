@@ -255,8 +255,7 @@ class SeoMonthlyTests(unittest.TestCase):
                     os.environ["DISCORD_BOT_TOKEN"] = old_token
         self.assertEqual(posted, [])
         self.assertFalse(posting_allowed(ci=True))
-        self.assertIn("Would post", pack.markdown)
-        self.assertIn("CI must not Discord-post", pack.markdown)
+        self.assertIn("Would post (CI must not Discord-post)", pack.markdown)
         self.assertIn("@Joe", pack.markdown)
         self.assertNotIn("cindy", "\n".join(pack.joe_lines).lower())
         self.assertNotIn("@cindy", pack.markdown.lower())
