@@ -169,5 +169,39 @@ for (const key of [
   assert.ok(Object.prototype.hasOwnProperty.call(payload, key), `payload missing ${key}`);
 }
 
+const noRooms = {
+  slug: "fixture_no_rooms",
+  address: "Fixture No Rooms",
+  sections: [
+    {
+      label: "Door Codes",
+      fields: [{ key: "back_door", label: "Back Door", value: "" }]
+    },
+    {
+      label: "Contact",
+      fields: [
+        { key: "ac_filter_date", label: "AC filter date", value: "", type: "date" },
+        { key: "ac_filter_size", label: "AC filter size", value: "" },
+        { key: "dryer_lint_date", label: "Dryer lint date", value: "", type: "date" },
+        { key: "dryer_lint_notes", label: "Dryer lint notes", value: "" }
+      ]
+    }
+  ]
+};
+
+const noRoomsTree = api.renderProperty(noRooms, {});
+const noRoomsInputs = [];
+walk(noRoomsTree, (el) => {
+  if (el.tagName === "INPUT") noRoomsInputs.push(el);
+});
+const noRoomsFields = new Set(noRoomsInputs.map((el) => el.dataset.field));
+assert.ok(noRoomsFields.has("back_door"));
+assert.ok(noRoomsFields.has("ac_filter_size"));
+assert.ok(noRoomsFields.has("dryer_lint_date"));
+assert.ok(noRoomsFields.has("extra_lockbox_1_code"));
+assert.ok(noRoomsFields.has("extra_lockbox_1_location"));
+assert.ok(!noRoomsFields.has("r1"));
+assert.ok(!noRoomsFields.has("lockbox_1"));
+
 console.log("codes dashboard renderer structure ok");
-console.log(`inputs=${inputs.length}`);
+console.log(`inputs=${inputs.length} no_rooms_inputs=${noRoomsInputs.length}`);

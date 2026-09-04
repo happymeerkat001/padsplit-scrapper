@@ -20,6 +20,7 @@ HOUSE_SLUGS = [
     "pioneer_1404",
     "burton_5509",
     "broken_crest_1025",
+    "spanish_moss",
 ]
 
 ROOM_COUNTS = {
@@ -32,6 +33,7 @@ ROOM_COUNTS = {
     "pioneer_1404": 7,
     "burton_5509": 7,
     "broken_crest_1025": 9,
+    "spanish_moss": 0,
 }
 
 LEGACY_LOCKBOX_COUNTS = {
@@ -124,9 +126,15 @@ class CodesDashboardStructureTests(unittest.TestCase):
         cls.defaults = _defaults_block(cls.html)
         cls.houses = _house_blocks(cls.html)
 
-    def test_exactly_nine_known_houses(self):
+    def test_known_houses_include_spanish_moss(self):
         slugs = _slugs(self.html)
         self.assertEqual(slugs, HOUSE_SLUGS)
+        self.assertEqual(len(slugs), 10)
+        self.assertIn("back_door", _field_keys(self.houses["spanish_moss"]))
+        self.assertEqual(
+            [k for k in _field_keys(self.houses["spanish_moss"]) if re.fullmatch(r"r\d+", k)],
+            [],
+        )
 
     def test_room_counts_match_defaults(self):
         for slug, count in ROOM_COUNTS.items():
@@ -168,14 +176,22 @@ class CodesDashboardStructureTests(unittest.TestCase):
         self.assertIn("function roomAcFilterSizeKey(n) { return `r${n}_ac_filter_size`; }", self.html)
 
     def test_save_payload_includes_new_ops_keys(self):
+        self.assertIn("r${n}_ac_filter_size", self.html)
+        self.assertIn("lockbox_${n}_location", self.html)
+        self.assertIn("lockbox_${n}_notes", self.html)
+        self.assertIn("extra_lockbox_${n}_name", self.html)
+        self.assertIn("extra_lockbox_${n}_code", self.html)
         for slug, count in ROOM_COUNTS.items():
             expected = expected_save_ops_keys(count)
-            self.assertIn("r${n}_ac_filter_size", self.html)
-            self.assertIn("lockbox_${n}_location", self.html)
-            self.assertIn("lockbox_${n}_notes", self.html)
-            self.assertIn("extra_lockbox_${n}_name", self.html)
-            self.assertIn("extra_lockbox_${n}_code", self.html)
-            self.assertTrue(expected.issuperset({"r1", "lockbox_1", "ac_filter_size", "dryer_lint_date"}))
+            self.assertTrue(
+                expected.issuperset({"ac_filter_size", "dryer_lint_date", "extra_lockbox_1_code"}),
+                msg=f"{slug} ops keys",
+            )
+            if count == 0:
+                self.assertNotIn("r1", expected)
+                self.assertNotIn("lockbox_1", expected)
+                continue
+            self.assertTrue(expected.issuperset({"r1", "lockbox_1"}))
             self.assertIn(f"lockbox_{count}", expected)
             self.assertIn(f"r{count}_ac_filter_size", expected)
 

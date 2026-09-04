@@ -582,6 +582,13 @@
         sections: [
           { label: "Door Codes", fields: [
             { key: "back_door", label: "Back Door", value: "" }
+          ]},
+          { label: "Contact", fields: [
+            { key: "responsible_tenant", label: "Responsible Tenant", value: "", placeholder: "Name, Phone" },
+            { key: "ac_filter_date", label: "AC filter date", value: "", type: "date" },
+            { key: "ac_filter_size", label: "AC filter size", value: "", placeholder: "16x25x1" },
+            { key: "dryer_lint_date", label: "Dryer lint date", value: "", type: "date" },
+            { key: "dryer_lint_notes", label: "Dryer lint notes", value: "", placeholder: "Optional" }
           ]}
         ]
       }
@@ -877,6 +884,7 @@
       const body = document.createElement('div');
       body.className = 'property-body';
 
+      let extrasRendered = false;
       property.sections.forEach((section) => {
         if (section.label === 'Lockboxes') return;
 
@@ -893,12 +901,21 @@
             'Non-room boxes such as a front door or gate. Same four fields as room lockboxes.'
           );
           body.appendChild(renderExtraLockboxesTable(property, savedValues));
+          extrasRendered = true;
           return;
         }
 
         appendSectionLabel(body, section.label);
         body.appendChild(renderLabelValueTable(property, section, savedValues));
       });
+      if (!extrasRendered) {
+        appendSectionLabel(
+          body,
+          'Extra Lockboxes',
+          'Non-room boxes such as a front door or gate. Same four fields as room lockboxes.'
+        );
+        body.appendChild(renderExtraLockboxesTable(property, savedValues));
+      }
 
       details.appendChild(body);
       return details;
