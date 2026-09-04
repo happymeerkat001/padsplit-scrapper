@@ -893,7 +893,8 @@ def run(
         result.discord_posts.append(text)
         if current_hashes:
             state["passcode_hashes"] = current_hashes
-        _mark_vacancies_handled(state, pending_rooms)
+        # A human change is not proof it covered this vacancy. Leave it pending
+        # so a later run can still auto-rotate after the hashes stabilize.
         if not dry_run:
             save_state(state, state_path)
         return result
