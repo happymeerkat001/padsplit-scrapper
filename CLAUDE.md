@@ -20,9 +20,10 @@ python3 padsplit_scraper/scraper.py
 python3 thermostat/scraper.py
 
 # Scheduled runs (also commit/push rolling output to git)
-./run_morning.sh    # padsplit + thermostat
-./run_afternoon.sh  # padsplit only
-./run_field_mms.sh  # Don-field group MMS (6am / 7pm CT; skip if both sources empty)
+./run_morning.sh      # padsplit + thermostat
+./run_afternoon.sh    # padsplit only
+./run_field_mms.sh    # Don-field group MMS (6am / 7pm CT; skip if both sources empty)
+./run_seo_monthly.sh  # monthly SEO / vacancy advice (1st 9:00am CT; CI must not post)
 ```
 
 ## Tests
@@ -36,6 +37,7 @@ python3 test_thermostat_schedule.py
 python3 test_obsidian_daily_digest.py
 python3 padsplit_scraper/test_reply_address_parser.py
 python3 test_field_mms.py
+python3 test_seo_monthly.py
 ```
 
 No build step or linter configuration; tests use direct Python execution.
@@ -50,6 +52,13 @@ No build step or linter configuration; tests use direct Python execution.
   (`launchd/com.padsplit.field-mms.plist`) at 6:00am and 7:00pm CT daily,
   including weekends. After merge + Mac pull: `python3 padsplit_scraper/field_mms.py --install-launchd`.
   First send is the next 6am/7pm CT slot. Group MMS only (never a 1:1). CI must not send.
+- Monthly SEO / vacancy advice is launchd-managed by `com.padsplit.seo-monthly`
+  (`launchd/com.padsplit.seo-monthly.plist`) at 9:00am CT on the 1st.
+  After merge + Mac pull: `python3 padsplit_scraper/seo_monthly.py --install-launchd`.
+  Prefers live partner rooms + occupancy; stale `stats.json` is fallback only and is
+  called out. Instant Book = skip. 10% promo / $0 move-in already assumed on.
+  No auto price changes. Optional Discord #ai-tasks-temp @Joe only (never Cindy;
+  never as Ang). CI must not post. Chief Grok Bot cron stays until this agent is live.
 - Thermostat schedule enforcement is launchd-managed by
   `com.padsplit.thermostat.enforcer`. Do not change `thermostat/set_temps.py`
   or enforcement behavior without a safe occupied-schedule test window.
@@ -67,6 +76,7 @@ No build step or linter configuration; tests use direct Python execution.
 - `thermostat/scraper.py` — thermostat portal scraper; HTTP session + fallback logic
 - `padsplit_scraper/discord_notifier.py` — Discord bot alerts on error
 - `padsplit_scraper/field_mms.py` — 6am/7pm CT Don-field group MMS (PadSplit host inbox + Discord #ai-tasks-temp)
+- `padsplit_scraper/seo_monthly.py` — 1st 9:00am CT SEO / vacancy advice pack (live rooms + occupancy; Joe-only Discord dry-run in CI)
 - `slack_task_digest.py` — scheduled DFW weather and task digest, posts to Discord
 - `padsplit_scraper/firestore_status_monitor.py` — Firestore integration
 - `obsidian_daily_digest.py` — daily note generation from scraped data
