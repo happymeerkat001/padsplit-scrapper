@@ -54,6 +54,8 @@ Write Obsidian daily digest:
 python3 obsidian_daily_digest.py
 ```
 
+Codes dashboard (GitHub Pages `docs/codes.html`, password-gated): after login, Contact holds house AC filter date/size and dryer lint date/notes. The Rooms table holds room code, lockbox code/location/notes, and optional per-room AC filter size. Extra lockboxes are for non-room boxes (front door, gate). Saves merge into Firestore `property_codes/{slug}`. Occupancy JSON does not store codes or filter sizes.
+
 Generate message drafts:
 
 ```bash
@@ -75,6 +77,8 @@ python3 test_obsidian_daily_digest.py
 python3 test_field_mms.py
 python3 test_seo_monthly.py
 python3 test_lock_codes.py
+python3 test_codes_dashboard.py
+node test_codes_dashboard_render.mjs
 ```
 
 ## Thermostat Set Temps
