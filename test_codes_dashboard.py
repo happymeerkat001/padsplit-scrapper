@@ -221,6 +221,15 @@ class CodesDashboardStructureTests(unittest.TestCase):
         ):
             self.assertNotIn(forbidden, occupancy)
 
+    def test_renderer_payload_keys_with_dummy_house(self):
+        result = subprocess.run(
+            ["node", str(Path(__file__).resolve().parent / "test_codes_dashboard_render.mjs")],
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0, msg="renderer structure test failed")
+        self.assertIn("codes dashboard renderer structure ok", result.stdout)
+
     def test_existing_default_values_unchanged(self):
         main_html = None
         for ref in ("origin/main", "main"):

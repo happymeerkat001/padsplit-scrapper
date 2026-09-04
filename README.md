@@ -78,6 +78,7 @@ python3 test_field_mms.py
 python3 test_seo_monthly.py
 python3 test_lock_codes.py
 python3 test_codes_dashboard.py
+node test_codes_dashboard_render.mjs
 ```
 
 ## Thermostat Set Temps
