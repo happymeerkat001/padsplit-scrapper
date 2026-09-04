@@ -44,6 +44,21 @@ Run scheduled scripts:
 
 Don-field group MMS (6:00am and 7:00pm CT, every day) is Mac launchd only. Not live until merge + Mac pull + `python3 padsplit_scraper/field_mms.py --install-launchd`. Skips when PadSplit host messages and Discord `#ai-tasks-temp` are both empty. GitHub Actions must not send it.
 
+Primary send path is **Google Voice group SMS** from Ang’s already-signed-in Mac Chrome session (Playwright + persistent Chrome user-data-dir). Fallback is the Messages.app chat named exactly `Don Field`. Recipients are always Dad + Joe + Don together (never a 1:1). Thread owner / From is Ang Google Voice. Never run this from a box, VPS, or cloud IP — Google may challenge unfamiliar IPs. Never paste Google passwords into the repo.
+
+Chrome must already be signed into Google Voice as **mr.angli** / Voice 469. Install Playwright on the Mac once (`pip install playwright`; uses system Chrome, no Voice API key). Then set:
+
+```env
+# auto (default) = Google Voice first, then Messages "Don Field"
+# google_voice = Voice only (no fallback)
+# messages = Messages.app only
+FIELD_MMS_TRANSPORT=auto
+FIELD_MMS_CHROME_USER_DATA_DIR=   # Chrome user-data-dir already signed into Voice
+FIELD_MMS_CHROME_PROFILE_DIRECTORY=Default   # mr.angli Chrome profile directory
+```
+
+`FIELD_MMS_CHROME_USER_DATA_DIR` is the Chrome *root* (the folder that contains `Default` / `Profile 1`), not the profile folder itself. Prefer a dedicated copy of that profile so the daily Chrome window is not locked. If Google shows a login wall / captcha / challenge, create (or reuse) a Messages group named exactly `Don Field` — `auto` falls back there. `FIELD_MMS_TRANSPORT=google_voice` does not fall back.
+
 Monthly SEO / vacancy advice (9:00am CT on the 1st) is Mac launchd only. Not live until merge + Mac pull + `python3 padsplit_scraper/seo_monthly.py --install-launchd`. Uses live partner rooms + occupancy (stale `docs/data/stats.json` only if live fetch fails, and the report says so). Instant Book = skip. 10% promo / $0 move-in already assumed on. No auto price changes. Optional `#ai-tasks-temp` lines @Joe only. GitHub Actions must not post. Chief Grok Bot cron fallback stays until this LaunchAgent is loaded.
 
 Spanish Moss back-door lock-code automation (Sifely, v1) is Mac morning/afternoon only. Not live until Ang merges. Missing `SIFELY_API_KEY` is a Need-you no-op. GitHub Actions must not rotate locks or post Discord. Outbound Discord never includes lock-code digits.

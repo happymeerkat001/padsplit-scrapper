@@ -5,6 +5,10 @@
 window when PadSplit host messages and/or Discord #ai-tasks-temp have
 something to say. Skip when both sources are empty. Never a 1:1 to Don.
 Never send from GitHub Actions / CI.
+
+Primary send path is Google Voice group SMS from Ang's Mac Chrome session
+(voice.google.com, persistent Chrome user-data-dir). Fallback is the
+Messages.app chat named exactly "Don Field". Never send from a box/VPS.
 """
 
 from __future__ import annotations
@@ -27,8 +31,16 @@ from dotenv import load_dotenv
 
 try:
     from padsplit_scraper import scraper
+    from padsplit_scraper.google_voice_chrome import (
+        GoogleVoiceChallenge,
+        send_via_google_voice_chrome,
+    )
 except ModuleNotFoundError:  # python3 padsplit_scraper/field_mms.py
     import scraper  # type: ignore
+    from google_voice_chrome import (  # type: ignore
+        GoogleVoiceChallenge,
+        send_via_google_voice_chrome,
+    )
 
 
 CT = ZoneInfo("America/Chicago")
@@ -45,6 +57,7 @@ DEFAULT_TIMEOUT = (10, 30)
 LOOKBACK = timedelta(hours=18)
 SMS_CHAR_LIMIT = 1500
 FIELD_MMS_CHAT_NAME_DEFAULT = "Don Field"
+FIELD_MMS_TRANSPORT_DEFAULT = "auto"
 
 # Thread owner (From). Recipients are always the three field numbers together.
 ANG_VOICE_PHONE = "+14696267260"
@@ -528,6 +541,20 @@ def _escape_applescript(value: str) -> str:
     return value.replace("\\", "\\\\").replace('"', '\\"')
 
 
+def resolve_field_mms_transport() -> str:
+    """google_voice | messages | auto (default)."""
+    raw = (os.getenv("FIELD_MMS_TRANSPORT") or FIELD_MMS_TRANSPORT_DEFAULT).strip().lower()
+    if raw in {"google_voice", "gv", "voice"}:
+        return "google_voice"
+    if raw in {"messages", "imessage", "messages.app"}:
+        return "messages"
+    return "auto"
+
+
+def messages_chat_name() -> str:
+    return (os.getenv("FIELD_MMS_CHAT_NAME") or FIELD_MMS_CHAT_NAME_DEFAULT).strip()
+
+
 def send_via_messages_chat(body: str, chat_name: str) -> None:
     """Send one group MMS via the existing Mac Messages thread (Voice as owner)."""
     with __import__("tempfile").NamedTemporaryFile("w", encoding="utf-8", delete=False) as handle:
@@ -575,7 +602,26 @@ def send_group_mms(body: str, recipients: Sequence[str] = GROUP_RECIPIENTS) -> N
             err = (result.stderr or result.stdout or "send command failed").strip()
             raise RuntimeError(f"FIELD_MMS_SEND_COMMAND failed: {err}")
         return
-    chat_name = (os.getenv("FIELD_MMS_CHAT_NAME") or FIELD_MMS_CHAT_NAME_DEFAULT).strip()
+    transport = resolve_field_mms_transport()
+    chat_name = messages_chat_name() or FIELD_MMS_CHAT_NAME_DEFAULT
+    if transport == "messages":
+        send_via_messages_chat(body, chat_name)
+        return
+    try:
+        send_via_google_voice_chrome(body, checked)
+        return
+    except GoogleVoiceChallenge:
+        if transport == "google_voice":
+            raise
+        sys.stderr.write(
+            f"[field-mms] Google Voice challenge; falling back to Messages chat {chat_name}\n"
+        )
+    except Exception:
+        if transport == "google_voice":
+            raise
+        sys.stderr.write(
+            f"[field-mms] Google Voice failed; falling back to Messages chat {chat_name}\n"
+        )
     send_via_messages_chat(body, chat_name)
 
 

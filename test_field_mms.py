@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
+import os
 import tempfile
 import unittest
 from datetime import datetime
 from pathlib import Path
+from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
 from padsplit_scraper.field_mms import (
@@ -10,6 +12,7 @@ from padsplit_scraper.field_mms import (
     DAD_PHONE,
     DON_PHONE,
     DON_WRONG_PHONE,
+    FIELD_MMS_CHAT_NAME_DEFAULT,
     GROUP_RECIPIENTS,
     JOE_PHONE,
     assert_group_recipients,
@@ -20,10 +23,21 @@ from padsplit_scraper.field_mms import (
     extract_open_task_lines,
     normalize_phone,
     plan_send,
+    resolve_field_mms_transport,
     run_window,
     sanitize_sms,
+    send_group_mms,
+    send_via_google_voice_chrome,
     summarize_host_messages,
     window_for,
+)
+from padsplit_scraper.google_voice_chrome import (
+    VOICE_MESSAGES_URL,
+    GoogleVoiceChallenge,
+    GoogleVoiceTransportError,
+    detect_google_voice_challenge,
+    format_voice_recipient,
+    send_on_google_voice_page,
 )
 
 
@@ -198,6 +212,228 @@ class FieldMmsTests(unittest.TestCase):
             self.assertNotIn("Weekday", item)
         self.assertEqual(payload["Label"], "com.padsplit.field-mms")
         self.assertTrue(str(payload["ProgramArguments"][1]).endswith("run_field_mms.sh"))
+
+
+class RecordingVoicePage:
+    """In-memory Google Voice page. Tests never launch Chrome or send."""
+
+    def __init__(
+        self,
+        *,
+        url: str = VOICE_MESSAGES_URL,
+        title: str = "Messages",
+        text: str = "Send a message Type a message",
+        chips_after_add: int = 3,
+    ) -> None:
+        self.url = url
+        self.title = title
+        self.text = text
+        self.chips_after_add = chips_after_add
+        self.recipients: list[str] = []
+        self.body: str | None = None
+        self.sends = 0
+        self.composed = False
+        self.closed = False
+
+    def current_url(self) -> str:
+        return self.url
+
+    def page_title(self) -> str:
+        return self.title
+
+    def page_text(self) -> str:
+        return self.text
+
+    def goto_messages(self) -> None:
+        if "accounts.google.com" not in self.url:
+            self.url = VOICE_MESSAGES_URL
+
+    def open_compose(self) -> None:
+        self.composed = True
+
+    def add_recipient(self, phone: str) -> None:
+        self.recipients.append(phone)
+
+    def recipient_chip_count(self) -> int:
+        return self.chips_after_add if self.recipients else 0
+
+    def set_body(self, body: str) -> None:
+        self.body = body
+
+    def click_send(self) -> None:
+        self.sends += 1
+
+    def close(self) -> None:
+        self.closed = True
+
+
+class FieldMmsTransportTests(unittest.TestCase):
+    def test_default_transport_is_auto(self) -> None:
+        with patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("FIELD_MMS_TRANSPORT", None)
+            self.assertEqual(resolve_field_mms_transport(), "auto")
+
+    def test_transport_aliases(self) -> None:
+        with patch.dict(os.environ, {"FIELD_MMS_TRANSPORT": "google_voice"}):
+            self.assertEqual(resolve_field_mms_transport(), "google_voice")
+        with patch.dict(os.environ, {"FIELD_MMS_TRANSPORT": "messages"}):
+            self.assertEqual(resolve_field_mms_transport(), "messages")
+
+    @patch("padsplit_scraper.field_mms.sending_allowed", return_value=True)
+    @patch("padsplit_scraper.field_mms.send_via_messages_chat")
+    @patch("padsplit_scraper.field_mms.send_via_google_voice_chrome")
+    def test_auto_tries_google_voice_then_messages_on_challenge(
+        self, gv, messages, _allowed
+    ) -> None:
+        gv.side_effect = GoogleVoiceChallenge("Google Voice login or challenge wall")
+        with patch.dict(os.environ, {"FIELD_MMS_TRANSPORT": "auto"}):
+            send_group_mms("PadSplit: kitchen sink leak", GROUP_RECIPIENTS)
+        gv.assert_called_once()
+        self.assertEqual(gv.call_args[0][0], "PadSplit: kitchen sink leak")
+        self.assertEqual(tuple(gv.call_args[0][1]), GROUP_RECIPIENTS)
+        messages.assert_called_once_with("PadSplit: kitchen sink leak", FIELD_MMS_CHAT_NAME_DEFAULT)
+
+    @patch("padsplit_scraper.field_mms.sending_allowed", return_value=True)
+    @patch("padsplit_scraper.field_mms.send_via_messages_chat")
+    @patch("padsplit_scraper.field_mms.send_via_google_voice_chrome")
+    def test_auto_falls_back_on_transport_failure(self, gv, messages, _allowed) -> None:
+        gv.side_effect = GoogleVoiceTransportError("Google Voice Chrome failed to launch")
+        with patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("FIELD_MMS_TRANSPORT", None)
+            send_group_mms("PadSplit: kitchen sink leak", GROUP_RECIPIENTS)
+        gv.assert_called_once()
+        messages.assert_called_once()
+
+    @patch("padsplit_scraper.field_mms.sending_allowed", return_value=True)
+    @patch("padsplit_scraper.field_mms.send_via_messages_chat")
+    @patch("padsplit_scraper.field_mms.send_via_google_voice_chrome")
+    def test_google_voice_strict_does_not_fallback(self, gv, messages, _allowed) -> None:
+        gv.side_effect = GoogleVoiceChallenge("Google Voice login or challenge wall")
+        with patch.dict(os.environ, {"FIELD_MMS_TRANSPORT": "google_voice"}):
+            with self.assertRaises(GoogleVoiceChallenge):
+                send_group_mms("PadSplit: kitchen sink leak", GROUP_RECIPIENTS)
+        gv.assert_called_once()
+        messages.assert_not_called()
+
+    @patch("padsplit_scraper.field_mms.sending_allowed", return_value=True)
+    @patch("padsplit_scraper.field_mms.send_via_messages_chat")
+    @patch("padsplit_scraper.field_mms.send_via_google_voice_chrome")
+    def test_messages_transport_skips_google_voice(self, gv, messages, _allowed) -> None:
+        with patch.dict(os.environ, {"FIELD_MMS_TRANSPORT": "messages"}):
+            send_group_mms("PadSplit: kitchen sink leak", GROUP_RECIPIENTS)
+        gv.assert_not_called()
+        messages.assert_called_once_with("PadSplit: kitchen sink leak", FIELD_MMS_CHAT_NAME_DEFAULT)
+
+    @patch("padsplit_scraper.field_mms.sending_allowed", return_value=True)
+    @patch("padsplit_scraper.field_mms.send_via_messages_chat")
+    @patch("padsplit_scraper.field_mms.send_via_google_voice_chrome")
+    def test_send_group_mms_refuses_wrong_don_before_any_send(self, gv, messages, _allowed) -> None:
+        with self.assertRaisesRegex(RuntimeError, "wrong Don number"):
+            send_group_mms(
+                "PadSplit: kitchen sink leak",
+                (DAD_PHONE, JOE_PHONE, DON_WRONG_PHONE),
+            )
+        gv.assert_not_called()
+        messages.assert_not_called()
+
+    @patch("padsplit_scraper.field_mms.send_via_messages_chat")
+    @patch("padsplit_scraper.field_mms.send_via_google_voice_chrome")
+    def test_send_group_mms_never_sends_when_ci_disallows(self, gv, messages) -> None:
+        with patch("padsplit_scraper.field_mms.sending_allowed", return_value=False):
+            with self.assertRaisesRegex(RuntimeError, "must not send"):
+                send_group_mms("PadSplit: kitchen sink leak", GROUP_RECIPIENTS)
+        gv.assert_not_called()
+        messages.assert_not_called()
+
+    def test_detect_google_voice_challenge_signin_and_captcha(self) -> None:
+        self.assertTrue(
+            detect_google_voice_challenge(
+                url="https://accounts.google.com/v3/signin/challenge",
+                title="Sign in",
+                visible_text="Verify it's you",
+            )
+        )
+        self.assertTrue(
+            detect_google_voice_challenge(
+                url="https://voice.google.com/u/0/messages",
+                title="Messages",
+                visible_text="I'm not a robot recaptcha",
+            )
+        )
+        self.assertFalse(
+            detect_google_voice_challenge(
+                url=VOICE_MESSAGES_URL,
+                title="Messages",
+                visible_text="Send a message Type a message",
+            )
+        )
+
+    def test_compose_is_one_group_send_not_three_solos(self) -> None:
+        page = RecordingVoicePage()
+        send_on_google_voice_page(page, "PadSplit: kitchen sink leak", GROUP_RECIPIENTS)
+        self.assertTrue(page.composed)
+        self.assertEqual(tuple(page.recipients), GROUP_RECIPIENTS)
+        self.assertEqual(page.body, "PadSplit: kitchen sink leak")
+        self.assertEqual(page.sends, 1)
+
+    def test_compose_refuses_incomplete_group(self) -> None:
+        page = RecordingVoicePage(chips_after_add=1)
+        with self.assertRaisesRegex(GoogleVoiceTransportError, "all three recipients"):
+            send_on_google_voice_page(page, "PadSplit: kitchen sink leak", GROUP_RECIPIENTS)
+        self.assertEqual(page.sends, 0)
+
+    def test_google_voice_chrome_raises_on_signin_wall_without_sending(self) -> None:
+        page = RecordingVoicePage(
+            url="https://accounts.google.com/signin",
+            title="Sign in",
+            text="Use your Google Account",
+        )
+        with patch("padsplit_scraper.field_mms.sending_allowed", return_value=True):
+            with self.assertRaises(GoogleVoiceChallenge):
+                send_via_google_voice_chrome(
+                    "PadSplit: kitchen sink leak",
+                    GROUP_RECIPIENTS,
+                    voice_page=page,
+                )
+        self.assertEqual(page.sends, 0)
+
+    def test_google_voice_chrome_sends_group_once_when_page_is_ready(self) -> None:
+        page = RecordingVoicePage()
+        with patch("padsplit_scraper.field_mms.sending_allowed", return_value=True):
+            send_via_google_voice_chrome(
+                "PadSplit: kitchen sink leak",
+                GROUP_RECIPIENTS,
+                voice_page=page,
+            )
+        self.assertEqual(tuple(page.recipients), GROUP_RECIPIENTS)
+        self.assertEqual(page.sends, 1)
+        self.assertFalse(page.closed)
+
+    def test_google_voice_chrome_refuses_wrong_don(self) -> None:
+        page = RecordingVoicePage()
+        with self.assertRaisesRegex(RuntimeError, "wrong Don number"):
+            send_via_google_voice_chrome(
+                "PadSplit: kitchen sink leak",
+                (DAD_PHONE, JOE_PHONE, DON_WRONG_PHONE),
+                voice_page=page,
+            )
+        self.assertEqual(page.sends, 0)
+
+    def test_google_voice_chrome_never_sends_in_ci(self) -> None:
+        page = RecordingVoicePage()
+        with patch.dict(os.environ, {"CI": "true", "GITHUB_ACTIONS": "true"}):
+            with self.assertRaisesRegex(RuntimeError, "must not send"):
+                send_via_google_voice_chrome(
+                    "PadSplit: kitchen sink leak",
+                    GROUP_RECIPIENTS,
+                    voice_page=page,
+                )
+        self.assertEqual(page.sends, 0)
+
+    def test_format_voice_recipient_is_national(self) -> None:
+        self.assertEqual(format_voice_recipient(DON_PHONE), "(214) 779-8338")
+        self.assertEqual(format_voice_recipient(DAD_PHONE), "(945) 241-3070")
+        self.assertEqual(format_voice_recipient(JOE_PHONE), "(469) 373-2048")
 
 
 if __name__ == "__main__":
