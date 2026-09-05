@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-09-05T01:02:04Z",
+  "scraped_at": "2026-09-05T05:49:21Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzYxNDQy",
@@ -44,9 +44,9 @@
       },
       "isCancelled": false,
       "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEzNjAwOTc=",
-        "created": "2026-09-05T01:00:36.658229",
-        "text": "Thank goodness zannia was kind enough to let me in. ",
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEzNjAyNjE=",
+        "created": "2026-09-05T01:12:59.971882",
+        "text": "The 2026 code only works on the front door. It will not work on the back door. Let\u2019s try one more time Joseph.",
         "deleted": null,
         "extra": null,
         "messageType": "TEXT",
@@ -62,11 +62,111 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-09-04T21:21:15.205438",
+        "seenAt": "2026-09-05T01:09:47.280017",
         "isPinned": false,
         "isUnread": true
       },
       "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEzNjAyNjE=",
+          "text": "The 2026 code only works on the front door. It will not work on the back door. Let\u2019s try one more time Joseph.",
+          "created": "2026-09-05T01:12:59.971882",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkxMTIyNg==",
+            "pk": 911226,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_911226_ad3e5aff-96a6-4362-a21a-8cab4464471a.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_911226_ad3e5aff-96a6-4362-a21a-8cab4464471a.jpg",
+            "firstName": "Marianne",
+            "lastName": "Fried",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 848697
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEzNjAyMjg=",
+          "text": null,
+          "created": "2026-09-05T01:10:23.683267",
+          "messageType": "TICKET_UPDATE",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
+            "pk": 339595,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Tinghui",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "",
+            "padmateProfileId": 278216
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMTQyNDQw",
+            "created": "2026-09-05T01:10:23.694372",
+            "status": "SUBMITTED",
+            "canRate": false,
+            "ticket": {
+              "id": "469743",
+              "author": {
+                "firstName": "Marianne",
+                "lastName": "Fried",
+                "id": "911226",
+                "displayName": null
+              },
+              "details": "Well, the  latest by code 2026the back door. Created  on   Sept 5th won\u2019t work on the back door. What\u2019s going on?",
+              "location": "DOORLOCK",
+              "status": "SUBMITTED",
+              "rating": null,
+              "comment": null,
+              "category": "UNCLASSIFIED",
+              "onHoldReason": null,
+              "withdrawReason": null
+            }
+          },
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEzNjAxODU=",
+          "text": "Well Joseph, it works on the front door but not the back. Is everything ok?",
+          "created": "2026-09-05T01:06:16.319030",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkxMTIyNg==",
+            "pk": 911226,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_911226_ad3e5aff-96a6-4362-a21a-8cab4464471a.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_911226_ad3e5aff-96a6-4362-a21a-8cab4464471a.jpg",
+            "firstName": "Marianne",
+            "lastName": "Fried",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 848697
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
         {
           "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEzNjAwOTc=",
           "text": "Thank goodness zannia was kind enough to let me in. ",
@@ -264,84 +364,6 @@
             "isActive": true,
             "displayName": "Joe Manager",
             "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEzMzI1Mzg=",
-          "text": "Thanks once more. ",
-          "created": "2026-09-03T20:58:55.886156",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkxMTIyNg==",
-            "pk": 911226,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_911226_ad3e5aff-96a6-4362-a21a-8cab4464471a.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_911226_ad3e5aff-96a6-4362-a21a-8cab4464471a.jpg",
-            "firstName": "Marianne",
-            "lastName": "Fried",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 848697
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEzMzI1MTc=",
-          "text": "New code for u 57176934",
-          "created": "2026-09-03T20:57:37.735444",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Joe Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEzMzIzOTU=",
-          "text": "Thanks for the update .",
-          "created": "2026-09-03T20:52:08.817601",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkxMTIyNg==",
-            "pk": 911226,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_911226_ad3e5aff-96a6-4362-a21a-8cab4464471a.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_911226_ad3e5aff-96a6-4362-a21a-8cab4464471a.jpg",
-            "firstName": "Marianne",
-            "lastName": "Fried",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 848697
           },
           "attachments": [],
           "reactions": [],
@@ -1411,7 +1433,7 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-09-05T00:46:50.365999",
+        "seenAt": "2026-09-05T01:06:15.971459",
         "isPinned": false,
         "isUnread": false
       },
@@ -11825,6 +11847,48 @@
   "tasks": {
     "Requests": [
       {
+        "id": 469743,
+        "status": "submitted",
+        "comment": null,
+        "category": "unclassified",
+        "media": [],
+        "created": "2026-09-05T01:10:23.601165",
+        "modified": "2026-09-05T01:10:23.601165",
+        "room_name": "Room 6",
+        "room_number": 6,
+        "room_status": 1,
+        "room_code": "3414",
+        "location": "Doorlock",
+        "details": "Well, the  latest by code 2026the back door. Created  on   Sept 5th won\u2019t work on the back door. What\u2019s going on?",
+        "property_id": 8127,
+        "property_address": {
+          "id": 10664,
+          "street1": "10235 Ridge Oak Street",
+          "street2": "",
+          "city": "Dallas",
+          "state": "TX",
+          "zip": "75227",
+          "city_slug": "dallas-tx"
+        },
+        "reported_by": {
+          "id": 911226,
+          "name": "Marianne Fried",
+          "role_id": 0,
+          "picture": "img/profiles/user_911226_ad3e5aff-96a6-4362-a21a-8cab4464471a.jpg"
+        },
+        "assigned_to": null,
+        "on_hold_reason": null,
+        "update_status_at": "2026-09-05T01:10:23.603422",
+        "rating": null,
+        "extra_data": {},
+        "has_reused_code": true,
+        "moveout_photos_count": 0,
+        "days_to_complete": null,
+        "is_on_payment_plan": false,
+        "payment_plan_end_date": null,
+        "payment_plan_reason_note": null
+      },
+      {
         "id": 469738,
         "status": "submitted",
         "comment": null,
@@ -12433,6 +12497,6 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-09-05T01:02:04Z"
+    "run_scraped_at": "2026-09-05T05:49:21Z"
   }
 }
