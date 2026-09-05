@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import hmac
 import json
 import os
 import re
@@ -102,8 +103,12 @@ DISCORD_ROTATED = "Spanish Moss lock was rotated."
 
 _DIGIT_RUN = re.compile(r"\d+")
 _CODE_TOKEN = re.compile(r"\b(?:passcode|code|pin|keyboard\s*pwd)\b\s*[:#-]?\s*(\S+)", re.I)
+_PASSCODE_DIGITS = re.compile(r"^\d{4,8}$")
 _SK_KEY = re.compile(r"sk-[A-Za-z0-9]+")
 _SECRET_HEADER = re.compile(r"(?i)(authorization\s*:\s*)\S+")
+_SIFELY_OK_CODES = {None, 0, "0", 200, "200"}
+_HASH_PREFIX_V2 = "v2:"
+_TEST_SHARE_PLACEHOLDER = "REDACTED"
 
 
 class SifelyUnavailable(RuntimeError):
@@ -166,7 +171,34 @@ def redact_for_log(text: str) -> str:
 
 
 def hash_passcode(code: str) -> str:
-    return hashlib.sha256((code or "").encode("utf-8")).hexdigest()
+    """Keyed fingerprint. Never store the passcode itself.
+
+    HMAC-SHA256 with SIFELY_API_KEY when present so a stolen state file
+    cannot be reversed by enumerating 4-8 digit PINs. Unkeyed SHA-256 is
+    only used when the key is missing (tests / Need-you). Prefixes let
+    detect_human_change ignore algorithm migrations.
+    """
+    material = (code or "").encode("utf-8")
+    key = (os.getenv("SIFELY_API_KEY") or "").encode("utf-8")
+    if key:
+        digest = hmac.new(key, material, hashlib.sha256).hexdigest()
+        return f"{_HASH_PREFIX_V2}{digest}"
+    return f"v1:{hashlib.sha256(material).hexdigest()}"
+
+
+def _hash_scheme(digest: str) -> str:
+    text = str(digest or "")
+    if ":" in text:
+        return text.split(":", 1)[0]
+    return "legacy"
+
+
+def is_supported_passcode_token(token: str) -> bool:
+    """Accept Sifely 4-8 digit PINs, or the test placeholder REDACTED."""
+    value = (token or "").strip()
+    if value == _TEST_SHARE_PLACEHOLDER:
+        return True
+    return bool(_PASSCODE_DIGITS.fullmatch(value))
 
 
 def generate_passcode() -> str:
@@ -258,7 +290,7 @@ def parse_sifely_share_code(text: str) -> Optional[str]:
     if not match:
         return None
     token = match.group(1).strip().strip(".,;)")
-    if not token:
+    if not is_supported_passcode_token(token):
         return None
     return token
 
@@ -356,6 +388,7 @@ def load_state(path: Path = STATE_PATH) -> Dict[str, Any]:
     payload.setdefault("processed_discord_ids", [])
     payload.setdefault("last_auto_rotate_hash", "")
     payload.setdefault("need_you_sent_on", "")
+    payload.setdefault("pending_distribution", False)
     if not isinstance(payload["passcode_hashes"], dict):
         payload["passcode_hashes"] = {}
     return payload
@@ -373,6 +406,7 @@ def _empty_state() -> Dict[str, Any]:
         "processed_discord_ids": [],
         "last_auto_rotate_hash": "",
         "need_you_sent_on": "",
+        "pending_distribution": False,
     }
 
 
@@ -396,8 +430,11 @@ def detect_human_change(
         return False
     for pwd_id, digest in current_hashes.items():
         prior = previous_hashes.get(pwd_id)
-        if prior and prior != digest and digest != last_auto_rotate_hash:
-            return True
+        if not prior or prior == digest or digest == last_auto_rotate_hash:
+            continue
+        if _hash_scheme(prior) != _hash_scheme(digest):
+            continue
+        return True
     return False
 
 
@@ -410,7 +447,11 @@ def sifely_headers(api_key: str) -> Dict[str, str]:
 
 
 def _unwrap_sifely(payload: Any) -> Any:
-    if isinstance(payload, dict) and "data" in payload and payload.get("code") in (None, 200, "200"):
+    if not isinstance(payload, dict):
+        return payload
+    if "code" in payload and payload.get("code") not in _SIFELY_OK_CODES:
+        raise SifelyUnavailable("Sifely application error")
+    if "data" in payload and payload.get("code") in _SIFELY_OK_CODES:
         return payload.get("data")
     return payload
 
@@ -710,6 +751,21 @@ def _mark_vacancies_handled(state: Dict[str, Any], rooms: Sequence[Dict[str, Any
     state["rotated_vacancy_keys"] = sorted(keys)
 
 
+def _in_memory_passcode(passcodes: Sequence[Dict[str, Any]], keyboard_pwd_id: Any) -> Optional[str]:
+    """Return the live keyboardPwd for redistribute. Do not log the value."""
+    wanted = str(keyboard_pwd_id or "")
+    if not wanted:
+        return None
+    for item in passcodes:
+        pwd_id = str(item.get("keyboardPwdId") or item.get("id") or "")
+        if pwd_id != wanted:
+            continue
+        code = item.get("keyboardPwd")
+        if isinstance(code, str) and is_supported_passcode_token(code):
+            return code
+    return None
+
+
 def run(
     *,
     now: Optional[datetime] = None,
@@ -740,20 +796,24 @@ def run(
     lock: Optional[Dict[str, Any]] = None
     keyboard_pwd_id: Optional[str] = None
     current_hashes: Dict[str, str] = {}
+    live_passcodes: List[Dict[str, Any]] = []
+    pending_distribution = bool(state.get("pending_distribution"))
 
     if api_key and not running_in_ci():
         try:
             locks = list_locks(api_key, session=sifely_session)
             lock = resolve_lock(locks)
             if lock is not None:
-                passcodes = list_passcodes(api_key, lock.get("lockId"), session=sifely_session)
-                keyboard_pwd_id = resolve_keyboard_pwd_id(passcodes)
-                current_hashes = passcode_hashes_from_list(passcodes)
+                live_passcodes = list_passcodes(api_key, lock.get("lockId"), session=sifely_session)
+                keyboard_pwd_id = resolve_keyboard_pwd_id(live_passcodes)
+                current_hashes = passcode_hashes_from_list(live_passcodes)
                 human_change = detect_human_change(
                     current_hashes,
                     state.get("passcode_hashes") or {},
                     state.get("last_auto_rotate_hash") or "",
                 )
+                if pending_distribution:
+                    human_change = False
             api_available = True
         except SifelyUnavailable as exc:
             _log(f"Sifely API cannot run: {exc}")
@@ -808,52 +868,78 @@ def run(
         result.discord_posts.append(text)
         if current_hashes:
             state["passcode_hashes"] = current_hashes
-        _mark_vacancies_handled(state, pending_rooms)
         if not dry_run:
             save_state(state, state_path)
         return result
 
     working_code: Optional[str] = None
+    rotated_this_run = False
     if plan.rotate_via_api:
         if lock is None or not keyboard_pwd_id:
             _log("Need you: could not resolve Spanish Moss back-door lock or passcode id")
             return result
-        working_code = new_code_fn()
-        if not dry_run:
-            try:
-                change_passcode(
-                    api_key,
-                    lock_id=lock.get("lockId"),
-                    keyboard_pwd_id=keyboard_pwd_id,
-                    new_code=working_code,
-                    session=sifely_session,
-                )
-            except SifelyUnavailable as exc:
-                _log(f"rotate failed; will wait for #new-tenants fallback: {exc}")
+        if pending_distribution:
+            working_code = _in_memory_passcode(live_passcodes, keyboard_pwd_id)
+            if not working_code:
+                _log("pending distribution; live passcode unavailable this run")
+                if not dry_run:
+                    save_state(state, state_path)
                 return result
-        state["last_auto_rotate_hash"] = hash_passcode(working_code)
-        if keyboard_pwd_id:
-            hashes = dict(state.get("passcode_hashes") or {})
-            hashes[str(keyboard_pwd_id)] = state["last_auto_rotate_hash"]
-            state["passcode_hashes"] = hashes
-        elif current_hashes:
-            state["passcode_hashes"] = current_hashes
-        _mark_vacancies_handled(state, pending_rooms)
+        else:
+            working_code = new_code_fn()
+            if not dry_run:
+                try:
+                    change_passcode(
+                        api_key,
+                        lock_id=lock.get("lockId"),
+                        keyboard_pwd_id=keyboard_pwd_id,
+                        new_code=working_code,
+                        session=sifely_session,
+                    )
+                except SifelyUnavailable as exc:
+                    _log(f"rotate failed; will wait for #new-tenants fallback: {exc}")
+                    return result
+            rotated_this_run = True
+            state["last_auto_rotate_hash"] = hash_passcode(working_code)
+            state["pending_distribution"] = True
+            if keyboard_pwd_id:
+                hashes = dict(state.get("passcode_hashes") or {})
+                hashes[str(keyboard_pwd_id)] = state["last_auto_rotate_hash"]
+                state["passcode_hashes"] = hashes
+            elif current_hashes:
+                state["passcode_hashes"] = current_hashes
 
+    share_consumed = False
     if plan.use_inbound_share:
         working_code = inbound_share_code
-        if inbound_id:
+
+    digest_ok = True
+    members_ok = True
+    if working_code and plan.update_digest:
+        result.digest_updated = bool(digest_fn(working_code))
+        digest_ok = result.digest_updated
+        if not digest_ok:
+            _log("digest update incomplete; will retry")
+    if working_code and plan.notify_padsplit:
+        expected_members = len(current_member_threads(messages, current))
+        result.padsplit_notified = int(member_fn(working_code))
+        if expected_members > 0 and result.padsplit_notified < expected_members:
+            members_ok = False
+            _log("PadSplit host notify incomplete; will retry")
+
+    delivered = bool(working_code) and digest_ok and members_ok
+    if delivered:
+        _mark_vacancies_handled(state, pending_rooms)
+        state["pending_distribution"] = False
+        if plan.use_inbound_share and inbound_id:
             processed = set(state.get("processed_discord_ids") or [])
             processed.add(str(inbound_id))
             state["processed_discord_ids"] = sorted(processed)[-50:]
-        _mark_vacancies_handled(state, pending_rooms)
+            share_consumed = True
+    elif plan.use_inbound_share and not share_consumed:
+        _log("inbound share not consumed; vacancy stays pending")
 
-    if working_code and plan.update_digest:
-        result.digest_updated = bool(digest_fn(working_code))
-    if working_code and plan.notify_padsplit:
-        result.padsplit_notified = int(member_fn(working_code))
-
-    if plan.discord_kind == "rotated":
+    if plan.discord_kind == "rotated" and rotated_this_run:
         text = assert_discord_outbound_safe(discord_rotated_text())
         if not dry_run:
             poster(text)
