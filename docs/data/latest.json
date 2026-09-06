@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-09-06T04:48:58Z",
+  "scraped_at": "2026-09-06T09:29:17Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzA1Mzk4",
@@ -62,7 +62,7 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-09-05T22:10:47.738444",
+        "seenAt": "2026-09-06T07:21:13.772451",
         "isPinned": false,
         "isUnread": false
       },
@@ -8400,7 +8400,7 @@
               },
               "details": "i hung a bag of trash on the doorknob above the lock and when i left the room and locked the door, the motor isn\u2019t strong enough to push whatever is in the bag out of the way, i\u2019m reading online you can manually unlock it with the key which will have enough force to push whatever is in the way. are you able to supply me with the key or have someone come to the house with the key to unlock the door? this is for room 3",
               "location": "DOORLOCK",
-              "status": "COMPLETED",
+              "status": "ARCHIVED",
               "rating": null,
               "comment": null,
               "category": "UNCLASSIFIED",
@@ -12346,52 +12346,6 @@
         "payment_plan_end_date": null,
         "payment_plan_reason_note": null
       }
-    ],
-    "Complete": [
-      {
-        "id": 465949,
-        "status": "completed",
-        "comment": null,
-        "category": "unclassified",
-        "media": [],
-        "created": "2026-08-28T21:16:49.304905",
-        "modified": "2026-08-29T16:11:51.389076",
-        "room_name": "",
-        "room_number": 3,
-        "room_status": 1,
-        "room_code": "1234",
-        "location": "Doorlock",
-        "details": "i hung a bag of trash on the doorknob above the lock and when i left the room and locked the door, the motor isn\u2019t strong enough to push whatever is in the bag out of the way, i\u2019m reading online you can manually unlock it with the key which will have enough force to push whatever is in the way. are you able to supply me with the key or have someone come to the house with the key to unlock the door? this is for room 3",
-        "property_id": 20021,
-        "property_address": {
-          "id": 27496,
-          "street1": "1404 Pioneer Lane",
-          "street2": "",
-          "city": "Plano",
-          "state": "TX",
-          "zip": "75023",
-          "city_slug": "plano-tx"
-        },
-        "reported_by": {
-          "id": 1209743,
-          "name": "Mark Renic",
-          "role_id": 0,
-          "picture": "img/profiles/user_1209743_796805ed-3577-4485-8d88-1e54fe41adc9.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-08-29T16:11:51.384124",
-        "rating": null,
-        "extra_data": {
-          "checklist": {}
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
-      }
     ]
   },
   "run_status": {
@@ -12401,6 +12355,6 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-09-06T04:48:58Z"
+    "run_scraped_at": "2026-09-06T09:29:17Z"
   }
 }
