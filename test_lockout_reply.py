@@ -173,6 +173,43 @@ class DetectTests(unittest.TestCase):
             self.assertTrue(lockout_reply.detect_door_fail_followup(text), msg=text)
         self.assertFalse(lockout_reply.detect_door_fail_followup("thanks for the welcome"))
 
+    def test_entry_success_phrases(self) -> None:
+        for text in (
+            "got it",
+            "got-it thanks",
+            "got in",
+            "I'm in",
+            "I am in",
+            "I’m in now",
+            "made it in",
+            "code worked",
+            "keypad worked",
+            "door worked",
+            "I'm inside",
+            "all good",
+            "we're good",
+            "we are good",
+            "I'm good",
+            "it worked",
+        ):
+            self.assertTrue(lockout_reply.detect_entry_success(text), msg=text)
+
+    def test_entry_success_precision(self) -> None:
+        for text in (
+            "thanks for the welcome",
+            "I'm interested in extending",
+            "forgot it",
+            "not all good",
+            "AC is broken",
+            "when is rent due",
+        ):
+            self.assertFalse(lockout_reply.detect_entry_success(text), msg=text)
+
+    def test_success_preferred_when_fail_cues_also_present(self) -> None:
+        text = "code didn't work but I'm in"
+        self.assertTrue(lockout_reply.detect_entry_success(text))
+        self.assertTrue(lockout_reply.detect_door_fail_followup(text))
+
 
 class HouseRoomCertaintyTests(unittest.TestCase):
     def test_unique_house_and_occupancy_room_is_100(self) -> None:
@@ -419,6 +456,140 @@ class FlowTests(unittest.TestCase):
         self.assertEqual(rows[0]["action"], "already_sent")
         self.assertEqual(rows[0]["stage"], "door")
         self.assertEqual(fake.sends, [])
+        self.assertEqual(fake.posts, [])
+
+    def test_got_it_after_door_resolves_no_lockbox_no_discord(self) -> None:
+        fake = FakeSend()
+        thread = member_thread(host_texts=[DOOR_HOST], follow_up="got it")
+        rows, state = run_process(fake, [thread])
+        self.assertEqual(rows[0]["action"], "resolved")
+        self.assertEqual(rows[0]["reason"], "member confirmed entry")
+        self.assertEqual(rows[0]["stage"], "door")
+        self.assertEqual(fake.sends, [])
+        self.assertEqual(fake.posts, [])
+        self.assertNotIn("discord", rows[0])
+        self.assertIn("resolved_at", state["threads"]["chat-leana"])
+        self.assertNotIn("lockbox_sent_at", state["threads"]["chat-leana"])
+
+    def test_im_in_after_door_resolves_no_lockbox_no_discord(self) -> None:
+        fake = FakeSend()
+        thread = member_thread(host_texts=[DOOR_HOST], follow_up="I’m in")
+        rows, _ = run_process(fake, [thread])
+        self.assertEqual(rows[0]["action"], "resolved")
+        self.assertEqual(fake.sends, [])
+        self.assertEqual(fake.posts, [])
+
+    def test_code_worked_after_door_resolves_no_lockbox_no_discord(self) -> None:
+        fake = FakeSend()
+        thread = member_thread(host_texts=[DOOR_HOST], follow_up="code worked")
+        rows, _ = run_process(fake, [thread])
+        self.assertEqual(rows[0]["action"], "resolved")
+        self.assertEqual(fake.sends, [])
+        self.assertEqual(fake.posts, [])
+
+    def test_success_and_fail_in_same_message_prefers_success(self) -> None:
+        fake = FakeSend()
+        thread = member_thread(
+            host_texts=[DOOR_HOST],
+            follow_up="code didn't work but I'm in",
+        )
+        rows, state = run_process(fake, [thread])
+        self.assertEqual(rows[0]["action"], "resolved")
+        self.assertEqual(fake.sends, [])
+        self.assertEqual(fake.posts, [])
+        self.assertIn("resolved_at", state["threads"]["chat-leana"])
+
+    def test_still_locked_out_after_door_still_sends_lockbox(self) -> None:
+        fake = FakeSend()
+        thread = member_thread(
+            host_texts=[DOOR_HOST],
+            follow_up="still locked out",
+        )
+        rows, state = run_process(fake, [thread])
+        self.assertEqual(rows[0]["action"], "sent")
+        self.assertEqual(rows[0]["stage"], "lockbox")
+        self.assertEqual(len(fake.sends), 1)
+        self.assertIn("Room / lockbox", fake.sends[0][1])
+        self.assertIn("lockbox_sent_at", state["threads"]["chat-leana"])
+
+    def test_code_didnt_work_after_door_still_sends_lockbox(self) -> None:
+        fake = FakeSend()
+        thread = member_thread(
+            host_texts=[DOOR_HOST],
+            follow_up="code didn’t work",
+        )
+        rows, _ = run_process(fake, [thread])
+        self.assertEqual(rows[0]["action"], "sent")
+        self.assertEqual(rows[0]["stage"], "lockbox")
+        self.assertEqual(len(fake.sends), 1)
+
+    def test_resolved_flag_blocks_later_fail_noise(self) -> None:
+        fake = FakeSend()
+        got_it = member_thread(host_texts=[DOOR_HOST], follow_up="got it")
+        later = NOW + timedelta(minutes=10)
+        with tempfile.TemporaryDirectory() as tmpdir:
+            state_path = Path(tmpdir) / "state.json"
+            kwargs = dict(
+                state_path=state_path,
+                leftover_compose_tabs=fake.tabs,
+                close_tabs_fn=fake.close_tabs,
+                send_fn=fake.send,
+                codes_fn=lambda _slug: fake_doc(),
+                post_discord=fake.posts.append,
+                send_enabled=True,
+            )
+            first = lockout_reply.process_lockouts([got_it], now=NOW, **kwargs)
+            noisy = member_thread(
+                host_texts=[DOOR_HOST],
+                follow_up="still locked out",
+                follow_up_created="2026-09-07T15:05:00Z",
+            )
+            second = lockout_reply.process_lockouts([noisy], now=later, **kwargs)
+        self.assertEqual(first[0]["action"], "resolved")
+        self.assertEqual(second[0]["action"], "resolved")
+        self.assertEqual(second[0]["reason"], "member confirmed entry")
+        self.assertEqual(fake.sends, [])
+        self.assertEqual(fake.posts, [])
+
+    def test_fresh_lockout_and_fail_after_resolved_reopens_lockbox(self) -> None:
+        fake = FakeSend()
+        got_it = member_thread(host_texts=[DOOR_HOST], follow_up="got it")
+        later = NOW + timedelta(minutes=10)
+        with tempfile.TemporaryDirectory() as tmpdir:
+            state_path = Path(tmpdir) / "state.json"
+            kwargs = dict(
+                state_path=state_path,
+                leftover_compose_tabs=fake.tabs,
+                close_tabs_fn=fake.close_tabs,
+                send_fn=fake.send,
+                codes_fn=lambda _slug: fake_doc(),
+                post_discord=fake.posts.append,
+                send_enabled=True,
+            )
+            first = lockout_reply.process_lockouts([got_it], now=NOW, **kwargs)
+            fresh = member_thread(host_texts=[DOOR_HOST], follow_up="got it")
+            fresh["recent_messages"].append(
+                {
+                    "id": "m-fresh-lockout",
+                    "created": "2026-09-07T15:05:00Z",
+                    "text": "I'm locked out again, the code didn't work",
+                    "sender": {"roleId": "A_0", "firstName": "Member", "lastName": "Example"},
+                }
+            )
+            second = lockout_reply.process_lockouts([fresh], now=later, **kwargs)
+        self.assertEqual(first[0]["action"], "resolved")
+        self.assertEqual(second[0]["action"], "sent")
+        self.assertEqual(second[0]["stage"], "lockbox")
+        self.assertEqual(len(fake.sends), 1)
+        self.assertIn("Room / lockbox", fake.sends[0][1])
+
+    def test_got_it_without_door_stage_does_not_send(self) -> None:
+        fake = FakeSend()
+        thread = member_thread(text="got it")
+        rows, _ = run_process(fake, [thread])
+        self.assertEqual(rows[0]["action"], "skip")
+        self.assertEqual(fake.sends, [])
+        self.assertEqual(fake.posts, [])
 
     def test_old_combined_pack_does_not_resend_either_stage(self) -> None:
         fake = FakeSend()
