@@ -66,6 +66,7 @@ set -e
 
 run_phase "PadSplit scraper (messages only)" "$VENV" "$WORKSPACE/padsplit_scraper/scraper.py" --messages-only
 run_phase "Spanish Moss lock codes" "$VENV" "$WORKSPACE/padsplit_scraper/lock_codes.py"
+run_phase "PadSplit lockout replies" "$VENV" "$WORKSPACE/padsplit_scraper/lockout_reply.py"
 
 echo "[$(date)] Afternoon run complete"
 

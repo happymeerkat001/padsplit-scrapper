@@ -25,6 +25,7 @@ python3 thermostat/scraper.py
 ./run_field_mms.sh    # Don-field group MMS (6am / 7pm CT; skip if both sources empty)
 ./run_seo_monthly.sh  # monthly SEO / vacancy advice (1st 9:00am CT; CI must not post)
 # Spanish Moss back-door lock codes run from morning/afternoon (Mac only; CI no-op)
+# Lockout auto-reply runs from morning/afternoon + scraper (LOCKOUT_REPLY_ENABLE; CI no-op)
 ```
 
 ## Tests
@@ -43,6 +44,7 @@ python3 padsplit_scraper/test_reply_address_parser.py
 python3 test_field_mms.py
 python3 test_seo_monthly.py
 python3 test_lock_codes.py
+python3 test_lockout_reply.py
 ```
 
 No build step or linter configuration; tests use direct Python execution.
@@ -91,6 +93,7 @@ No build step or linter configuration; tests use direct Python execution.
 - `padsplit_scraper/field_mms.py` — 6am/7pm CT Don-field group MMS (PadSplit host inbox + Discord #ai-tasks-temp). Sends via `google_voice_chrome.py` (Mac Chrome / Voice) then Messages `Don Field`.
 - `padsplit_scraper/seo_monthly.py` — 1st 9:00am CT SEO / vacancy advice pack (live rooms + occupancy; Joe-only Discord dry-run in CI)
 - `padsplit_scraper/lock_codes.py` — Spanish Moss back-door Sifely lock-code v1 (Mac morning/afternoon; CI must not rotate or post)
+- `padsplit_scraper/lockout_reply.py` — member lockout auto-SEND on PadSplit when house/room are 100% known (Mac; `LOCKOUT_REPLY_ENABLE`; CI must not send). Spanish Moss back door uses Sifely, never Firestore static. Discord posts never include codes or digits.
 - `slack_task_digest.py` — scheduled DFW weather and task digest, posts to Discord
 - `padsplit_scraper/firestore_status_monitor.py` — Firestore integration
 - `obsidian_daily_digest.py` — daily note generation from scraped data
@@ -118,6 +121,8 @@ DISCORD_WEBHOOK_NEW_TENANTS= # #new-tenants pack (Joe only; CI must not post)
 DISCORD_JOE_USER_ID=     # Discord snowflake for @Joe on #new-tenants (never @ Cindy)
 DISCORD_BOT_TOKEN=
 DISCORD_CHANNEL_ID=
+DISCORD_AUTOMATIONS_CHANNEL_ID= # optional #ai-automations; lockout drafts, no digits
+LOCKOUT_REPLY_ENABLE=          # default off; Mac .env sets 1 to auto-SEND lockout packs
 SIFELY_API_KEY=          # raw sk- key, no Bearer; missing = Need-you no-op
 SIFELY_LOCK_ID=          # optional Spanish Moss back-door lock id
 SIFELY_KEYBOARD_PWD_ID=  # optional tenant passcode id
