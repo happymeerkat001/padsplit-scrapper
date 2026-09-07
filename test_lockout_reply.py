@@ -35,12 +35,13 @@ def fake_doc(**overrides) -> dict:
 def member_thread(
     *,
     chat_id: str = "chat-leana",
-    street: str = "Leana Drive",
+    street: str = "6623 Leana Drive",
     room: int = 2,
     text: str = "I'm locked out and can't get in",
     created: str = "2026-09-07T14:30:00Z",
     host_texts: list[str] | None = None,
     move_out: str | None = None,
+    move_in: str = "2026-08-01",
 ) -> dict:
     messages = [
         {
@@ -63,7 +64,7 @@ def member_thread(
         "id": chat_id,
         "title": "Member Example",
         "occupancy": {
-            "moveInDate": "2026-08-01",
+            "moveInDate": move_in,
             "moveOutDate": move_out,
             "user": {"firstName": "Member", "lastName": "Example"},
             "room": {"roomNumber": room},
@@ -169,10 +170,23 @@ class HouseRoomCertaintyTests(unittest.TestCase):
 
     def test_spanish_moss_is_not_greenhill(self) -> None:
         moss = lockout_reply.match_house("Spanish Moss Lane")
-        hill = lockout_reply.match_house("Green Hill Drive")
+        hill = lockout_reply.match_house("3406 Green Hill Drive")
         self.assertEqual(moss.slug, "spanish_moss")
         self.assertEqual(hill.slug, "greenhill_3406")
         self.assertNotEqual(moss.slug, hill.slug)
+
+    def test_parker_wrong_house_number_is_rejected(self) -> None:
+        wrong = lockout_reply.match_house("3541 Parker Road East")
+        right = lockout_reply.match_house("4351 Parker Rd E")
+        self.assertEqual(wrong.slug, "")
+        self.assertLess(wrong.certainty, 80)
+        self.assertEqual(right.slug, "parker_4351")
+        self.assertEqual(right.certainty, 100)
+
+    def test_alias_without_house_number_is_not_full_certainty(self) -> None:
+        house = lockout_reply.match_house("Parker Road East")
+        self.assertLess(house.certainty, 80)
+        self.assertEqual(house.slug, "")
 
 
 class CodesMappingTests(unittest.TestCase):
@@ -407,6 +421,60 @@ class FlowTests(unittest.TestCase):
         self.assertEqual(rows[0]["action"], "skip")
         self.assertEqual(fake.sends, [])
 
+    def test_future_move_in_is_skipped(self) -> None:
+        fake = FakeSend()
+        rows, _ = run_process(fake, [member_thread(move_in="2026-10-01")])
+        self.assertEqual(rows[0]["action"], "skip")
+        self.assertEqual(fake.sends, [])
+
+    def test_wrong_parker_number_does_not_send_codes(self) -> None:
+        fake = FakeSend()
+        rows, _ = run_process(
+            fake,
+            [member_thread(chat_id="chat-parker", street="3541 Parker Road East")],
+        )
+        self.assertEqual(rows[0]["action"], "ask_joe")
+        self.assertEqual(fake.sends, [])
+        self.assertFalse(lock_codes.has_digit_characters(rows[0]["discord"]))
+
+    def test_discord_escalation_is_idempotent(self) -> None:
+        fake = FakeSend()
+        thread = member_thread(street="Mystery House")
+        with tempfile.TemporaryDirectory() as tmpdir:
+            state_path = Path(tmpdir) / "state.json"
+            kwargs = dict(
+                now=NOW,
+                state_path=state_path,
+                leftover_compose_tabs=fake.tabs,
+                close_tabs_fn=fake.close_tabs,
+                send_fn=fake.send,
+                codes_fn=lambda _slug: fake_doc(),
+                post_discord=fake.posts.append,
+                send_enabled=True,
+            )
+            first = lockout_reply.process_lockouts([thread], **kwargs)
+            second = lockout_reply.process_lockouts([thread], **kwargs)
+        self.assertEqual(first[0]["action"], "ask_joe")
+        self.assertEqual(second[0]["action"], "already_sent")
+        self.assertEqual(len(fake.posts), 1)
+
+    def test_sifely_not_called_for_already_handled_or_departed(self) -> None:
+        fake = FakeSend()
+        called: list[str] = []
+        departed = member_thread(
+            chat_id="chat-moss",
+            street="Spanish Moss",
+            room=1,
+            move_out="2026-08-01",
+        )
+        rows, _ = run_process(
+            fake,
+            [departed],
+            sifely_fn=lambda: called.append("sifely") or (FAKE_BACK, "sifely_current"),
+        )
+        self.assertEqual(rows[0]["action"], "skip")
+        self.assertEqual(called, [])
+
     def test_enable_flag_defaults_off_and_ci_never_sends(self) -> None:
         with patch.dict("os.environ", {"CI": "true", "LOCKOUT_REPLY_ENABLE": "true"}, clear=False):
             self.assertFalse(lockout_reply.live_send_enabled())
@@ -439,18 +507,54 @@ class ObtainSifelyTests(unittest.TestCase):
         self.assertEqual(code, FAKE_BACK)
         self.assertEqual(source, "sifely_current")
 
-    def test_api_down_uses_inbound_share_placeholder(self) -> None:
+    def test_api_down_uses_newest_unused_inbound_share(self) -> None:
         inbound = [
             {
-                "id": "msg-share",
+                "id": "msg-old",
+                "content": "Sifely share Spanish Moss back door Passcode: OLDREDACTED",
+            },
+            {
+                "id": "msg-new",
                 "content": "Sifely share Spanish Moss back door Passcode: REDACTED",
-            }
+            },
         ]
         with patch.object(lock_codes, "sifely_api_key", return_value="sk-REDACTED"), \
              patch.object(lock_codes, "list_locks", side_effect=lock_codes.SifelyUnavailable("down")):
-            code, source = lockout_reply.obtain_spanish_moss_back(inbound_messages=inbound)
+            code, source = lockout_reply.obtain_spanish_moss_back(
+                inbound_messages=inbound,
+                processed_share_ids=[],
+            )
         self.assertEqual(code, "REDACTED")
         self.assertEqual(source, "inbound_share")
+
+    def test_processed_share_ids_are_not_reused(self) -> None:
+        inbound = [
+            {
+                "id": "msg-old",
+                "content": "Sifely share Spanish Moss back door Passcode: REDACTED",
+            },
+        ]
+        code, source = lockout_reply.newest_inbound_share(
+            inbound,
+            processed_ids=["msg-old"],
+        )
+        self.assertEqual(code, "")
+        self.assertEqual(source, "")
+
+    def test_lockout_path_does_not_rotate_when_current_passcode_missing(self) -> None:
+        lock = {"lockId": "LOCKID", "lockAlias": "Spanish Moss back", "lockName": "SM"}
+        passcodes = [{"keyboardPwdId": "PWDID", "keyboardPwd": "", "keyboardPwdName": "tenant"}]
+        changed: list[str] = []
+        with patch.object(lock_codes, "sifely_api_key", return_value="sk-REDACTED"), \
+             patch.object(lock_codes, "list_locks", return_value=[lock]), \
+             patch.object(lock_codes, "resolve_lock", return_value=lock), \
+             patch.object(lock_codes, "list_passcodes", return_value=passcodes), \
+             patch.object(lock_codes, "resolve_keyboard_pwd_id", return_value="PWDID"), \
+             patch.object(lock_codes, "change_passcode", side_effect=lambda *a, **k: changed.append("rotated")):
+            code, source = lockout_reply.obtain_spanish_moss_back(inbound_messages=[])
+        self.assertEqual(changed, [])
+        self.assertEqual(code, "")
+        self.assertEqual(source, "missing")
 
 
 if __name__ == "__main__":
