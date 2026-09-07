@@ -863,6 +863,16 @@ def run(messages_only: bool = False) -> int:
         except Exception as exc:
             sys.stderr.write(f"# New-booking first host message failed; continuing scrape: {exc}\n")
 
+        try:
+            try:
+                from padsplit_scraper.lockout_reply import run_for_scraper as run_lockout
+            except ModuleNotFoundError:  # Support the cron entry point: python3 padsplit_scraper/scraper.py
+                from lockout_reply import run_for_scraper as run_lockout
+
+            run_lockout(session, creds, messages)
+        except Exception as exc:
+            sys.stderr.write(f"# Lockout auto-reply failed; continuing scrape: {exc}\n")
+
         scraped_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         payload: Dict[str, Any] = {"scraped_at": scraped_at, "messages": messages}
         out_path = _persist_latest_payload(payload, scraped_at=scraped_at)
