@@ -237,7 +237,15 @@ class CodesMappingTests(unittest.TestCase):
         self.assertIn(FAKE_ROOM, body)
         self.assertIn(FAKE_LOCATION, body)
         self.assertIn("Sorry you’re locked out", body)
-        self.assertIn("padsplit.com help", body)
+        self.assertIn(lockout_reply.JOE_FIELD_PHONE, body)
+        self.assertIn(lockout_reply.PADSPLIT_MEMBER_SUPPORT_PHONE, body)
+        self.assertIn("PadSplit Member Support", body)
+        self.assertNotIn("padsplit.com help", body)
+        self.assertNotIn("from the app", body)
+        self.assertLess(
+            body.index(lockout_reply.JOE_FIELD_PHONE),
+            body.index(lockout_reply.PADSPLIT_MEMBER_SUPPORT_PHONE),
+        )
 
 
 class DiscordSafetyTests(unittest.TestCase):
@@ -253,7 +261,13 @@ class DiscordSafetyTests(unittest.TestCase):
             self.assertFalse(lock_codes.has_digit_characters(text), msg=text)
             self.assertNotIn(FAKE_FRONT, text)
             self.assertNotIn(FAKE_BACK, text)
+            self.assertNotIn(lockout_reply.JOE_FIELD_PHONE, text)
+            self.assertNotIn(lockout_reply.PADSPLIT_MEMBER_SUPPORT_PHONE, text)
             self.assertEqual(lock_codes.assert_discord_outbound_safe(text), text)
+
+    def test_fail_ladder_numbers_are_explicit_constants(self) -> None:
+        self.assertEqual(lockout_reply.JOE_FIELD_PHONE, "+1 (469) 373-2048")
+        self.assertEqual(lockout_reply.PADSPLIT_MEMBER_SUPPORT_PHONE, "+1 (770) 373-7863")
 
     def test_discord_rejects_digits(self) -> None:
         with self.assertRaisesRegex(RuntimeError, "digits"):

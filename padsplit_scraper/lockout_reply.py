@@ -158,6 +158,9 @@ TENANT_ROLE_ID = "A_0"
 LOOKBACK = timedelta(hours=36)
 IDEMPOTENCY_WINDOW = timedelta(hours=24)
 LOCKOUT_PACK_MARKER = "Sorry you’re locked out — here’s entry for"
+# Member-thread fail ladder only. Never put these on Discord.
+JOE_FIELD_PHONE = "+1 (469) 373-2048"
+PADSPLIT_MEMBER_SUPPORT_PHONE = "+1 (770) 373-7863"
 
 # Member lockout phrases. Keep these about entry, not general maintenance.
 _LOCKOUT_RE = re.compile(
@@ -519,8 +522,8 @@ def format_lockout_body(house_label: str, room: str, entry: EntryCodes) -> str:
             "(turn thumbturn) and retry the code.",
             "",
             "If that still fails:",
-            "1) Call +1 (469) 373-2048",
-            "2) If no answer, call PadSplit support from the app / padsplit.com help",
+            f"1) Call {JOE_FIELD_PHONE}",
+            f"2) If no answer, call PadSplit Member Support {PADSPLIT_MEMBER_SUPPORT_PHONE}",
             "3) Message us here again with a photo of the lock (keypad + door) "
             "and we’ll escalate to field",
             "",
