@@ -63,7 +63,7 @@ Monthly SEO / vacancy advice (9:00am CT on the 1st) is Mac launchd only. Not liv
 
 Spanish Moss back-door lock-code automation (Sifely, v1) is Mac morning/afternoon only. Not live until Ang merges. Missing `SIFELY_API_KEY` is a Need-you no-op. GitHub Actions must not rotate locks or post Discord. Outbound Discord never includes lock-code digits.
 
-Lockout auto-reply (`padsplit_scraper/lockout_reply.py`) detects member lockout messages and SENDS entry codes on the PadSplit member thread only when house and room are 100% known and required codes are on file. Default off until Mac `.env` sets `LOCKOUT_REPLY_ENABLE=1`. CI must not send. Spanish Moss back door uses the Sifely path (never a static Firestore/Tinghui back-door value). Discord `#ai-automations` drafts may say lockout detected / needs a tap / ask Joe, and never include codes or any digits.
+Lockout auto-reply (`padsplit_scraper/lockout_reply.py`) detects member lockout messages and SENDS sequentially on the PadSplit member thread only when house and room are 100% known: door code(s) first (deadbolt tip + fail ladder); lockbox / room code + location only after the member later says the door still failed. Default off until Mac `.env` sets `LOCKOUT_REPLY_ENABLE=1`. CI must not send. Spanish Moss back door uses the Sifely path (never a static Firestore/Tinghui back-door value). Discord `#ai-automations` drafts may say lockout detected / needs a tap / ask Joe, and never include codes or any digits.
 
 Write Obsidian daily digest:
 
