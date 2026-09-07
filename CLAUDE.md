@@ -93,7 +93,7 @@ No build step or linter configuration; tests use direct Python execution.
 - `padsplit_scraper/field_mms.py` — 6am/7pm CT Don-field group MMS (PadSplit host inbox + Discord #ai-tasks-temp). Sends via `google_voice_chrome.py` (Mac Chrome / Voice) then Messages `Don Field`.
 - `padsplit_scraper/seo_monthly.py` — 1st 9:00am CT SEO / vacancy advice pack (live rooms + occupancy; Joe-only Discord dry-run in CI)
 - `padsplit_scraper/lock_codes.py` — Spanish Moss back-door Sifely lock-code v1 (Mac morning/afternoon; CI must not rotate or post)
-- `padsplit_scraper/lockout_reply.py` — member lockout auto-SEND on PadSplit when house/room are 100% known (Mac; `LOCKOUT_REPLY_ENABLE`; CI must not send). Spanish Moss back door uses Sifely, never Firestore static. Discord posts never include codes or digits.
+- `padsplit_scraper/lockout_reply.py` — member lockout auto-SEND on PadSplit when house/room are 100% known: door codes first, lockbox only after a door-fail follow-up (Mac; `LOCKOUT_REPLY_ENABLE`; CI must not send). Spanish Moss back door uses Sifely, never Firestore static. Discord posts never include codes or digits.
 - `slack_task_digest.py` — scheduled DFW weather and task digest, posts to Discord
 - `padsplit_scraper/firestore_status_monitor.py` — Firestore integration
 - `obsidian_daily_digest.py` — daily note generation from scraped data
@@ -122,7 +122,7 @@ DISCORD_JOE_USER_ID=     # Discord snowflake for @Joe on #new-tenants (never @ C
 DISCORD_BOT_TOKEN=
 DISCORD_CHANNEL_ID=
 DISCORD_AUTOMATIONS_CHANNEL_ID= # optional #ai-automations; lockout drafts, no digits
-LOCKOUT_REPLY_ENABLE=          # default off; Mac .env sets 1 to auto-SEND lockout packs
+LOCKOUT_REPLY_ENABLE=          # default off; Mac .env sets 1 to auto-SEND lockout door then lockbox
 SIFELY_API_KEY=          # raw sk- key, no Bearer; missing = Need-you no-op
 SIFELY_LOCK_ID=          # optional Spanish Moss back-door lock id
 SIFELY_KEYBOARD_PWD_ID=  # optional tenant passcode id

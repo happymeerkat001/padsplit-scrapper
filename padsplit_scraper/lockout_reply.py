@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """PadSplit host lockout auto-reply (Nest/Ang lock 9/7).
 
-Detect member lockout messages and SEND entry codes on the PadSplit member
-thread when house + room are 100% known and required codes are on file.
+Sequential SEND on the PadSplit member thread when house + room are 100%
+known: door code(s) first; lockbox / room code only after the member later
+says the door still failed.
 
 Spanish Moss back door uses the existing Sifely path (live list / rotate /
 #new-tenants inbound share). Never use Firestore/Tinghui static back_door
@@ -157,7 +158,11 @@ HOST_ROLE_ID = "A_1"
 TENANT_ROLE_ID = "A_0"
 LOOKBACK = timedelta(hours=36)
 IDEMPOTENCY_WINDOW = timedelta(hours=24)
+STAGE_DOOR = "door"
+STAGE_LOCKBOX = "lockbox"
 LOCKOUT_PACK_MARKER = "Sorry you’re locked out — here’s entry for"
+LOCKBOX_PACK_MARKER = "Sorry you’re locked out — here’s the room/lockbox for"
+LOCKBOX_LINE_MARKER = "Room / lockbox:"
 # Member-thread fail ladder only. Never put these on Discord.
 JOE_FIELD_PHONE = "+1 (469) 373-2048"
 PADSPLIT_MEMBER_SUPPORT_PHONE = "+1 (770) 373-7863"
@@ -171,12 +176,30 @@ _LOCKOUT_RE = re.compile(
     r"|\bcan(?:['’]?t|not)\s+get\s+into\b"
     r"|\bcan(?:['’]?t|not)\s+get\s+inside\b"
     r"|\bdoor\s+code\s+(?:fail|fails|failed|not\s+work|won['’]?t\s+work)\b"
-    r"|\b(?:code|keypad)\s+(?:doesn['’]?t|does\s+not|won['’]?t|will\s+not|not)\s+"
+    r"|\b(?:code|keypad)\s+(?:doesn['’]?t|didn['’]?t|does\s+not|won['’]?t|will\s+not|not)\s+"
     r"(?:work|open|let\s+me\s+in)\b"
     r"|\bemergency\s+entry\b"
     r"|\bstuck\s+outside\b"
     r"|\blocked\s+outside\b"
     r"|\bcan(?:['’]?t|not)\s+get\s+the\s+door\b"
+    r")",
+)
+
+# Stage-2 only: member says the door still failed after we already sent door codes.
+_DOOR_FAIL_FOLLOWUP_RE = re.compile(
+    r"(?i)("
+    r"\bstill\s+lock(?:ed)?\s*out\b"
+    r"|\bstill\s+can(?:['’]?t|not)\s+get\s+(?:in|into|inside)\b"
+    r"|\bdoor\s+still\s+(?:fail|fails|failed|won['’]?t)"
+    r"|\b(?:code|keypad|door(?:\s+code)?)\s+(?:still\s+)?"
+    r"(?:didn['’]?t|doesn['’]?t|does\s+not|won['’]?t|will\s+not|not)\s+"
+    r"(?:work|open|let\s+me\s+in)\b"
+    r"|\b(?:code|keypad|door(?:\s+code)?)\s+(?:still\s+)?(?:fail|fails|failed)\b"
+    r"|\bdidn['’]?t\s+work\b"
+    r"|\bstill\s+(?:doesn['’]?t|didn['’]?t|won['’]?t)\s+work\b"
+    r"|\bstill\s+locked\b"
+    r"|\bstill\s+outside\b"
+    r"|\bstill\s+stuck\b"
     r")",
 )
 
@@ -210,6 +233,7 @@ class EntryCodes:
     lockbox: str = ""
     location: str = ""
     missing: List[str] = field(default_factory=list)
+    lockbox_missing: List[str] = field(default_factory=list)
     sifely_rotated: bool = False
     used_inbound_share: bool = False
 
@@ -225,6 +249,7 @@ class Decision:
     slug: str = ""
     discord_kind: Optional[str] = None
     send_body: str = ""
+    stage: str = ""
 
 
 @dataclass
@@ -325,6 +350,11 @@ def iter_thread_messages(thread: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 def detect_lockout(text: str) -> bool:
     return bool(_LOCKOUT_RE.search(text or ""))
+
+
+def detect_door_fail_followup(text: str) -> bool:
+    """True when the member says the door/code still failed after a door reply."""
+    return bool(_DOOR_FAIL_FOLLOWUP_RE.search(text or ""))
 
 
 def thread_street(thread: Dict[str, Any]) -> str:
@@ -493,18 +523,29 @@ def codes_from_property_doc(
     lockbox, location = pick_room_lockbox(doc, room)
     entry.lockbox = lockbox
     entry.location = location
-    if profile["expect_room_code"] and not entry.lockbox:
-        entry.missing.append("lockbox_or_room")
+    if not entry.lockbox:
+        entry.lockbox_missing.append("lockbox_or_room")
     return entry
 
 
-def format_lockout_body(house_label: str, room: str, entry: EntryCodes) -> str:
-    """PadSplit member-thread body. Never log this string."""
+def _fail_ladder_lines() -> List[str]:
+    return [
+        "If that still fails:",
+        f"1) Call {JOE_FIELD_PHONE}",
+        f"2) If no answer, call PadSplit Member Support {PADSPLIT_MEMBER_SUPPORT_PHONE}",
+        "3) Message us here again with a photo of the lock (keypad + door) "
+        "and we’ll escalate to field",
+    ]
+
+
+def format_door_lockout_body(house_label: str, room: str, entry: EntryCodes) -> str:
+    """Stage-1 PadSplit body: door codes only. Never log this string."""
     if entry.missing:
-        raise RuntimeError("refusing to format lockout body with missing codes")
+        raise RuntimeError("refusing to format door lockout body with missing door codes")
     if not house_label or not room:
         raise RuntimeError("refusing to format lockout body without house and room")
-    location_bit = f" — {entry.location}" if entry.location else ""
+    if not entry.front and not entry.back:
+        raise RuntimeError("refusing to format door lockout body without a door code")
     lines = [
         f"{LOCKOUT_PACK_MARKER} {house_label} Rm {room}:",
         "",
@@ -513,24 +554,41 @@ def format_lockout_body(house_label: str, room: str, entry: EntryCodes) -> str:
         lines.append(f"Front door code: {entry.front}")
     if entry.back:
         lines.append(f"Back door code: {entry.back}")
-    if entry.lockbox:
-        lines.append(f"Room / lockbox: {entry.lockbox}{location_bit}")
     lines.extend(
         [
             "",
             "If the keypad lights but won’t open, try the deadbolt/top lock "
             "(turn thumbturn) and retry the code.",
             "",
-            "If that still fails:",
-            f"1) Call {JOE_FIELD_PHONE}",
-            f"2) If no answer, call PadSplit Member Support {PADSPLIT_MEMBER_SUPPORT_PHONE}",
-            "3) Message us here again with a photo of the lock (keypad + door) "
-            "and we’ll escalate to field",
-            "",
-            "Please put any lockbox key back after use.",
+            *_fail_ladder_lines(),
         ]
     )
+    body = "\n".join(lines)
+    if LOCKBOX_LINE_MARKER in body or "lockbox" in body.lower():
+        raise RuntimeError("door lockout body must not mention lockbox")
+    return body
+
+
+def format_lockbox_lockout_body(house_label: str, room: str, entry: EntryCodes) -> str:
+    """Stage-2 PadSplit body: lockbox / room code + location. Never log this string."""
+    if entry.lockbox_missing or not entry.lockbox:
+        raise RuntimeError("refusing to format lockbox lockout body with missing lockbox")
+    if not house_label or not room:
+        raise RuntimeError("refusing to format lockout body without house and room")
+    location_bit = f" — {entry.location}" if entry.location else ""
+    lines = [
+        f"{LOCKBOX_PACK_MARKER} {house_label} Rm {room}:",
+        "",
+        f"{LOCKBOX_LINE_MARKER} {entry.lockbox}{location_bit}",
+        "",
+        "Please put any lockbox key back after use.",
+    ]
     return "\n".join(lines)
+
+
+def format_lockout_body(house_label: str, room: str, entry: EntryCodes) -> str:
+    """Stage-1 door body. Lockbox is never included."""
+    return format_door_lockout_body(house_label, room, entry)
 
 
 def discord_lockout_detected_text(house_label: str, *, needs_tap: bool) -> str:
@@ -590,6 +648,41 @@ def save_state(state: Dict[str, Any], path: Path = STATE_PATH) -> None:
     path.write_text(json.dumps(state, indent=2) + "\n")
 
 
+def _thread_state(state: Dict[str, Any], chat_id: str) -> Dict[str, Any]:
+    row = (state.get("threads") or {}).get(chat_id) or {}
+    return row if isinstance(row, dict) else {}
+
+
+def _legacy_combined_pack(row: Dict[str, Any]) -> bool:
+    """Old single-pack state (sent_at, no per-stage keys) counts as both stages."""
+    return bool(row.get("sent_at") and not row.get("door_sent_at") and not row.get("lockbox_sent_at"))
+
+
+def stage_sent_at(state: Dict[str, Any], chat_id: str, stage: str) -> Optional[datetime]:
+    row = _thread_state(state, chat_id)
+    if _legacy_combined_pack(row):
+        return parse_dt(row.get("sent_at"))
+    if stage == STAGE_DOOR:
+        return parse_dt(row.get("door_sent_at") or row.get("sent_at"))
+    if stage == STAGE_LOCKBOX:
+        return parse_dt(row.get("lockbox_sent_at"))
+    return None
+
+
+def already_sent_stage(
+    state: Dict[str, Any],
+    chat_id: str,
+    stage: str,
+    *,
+    now: datetime,
+    window: timedelta = IDEMPOTENCY_WINDOW,
+) -> bool:
+    sent_at = stage_sent_at(state, chat_id, stage)
+    if sent_at is None:
+        return False
+    return (now - sent_at) < window
+
+
 def already_sent(
     state: Dict[str, Any],
     chat_id: str,
@@ -597,28 +690,86 @@ def already_sent(
     now: datetime,
     window: timedelta = IDEMPOTENCY_WINDOW,
 ) -> bool:
-    row = (state.get("threads") or {}).get(chat_id) or {}
-    sent_at = parse_dt(row.get("sent_at"))
-    if sent_at is None:
-        return False
-    return (now - sent_at) < window
+    """True when the door stage was already sent in the idempotency window."""
+    return already_sent_stage(state, chat_id, STAGE_DOOR, now=now, window=window)
 
 
-def record_sent(state: Dict[str, Any], chat_id: str, *, now: datetime, action: str) -> None:
+def record_sent(
+    state: Dict[str, Any],
+    chat_id: str,
+    *,
+    now: datetime,
+    action: str,
+    stage: str = STAGE_DOOR,
+) -> None:
     threads = state.setdefault("threads", {})
-    threads[chat_id] = {
-        "sent_at": now.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "action": action,
-    }
+    row = threads.get(chat_id) if isinstance(threads.get(chat_id), dict) else {}
+    stamp = now.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    if stage == STAGE_LOCKBOX:
+        row["lockbox_sent_at"] = stamp
+    else:
+        row["door_sent_at"] = stamp
+    row["action"] = action
+    row["stage"] = stage
+    threads[chat_id] = row
 
 
-def host_already_sent_lockout_pack(thread: Dict[str, Any]) -> bool:
+def host_lockout_stage_messages(
+    thread: Dict[str, Any],
+) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+    door: List[Dict[str, Any]] = []
+    lockbox: List[Dict[str, Any]] = []
     for message in iter_thread_messages(thread):
         if not is_host_message(message):
             continue
-        if LOCKOUT_PACK_MARKER in message_text(message):
-            return True
+        text = message_text(message)
+        if LOCKOUT_PACK_MARKER in text:
+            door.append(message)
+        if LOCKBOX_PACK_MARKER in text or LOCKBOX_LINE_MARKER in text:
+            lockbox.append(message)
+    return door, lockbox
+
+
+def host_already_sent_stage(thread: Dict[str, Any], stage: str) -> bool:
+    door, lockbox = host_lockout_stage_messages(thread)
+    if stage == STAGE_DOOR:
+        return bool(door)
+    if stage == STAGE_LOCKBOX:
+        return bool(lockbox)
     return False
+
+
+def host_already_sent_lockout_pack(thread: Dict[str, Any]) -> bool:
+    """True when an old combined pack (door + lockbox line) is already on the thread."""
+    door, lockbox = host_lockout_stage_messages(thread)
+    return bool(door) and bool(lockbox)
+
+
+def latest_host_stage_at(thread: Dict[str, Any], stage: str) -> Optional[datetime]:
+    door, lockbox = host_lockout_stage_messages(thread)
+    messages = door if stage == STAGE_DOOR else lockbox
+    latest: Optional[datetime] = None
+    for message in messages:
+        created = parse_dt(message.get("created"))
+        if created is not None and (latest is None or created > latest):
+            latest = created
+    return latest
+
+
+def door_reply_at(
+    state: Optional[Dict[str, Any]],
+    thread: Dict[str, Any],
+    chat_id: str,
+) -> Optional[datetime]:
+    times: List[datetime] = []
+    if state is not None:
+        sent = stage_sent_at(state, chat_id, STAGE_DOOR)
+        if sent is not None:
+            times.append(sent)
+    host_at = latest_host_stage_at(thread, STAGE_DOOR)
+    if host_at is not None:
+        times.append(host_at)
+    return max(times) if times else None
 
 
 def recent_member_lockout(
@@ -626,6 +777,7 @@ def recent_member_lockout(
     *,
     now: datetime,
     lookback: timedelta = LOOKBACK,
+    include_door_fail: bool = False,
 ) -> Optional[Dict[str, Any]]:
     newest: Optional[Dict[str, Any]] = None
     newest_at: Optional[datetime] = None
@@ -637,7 +789,40 @@ def recent_member_lockout(
         created = parse_dt(message.get("created"))
         if created is None or (now - created) > lookback:
             continue
-        if not detect_lockout(message_text(message)):
+        text = message_text(message)
+        matched = detect_lockout(text)
+        if not matched and include_door_fail:
+            matched = detect_door_fail_followup(text)
+        if not matched:
+            continue
+        if newest_at is None or created > newest_at:
+            newest = message
+            newest_at = created
+    return newest
+
+
+def recent_door_fail_followup(
+    thread: Dict[str, Any],
+    *,
+    now: datetime,
+    after: datetime,
+    lookback: timedelta = LOOKBACK,
+) -> Optional[Dict[str, Any]]:
+    """Newest member lockout / door-fail message strictly after the door reply."""
+    newest: Optional[Dict[str, Any]] = None
+    newest_at: Optional[datetime] = None
+    for message in iter_thread_messages(thread):
+        if message.get("deleted"):
+            continue
+        if not is_member_message(thread, message):
+            continue
+        created = parse_dt(message.get("created"))
+        if created is None or created <= after:
+            continue
+        if (now - created) > lookback:
+            continue
+        text = message_text(message)
+        if not (detect_door_fail_followup(text) or detect_lockout(text)):
             continue
         if newest_at is None or created > newest_at:
             newest = message
@@ -746,16 +931,47 @@ def decide(
         return Decision(action="skip", reason="missing chat id", certainty=0)
     if not current_occupant(thread, now):
         return Decision(action="skip", reason="not a current occupant thread", certainty=0, chat_id=chat_id)
-    if state is not None and already_sent(state, chat_id, now=now):
-        return Decision(action="already_sent", reason="idempotent window", certainty=100, chat_id=chat_id)
-    if host_already_sent_lockout_pack(thread):
-        return Decision(action="already_sent", reason="host already sent lockout pack", certainty=100, chat_id=chat_id)
 
-    lockout_message = recent_member_lockout(thread, now=now)
-    if lockout_message is None:
-        return Decision(action="skip", reason="no recent member lockout", certainty=0, chat_id=chat_id)
+    door_from_state = state is not None and already_sent_stage(state, chat_id, STAGE_DOOR, now=now)
+    lockbox_from_state = state is not None and already_sent_stage(
+        state, chat_id, STAGE_LOCKBOX, now=now
+    )
+    door_from_host = host_already_sent_stage(thread, STAGE_DOOR)
+    lockbox_from_host = host_already_sent_stage(thread, STAGE_LOCKBOX)
+    door_sent = door_from_state or door_from_host
+    lockbox_sent = lockbox_from_state or lockbox_from_host
 
-    member_text = message_text(lockout_message)
+    if lockbox_sent:
+        return Decision(
+            action="already_sent",
+            reason="lockbox stage already sent",
+            certainty=100,
+            chat_id=chat_id,
+            stage=STAGE_LOCKBOX,
+        )
+
+    if door_sent:
+        after = door_reply_at(state, thread, chat_id)
+        if after is None:
+            after = datetime.min.replace(tzinfo=timezone.utc)
+        followup = recent_door_fail_followup(thread, now=now, after=after)
+        if followup is None:
+            return Decision(
+                action="already_sent",
+                reason="door stage already sent",
+                certainty=100,
+                chat_id=chat_id,
+                stage=STAGE_DOOR,
+            )
+        stage = STAGE_LOCKBOX
+        member_text = message_text(followup)
+    else:
+        lockout_message = recent_member_lockout(thread, now=now)
+        if lockout_message is None:
+            return Decision(action="skip", reason="no recent member lockout", certainty=0, chat_id=chat_id)
+        stage = STAGE_DOOR
+        member_text = message_text(lockout_message)
+
     house = match_house(thread_street(thread), member_text)
     room = resolve_room(thread, member_text)
     profile = HOUSE_PROFILES.get(house.slug) or {}
@@ -769,7 +985,9 @@ def decide(
             sifely_rotated=sifely_source == "sifely_rotated",
             used_inbound_share=sifely_source == "inbound_share",
         )
-        codes_ready_guess = not preview.missing
+        codes_ready_guess = (
+            not preview.lockbox_missing if stage == STAGE_LOCKBOX else not preview.missing
+        )
     certainty, why = score_certainty(house, room, member_text, codes_ready=codes_ready_guess)
 
     decision = Decision(
@@ -780,6 +998,7 @@ def decide(
         house_label=house.label,
         room=room.room or "",
         slug=house.slug,
+        stage=stage,
     )
 
     if certainty < 80:
@@ -809,21 +1028,31 @@ def decide(
         sifely_rotated=sifely_source == "sifely_rotated",
         used_inbound_share=sifely_source == "inbound_share",
     )
-    if entry.missing:
-        decision.action = "missing_codes"
-        decision.discord_kind = (
-            "sifely_unavailable"
-            if profile.get("sifely_back") and "sifely_back" in entry.missing
-            else "missing_codes"
-        )
-        decision.reason = "missing needed entry field"
+    if stage == STAGE_DOOR:
+        if entry.missing:
+            decision.action = "missing_codes"
+            decision.discord_kind = (
+                "sifely_unavailable"
+                if profile.get("sifely_back") and "sifely_back" in entry.missing
+                else "missing_codes"
+            )
+            decision.reason = "missing needed door field"
+            return decision
+        decision.action = "send"
+        decision.reason = "100 percent house room and door codes"
+        decision.send_body = format_door_lockout_body(house.label, room.room, entry)
+        if entry.sifely_rotated:
+            decision.discord_kind = "rotated"
         return decision
 
+    if entry.lockbox_missing or not entry.lockbox:
+        decision.action = "missing_codes"
+        decision.discord_kind = "missing_codes"
+        decision.reason = "missing needed lockbox field"
+        return decision
     decision.action = "send"
-    decision.reason = "100 percent house room and codes"
-    decision.send_body = format_lockout_body(house.label, room.room, entry)
-    if entry.sifely_rotated:
-        decision.discord_kind = "rotated"
+    decision.reason = "100 percent house room and lockbox after door fail"
+    decision.send_body = format_lockbox_lockout_body(house.label, room.room, entry)
     return decision
 
 
@@ -882,7 +1111,7 @@ def process_lockouts(
 
     for thread in threads:
         chat_id = str(thread.get("id") or "")
-        lockout_message = recent_member_lockout(thread, now=now)
+        lockout_message = recent_member_lockout(thread, now=now, include_door_fail=True)
         house_preview = match_house(
             thread_street(thread),
             message_text(lockout_message) if lockout_message else "",
@@ -890,7 +1119,7 @@ def process_lockouts(
         codes_doc: Optional[Dict[str, Any]] = None
         sifely_back = ""
         sifely_source = ""
-        # Only pull codes (and never touch Sifely) after a lockout is in-window.
+        # Only pull codes (and never touch Sifely) after a lockout / door-fail is in-window.
         if lockout_message and house_preview.slug:
             if house_preview.slug not in codes_cache:
                 loader = codes_fn or fetch_property_codes
@@ -924,6 +1153,7 @@ def process_lockouts(
             "reason": decision.reason,
             "certainty": decision.certainty,
             "house_label": decision.house_label,
+            "stage": decision.stage,
         }
 
         if decision.discord_kind:
@@ -970,7 +1200,13 @@ def process_lockouts(
             results.append(row)
             continue
 
-        record_sent(state, decision.chat_id, now=now, action="sent")
+        record_sent(
+            state,
+            decision.chat_id,
+            now=now,
+            action="sent",
+            stage=decision.stage or STAGE_DOOR,
+        )
         row["action"] = "sent"
         results.append(row)
 

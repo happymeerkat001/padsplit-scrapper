@@ -15,9 +15,19 @@ from padsplit_scraper import new_booking
 NOW = datetime(2026, 9, 7, 15, 0, tzinfo=timezone.utc)
 FAKE_FRONT = "XXXX"  # fake placeholder, not a real code
 FAKE_BACK = "0000"  # fake placeholder, not a real code
-FAKE_ROOM = "XXXX"  # fake placeholder, not a real code
-FAKE_EXTRA = "0000"  # fake placeholder, not a real code
+FAKE_ROOM = "YYYY"  # fake placeholder, not a real code
+FAKE_EXTRA = "ZZZZ"  # fake placeholder, not a real code
 FAKE_LOCATION = "under the fake bench"
+DOOR_HOST = (
+    "Sorry you’re locked out — here’s entry for Leana Rm 2:\n"
+    f"Front door code: {FAKE_FRONT}\n"
+    "If the keypad lights but won’t open, try the deadbolt/top lock "
+    "(turn thumbturn) and retry the code."
+)
+LOCKBOX_HOST = (
+    "Sorry you’re locked out — here’s the room/lockbox for Leana Rm 2:\n"
+    f"Room / lockbox: {FAKE_ROOM} — {FAKE_LOCATION}"
+)
 
 
 def fake_doc(**overrides) -> dict:
@@ -40,6 +50,9 @@ def member_thread(
     text: str = "I'm locked out and can't get in",
     created: str = "2026-09-07T14:30:00Z",
     host_texts: list[str] | None = None,
+    host_created: str = "2026-09-07T14:35:00Z",
+    follow_up: str | None = None,
+    follow_up_created: str = "2026-09-07T14:45:00Z",
     move_out: str | None = None,
 ) -> dict:
     messages = [
@@ -54,9 +67,18 @@ def member_thread(
         messages.append(
             {
                 "id": f"m-host-{index}",
-                "created": created,
+                "created": host_created,
                 "text": host_text,
                 "sender": {"roleId": "A_1", "firstName": "Ang"},
+            }
+        )
+    if follow_up:
+        messages.append(
+            {
+                "id": "m-followup",
+                "created": follow_up_created,
+                "text": follow_up,
+                "sender": {"roleId": "A_0", "firstName": "Member", "lastName": "Example"},
             }
         )
     return {
@@ -128,6 +150,7 @@ class DetectTests(unittest.TestCase):
             "the keypad won't work",
             "emergency entry please",
             "stuck outside right now",
+            "the code didn't work",
         ):
             self.assertTrue(lockout_reply.detect_lockout(text), msg=text)
 
@@ -138,6 +161,17 @@ class DetectTests(unittest.TestCase):
             "thanks for the welcome",
         ):
             self.assertFalse(lockout_reply.detect_lockout(text), msg=text)
+
+    def test_door_fail_followup_phrases(self) -> None:
+        for text in (
+            "still locked out",
+            "the door still fails",
+            "code didn't work",
+            "still can't get in",
+            "keypad still won't work",
+        ):
+            self.assertTrue(lockout_reply.detect_door_fail_followup(text), msg=text)
+        self.assertFalse(lockout_reply.detect_door_fail_followup("thanks for the welcome"))
 
 
 class HouseRoomCertaintyTests(unittest.TestCase):
@@ -226,17 +260,22 @@ class CodesMappingTests(unittest.TestCase):
     def test_missing_needed_code_does_not_format_body(self) -> None:
         entry = lockout_reply.codes_from_property_doc("leana_6623", {}, "2")
         self.assertTrue(entry.missing)
+        self.assertTrue(entry.lockbox_missing)
         with self.assertRaises(RuntimeError):
             lockout_reply.format_lockout_body("Leana", "2", entry)
+        with self.assertRaises(RuntimeError):
+            lockout_reply.format_lockbox_lockout_body("Leana", "2", entry)
 
-    def test_template_uses_fake_placeholders_only(self) -> None:
+    def test_door_body_omits_lockbox_even_when_on_file(self) -> None:
         entry = lockout_reply.codes_from_property_doc("parker_4351", fake_doc(), "2")
-        body = lockout_reply.format_lockout_body("Parker", "2", entry)
+        body = lockout_reply.format_door_lockout_body("Parker", "2", entry)
         self.assertIn(FAKE_FRONT, body)
         self.assertIn(FAKE_BACK, body)
-        self.assertIn(FAKE_ROOM, body)
-        self.assertIn(FAKE_LOCATION, body)
-        self.assertIn("Sorry you’re locked out", body)
+        self.assertNotIn(FAKE_ROOM, body)
+        self.assertNotIn(FAKE_LOCATION, body)
+        self.assertNotIn("Room / lockbox", body)
+        self.assertNotIn("lockbox", body.lower())
+        self.assertIn("deadbolt", body)
         self.assertIn(lockout_reply.JOE_FIELD_PHONE, body)
         self.assertIn(lockout_reply.PADSPLIT_MEMBER_SUPPORT_PHONE, body)
         self.assertIn("PadSplit Member Support", body)
@@ -246,6 +285,17 @@ class CodesMappingTests(unittest.TestCase):
             body.index(lockout_reply.JOE_FIELD_PHONE),
             body.index(lockout_reply.PADSPLIT_MEMBER_SUPPORT_PHONE),
         )
+
+    def test_lockbox_body_omits_door_codes(self) -> None:
+        entry = lockout_reply.codes_from_property_doc("parker_4351", fake_doc(), "2")
+        body = lockout_reply.format_lockbox_lockout_body("Parker", "2", entry)
+        self.assertIn(FAKE_ROOM, body)
+        self.assertIn(FAKE_LOCATION, body)
+        self.assertIn("Room / lockbox", body)
+        self.assertNotIn(FAKE_FRONT, body)
+        self.assertNotIn("Front door code", body)
+        self.assertNotIn("Back door code", body)
+        self.assertIn("put any lockbox key back", body)
 
 
 class DiscordSafetyTests(unittest.TestCase):
@@ -275,14 +325,23 @@ class DiscordSafetyTests(unittest.TestCase):
 
 
 class FlowTests(unittest.TestCase):
-    def test_100_percent_sends_once_on_padsplit(self) -> None:
+    def test_100_percent_sends_door_only_first(self) -> None:
         fake = FakeSend()
         rows, state = run_process(fake, [member_thread()])
         self.assertEqual(rows[0]["action"], "sent")
+        self.assertEqual(rows[0]["stage"], "door")
         self.assertEqual(len(fake.sends), 1)
         self.assertEqual(fake.sends[0][0], "chat-leana")
-        self.assertIn(FAKE_FRONT, fake.sends[0][1])
-        self.assertIn("chat-leana", state["threads"])
+        body = fake.sends[0][1]
+        self.assertIn(FAKE_FRONT, body)
+        self.assertNotIn(FAKE_ROOM, body)
+        self.assertNotIn(FAKE_LOCATION, body)
+        self.assertNotIn("Room / lockbox", body)
+        self.assertNotIn("lockbox", body.lower())
+        self.assertIn("deadbolt", body)
+        self.assertIn(lockout_reply.PADSPLIT_MEMBER_SUPPORT_PHONE, body)
+        self.assertIn("door_sent_at", state["threads"]["chat-leana"])
+        self.assertNotIn("lockbox_sent_at", state["threads"]["chat-leana"])
         self.assertEqual(fake.order, ["close", "send"])
 
     def test_idempotent_same_thread_within_window(self) -> None:
@@ -302,8 +361,147 @@ class FlowTests(unittest.TestCase):
             first = lockout_reply.process_lockouts([member_thread()], **kwargs)
             second = lockout_reply.process_lockouts([member_thread()], **kwargs)
         self.assertEqual(first[0]["action"], "sent")
+        self.assertEqual(first[0]["stage"], "door")
         self.assertEqual(second[0]["action"], "already_sent")
+        self.assertEqual(second[0]["stage"], "door")
         self.assertEqual(len(fake.sends), 1)
+
+    def test_lockbox_only_after_door_fail_followup(self) -> None:
+        fake = FakeSend()
+        thread = member_thread(
+            host_texts=[DOOR_HOST],
+            follow_up="the door still fails / code didn’t work, still locked out",
+        )
+        rows, state = run_process(fake, [thread])
+        self.assertEqual(rows[0]["action"], "sent")
+        self.assertEqual(rows[0]["stage"], "lockbox")
+        self.assertEqual(len(fake.sends), 1)
+        body = fake.sends[0][1]
+        self.assertIn(FAKE_ROOM, body)
+        self.assertIn(FAKE_LOCATION, body)
+        self.assertIn("Room / lockbox", body)
+        self.assertNotIn("Front door code", body)
+        self.assertNotIn("Back door code", body)
+        self.assertNotIn(FAKE_FRONT, body)
+        self.assertIn("lockbox_sent_at", state["threads"]["chat-leana"])
+        self.assertEqual(fake.order, ["close", "send"])
+
+    def test_lockbox_stage_is_idempotent(self) -> None:
+        fake = FakeSend()
+        thread = member_thread(
+            host_texts=[DOOR_HOST],
+            follow_up="still locked out, the code didn't work",
+        )
+        with tempfile.TemporaryDirectory() as tmpdir:
+            state_path = Path(tmpdir) / "state.json"
+            kwargs = dict(
+                now=NOW,
+                state_path=state_path,
+                leftover_compose_tabs=fake.tabs,
+                close_tabs_fn=fake.close_tabs,
+                send_fn=fake.send,
+                codes_fn=lambda _slug: fake_doc(),
+                post_discord=fake.posts.append,
+                send_enabled=True,
+            )
+            first = lockout_reply.process_lockouts([thread], **kwargs)
+            second = lockout_reply.process_lockouts([thread], **kwargs)
+        self.assertEqual(first[0]["action"], "sent")
+        self.assertEqual(first[0]["stage"], "lockbox")
+        self.assertEqual(second[0]["action"], "already_sent")
+        self.assertEqual(second[0]["stage"], "lockbox")
+        self.assertEqual(len(fake.sends), 1)
+
+    def test_thanks_after_door_does_not_send_lockbox(self) -> None:
+        fake = FakeSend()
+        thread = member_thread(host_texts=[DOOR_HOST], follow_up="thanks for the welcome")
+        rows, _ = run_process(fake, [thread])
+        self.assertEqual(rows[0]["action"], "already_sent")
+        self.assertEqual(rows[0]["stage"], "door")
+        self.assertEqual(fake.sends, [])
+
+    def test_old_combined_pack_does_not_resend_either_stage(self) -> None:
+        fake = FakeSend()
+        combined = DOOR_HOST + "\n" + f"Room / lockbox: {FAKE_ROOM} — {FAKE_LOCATION}"
+        thread = member_thread(
+            host_texts=[combined],
+            follow_up="still locked out, code didn't work",
+        )
+        rows, _ = run_process(fake, [thread])
+        self.assertEqual(rows[0]["action"], "already_sent")
+        self.assertEqual(rows[0]["stage"], "lockbox")
+        self.assertEqual(fake.sends, [])
+
+    def test_legacy_state_combined_pack_is_both_stages(self) -> None:
+        fake = FakeSend()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            state_path = Path(tmpdir) / "state.json"
+            lockout_reply.save_state(
+                {
+                    "threads": {
+                        "chat-leana": {
+                            "sent_at": "2026-09-07T14:40:00Z",
+                            "action": "sent",
+                        }
+                    }
+                },
+                state_path,
+            )
+            thread = member_thread(follow_up="still locked out")
+            rows = lockout_reply.process_lockouts(
+                [thread],
+                now=NOW,
+                state_path=state_path,
+                leftover_compose_tabs=fake.tabs,
+                close_tabs_fn=fake.close_tabs,
+                send_fn=fake.send,
+                codes_fn=lambda _slug: fake_doc(),
+                post_discord=fake.posts.append,
+                send_enabled=True,
+            )
+        self.assertEqual(rows[0]["action"], "already_sent")
+        self.assertEqual(fake.sends, [])
+
+    def test_missing_lockbox_does_not_block_door_send(self) -> None:
+        fake = FakeSend()
+        rows, _ = run_process(
+            fake,
+            [member_thread()],
+            codes_fn=lambda _slug: {"front_door": FAKE_FRONT},
+        )
+        self.assertEqual(rows[0]["action"], "sent")
+        self.assertEqual(rows[0]["stage"], "door")
+        self.assertIn(FAKE_FRONT, fake.sends[0][1])
+        self.assertNotIn("Room / lockbox", fake.sends[0][1])
+
+    def test_missing_lockbox_on_followup_escalates(self) -> None:
+        fake = FakeSend()
+        thread = member_thread(
+            host_texts=[DOOR_HOST],
+            follow_up="still locked out, the door still fails",
+        )
+        rows, _ = run_process(
+            fake,
+            [thread],
+            codes_fn=lambda _slug: {"front_door": FAKE_FRONT},
+        )
+        self.assertEqual(rows[0]["action"], "missing_codes")
+        self.assertEqual(rows[0]["stage"], "lockbox")
+        self.assertEqual(fake.sends, [])
+        self.assertFalse(lock_codes.has_digit_characters(rows[0]["discord"]))
+
+    def test_leftover_drafts_hard_skip_on_lockbox_stage(self) -> None:
+        leftover = [{"chat_id": "chat-leana", "kind": "draft"}]
+        fake = FakeSend(leftover_tabs=leftover, close_fails=True)
+        thread = member_thread(
+            host_texts=[DOOR_HOST],
+            follow_up="code didn't work, still locked out",
+        )
+        rows, state = run_process(fake, [thread])
+        self.assertEqual(rows[0]["action"], "skipped_leftover_drafts")
+        self.assertEqual(rows[0]["stage"], "lockbox")
+        self.assertEqual(fake.sends, [])
+        self.assertNotIn("lockbox_sent_at", state.get("threads", {}).get("chat-leana", {}))
 
     def test_wrong_room_does_not_send_and_discord_has_no_digits(self) -> None:
         fake = FakeSend()
@@ -357,9 +555,12 @@ class FlowTests(unittest.TestCase):
             sifely_fn=lambda: (FAKE_BACK, "sifely_rotated"),
         )
         self.assertEqual(rows[0]["action"], "sent")
+        self.assertEqual(rows[0]["stage"], "door")
         self.assertEqual(len(fake.sends), 1)
         self.assertIn(FAKE_BACK, fake.sends[0][1])
         self.assertNotIn("SHOULD-NOT-USE", fake.sends[0][1])
+        self.assertNotIn("Room / lockbox", fake.sends[0][1])
+        self.assertNotIn("lockbox", fake.sends[0][1].lower())
         self.assertEqual(rows[0]["discord"], lock_codes.discord_rotated_text())
         self.assertFalse(lock_codes.has_digit_characters(rows[0]["discord"]))
 
