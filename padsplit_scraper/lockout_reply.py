@@ -54,6 +54,7 @@ HOUSE_PROFILES: Dict[str, Dict[str, Any]] = {
     "leana_6623": {
         "label": "Leana",
         "aliases": ("leana", "leanna"),
+        "street_numbers": ("6623",),
         "require_front": True,
         "require_back": False,
         "sifely_back": False,
@@ -64,6 +65,7 @@ HOUSE_PROFILES: Dict[str, Dict[str, Any]] = {
     "sylvia_2516": {
         "label": "Sylvia",
         "aliases": ("sylvia",),
+        "street_numbers": ("2516",),
         "require_front": True,
         "require_back": False,
         "sifely_back": False,
@@ -74,6 +76,7 @@ HOUSE_PROFILES: Dict[str, Dict[str, Any]] = {
     "ridge_oak_10235": {
         "label": "Ridge Oak",
         "aliases": ("ridge oak", "ridgeoak"),
+        "street_numbers": ("10235",),
         "require_front": True,
         "require_back": True,
         "sifely_back": False,
@@ -84,6 +87,7 @@ HOUSE_PROFILES: Dict[str, Dict[str, Any]] = {
     "pebbleshores_3414": {
         "label": "Pebbleshores",
         "aliases": ("pebbleshores", "pebble shores", "pebble shore"),
+        "street_numbers": ("3414",),
         "require_front": True,
         "require_back": True,
         "sifely_back": False,
@@ -94,6 +98,7 @@ HOUSE_PROFILES: Dict[str, Dict[str, Any]] = {
     "greenhill_3406": {
         "label": "Greenhill",
         "aliases": ("greenhill", "green hill"),
+        "street_numbers": ("3406",),
         "require_front": True,
         "require_back": False,
         "sifely_back": False,
@@ -104,6 +109,7 @@ HOUSE_PROFILES: Dict[str, Dict[str, Any]] = {
     "parker_4351": {
         "label": "Parker",
         "aliases": ("parker",),
+        "street_numbers": ("4351",),
         "require_front": True,
         "require_back": True,
         "sifely_back": False,
@@ -114,6 +120,7 @@ HOUSE_PROFILES: Dict[str, Dict[str, Any]] = {
     "pioneer_1404": {
         "label": "Pioneer",
         "aliases": ("pioneer",),
+        "street_numbers": ("1404",),
         "require_front": True,
         "require_back": True,
         "sifely_back": False,
@@ -124,6 +131,7 @@ HOUSE_PROFILES: Dict[str, Dict[str, Any]] = {
     "burton_5509": {
         "label": "Burton",
         "aliases": ("burton",),
+        "street_numbers": ("5509",),
         "require_front": True,
         "require_back": False,
         "sifely_back": False,
@@ -134,6 +142,7 @@ HOUSE_PROFILES: Dict[str, Dict[str, Any]] = {
     "broken_crest_1025": {
         "label": "Broken Crest",
         "aliases": ("broken crest", "brokencrest"),
+        "street_numbers": ("1025",),
         "require_front": True,
         "require_back": False,
         "sifely_back": False,
@@ -144,6 +153,7 @@ HOUSE_PROFILES: Dict[str, Dict[str, Any]] = {
     "spanish_moss": {
         "label": "Spanish Moss",
         "aliases": ("spanish moss", "spanishmoss"),
+        "street_numbers": (),
         "require_front": False,
         "require_back": True,
         "sifely_back": True,
@@ -345,10 +355,20 @@ def current_occupant(thread: Dict[str, Any], now: datetime) -> bool:
     user = occupancy.get("user")
     if not isinstance(user, dict) or not user:
         return False
+    today = now.date()
+    move_in = parse_dt(occupancy.get("moveInDate"))
+    if move_in is not None and move_in.date() > today:
+        return False
     move_out = parse_dt(occupancy.get("moveOutDate"))
-    if move_out is not None and move_out.date() < now.date():
+    if move_out is not None and move_out.date() < today:
         return False
     return True
+
+
+def _street_number_matches(haystack: str, numbers: Sequence[str]) -> bool:
+    if not numbers:
+        return True
+    return any(re.search(rf"(?<!\d){re.escape(num)}(?!\d)", haystack) for num in numbers)
 
 
 def match_house(street: str, extra_text: str = "") -> HouseHit:
@@ -363,8 +383,12 @@ def match_house(street: str, extra_text: str = "") -> HouseHit:
         if slug == "spanish_moss":
             continue
         aliases = profile["aliases"]
-        if any(alias in haystack for alias in aliases):
-            hits.append((100 if street else 85, slug))
+        if not any(alias in haystack for alias in aliases):
+            continue
+        numbers = profile.get("street_numbers") or ()
+        if not _street_number_matches(haystack, numbers):
+            continue
+        hits.append((100 if street else 85, slug))
     if len(hits) == 1:
         slug = hits[0][1]
         return HouseHit(slug, HOUSE_PROFILES[slug]["label"], hits[0][0], "unique house alias")
@@ -590,7 +614,7 @@ def save_state(state: Dict[str, Any], path: Path = STATE_PATH) -> None:
     path.write_text(json.dumps(state, indent=2) + "\n")
 
 
-def already_sent(
+def already_handled(
     state: Dict[str, Any],
     chat_id: str,
     *,
@@ -604,12 +628,26 @@ def already_sent(
     return (now - sent_at) < window
 
 
-def record_sent(state: Dict[str, Any], chat_id: str, *, now: datetime, action: str) -> None:
+def already_sent(
+    state: Dict[str, Any],
+    chat_id: str,
+    *,
+    now: datetime,
+    window: timedelta = IDEMPOTENCY_WINDOW,
+) -> bool:
+    return already_handled(state, chat_id, now=now, window=window)
+
+
+def record_action(state: Dict[str, Any], chat_id: str, *, now: datetime, action: str) -> None:
     threads = state.setdefault("threads", {})
     threads[chat_id] = {
         "sent_at": now.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "action": action,
     }
+
+
+def record_sent(state: Dict[str, Any], chat_id: str, *, now: datetime, action: str) -> None:
+    record_action(state, chat_id, now=now, action=action)
 
 
 def host_already_sent_lockout_pack(thread: Dict[str, Any]) -> bool:
@@ -670,23 +708,67 @@ def fetch_property_codes(slug: str) -> Dict[str, Any]:
     return data if isinstance(data, dict) else {}
 
 
+def _processed_share_ids(explicit: Optional[Sequence[str]] = None) -> List[str]:
+    if explicit is not None:
+        return [str(item) for item in explicit]
+    try:
+        return [str(item) for item in (lock_codes.load_state().get("processed_discord_ids") or [])]
+    except Exception:
+        return []
+
+
+def newest_inbound_share(
+    inbound_messages: Optional[List[Dict[str, Any]]] = None,
+    *,
+    processed_ids: Optional[Sequence[str]] = None,
+) -> Tuple[str, str]:
+    """Newest unused #new-tenants share. Never log the code."""
+    seen = set(_processed_share_ids(processed_ids))
+    rows = inbound_messages
+    if rows is None:
+        token = (os.getenv("DISCORD_BOT_TOKEN") or "").strip()
+        if not token:
+            return "", ""
+        try:
+            rows = lock_codes.fetch_new_tenants_messages(token)
+        except Exception as exc:
+            _log(f"#new-tenants fetch failed: {exc}")
+            return "", ""
+    newest_code = ""
+    newest_id = ""
+    for message in rows or []:
+        message_id = str(message.get("id") or "")
+        if not message_id or message_id in seen:
+            continue
+        code = lock_codes.parse_sifely_share_code(str(message.get("content") or ""))
+        if code:
+            newest_code = code
+            newest_id = message_id
+    return newest_code, newest_id
+
+
 def obtain_spanish_moss_back(
     *,
     sifely_session=None,
     inbound_messages: Optional[List[Dict[str, Any]]] = None,
     processed_share_ids: Optional[Sequence[str]] = None,
-    rotate_if_needed: bool = True,
+    rotate_if_needed: bool = False,
     generate_code: Optional[Callable[[], str]] = None,
+    notify_members: Optional[Callable[[str], int]] = None,
 ) -> Tuple[str, str]:
     """Return (code, source). Code stays in memory. Never log it.
+
+    Lockout replies read the current Sifely passcode or the newest unused
+    inbound share. They do not rotate the shared lock unless the caller
+    explicitly sets rotate_if_needed and supplies notify_members.
 
     source: sifely_current | sifely_rotated | inbound_share | missing
     """
     api_key = lock_codes.sifely_api_key()
     if not api_key:
-        code, _share_id = lock_codes._first_new_share(
+        code, _share_id = newest_inbound_share(
             inbound_messages,
-            processed_ids=processed_share_ids or [],
+            processed_ids=processed_share_ids,
         )
         return (code or "", "inbound_share" if code else "missing")
 
@@ -710,6 +792,10 @@ def obtain_spanish_moss_back(
             return current, "sifely_current"
         if not rotate_if_needed or not pwd_id:
             raise lock_codes.SifelyUnavailable("no current Spanish Moss passcode")
+        if notify_members is None:
+            raise lock_codes.SifelyUnavailable(
+                "refusing rotate from lockout path without member notify"
+            )
         new_code = (generate_code or lock_codes.generate_passcode)()
         lock_codes.change_passcode(
             api_key,
@@ -722,12 +808,16 @@ def obtain_spanish_moss_back(
             lock_codes.update_codes_page(new_code)
         except Exception as exc:
             _log(f"codes page update after rotate failed; continuing: {exc}")
+        try:
+            notify_members(new_code)
+        except Exception as exc:
+            _log(f"notify current members after rotate failed; continuing: {exc}")
         return new_code, "sifely_rotated"
     except lock_codes.SifelyUnavailable as exc:
         _log(f"Sifely path unavailable: {exc}")
-        code, _share_id = lock_codes._first_new_share(
+        code, _share_id = newest_inbound_share(
             inbound_messages,
-            processed_ids=processed_share_ids or [],
+            processed_ids=processed_share_ids,
         )
         return (code or "", "inbound_share" if code else "missing")
 
@@ -882,42 +972,50 @@ def process_lockouts(
 
     for thread in threads:
         chat_id = str(thread.get("id") or "")
-        lockout_message = recent_member_lockout(thread, now=now)
-        house_preview = match_house(
-            thread_street(thread),
-            message_text(lockout_message) if lockout_message else "",
+        preflight = decide(
+            thread,
+            now=now,
+            state=state,
+            codes_doc={},
+            sifely_back="",
+            sifely_source="",
         )
         codes_doc: Optional[Dict[str, Any]] = None
         sifely_back = ""
         sifely_source = ""
-        # Only pull codes (and never touch Sifely) after a lockout is in-window.
-        if lockout_message and house_preview.slug:
-            if house_preview.slug not in codes_cache:
+        # Eligibility first. Never rotate/read Sifely for skip / already-handled /
+        # ambiguous threads.
+        if preflight.action in {"missing_codes", "send"} and preflight.slug:
+            if preflight.slug not in codes_cache:
                 loader = codes_fn or fetch_property_codes
                 try:
-                    codes_cache[house_preview.slug] = loader(house_preview.slug) or {}
+                    codes_cache[preflight.slug] = loader(preflight.slug) or {}
                 except Exception as exc:
                     _log(f"property codes lookup failed; treating as empty: {exc}")
-                    codes_cache[house_preview.slug] = {}
-            codes_doc = codes_cache[house_preview.slug]
-            if HOUSE_PROFILES[house_preview.slug].get("sifely_back"):
+                    codes_cache[preflight.slug] = {}
+            codes_doc = codes_cache[preflight.slug]
+            if HOUSE_PROFILES[preflight.slug].get("sifely_back"):
                 if sifely_cache is None:
-                    getter = sifely_fn or obtain_spanish_moss_back
+                    getter = sifely_fn or (
+                        lambda: obtain_spanish_moss_back(rotate_if_needed=False)
+                    )
                     try:
                         sifely_cache = getter()
                     except Exception as exc:
                         _log(f"Sifely obtain failed: {exc}")
                         sifely_cache = ("", "missing")
                 sifely_back, sifely_source = sifely_cache
+            decision = decide(
+                thread,
+                now=now,
+                state=state,
+                codes_doc=codes_doc,
+                sifely_back=sifely_back,
+                sifely_source=sifely_source,
+            )
+        else:
+            decision = preflight
 
-        decision = decide(
-            thread,
-            now=now,
-            state=state,
-            codes_doc=codes_doc,
-            sifely_back=sifely_back,
-            sifely_source=sifely_source,
-        )
         row = {
             "chat_id": decision.chat_id or chat_id,
             "action": decision.action,
@@ -937,6 +1035,12 @@ def process_lockouts(
                     except Exception as exc:
                         _log(f"Discord post failed; continuing: {exc}")
                 row["discord"] = text
+                if not dry_run and decision.action in {
+                    "ask_joe",
+                    "needs_tap",
+                    "missing_codes",
+                }:
+                    record_action(state, decision.chat_id or chat_id, now=now, action=decision.action)
 
         if decision.action != "send":
             results.append(row)
