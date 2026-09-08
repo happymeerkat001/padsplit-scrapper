@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-09-08T04:45:03Z",
+  "scraped_at": "2026-09-08T09:09:46Z",
   "derived_from": [
     "messages",
     "tasks"
@@ -218,6 +218,23 @@
       "seo_eligible": false
     },
     {
+      "property_id": null,
+      "address": "1025 Broken Crest",
+      "room_number": 9,
+      "occupant_present": true,
+      "listed_move_out": null,
+      "next_move_in": "2026-09-10",
+      "open_turn_ticket_ids": [],
+      "open_eviction_ticket_ids": [],
+      "open_hold_ticket_ids": [],
+      "move_out_photos": 0,
+      "vacant": false,
+      "turned": false,
+      "rent_ready": false,
+      "days_vacant": 0,
+      "seo_eligible": false
+    },
+    {
       "property_id": 20021,
       "address": "1404 Pioneer Lane",
       "room_number": 1,
@@ -356,13 +373,15 @@
       "seo_eligible": false
     },
     {
-      "property_id": null,
+      "property_id": 8840,
       "address": "2516 Sylvia Street",
       "room_number": 2,
       "occupant_present": true,
-      "listed_move_out": null,
+      "listed_move_out": "2026-09-08",
       "next_move_in": null,
-      "open_turn_ticket_ids": [],
+      "open_turn_ticket_ids": [
+        471349
+      ],
       "open_eviction_ticket_ids": [],
       "open_hold_ticket_ids": [],
       "move_out_photos": 0,
