@@ -6,9 +6,10 @@ window when PadSplit host messages and/or Discord #ai-tasks-temp have
 something to say. Skip when both sources are empty. Never a 1:1 to Don.
 Never send from GitHub Actions / CI.
 
-Primary send path is Google Voice group SMS from Ang's Mac Chrome session
-(voice.google.com, persistent Chrome user-data-dir). Fallback is the
-Messages.app chat named exactly "Don Field". Never send from a box/VPS.
+Primary send path is Quo SMS from +1 (469) 373-2048 (A2P). Fallbacks are
+Google Voice group SMS (Ang's Mac Chrome) then the Messages.app chat named
+exactly "Don Field". Prefer the Mac launchd job; Quo HTTP does not need a
+residential IP the way Google Voice does.
 """
 
 from __future__ import annotations
@@ -66,6 +67,15 @@ JOE_PHONE = "+14693732048"
 DON_PHONE = "+12147798338"
 DON_WRONG_PHONE = "+12144541768"
 GROUP_RECIPIENTS = (DAD_PHONE, JOE_PHONE, DON_PHONE)
+
+# Quo public API (verified send path: POST /v1/messages). Dated API 2026-03-30
+# does not yet document send-message; v1 remains the live send endpoint.
+QUO_API_BASE = "https://api.quo.com"
+QUO_MESSAGES_URL = f"{QUO_API_BASE}/v1/messages"
+QUO_API_VERSION = "2026-03-30"
+QUO_FROM_NUMBER_DEFAULT = "+14693732048"
+QUO_MAX_RECIPIENTS = 10
+QUO_SUCCESS_STATUSES = {200, 201, 202}
 
 HOST_STAFF_ROLE = "A_1"
 TENANT_ROLE = "A_0"
@@ -129,7 +139,7 @@ def running_in_ci() -> bool:
 
 
 def sending_allowed() -> bool:
-    """CI must never send. Live send is the Mac scraper launchd job only."""
+    """CI must never send. Live send is the Mac launchd job (prefer Mac)."""
     if running_in_ci():
         return False
     flag = (os.getenv("FIELD_MMS_ENABLE") or "").strip().lower()
@@ -138,6 +148,10 @@ def sending_allowed() -> bool:
     if sys.platform == "darwin":
         return True
     return flag in {"1", "true", "yes"}
+
+
+class QuoTransportError(RuntimeError):
+    """Quo HTTP send failed or is not configured. Never include the API key."""
 
 
 def normalize_phone(value: str) -> str:
@@ -542,13 +556,75 @@ def _escape_applescript(value: str) -> str:
 
 
 def resolve_field_mms_transport() -> str:
-    """google_voice | messages | auto (default)."""
+    """quo | google_voice | messages | auto (default: Quo then GV then Messages)."""
     raw = (os.getenv("FIELD_MMS_TRANSPORT") or FIELD_MMS_TRANSPORT_DEFAULT).strip().lower()
+    if raw in {"quo", "openphone"}:
+        return "quo"
     if raw in {"google_voice", "gv", "voice"}:
         return "google_voice"
     if raw in {"messages", "imessage", "messages.app"}:
         return "messages"
     return "auto"
+
+
+def resolve_quo_from_number() -> str:
+    raw = (
+        os.getenv("QUO_FROM_NUMBER")
+        or os.getenv("FIELD_MMS_QUO_FROM")
+        or QUO_FROM_NUMBER_DEFAULT
+    ).strip()
+    normalized = normalize_phone(raw)
+    if not normalized:
+        raise QuoTransportError("Quo from number is missing")
+    return normalized
+
+
+def resolve_quo_api_key() -> str:
+    key = (os.getenv("QUO_API_KEY") or "").strip()
+    if not key:
+        raise QuoTransportError("QUO_API_KEY missing")
+    return key
+
+
+def send_via_quo(
+    body: str,
+    recipients: Sequence[str],
+    *,
+    http_post: Optional[Callable[..., Any]] = None,
+) -> None:
+    """Send one group SMS via Quo POST /v1/messages. Never log the API key."""
+    if not sending_allowed():
+        raise RuntimeError("CI / non-Mac must not send MMS")
+    checked = assert_group_recipients(recipients)
+    if len(checked) > QUO_MAX_RECIPIENTS:
+        raise QuoTransportError("Quo supports at most 10 recipients")
+    if len(checked) < 2:
+        raise QuoTransportError("Quo group send requires more than one recipient")
+    key = resolve_quo_api_key()
+    from_number = resolve_quo_from_number()
+    headers = {
+        "Authorization": key,
+        "Quo-Api-Version": QUO_API_VERSION,
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "content": body,
+        "from": from_number,
+        "to": list(checked),
+    }
+    poster = http_post or requests.post
+    try:
+        response = poster(
+            QUO_MESSAGES_URL,
+            headers=headers,
+            json=payload,
+            timeout=DEFAULT_TIMEOUT,
+        )
+    except requests.RequestException as exc:
+        raise QuoTransportError(f"Quo SMS request failed: {type(exc).__name__}") from exc
+    status = getattr(response, "status_code", None)
+    if status not in QUO_SUCCESS_STATUSES:
+        raise QuoTransportError(f"Quo SMS send failed: HTTP {status}")
 
 
 def messages_chat_name() -> str:
@@ -607,18 +683,25 @@ def send_group_mms(body: str, recipients: Sequence[str] = GROUP_RECIPIENTS) -> N
     if transport == "messages":
         send_via_messages_chat(body, chat_name)
         return
+    if transport == "quo":
+        send_via_quo(body, checked)
+        return
+    if transport == "google_voice":
+        send_via_google_voice_chrome(body, checked)
+        return
+    try:
+        send_via_quo(body, checked)
+        return
+    except Exception:
+        sys.stderr.write("[field-mms] Quo SMS failed; falling back to Google Voice\n")
     try:
         send_via_google_voice_chrome(body, checked)
         return
     except GoogleVoiceChallenge:
-        if transport == "google_voice":
-            raise
         sys.stderr.write(
             f"[field-mms] Google Voice challenge; falling back to Messages chat {chat_name}\n"
         )
     except Exception:
-        if transport == "google_voice":
-            raise
         sys.stderr.write(
             f"[field-mms] Google Voice failed; falling back to Messages chat {chat_name}\n"
         )

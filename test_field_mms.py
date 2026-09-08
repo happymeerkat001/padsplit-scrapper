@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from datetime import datetime
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 from zoneinfo import ZoneInfo
 
 from padsplit_scraper.field_mms import (
@@ -15,6 +15,10 @@ from padsplit_scraper.field_mms import (
     FIELD_MMS_CHAT_NAME_DEFAULT,
     GROUP_RECIPIENTS,
     JOE_PHONE,
+    QUO_API_VERSION,
+    QUO_FROM_NUMBER_DEFAULT,
+    QUO_MESSAGES_URL,
+    QuoTransportError,
     assert_group_recipients,
     build_launchd_plist,
     build_mms_body,
@@ -24,10 +28,12 @@ from padsplit_scraper.field_mms import (
     normalize_phone,
     plan_send,
     resolve_field_mms_transport,
+    resolve_quo_from_number,
     run_window,
     sanitize_sms,
     send_group_mms,
     send_via_google_voice_chrome,
+    send_via_quo,
     summarize_host_messages,
     window_for,
 )
@@ -274,6 +280,8 @@ class FieldMmsTransportTests(unittest.TestCase):
             self.assertEqual(resolve_field_mms_transport(), "auto")
 
     def test_transport_aliases(self) -> None:
+        with patch.dict(os.environ, {"FIELD_MMS_TRANSPORT": "quo"}):
+            self.assertEqual(resolve_field_mms_transport(), "quo")
         with patch.dict(os.environ, {"FIELD_MMS_TRANSPORT": "google_voice"}):
             self.assertEqual(resolve_field_mms_transport(), "google_voice")
         with patch.dict(os.environ, {"FIELD_MMS_TRANSPORT": "messages"}):
@@ -282,12 +290,28 @@ class FieldMmsTransportTests(unittest.TestCase):
     @patch("padsplit_scraper.field_mms.sending_allowed", return_value=True)
     @patch("padsplit_scraper.field_mms.send_via_messages_chat")
     @patch("padsplit_scraper.field_mms.send_via_google_voice_chrome")
-    def test_auto_tries_google_voice_then_messages_on_challenge(
-        self, gv, messages, _allowed
+    @patch("padsplit_scraper.field_mms.send_via_quo")
+    def test_auto_prefers_quo_and_skips_fallbacks(self, quo, gv, messages, _allowed) -> None:
+        with patch.dict(os.environ, {"FIELD_MMS_TRANSPORT": "auto"}):
+            send_group_mms("PadSplit: kitchen sink leak", GROUP_RECIPIENTS)
+        quo.assert_called_once()
+        self.assertEqual(quo.call_args[0][0], "PadSplit: kitchen sink leak")
+        self.assertEqual(tuple(quo.call_args[0][1]), GROUP_RECIPIENTS)
+        gv.assert_not_called()
+        messages.assert_not_called()
+
+    @patch("padsplit_scraper.field_mms.sending_allowed", return_value=True)
+    @patch("padsplit_scraper.field_mms.send_via_messages_chat")
+    @patch("padsplit_scraper.field_mms.send_via_google_voice_chrome")
+    @patch("padsplit_scraper.field_mms.send_via_quo")
+    def test_auto_tries_quo_then_google_voice_then_messages_on_challenge(
+        self, quo, gv, messages, _allowed
     ) -> None:
+        quo.side_effect = QuoTransportError("QUO_API_KEY missing")
         gv.side_effect = GoogleVoiceChallenge("Google Voice login or challenge wall")
         with patch.dict(os.environ, {"FIELD_MMS_TRANSPORT": "auto"}):
             send_group_mms("PadSplit: kitchen sink leak", GROUP_RECIPIENTS)
+        quo.assert_called_once()
         gv.assert_called_once()
         self.assertEqual(gv.call_args[0][0], "PadSplit: kitchen sink leak")
         self.assertEqual(tuple(gv.call_args[0][1]), GROUP_RECIPIENTS)
@@ -296,52 +320,76 @@ class FieldMmsTransportTests(unittest.TestCase):
     @patch("padsplit_scraper.field_mms.sending_allowed", return_value=True)
     @patch("padsplit_scraper.field_mms.send_via_messages_chat")
     @patch("padsplit_scraper.field_mms.send_via_google_voice_chrome")
-    def test_auto_falls_back_on_transport_failure(self, gv, messages, _allowed) -> None:
+    @patch("padsplit_scraper.field_mms.send_via_quo")
+    def test_auto_falls_back_on_transport_failure(self, quo, gv, messages, _allowed) -> None:
+        quo.side_effect = QuoTransportError("Quo SMS send failed: HTTP 503")
         gv.side_effect = GoogleVoiceTransportError("Google Voice Chrome failed to launch")
         with patch.dict(os.environ, {}, clear=False):
             os.environ.pop("FIELD_MMS_TRANSPORT", None)
             send_group_mms("PadSplit: kitchen sink leak", GROUP_RECIPIENTS)
+        quo.assert_called_once()
         gv.assert_called_once()
         messages.assert_called_once()
 
     @patch("padsplit_scraper.field_mms.sending_allowed", return_value=True)
     @patch("padsplit_scraper.field_mms.send_via_messages_chat")
     @patch("padsplit_scraper.field_mms.send_via_google_voice_chrome")
-    def test_google_voice_strict_does_not_fallback(self, gv, messages, _allowed) -> None:
-        gv.side_effect = GoogleVoiceChallenge("Google Voice login or challenge wall")
-        with patch.dict(os.environ, {"FIELD_MMS_TRANSPORT": "google_voice"}):
-            with self.assertRaises(GoogleVoiceChallenge):
+    @patch("padsplit_scraper.field_mms.send_via_quo")
+    def test_quo_strict_does_not_fallback(self, quo, gv, messages, _allowed) -> None:
+        quo.side_effect = QuoTransportError("Quo SMS send failed: HTTP 401")
+        with patch.dict(os.environ, {"FIELD_MMS_TRANSPORT": "quo"}):
+            with self.assertRaises(QuoTransportError):
                 send_group_mms("PadSplit: kitchen sink leak", GROUP_RECIPIENTS)
-        gv.assert_called_once()
+        quo.assert_called_once()
+        gv.assert_not_called()
         messages.assert_not_called()
 
     @patch("padsplit_scraper.field_mms.sending_allowed", return_value=True)
     @patch("padsplit_scraper.field_mms.send_via_messages_chat")
     @patch("padsplit_scraper.field_mms.send_via_google_voice_chrome")
-    def test_messages_transport_skips_google_voice(self, gv, messages, _allowed) -> None:
+    @patch("padsplit_scraper.field_mms.send_via_quo")
+    def test_google_voice_strict_does_not_fallback(self, quo, gv, messages, _allowed) -> None:
+        gv.side_effect = GoogleVoiceChallenge("Google Voice login or challenge wall")
+        with patch.dict(os.environ, {"FIELD_MMS_TRANSPORT": "google_voice"}):
+            with self.assertRaises(GoogleVoiceChallenge):
+                send_group_mms("PadSplit: kitchen sink leak", GROUP_RECIPIENTS)
+        gv.assert_called_once()
+        quo.assert_not_called()
+        messages.assert_not_called()
+
+    @patch("padsplit_scraper.field_mms.sending_allowed", return_value=True)
+    @patch("padsplit_scraper.field_mms.send_via_messages_chat")
+    @patch("padsplit_scraper.field_mms.send_via_google_voice_chrome")
+    @patch("padsplit_scraper.field_mms.send_via_quo")
+    def test_messages_transport_skips_quo_and_google_voice(self, quo, gv, messages, _allowed) -> None:
         with patch.dict(os.environ, {"FIELD_MMS_TRANSPORT": "messages"}):
             send_group_mms("PadSplit: kitchen sink leak", GROUP_RECIPIENTS)
+        quo.assert_not_called()
         gv.assert_not_called()
         messages.assert_called_once_with("PadSplit: kitchen sink leak", FIELD_MMS_CHAT_NAME_DEFAULT)
 
     @patch("padsplit_scraper.field_mms.sending_allowed", return_value=True)
     @patch("padsplit_scraper.field_mms.send_via_messages_chat")
     @patch("padsplit_scraper.field_mms.send_via_google_voice_chrome")
-    def test_send_group_mms_refuses_wrong_don_before_any_send(self, gv, messages, _allowed) -> None:
+    @patch("padsplit_scraper.field_mms.send_via_quo")
+    def test_send_group_mms_refuses_wrong_don_before_any_send(self, quo, gv, messages, _allowed) -> None:
         with self.assertRaisesRegex(RuntimeError, "wrong Don number"):
             send_group_mms(
                 "PadSplit: kitchen sink leak",
                 (DAD_PHONE, JOE_PHONE, DON_WRONG_PHONE),
             )
+        quo.assert_not_called()
         gv.assert_not_called()
         messages.assert_not_called()
 
     @patch("padsplit_scraper.field_mms.send_via_messages_chat")
     @patch("padsplit_scraper.field_mms.send_via_google_voice_chrome")
-    def test_send_group_mms_never_sends_when_ci_disallows(self, gv, messages) -> None:
+    @patch("padsplit_scraper.field_mms.send_via_quo")
+    def test_send_group_mms_never_sends_when_ci_disallows(self, quo, gv, messages) -> None:
         with patch("padsplit_scraper.field_mms.sending_allowed", return_value=False):
             with self.assertRaisesRegex(RuntimeError, "must not send"):
                 send_group_mms("PadSplit: kitchen sink leak", GROUP_RECIPIENTS)
+        quo.assert_not_called()
         gv.assert_not_called()
         messages.assert_not_called()
 
@@ -434,6 +482,161 @@ class FieldMmsTransportTests(unittest.TestCase):
         self.assertEqual(format_voice_recipient(DON_PHONE), "(214) 779-8338")
         self.assertEqual(format_voice_recipient(DAD_PHONE), "(945) 241-3070")
         self.assertEqual(format_voice_recipient(JOE_PHONE), "(469) 373-2048")
+
+
+FAKE_QUO_KEY = "test-quo-key-not-real"
+FAKE_QUO_FROM = "+15555550100"
+
+
+class FieldMmsQuoTests(unittest.TestCase):
+    def test_default_from_number_is_quo_469(self) -> None:
+        with patch.dict(os.environ, {"QUO_FROM_NUMBER": "", "FIELD_MMS_QUO_FROM": ""}):
+            self.assertEqual(resolve_quo_from_number(), QUO_FROM_NUMBER_DEFAULT)
+            self.assertEqual(QUO_FROM_NUMBER_DEFAULT, "+14693732048")
+
+    def test_from_number_env_aliases(self) -> None:
+        with patch.dict(os.environ, {"QUO_FROM_NUMBER": FAKE_QUO_FROM, "FIELD_MMS_QUO_FROM": ""}):
+            self.assertEqual(resolve_quo_from_number(), FAKE_QUO_FROM)
+        with patch.dict(
+            os.environ,
+            {"QUO_FROM_NUMBER": "", "FIELD_MMS_QUO_FROM": "+1 (555) 555-0101"},
+        ):
+            self.assertEqual(resolve_quo_from_number(), "+15555550101")
+
+    def test_send_via_quo_posts_group_sms_with_version_header(self) -> None:
+        posted: list[dict] = []
+
+        def http_post(url, *, headers, json, timeout):
+            posted.append(
+                {"url": url, "headers": headers, "json": json, "timeout": timeout}
+            )
+            return Mock(status_code=202)
+
+        with patch("padsplit_scraper.field_mms.sending_allowed", return_value=True):
+            with patch.dict(
+                os.environ,
+                {"QUO_API_KEY": FAKE_QUO_KEY, "QUO_FROM_NUMBER": FAKE_QUO_FROM},
+            ):
+                send_via_quo(
+                    "PadSplit: kitchen sink leak",
+                    GROUP_RECIPIENTS,
+                    http_post=http_post,
+                )
+
+        self.assertEqual(len(posted), 1)
+        call = posted[0]
+        self.assertEqual(call["url"], QUO_MESSAGES_URL)
+        self.assertEqual(call["url"], "https://api.quo.com/v1/messages")
+        self.assertEqual(call["headers"]["Authorization"], FAKE_QUO_KEY)
+        self.assertFalse(str(call["headers"]["Authorization"]).lower().startswith("bearer"))
+        self.assertEqual(call["headers"]["Quo-Api-Version"], QUO_API_VERSION)
+        self.assertEqual(call["headers"]["Content-Type"], "application/json")
+        self.assertEqual(call["json"]["content"], "PadSplit: kitchen sink leak")
+        self.assertEqual(call["json"]["from"], FAKE_QUO_FROM)
+        self.assertEqual(call["json"]["to"], list(GROUP_RECIPIENTS))
+        self.assertLessEqual(len(call["json"]["to"]), 10)
+
+    def test_send_via_quo_missing_key_does_not_post(self) -> None:
+        posted = []
+
+        def http_post(*_args, **_kwargs):
+            posted.append(True)
+            return Mock(status_code=202)
+
+        with patch("padsplit_scraper.field_mms.sending_allowed", return_value=True):
+            with patch.dict(os.environ, {"QUO_API_KEY": ""}):
+                with self.assertRaisesRegex(QuoTransportError, "QUO_API_KEY missing"):
+                    send_via_quo(
+                        "PadSplit: kitchen sink leak",
+                        GROUP_RECIPIENTS,
+                        http_post=http_post,
+                    )
+        self.assertEqual(posted, [])
+
+    def test_send_via_quo_http_error_does_not_include_key_or_body(self) -> None:
+        def http_post(*_args, **_kwargs):
+            return Mock(status_code=401)
+
+        with patch("padsplit_scraper.field_mms.sending_allowed", return_value=True):
+            with patch.dict(os.environ, {"QUO_API_KEY": FAKE_QUO_KEY}):
+                with self.assertRaises(QuoTransportError) as raised:
+                    send_via_quo(
+                        "PadSplit: door code 4125",
+                        GROUP_RECIPIENTS,
+                        http_post=http_post,
+                    )
+        message = str(raised.exception)
+        self.assertIn("HTTP 401", message)
+        self.assertNotIn(FAKE_QUO_KEY, message)
+        self.assertNotIn("4125", message)
+        self.assertNotIn("PadSplit: door code", message)
+
+    def test_send_via_quo_never_posts_when_ci_disallows(self) -> None:
+        posted = []
+
+        def http_post(*_args, **_kwargs):
+            posted.append(True)
+            return Mock(status_code=202)
+
+        with patch("padsplit_scraper.field_mms.sending_allowed", return_value=False):
+            with patch.dict(os.environ, {"QUO_API_KEY": FAKE_QUO_KEY}):
+                with self.assertRaisesRegex(RuntimeError, "must not send"):
+                    send_via_quo(
+                        "PadSplit: kitchen sink leak",
+                        GROUP_RECIPIENTS,
+                        http_post=http_post,
+                    )
+        self.assertEqual(posted, [])
+
+    def test_send_via_quo_refuses_wrong_don_before_http(self) -> None:
+        posted = []
+
+        def http_post(*_args, **_kwargs):
+            posted.append(True)
+            return Mock(status_code=202)
+
+        with patch("padsplit_scraper.field_mms.sending_allowed", return_value=True):
+            with patch.dict(os.environ, {"QUO_API_KEY": FAKE_QUO_KEY}):
+                with self.assertRaisesRegex(RuntimeError, "wrong Don number"):
+                    send_via_quo(
+                        "PadSplit: kitchen sink leak",
+                        (DAD_PHONE, JOE_PHONE, DON_WRONG_PHONE),
+                        http_post=http_post,
+                    )
+        self.assertEqual(posted, [])
+
+    def test_send_via_quo_uses_requests_post(self) -> None:
+        response = Mock(status_code=202)
+        with patch("padsplit_scraper.field_mms.sending_allowed", return_value=True):
+            with patch("padsplit_scraper.field_mms.requests.post", return_value=response) as post:
+                with patch.dict(
+                    os.environ,
+                    {"QUO_API_KEY": FAKE_QUO_KEY, "QUO_FROM_NUMBER": FAKE_QUO_FROM},
+                ):
+                    send_via_quo("PadSplit: kitchen sink leak", GROUP_RECIPIENTS)
+        post.assert_called_once()
+        self.assertEqual(post.call_args[0][0], QUO_MESSAGES_URL)
+        headers = post.call_args.kwargs["headers"]
+        payload = post.call_args.kwargs["json"]
+        self.assertEqual(headers["Authorization"], FAKE_QUO_KEY)
+        self.assertEqual(headers["Quo-Api-Version"], QUO_API_VERSION)
+        self.assertEqual(payload["from"], FAKE_QUO_FROM)
+        self.assertEqual(payload["to"], list(GROUP_RECIPIENTS))
+
+    def test_send_via_quo_request_exception_is_transport_error(self) -> None:
+        import requests as requests_lib
+
+        def http_post(*_args, **_kwargs):
+            raise requests_lib.Timeout("slow")
+
+        with patch("padsplit_scraper.field_mms.sending_allowed", return_value=True):
+            with patch.dict(os.environ, {"QUO_API_KEY": FAKE_QUO_KEY}):
+                with self.assertRaisesRegex(QuoTransportError, "Timeout"):
+                    send_via_quo(
+                        "PadSplit: kitchen sink leak",
+                        GROUP_RECIPIENTS,
+                        http_post=http_post,
+                    )
 
 
 if __name__ == "__main__":

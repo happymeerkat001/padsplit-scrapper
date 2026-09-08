@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Google Voice group SMS via Ang's already-signed-in Mac Chrome profile.
 
-Primary field-MMS transport. Uses Playwright against a persistent Chrome
-user-data-dir (no Google Voice API key; never prompt for a password).
-Mac-only. CI / box / VPS must not send — Google may challenge unfamiliar IPs.
+Fallback field-MMS transport after Quo. Uses Playwright against a persistent
+Chrome user-data-dir (no Google Voice API key; never prompt for a password).
+Mac-only. CI must not send — Google may challenge unfamiliar IPs.
 """
 
 from __future__ import annotations
