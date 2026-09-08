@@ -12,20 +12,12 @@
 	<key>WorkingDirectory</key>
 	<string>/Users/leon/Documents/Code/padsplit-scraper</string>
 	<key>StartCalendarInterval</key>
-	<array>
-		<dict>
-			<key>Hour</key>
-			<integer>6</integer>
-			<key>Minute</key>
-			<integer>0</integer>
-		</dict>
-		<dict>
-			<key>Hour</key>
-			<integer>19</integer>
-			<key>Minute</key>
-			<integer>0</integer>
-		</dict>
-	</array>
+	<dict>
+		<key>Hour</key>
+		<integer>6</integer>
+		<key>Minute</key>
+		<integer>0</integer>
+	</dict>
 	<key>StandardOutPath</key>
 	<string>/Users/leon/Documents/Code/padsplit-scraper/logs/field-mms.stdout.log</string>
 	<key>StandardErrorPath</key>

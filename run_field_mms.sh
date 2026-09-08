@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 set -euo pipefail
 
-# Daily Don-field group MMS. 6:00am CT and 7:00pm CT via launchd.
+# Daily Don-field group MMS. Morning 6:00am CT only via launchd.
 # Primary transport is Quo SMS (QUO_API_KEY); GV / Messages are fallbacks.
 # Not live until this branch is merged and this Mac has pulled + installed the LaunchAgent.
 # Do not run from GitHub Actions.

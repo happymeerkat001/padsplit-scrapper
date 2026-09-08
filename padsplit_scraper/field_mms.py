@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Daily Don-field group MMS from the existing PadSplit scraper.
 
-6:00am CT and 7:00pm CT, every day including weekends. One group MMS per
-window when PadSplit host messages and/or Discord #ai-tasks-temp have
+Morning only: 6:00am CT, every day including weekends. One group MMS per
+morning window when PadSplit host messages and/or Discord #ai-tasks-temp have
 something to say. Skip when both sources are empty. Never a 1:1 to Don.
 Never send from GitHub Actions / CI.
 
@@ -182,13 +182,12 @@ def assert_group_recipients(recipients: Sequence[str]) -> List[str]:
 
 
 def window_for(now: Optional[datetime] = None) -> Window:
+    """Morning 6am CT only. Before 6am is the prior day's 6am window (catch-up)."""
     current = (now or datetime.now(CT)).astimezone(CT)
     if current.hour < 6:
         day = current.date() - timedelta(days=1)
-        return Window(date=day.isoformat(), hour=19)
-    if current.hour < 19:
-        return Window(date=current.date().isoformat(), hour=6)
-    return Window(date=current.date().isoformat(), hour=19)
+        return Window(date=day.isoformat(), hour=6)
+    return Window(date=current.date().isoformat(), hour=6)
 
 
 def _parse_created(value: Optional[str]) -> Optional[datetime]:
@@ -714,10 +713,7 @@ def build_launchd_plist(workspace: Path = ROOT_DIR) -> Dict[str, Any]:
         "Label": LAUNCHD_LABEL,
         "ProgramArguments": ["/bin/zsh", str(workspace / "run_field_mms.sh")],
         "WorkingDirectory": str(workspace),
-        "StartCalendarInterval": [
-            {"Hour": 6, "Minute": 0},
-            {"Hour": 19, "Minute": 0},
-        ],
+        "StartCalendarInterval": {"Hour": 6, "Minute": 0},
         "StandardOutPath": str(logs / "field-mms.stdout.log"),
         "StandardErrorPath": str(logs / "field-mms.stderr.log"),
         "EnvironmentVariables": {"PATH": "/usr/local/bin:/usr/bin:/bin"},
@@ -773,7 +769,7 @@ def run_window(
 def main(argv: Optional[List[str]] = None) -> int:
     parser = argparse.ArgumentParser(description="Daily Don-field group MMS (existing scraper)")
     parser.add_argument("--dry-run", action="store_true", help="Build the body; do not send")
-    parser.add_argument("--install-launchd", action="store_true", help="Install 6am/7pm CT LaunchAgent on this Mac")
+    parser.add_argument("--install-launchd", action="store_true", help="Install morning 6am CT LaunchAgent on this Mac")
     args = parser.parse_args(argv)
     load_environment()
     if args.install_launchd:

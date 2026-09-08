@@ -114,13 +114,64 @@ class FieldMmsTests(unittest.TestCase):
             )
 
         self.assertEqual(first.action, "send")
+        self.assertEqual(first.window_id, "2026-09-01-06")
         self.assertEqual(second.action, "skip_duplicate")
         self.assertEqual(len(sent), 1)
         self.assertIn("kitchen sink leak", sent[0][0])
         self.assertEqual(sent[0][1], GROUP_RECIPIENTS)
 
+    def test_evening_run_same_day_is_same_morning_window(self) -> None:
+        sent: list[str] = []
+
+        def host(_since: datetime) -> list[str]:
+            return ["10235 Ridge Oak Rm 5 — kitchen sink leak"]
+
+        with tempfile.TemporaryDirectory() as tmp:
+            state = Path(tmp) / "sent.json"
+            morning = run_window(
+                now=datetime(2026, 9, 1, 6, 5, tzinfo=CT),
+                host_fetcher=host,
+                task_fetcher=lambda _s: [],
+                sender=lambda body, _r: sent.append(body),
+                state_path=state,
+                ci=False,
+            )
+            evening = run_window(
+                now=datetime(2026, 9, 1, 19, 5, tzinfo=CT),
+                host_fetcher=host,
+                task_fetcher=lambda _s: [],
+                sender=lambda body, _r: sent.append(body),
+                state_path=state,
+                ci=False,
+            )
+
+        self.assertEqual(morning.action, "send")
+        self.assertEqual(morning.window_id, "2026-09-01-06")
+        self.assertEqual(evening.action, "skip_duplicate")
+        self.assertEqual(evening.window_id, "2026-09-01-06")
+        self.assertEqual(len(sent), 1)
+
+    def test_window_for_is_morning_6am_only(self) -> None:
+        before = window_for(datetime(2026, 9, 1, 5, 59, tzinfo=CT))
+        self.assertEqual(before.date, "2026-08-31")
+        self.assertEqual(before.hour, 6)
+        self.assertEqual(before.id, "2026-08-31-06")
+
+        morning = window_for(datetime(2026, 9, 1, 6, 0, tzinfo=CT))
+        self.assertEqual(morning.date, "2026-09-01")
+        self.assertEqual(morning.hour, 6)
+        self.assertEqual(morning.id, "2026-09-01-06")
+
+        afternoon = window_for(datetime(2026, 9, 1, 13, 30, tzinfo=CT))
+        self.assertEqual(afternoon.id, "2026-09-01-06")
+
+        evening = window_for(datetime(2026, 9, 1, 19, 0, tzinfo=CT))
+        self.assertEqual(evening.date, "2026-09-01")
+        self.assertEqual(evening.hour, 6)
+        self.assertEqual(evening.id, "2026-09-01-06")
+
     def test_discord_only_content_would_send(self) -> None:
-        window = window_for(datetime(2026, 9, 1, 19, 0, tzinfo=CT))
+        window = window_for(datetime(2026, 9, 1, 6, 0, tzinfo=CT))
         plan = plan_send([], ["4100 N Main St Rm 1 — [Open] smoke detector"], window, set())
         self.assertEqual(plan.action, "send")
         self.assertIn("Open tasks:", plan.body)
@@ -210,12 +261,11 @@ class FieldMmsTests(unittest.TestCase):
         ]
         self.assertEqual(digest_discord_open_tasks(messages), [])
 
-    def test_launchd_plist_is_6am_and_7pm_every_day(self) -> None:
+    def test_launchd_plist_is_6am_every_day(self) -> None:
         payload = build_launchd_plist(Path("/Users/leon/Documents/Code/padsplit-scraper"))
-        slots = payload["StartCalendarInterval"]
-        self.assertEqual(sorted((item["Hour"], item["Minute"]) for item in slots), [(6, 0), (19, 0)])
-        for item in slots:
-            self.assertNotIn("Weekday", item)
+        slot = payload["StartCalendarInterval"]
+        self.assertEqual(slot, {"Hour": 6, "Minute": 0})
+        self.assertNotIn("Weekday", slot)
         self.assertEqual(payload["Label"], "com.padsplit.field-mms")
         self.assertTrue(str(payload["ProgramArguments"][1]).endswith("run_field_mms.sh"))
 
