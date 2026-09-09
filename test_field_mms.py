@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import plistlib
 import tempfile
 import unittest
 from datetime import datetime
@@ -15,11 +16,14 @@ from padsplit_scraper.field_mms import (
     FIELD_MMS_CHAT_NAME_DEFAULT,
     GROUP_RECIPIENTS,
     JOE_PHONE,
+    MORNING_HOUR,
     QUO_API_VERSION,
     QUO_FROM_NUMBER_DEFAULT,
     QUO_MESSAGES_URL,
+    QUO_RECIPIENTS_DEFAULT,
     QuoTransportError,
     assert_group_recipients,
+    assert_quo_recipients,
     build_launchd_plist,
     build_mms_body,
     contains_lock_code_like,
@@ -29,6 +33,7 @@ from padsplit_scraper.field_mms import (
     plan_send,
     resolve_field_mms_transport,
     resolve_quo_from_number,
+    resolve_quo_recipients,
     run_window,
     sanitize_sms,
     send_group_mms,
@@ -77,12 +82,13 @@ def host_thread(street: str, room: int, text: str, created: str, *, role: str = 
 
 class FieldMmsTests(unittest.TestCase):
     def test_empty_plus_empty_skips(self) -> None:
-        window = window_for(datetime(2026, 9, 1, 6, 0, tzinfo=CT))
+        window = window_for(datetime(2026, 9, 1, 7, 0, tzinfo=CT))
         plan = plan_send([], [], window, set())
         self.assertEqual(plan.action, "skip_empty")
+        self.assertEqual(tuple(plan.recipients), QUO_RECIPIENTS_DEFAULT)
 
     def test_one_source_sends_once_second_run_same_window_does_not(self) -> None:
-        now = datetime(2026, 9, 1, 6, 5, tzinfo=CT)
+        now = datetime(2026, 9, 1, 7, 5, tzinfo=CT)
         sent: list[tuple[str, tuple[str, ...]]] = []
 
         def host(_since: datetime) -> list[str]:
@@ -114,11 +120,11 @@ class FieldMmsTests(unittest.TestCase):
             )
 
         self.assertEqual(first.action, "send")
-        self.assertEqual(first.window_id, "2026-09-01-06")
+        self.assertEqual(first.window_id, "2026-09-01-07")
         self.assertEqual(second.action, "skip_duplicate")
         self.assertEqual(len(sent), 1)
         self.assertIn("kitchen sink leak", sent[0][0])
-        self.assertEqual(sent[0][1], GROUP_RECIPIENTS)
+        self.assertEqual(sent[0][1], QUO_RECIPIENTS_DEFAULT)
 
     def test_evening_run_same_day_is_same_morning_window(self) -> None:
         sent: list[str] = []
@@ -129,7 +135,7 @@ class FieldMmsTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             state = Path(tmp) / "sent.json"
             morning = run_window(
-                now=datetime(2026, 9, 1, 6, 5, tzinfo=CT),
+                now=datetime(2026, 9, 1, 7, 5, tzinfo=CT),
                 host_fetcher=host,
                 task_fetcher=lambda _s: [],
                 sender=lambda body, _r: sent.append(body),
@@ -146,32 +152,36 @@ class FieldMmsTests(unittest.TestCase):
             )
 
         self.assertEqual(morning.action, "send")
-        self.assertEqual(morning.window_id, "2026-09-01-06")
+        self.assertEqual(morning.window_id, "2026-09-01-07")
         self.assertEqual(evening.action, "skip_duplicate")
-        self.assertEqual(evening.window_id, "2026-09-01-06")
+        self.assertEqual(evening.window_id, "2026-09-01-07")
         self.assertEqual(len(sent), 1)
 
-    def test_window_for_is_morning_6am_only(self) -> None:
-        before = window_for(datetime(2026, 9, 1, 5, 59, tzinfo=CT))
+    def test_window_for_is_morning_7am_only(self) -> None:
+        self.assertEqual(MORNING_HOUR, 7)
+        before = window_for(datetime(2026, 9, 1, 6, 59, tzinfo=CT))
         self.assertEqual(before.date, "2026-08-31")
-        self.assertEqual(before.hour, 6)
-        self.assertEqual(before.id, "2026-08-31-06")
+        self.assertEqual(before.hour, 7)
+        self.assertEqual(before.id, "2026-08-31-07")
 
-        morning = window_for(datetime(2026, 9, 1, 6, 0, tzinfo=CT))
+        morning = window_for(datetime(2026, 9, 1, 7, 0, tzinfo=CT))
         self.assertEqual(morning.date, "2026-09-01")
-        self.assertEqual(morning.hour, 6)
-        self.assertEqual(morning.id, "2026-09-01-06")
+        self.assertEqual(morning.hour, 7)
+        self.assertEqual(morning.id, "2026-09-01-07")
 
         afternoon = window_for(datetime(2026, 9, 1, 13, 30, tzinfo=CT))
-        self.assertEqual(afternoon.id, "2026-09-01-06")
+        self.assertEqual(afternoon.id, "2026-09-01-07")
 
         evening = window_for(datetime(2026, 9, 1, 19, 0, tzinfo=CT))
         self.assertEqual(evening.date, "2026-09-01")
-        self.assertEqual(evening.hour, 6)
-        self.assertEqual(evening.id, "2026-09-01-06")
+        self.assertEqual(evening.hour, 7)
+        self.assertEqual(evening.id, "2026-09-01-07")
+
+        weekend = window_for(datetime(2026, 9, 5, 7, 0, tzinfo=CT))  # Saturday
+        self.assertEqual(weekend.id, "2026-09-05-07")
 
     def test_discord_only_content_would_send(self) -> None:
-        window = window_for(datetime(2026, 9, 1, 6, 0, tzinfo=CT))
+        window = window_for(datetime(2026, 9, 1, 7, 0, tzinfo=CT))
         plan = plan_send([], ["4100 N Main St Rm 1 — [Open] smoke detector"], window, set())
         self.assertEqual(plan.action, "send")
         self.assertIn("Open tasks:", plan.body)
@@ -188,6 +198,31 @@ class FieldMmsTests(unittest.TestCase):
             assert_group_recipients((DAD_PHONE, JOE_PHONE, DON_WRONG_PHONE))
         with self.assertRaisesRegex(RuntimeError, "never solo Don|group MMS only"):
             assert_group_recipients((DON_PHONE,))
+
+    def test_quo_recipients_are_don_and_dad(self) -> None:
+        self.assertEqual(normalize_phone("(945) 241-3070"), DAD_PHONE)
+        self.assertEqual(QUO_RECIPIENTS_DEFAULT, (DON_PHONE, DAD_PHONE))
+        self.assertEqual(assert_quo_recipients(QUO_RECIPIENTS_DEFAULT), list(QUO_RECIPIENTS_DEFAULT))
+        self.assertEqual(assert_quo_recipients(["(214) 779-8338", "(945) 241-3070"]), list(QUO_RECIPIENTS_DEFAULT))
+        with self.assertRaisesRegex(RuntimeError, "wrong Don number"):
+            assert_quo_recipients((DAD_PHONE, DON_WRONG_PHONE))
+        with self.assertRaisesRegex(RuntimeError, "Don is missing"):
+            assert_quo_recipients((DAD_PHONE,))
+        with self.assertRaisesRegex(RuntimeError, "Dad is missing"):
+            assert_quo_recipients((DON_PHONE,))
+
+    def test_field_mms_quo_to_env_extends_defaults(self) -> None:
+        with patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("FIELD_MMS_QUO_TO", None)
+            self.assertEqual(resolve_quo_recipients(), list(QUO_RECIPIENTS_DEFAULT))
+        extra = "+15555550199"
+        with patch.dict(
+            os.environ,
+            {"FIELD_MMS_QUO_TO": f"(214) 779-8338, (945) 241-3070, {extra}"},
+        ):
+            self.assertEqual(resolve_quo_recipients(), [DON_PHONE, DAD_PHONE, extra])
+        with patch.dict(os.environ, {"FIELD_MMS_QUO_TO": f"{DON_PHONE} {DAD_PHONE}"}):
+            self.assertEqual(resolve_quo_recipients(), [DON_PHONE, DAD_PHONE])
 
     def test_sms_body_never_contains_lock_code_like_strings(self) -> None:
         threads = [
@@ -220,21 +255,27 @@ class FieldMmsTests(unittest.TestCase):
             self.assertNotIn(forbidden, body)
         self.assertNotIn("214-454-1768", body)
 
-    def test_thread_owner_is_ang_voice_and_group_is_never_one_to_one(self) -> None:
-        window = window_for(datetime(2026, 9, 1, 6, 0, tzinfo=CT))
+    def test_sms_body_redacts_discord_bot_token(self) -> None:
+        fake_token = "FAKESECRET_y2z3a4b5c6d7e8f9g0h1"
+        cleaned = sanitize_sms(f"PadSplit leak. Discord bot token {fake_token}")
+        self.assertNotIn(fake_token, cleaned)
+        self.assertIn("[redacted]", cleaned)
+
+    def test_thread_owner_is_ang_voice_and_quo_blast_is_don_and_dad(self) -> None:
+        window = window_for(datetime(2026, 9, 1, 7, 0, tzinfo=CT))
         plan = plan_send(["10235 Ridge Oak Rm 1 — AC out"], [], window, set())
         self.assertEqual(plan.thread_owner, ANG_VOICE_PHONE)
         self.assertEqual(normalize_phone("(469) 626-7260"), ANG_VOICE_PHONE)
-        self.assertGreaterEqual(len(plan.recipients), 3)
+        self.assertEqual(tuple(plan.recipients), QUO_RECIPIENTS_DEFAULT)
         self.assertIn(DON_PHONE, plan.recipients)
         self.assertIn(DAD_PHONE, plan.recipients)
-        self.assertIn(JOE_PHONE, plan.recipients)
+        self.assertNotIn(JOE_PHONE, plan.recipients)
 
     def test_ci_never_sends(self) -> None:
         sent: list[str] = []
         with tempfile.TemporaryDirectory() as tmp:
             plan = run_window(
-                now=datetime(2026, 9, 1, 6, 0, tzinfo=CT),
+                now=datetime(2026, 9, 1, 7, 0, tzinfo=CT),
                 host_fetcher=lambda _s: ["10235 Ridge Oak Rm 1 — AC out"],
                 task_fetcher=lambda _s: [],
                 sender=lambda body, _r: sent.append(body),
@@ -261,13 +302,17 @@ class FieldMmsTests(unittest.TestCase):
         ]
         self.assertEqual(digest_discord_open_tasks(messages), [])
 
-    def test_launchd_plist_is_6am_every_day(self) -> None:
+    def test_launchd_plist_is_7am_every_day(self) -> None:
         payload = build_launchd_plist(Path("/Users/leon/Documents/Code/padsplit-scraper"))
         slot = payload["StartCalendarInterval"]
-        self.assertEqual(slot, {"Hour": 6, "Minute": 0})
+        self.assertEqual(slot, {"Hour": 7, "Minute": 0})
         self.assertNotIn("Weekday", slot)
         self.assertEqual(payload["Label"], "com.padsplit.field-mms")
         self.assertTrue(str(payload["ProgramArguments"][1]).endswith("run_field_mms.sh"))
+        example = plistlib.loads(
+            (Path(__file__).resolve().parent / "launchd" / "com.padsplit.field-mms.plist").read_bytes()
+        )
+        self.assertEqual(example["StartCalendarInterval"], {"Hour": 7, "Minute": 0})
 
 
 class RecordingVoicePage:
@@ -343,10 +388,10 @@ class FieldMmsTransportTests(unittest.TestCase):
     @patch("padsplit_scraper.field_mms.send_via_quo")
     def test_auto_prefers_quo_and_skips_fallbacks(self, quo, gv, messages, _allowed) -> None:
         with patch.dict(os.environ, {"FIELD_MMS_TRANSPORT": "auto"}):
-            send_group_mms("PadSplit: kitchen sink leak", GROUP_RECIPIENTS)
+            send_group_mms("PadSplit: kitchen sink leak", QUO_RECIPIENTS_DEFAULT)
         quo.assert_called_once()
         self.assertEqual(quo.call_args[0][0], "PadSplit: kitchen sink leak")
-        self.assertEqual(tuple(quo.call_args[0][1]), GROUP_RECIPIENTS)
+        self.assertEqual(tuple(quo.call_args[0][1]), QUO_RECIPIENTS_DEFAULT)
         gv.assert_not_called()
         messages.assert_not_called()
 
@@ -360,7 +405,7 @@ class FieldMmsTransportTests(unittest.TestCase):
         quo.side_effect = QuoTransportError("QUO_API_KEY missing")
         gv.side_effect = GoogleVoiceChallenge("Google Voice login or challenge wall")
         with patch.dict(os.environ, {"FIELD_MMS_TRANSPORT": "auto"}):
-            send_group_mms("PadSplit: kitchen sink leak", GROUP_RECIPIENTS)
+            send_group_mms("PadSplit: kitchen sink leak", QUO_RECIPIENTS_DEFAULT)
         quo.assert_called_once()
         gv.assert_called_once()
         self.assertEqual(gv.call_args[0][0], "PadSplit: kitchen sink leak")
@@ -376,7 +421,7 @@ class FieldMmsTransportTests(unittest.TestCase):
         gv.side_effect = GoogleVoiceTransportError("Google Voice Chrome failed to launch")
         with patch.dict(os.environ, {}, clear=False):
             os.environ.pop("FIELD_MMS_TRANSPORT", None)
-            send_group_mms("PadSplit: kitchen sink leak", GROUP_RECIPIENTS)
+            send_group_mms("PadSplit: kitchen sink leak", QUO_RECIPIENTS_DEFAULT)
         quo.assert_called_once()
         gv.assert_called_once()
         messages.assert_called_once()
@@ -389,7 +434,7 @@ class FieldMmsTransportTests(unittest.TestCase):
         quo.side_effect = QuoTransportError("Quo SMS send failed: HTTP 401")
         with patch.dict(os.environ, {"FIELD_MMS_TRANSPORT": "quo"}):
             with self.assertRaises(QuoTransportError):
-                send_group_mms("PadSplit: kitchen sink leak", GROUP_RECIPIENTS)
+                send_group_mms("PadSplit: kitchen sink leak", QUO_RECIPIENTS_DEFAULT)
         quo.assert_called_once()
         gv.assert_not_called()
         messages.assert_not_called()
@@ -413,7 +458,7 @@ class FieldMmsTransportTests(unittest.TestCase):
     @patch("padsplit_scraper.field_mms.send_via_quo")
     def test_messages_transport_skips_quo_and_google_voice(self, quo, gv, messages, _allowed) -> None:
         with patch.dict(os.environ, {"FIELD_MMS_TRANSPORT": "messages"}):
-            send_group_mms("PadSplit: kitchen sink leak", GROUP_RECIPIENTS)
+            send_group_mms("PadSplit: kitchen sink leak", QUO_RECIPIENTS_DEFAULT)
         quo.assert_not_called()
         gv.assert_not_called()
         messages.assert_called_once_with("PadSplit: kitchen sink leak", FIELD_MMS_CHAT_NAME_DEFAULT)
@@ -438,7 +483,7 @@ class FieldMmsTransportTests(unittest.TestCase):
     def test_send_group_mms_never_sends_when_ci_disallows(self, quo, gv, messages) -> None:
         with patch("padsplit_scraper.field_mms.sending_allowed", return_value=False):
             with self.assertRaisesRegex(RuntimeError, "must not send"):
-                send_group_mms("PadSplit: kitchen sink leak", GROUP_RECIPIENTS)
+                send_group_mms("PadSplit: kitchen sink leak", QUO_RECIPIENTS_DEFAULT)
         quo.assert_not_called()
         gv.assert_not_called()
         messages.assert_not_called()
@@ -553,7 +598,7 @@ class FieldMmsQuoTests(unittest.TestCase):
         ):
             self.assertEqual(resolve_quo_from_number(), "+15555550101")
 
-    def test_send_via_quo_posts_group_sms_with_version_header(self) -> None:
+    def test_send_via_quo_posts_once_per_recipient(self) -> None:
         posted: list[dict] = []
 
         def http_post(url, *, headers, json, timeout):
@@ -569,22 +614,24 @@ class FieldMmsQuoTests(unittest.TestCase):
             ):
                 send_via_quo(
                     "PadSplit: kitchen sink leak",
-                    GROUP_RECIPIENTS,
+                    QUO_RECIPIENTS_DEFAULT,
                     http_post=http_post,
                 )
 
-        self.assertEqual(len(posted), 1)
-        call = posted[0]
-        self.assertEqual(call["url"], QUO_MESSAGES_URL)
-        self.assertEqual(call["url"], "https://api.quo.com/v1/messages")
-        self.assertEqual(call["headers"]["Authorization"], FAKE_QUO_KEY)
-        self.assertFalse(str(call["headers"]["Authorization"]).lower().startswith("bearer"))
-        self.assertEqual(call["headers"]["Quo-Api-Version"], QUO_API_VERSION)
-        self.assertEqual(call["headers"]["Content-Type"], "application/json")
-        self.assertEqual(call["json"]["content"], "PadSplit: kitchen sink leak")
-        self.assertEqual(call["json"]["from"], FAKE_QUO_FROM)
-        self.assertEqual(call["json"]["to"], list(GROUP_RECIPIENTS))
-        self.assertLessEqual(len(call["json"]["to"]), 10)
+        self.assertEqual(len(posted), 2)
+        to_lists = [call["json"]["to"] for call in posted]
+        self.assertEqual(to_lists, [[DON_PHONE], [DAD_PHONE]])
+        for call in posted:
+            self.assertEqual(call["url"], QUO_MESSAGES_URL)
+            self.assertEqual(call["url"], "https://api.quo.com/v1/messages")
+            self.assertEqual(call["headers"]["Authorization"], FAKE_QUO_KEY)
+            self.assertFalse(str(call["headers"]["Authorization"]).lower().startswith("bearer"))
+            self.assertEqual(call["headers"]["Quo-Api-Version"], QUO_API_VERSION)
+            self.assertEqual(call["headers"]["Content-Type"], "application/json")
+            self.assertEqual(call["json"]["content"], "PadSplit: kitchen sink leak")
+            self.assertEqual(call["json"]["from"], FAKE_QUO_FROM)
+            self.assertEqual(len(call["json"]["to"]), 1)
+            self.assertLessEqual(len(call["json"]["to"]), 10)
 
     def test_send_via_quo_missing_key_does_not_post(self) -> None:
         posted = []
@@ -598,7 +645,7 @@ class FieldMmsQuoTests(unittest.TestCase):
                 with self.assertRaisesRegex(QuoTransportError, "QUO_API_KEY missing"):
                     send_via_quo(
                         "PadSplit: kitchen sink leak",
-                        GROUP_RECIPIENTS,
+                        QUO_RECIPIENTS_DEFAULT,
                         http_post=http_post,
                     )
         self.assertEqual(posted, [])
@@ -612,7 +659,7 @@ class FieldMmsQuoTests(unittest.TestCase):
                 with self.assertRaises(QuoTransportError) as raised:
                     send_via_quo(
                         "PadSplit: door code 4125",
-                        GROUP_RECIPIENTS,
+                        QUO_RECIPIENTS_DEFAULT,
                         http_post=http_post,
                     )
         message = str(raised.exception)
@@ -633,7 +680,7 @@ class FieldMmsQuoTests(unittest.TestCase):
                 with self.assertRaisesRegex(RuntimeError, "must not send"):
                     send_via_quo(
                         "PadSplit: kitchen sink leak",
-                        GROUP_RECIPIENTS,
+                        QUO_RECIPIENTS_DEFAULT,
                         http_post=http_post,
                     )
         self.assertEqual(posted, [])
@@ -663,15 +710,20 @@ class FieldMmsQuoTests(unittest.TestCase):
                     os.environ,
                     {"QUO_API_KEY": FAKE_QUO_KEY, "QUO_FROM_NUMBER": FAKE_QUO_FROM},
                 ):
-                    send_via_quo("PadSplit: kitchen sink leak", GROUP_RECIPIENTS)
-        post.assert_called_once()
-        self.assertEqual(post.call_args[0][0], QUO_MESSAGES_URL)
-        headers = post.call_args.kwargs["headers"]
-        payload = post.call_args.kwargs["json"]
+                    send_via_quo("PadSplit: kitchen sink leak", QUO_RECIPIENTS_DEFAULT)
+        self.assertEqual(post.call_count, 2)
+        self.assertEqual(post.call_args_list[0][0][0], QUO_MESSAGES_URL)
+        headers = post.call_args_list[0].kwargs["headers"]
         self.assertEqual(headers["Authorization"], FAKE_QUO_KEY)
         self.assertEqual(headers["Quo-Api-Version"], QUO_API_VERSION)
-        self.assertEqual(payload["from"], FAKE_QUO_FROM)
-        self.assertEqual(payload["to"], list(GROUP_RECIPIENTS))
+        self.assertEqual(
+            [call.kwargs["json"]["from"] for call in post.call_args_list],
+            [FAKE_QUO_FROM, FAKE_QUO_FROM],
+        )
+        self.assertEqual(
+            [call.kwargs["json"]["to"] for call in post.call_args_list],
+            [[DON_PHONE], [DAD_PHONE]],
+        )
 
     def test_send_via_quo_request_exception_is_transport_error(self) -> None:
         import requests as requests_lib
@@ -684,7 +736,7 @@ class FieldMmsQuoTests(unittest.TestCase):
                 with self.assertRaisesRegex(QuoTransportError, "Timeout"):
                     send_via_quo(
                         "PadSplit: kitchen sink leak",
-                        GROUP_RECIPIENTS,
+                        QUO_RECIPIENTS_DEFAULT,
                         http_post=http_post,
                     )
 

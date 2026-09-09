@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
-"""Daily Don-field group MMS from the existing PadSplit scraper.
+"""Daily Don-field SMS blast from the existing PadSplit scraper.
 
-Morning only: 6:00am CT, every day including weekends. One group MMS per
+Morning only: 7:00am CT, every day including weekends. One blast per
 morning window when PadSplit host messages and/or Discord #ai-tasks-temp have
-something to say. Skip when both sources are empty. Never a 1:1 to Don.
-Never send from GitHub Actions / CI.
+something to say. Skip when both sources are empty.
+Never send from GitHub Actions / CI. Do not send from a box/VPS IP.
 
-Primary send path is Quo SMS from +1 (469) 373-2048 (A2P). Fallbacks are
-Google Voice group SMS (Ang's Mac Chrome) then the Messages.app chat named
-exactly "Don Field". Prefer the Mac launchd job; Quo HTTP does not need a
-residential IP the way Google Voice does.
+Primary send path is Quo SMS from +1 (469) 373-2048 (A2P) to Don and Dad
+(one POST per recipient). Fallbacks are Google Voice group SMS (Ang's Mac
+Chrome) then the Messages.app chat named exactly "Don Field". Prefer the
+Mac launchd job; Quo HTTP does not need a residential IP the way Google
+Voice does.
 """
 
 from __future__ import annotations
@@ -45,6 +46,7 @@ except ModuleNotFoundError:  # python3 padsplit_scraper/field_mms.py
 
 
 CT = ZoneInfo("America/Chicago")
+MORNING_HOUR = 7
 ROOT_DIR = Path(__file__).resolve().parent.parent
 ENV_PATH = ROOT_DIR / ".env"
 STATE_PATH = ROOT_DIR / "logs" / "field_mms_sent.json"
@@ -60,13 +62,15 @@ SMS_CHAR_LIMIT = 1500
 FIELD_MMS_CHAT_NAME_DEFAULT = "Don Field"
 FIELD_MMS_TRANSPORT_DEFAULT = "auto"
 
-# Thread owner (From). Recipients are always the three field numbers together.
+# Thread owner (From) for GV / Messages group fallback.
 ANG_VOICE_PHONE = "+14696267260"
 DAD_PHONE = "+19452413070"
 JOE_PHONE = "+14693732048"
 DON_PHONE = "+12147798338"
 DON_WRONG_PHONE = "+12144541768"
 GROUP_RECIPIENTS = (DAD_PHONE, JOE_PHONE, DON_PHONE)
+# Quo blast defaults: Don + Dad 1:1 SMS. Override with FIELD_MMS_QUO_TO.
+QUO_RECIPIENTS_DEFAULT = (DON_PHONE, DAD_PHONE)
 
 # Quo public API (verified send path: POST /v1/messages). Dated API 2026-03-30
 # does not yet document send-message; v1 remains the live send endpoint.
@@ -92,6 +96,8 @@ _SECRET_PATTERNS = (
     re.compile(r"(?i)\b(?:ssn|social\s+security)\b[^.\n]*"),
     re.compile(r"(?i)\b(?:id|driver(?:'s)?\s+license|passport)\s+photos?\b[^.\n]*"),
     re.compile(r"(?i)\b(?:attachment|photo|image)\s*:\s*\S+"),
+    re.compile(r"(?i)\b(?:discord[\s_-]*(?:bot[\s_-]*)?token)\b\s*[:=]?\s*\S+"),
+    re.compile(r"\b[A-Za-z0-9_-]{24}\.[A-Za-z0-9_-]{6}\.[A-Za-z0-9_-]{27,}\b"),
 )
 _LOCK_CODE_LIKE = re.compile(
     r"(?i)(?:"
@@ -126,7 +132,7 @@ class SendPlan:
     body: str = ""
     host_lines: List[str] = field(default_factory=list)
     task_lines: List[str] = field(default_factory=list)
-    recipients: Sequence[str] = GROUP_RECIPIENTS
+    recipients: Sequence[str] = QUO_RECIPIENTS_DEFAULT
     thread_owner: str = ANG_VOICE_PHONE
 
 
@@ -181,13 +187,45 @@ def assert_group_recipients(recipients: Sequence[str]) -> List[str]:
     return [DAD_PHONE, JOE_PHONE, DON_PHONE]
 
 
+def assert_quo_recipients(recipients: Sequence[str]) -> List[str]:
+    """Don + Dad required. Extra E.164 numbers from FIELD_MMS_QUO_TO are allowed."""
+    unique: List[str] = []
+    seen: Set[str] = set()
+    for item in recipients:
+        normalized = normalize_phone(item)
+        if not normalized or normalized in seen:
+            continue
+        seen.add(normalized)
+        unique.append(normalized)
+    if DON_WRONG_PHONE in unique:
+        raise RuntimeError("Refusing send: wrong Don number")
+    if DON_PHONE not in unique:
+        raise RuntimeError("Refusing send: Don is missing from Quo recipients")
+    if DAD_PHONE not in unique:
+        raise RuntimeError("Refusing send: Dad is missing from Quo recipients")
+    if len(unique) > QUO_MAX_RECIPIENTS:
+        raise QuoTransportError("Quo supports at most 10 recipients")
+    return unique
+
+
+def resolve_quo_recipients() -> List[str]:
+    raw = (os.getenv("FIELD_MMS_QUO_TO") or "").strip()
+    if raw:
+        if "," in raw or ";" in raw:
+            parts = [part.strip() for part in re.split(r"[,;]+", raw) if part.strip()]
+        else:
+            parts = [part for part in raw.split() if part.strip()]
+        return assert_quo_recipients(parts)
+    return assert_quo_recipients(QUO_RECIPIENTS_DEFAULT)
+
+
 def window_for(now: Optional[datetime] = None) -> Window:
-    """Morning 6am CT only. Before 6am is the prior day's 6am window (catch-up)."""
+    """Morning 7am CT only. Before 7am is the prior day's 7am window (catch-up)."""
     current = (now or datetime.now(CT)).astimezone(CT)
-    if current.hour < 6:
+    if current.hour < MORNING_HOUR:
         day = current.date() - timedelta(days=1)
-        return Window(date=day.isoformat(), hour=6)
-    return Window(date=current.date().isoformat(), hour=6)
+        return Window(date=day.isoformat(), hour=MORNING_HOUR)
+    return Window(date=current.date().isoformat(), hour=MORNING_HOUR)
 
 
 def _parse_created(value: Optional[str]) -> Optional[datetime]:
@@ -426,7 +464,7 @@ def plan_send(
     ci: Optional[bool] = None,
 ) -> SendPlan:
     in_ci = running_in_ci() if ci is None else ci
-    recipients = assert_group_recipients(GROUP_RECIPIENTS)
+    recipients = resolve_quo_recipients()
     if in_ci:
         return SendPlan(
             action="skip_ci",
@@ -591,39 +629,44 @@ def send_via_quo(
     *,
     http_post: Optional[Callable[..., Any]] = None,
 ) -> None:
-    """Send one group SMS via Quo POST /v1/messages. Never log the API key."""
+    """Send one 1:1 Quo SMS per recipient. Never log the API key.
+
+    Quo POST /v1/messages accepts ``to`` as a list (batch / group). This blast
+    uses one POST per recipient so Don and Dad each get a 1:1, not a new group
+    thread. GV / Messages still use the existing Don Field group as fallback.
+    """
     if not sending_allowed():
         raise RuntimeError("CI / non-Mac must not send MMS")
-    checked = assert_group_recipients(recipients)
-    if len(checked) > QUO_MAX_RECIPIENTS:
-        raise QuoTransportError("Quo supports at most 10 recipients")
-    if len(checked) < 2:
-        raise QuoTransportError("Quo group send requires more than one recipient")
+    checked = assert_quo_recipients(recipients)
     key = resolve_quo_api_key()
     from_number = resolve_quo_from_number()
+    targets = [number for number in checked if number != from_number]
+    if not targets:
+        raise QuoTransportError("Quo has no recipients after removing the from number")
     headers = {
         "Authorization": key,
         "Quo-Api-Version": QUO_API_VERSION,
         "Content-Type": "application/json",
     }
-    payload = {
-        "content": body,
-        "from": from_number,
-        "to": list(checked),
-    }
     poster = http_post or requests.post
-    try:
-        response = poster(
-            QUO_MESSAGES_URL,
-            headers=headers,
-            json=payload,
-            timeout=DEFAULT_TIMEOUT,
-        )
-    except requests.RequestException as exc:
-        raise QuoTransportError(f"Quo SMS request failed: {type(exc).__name__}") from exc
-    status = getattr(response, "status_code", None)
-    if status not in QUO_SUCCESS_STATUSES:
-        raise QuoTransportError(f"Quo SMS send failed: HTTP {status}")
+    for to_number in targets:
+        payload = {
+            "content": body,
+            "from": from_number,
+            "to": [to_number],
+        }
+        try:
+            response = poster(
+                QUO_MESSAGES_URL,
+                headers=headers,
+                json=payload,
+                timeout=DEFAULT_TIMEOUT,
+            )
+        except requests.RequestException as exc:
+            raise QuoTransportError(f"Quo SMS request failed: {type(exc).__name__}") from exc
+        status = getattr(response, "status_code", None)
+        if status not in QUO_SUCCESS_STATUSES:
+            raise QuoTransportError(f"Quo SMS send failed: HTTP {status}")
 
 
 def messages_chat_name() -> str:
@@ -661,17 +704,18 @@ def send_via_messages_chat(body: str, chat_name: str) -> None:
             pass
 
 
-def send_group_mms(body: str, recipients: Sequence[str] = GROUP_RECIPIENTS) -> None:
+def send_group_mms(body: str, recipients: Optional[Sequence[str]] = None) -> None:
     if not sending_allowed():
         raise RuntimeError("CI / non-Mac must not send MMS")
-    checked = assert_group_recipients(recipients)
-    if normalize_phone(DON_PHONE) not in {normalize_phone(item) for item in checked}:
+    quo_to = assert_quo_recipients(recipients or resolve_quo_recipients())
+    group = assert_group_recipients(GROUP_RECIPIENTS)
+    if normalize_phone(DON_PHONE) not in {normalize_phone(item) for item in quo_to}:
         raise RuntimeError("Refusing send: Don number must be 214-779-8338")
     custom = (os.getenv("FIELD_MMS_SEND_COMMAND") or "").strip()
     if custom:
         import shlex
 
-        command = shlex.split(custom) + list(checked)
+        command = shlex.split(custom) + list(group)
         result = subprocess.run(command, input=body, text=True, check=False, capture_output=True)
         if result.returncode != 0:
             err = (result.stderr or result.stdout or "send command failed").strip()
@@ -683,18 +727,18 @@ def send_group_mms(body: str, recipients: Sequence[str] = GROUP_RECIPIENTS) -> N
         send_via_messages_chat(body, chat_name)
         return
     if transport == "quo":
-        send_via_quo(body, checked)
+        send_via_quo(body, quo_to)
         return
     if transport == "google_voice":
-        send_via_google_voice_chrome(body, checked)
+        send_via_google_voice_chrome(body, group)
         return
     try:
-        send_via_quo(body, checked)
+        send_via_quo(body, quo_to)
         return
     except Exception:
         sys.stderr.write("[field-mms] Quo SMS failed; falling back to Google Voice\n")
     try:
-        send_via_google_voice_chrome(body, checked)
+        send_via_google_voice_chrome(body, group)
         return
     except GoogleVoiceChallenge:
         sys.stderr.write(
@@ -713,7 +757,7 @@ def build_launchd_plist(workspace: Path = ROOT_DIR) -> Dict[str, Any]:
         "Label": LAUNCHD_LABEL,
         "ProgramArguments": ["/bin/zsh", str(workspace / "run_field_mms.sh")],
         "WorkingDirectory": str(workspace),
-        "StartCalendarInterval": {"Hour": 6, "Minute": 0},
+        "StartCalendarInterval": {"Hour": MORNING_HOUR, "Minute": 0},
         "StandardOutPath": str(logs / "field-mms.stdout.log"),
         "StandardErrorPath": str(logs / "field-mms.stderr.log"),
         "EnvironmentVariables": {"PATH": "/usr/local/bin:/usr/bin:/bin"},
@@ -767,9 +811,9 @@ def run_window(
 
 
 def main(argv: Optional[List[str]] = None) -> int:
-    parser = argparse.ArgumentParser(description="Daily Don-field group MMS (existing scraper)")
+    parser = argparse.ArgumentParser(description="Daily Don-field Quo SMS blast (existing scraper)")
     parser.add_argument("--dry-run", action="store_true", help="Build the body; do not send")
-    parser.add_argument("--install-launchd", action="store_true", help="Install morning 6am CT LaunchAgent on this Mac")
+    parser.add_argument("--install-launchd", action="store_true", help="Install morning 7am CT LaunchAgent on this Mac")
     args = parser.parse_args(argv)
     load_environment()
     if args.install_launchd:
