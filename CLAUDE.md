@@ -22,7 +22,7 @@ python3 thermostat/scraper.py
 # Scheduled runs (also commit/push rolling output to git)
 ./run_morning.sh      # padsplit + thermostat
 ./run_afternoon.sh    # padsplit only
-./run_field_mms.sh    # Don-field group MMS (morning 6am CT only; skip if both sources empty)
+./run_field_mms.sh    # Don+Dad Quo SMS blast (morning 7am CT only; skip if both sources empty)
 ./run_seo_monthly.sh  # monthly SEO / vacancy advice (1st 9:00am CT; CI must not post)
 # Spanish Moss back-door lock codes run from morning/afternoon (Mac only; CI no-op)
 # Lockout auto-reply runs from morning/afternoon + scraper (LOCKOUT_REPLY_ENABLE; CI no-op)
@@ -55,11 +55,12 @@ No build step or linter configuration; tests use direct Python execution.
   `com.padsplit.scraper.morning` and `com.padsplit.scraper.afternoon`; their
   plist files live in `~/Library/LaunchAgents/` and call `run_morning.sh` and
   `run_afternoon.sh`.
-- Don-field group MMS is launchd-managed by `com.padsplit.field-mms`
-  (`launchd/com.padsplit.field-mms.plist`) at 6:00am CT daily (morning only;
+- Don-field Quo SMS blast is launchd-managed by `com.padsplit.field-mms`
+  (`launchd/com.padsplit.field-mms.plist`) at 7:00am CT daily (morning only;
   no 7pm / evening send), including weekends. After merge + Mac pull:
   `python3 padsplit_scraper/field_mms.py --install-launchd`.
-  First send is the next 6:00am CT slot. Group MMS only (never a 1:1). CI must not send.
+  First send is the next 7:00am CT slot. Quo 1:1 to Don + Dad (`FIELD_MMS_QUO_TO`
+  override). GV / Messages `Don Field` group is fallback only. CI must not send.
   Primary transport is Quo SMS from `+14693732048` (`FIELD_MMS_TRANSPORT=auto`
   or `quo`; `QUO_API_KEY` required for the Quo path; optional `QUO_FROM_NUMBER`
   / `FIELD_MMS_QUO_FROM`). Prefer the Mac launchd job. Quo HTTP is fine from
@@ -95,7 +96,7 @@ No build step or linter configuration; tests use direct Python execution.
 - `padsplit_scraper/occupancy.py` — presence from messages + tasks (`occupancy.json`). `kpis.vacancy_rooms` is listed-status, not presence. Dashboard incoming / rent-ready / occupied-after-move-out lists read occupancy.json. `docs/stats.html` labels stats.json stale when degraded or older than 48h and does not treat vacancy_rooms as live occupancy.
 - `thermostat/scraper.py` — thermostat portal scraper; HTTP session + fallback logic
 - `padsplit_scraper/discord_notifier.py` — Discord bot alerts on error
-- `padsplit_scraper/field_mms.py` — morning 6am CT Don-field group MMS (PadSplit host inbox + Discord #ai-tasks-temp). Sends via Quo SMS (`QUO_API_KEY`) first, then `google_voice_chrome.py` (Mac Chrome / Voice), then Messages `Don Field`.
+- `padsplit_scraper/field_mms.py` — morning 7am CT Don+Dad Quo SMS blast (PadSplit host inbox + Discord #ai-tasks-temp). Sends via Quo SMS (`QUO_API_KEY`) first (one POST per recipient), then `google_voice_chrome.py` (Mac Chrome / Voice), then Messages `Don Field`.
 - `padsplit_scraper/seo_monthly.py` — 1st 9:00am CT SEO / vacancy advice pack (live rooms + occupancy; Joe-only Discord dry-run in CI)
 - `padsplit_scraper/lock_codes.py` — Spanish Moss back-door Sifely lock-code v1 (Mac morning/afternoon; CI must not rotate or post)
 - `padsplit_scraper/lockout_reply.py` — member lockout auto-SEND on PadSplit when house/room are 100% known: door codes first, lockbox only after a door-fail follow-up (Mac; `LOCKOUT_REPLY_ENABLE`; CI must not send). Spanish Moss back door uses Sifely, never Firestore static. Discord posts never include codes or digits.
@@ -136,6 +137,7 @@ FIELD_MMS_TRANSPORT=auto   # auto | quo | google_voice | messages; Quo first, th
 QUO_API_KEY=               # required for Quo path; Authorization header, no Bearer; never log
 # QUO_FROM_NUMBER=         # optional Quo from E.164; default +14693732048
 # FIELD_MMS_QUO_FROM=      # alias for QUO_FROM_NUMBER
+# FIELD_MMS_QUO_TO=        # optional Quo 1:1 list; default Don +1 (214) 779-8338 and Dad +1 (945) 241-3070
 FIELD_MMS_CHROME_USER_DATA_DIR=   # persistent Chrome user-data-dir already signed into Voice as mr.angli
 FIELD_MMS_CHROME_PROFILE_DIRECTORY=Default   # optional; mr.angli Chrome profile directory
 
