@@ -114,21 +114,35 @@ _DIGIT_TOKEN_RE = re.compile(
 )
 _LEADING_HOUSE_NUM_RE = re.compile(r"^\s*\d+\s*")
 
-# Active water emergency only. Bare leak|leaking is too broad.
-# Toilet slow leak / clog / wax-ring seep do not fire unless flooding.
+# Curb-key / whole-house shutoff: burst, pipe, main, flooding, wall/ceiling only.
+# Bare water leak, slow leak, drip, and seepage do not fire.
 _ACTIVE_WATER_RE = re.compile(
     r"(?i)("
     r"\bpipe\s+(?:burst|broke|broken|(?:is\s+)?leak(?:ing)?)\b"
     r"|\bburst(?:ing)?\s+pipe\b"
     r"|\bwater\s+main\b"
     r"|\bmain\s+(?:water\s+)?(?:line|pipe|break|broke|burst)\b"
-    r"|\bwater\s+leak(?:ing)?\b"
-    r"|\bleak(?:ing)?\s+water\b"
-    r"|\bwater\s+(?:is\s+)?(?:pouring|gushing|spraying|coming)\b"
     r"|\bleak(?:ing)?\s+from\s+(?:the\s+)?(?:wall|ceiling|pipe)\b"
     r"|\b(?:wall|ceiling)\s+(?:is\s+)?leak(?:ing)?\b"
-    r"|\bwater\s+leaking\s+from\b"
+    r"|\bwater\s+leaking\s+from\s+(?:the\s+)?(?:wall|ceiling|pipe)\b"
     r"|\bflood(?:ing|ed)\b"
+    r")",
+)
+
+_LOW_URGENCY_RE = re.compile(
+    r"(?i)("
+    r"\bslow\s+leak"
+    r"|\bdrip(?:ping|s|ped)?\b"
+    r"|\bseep(?:age|ing|s)?\b"
+    r")",
+)
+
+_LOW_URGENCY_OVERRIDE_RE = re.compile(
+    r"(?i)("
+    r"\bflood(?:ing|ed)\b"
+    r"|\bburst"
+    r"|\bwater\s+main\b"
+    r"|\bmain\s+(?:water\s+)?(?:line|pipe|break|broke|burst)\b"
     r")",
 )
 
@@ -361,11 +375,13 @@ def assert_water_key_order_safe(text: str, *, ship_to: str) -> str:
 
 
 def detect_leak(text: str) -> bool:
-    """True only for active water leak / flood. Toilet-only seeps do not fire."""
+    """True only for burst / pipe / main / flooding / wall-ceiling emergencies."""
     raw = text or ""
     if _HOST_BLAST_RE.search(raw) and len(raw) > 280:
         return False
     stripped = _LEAK_EXCLUDE_RE.sub(" ", raw)
+    if _LOW_URGENCY_RE.search(stripped) and not _LOW_URGENCY_OVERRIDE_RE.search(stripped):
+        return False
     if not _ACTIVE_WATER_RE.search(stripped):
         return False
     if _TOILET_ONLY_RE.search(stripped) and not _TOILET_EMERGENCY_RE.search(stripped):

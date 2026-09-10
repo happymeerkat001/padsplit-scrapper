@@ -136,17 +136,22 @@ class DetectTests(unittest.TestCase):
             "water leaking from the ceiling",
             "water leaking from the wall",
             "ceiling is leaking water",
-            "there's a water leak in the kitchen",
-            "active water leak under the house",
             "pipe leak in the bathroom",
             "the pipe is leaking",
         ):
             self.assertTrue(leak_reply.detect_leak(text), msg=text)
 
-    def test_toilet_only_and_broad_leak_do_not_fire(self) -> None:
+    def test_low_urgency_and_broad_leak_do_not_fire(self) -> None:
         for text in (
             "leak",
             "leaking",
+            "slow leak",
+            "there's a slow leak under the sink",
+            "drip",
+            "it's dripping",
+            "dripping under the sink",
+            "seepage behind the washer",
+            "seeping at the base",
             "toilet has a slow leak",
             "the toilet is leaking",
             "toilet clogged",
@@ -157,6 +162,10 @@ class DetectTests(unittest.TestCase):
             "I found a leak behind the toilet",
             "the kitchen sink is leaking",
             "leak in the kitchen sink",
+            "there's a water leak in the kitchen",
+            "active water leak under the house",
+            "pipe has a slow leak",
+            "the pipe is dripping",
         ):
             self.assertFalse(leak_reply.detect_leak(text), msg=text)
 
