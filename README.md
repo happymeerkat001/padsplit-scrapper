@@ -44,7 +44,7 @@ Run scheduled scripts:
 
 Don-field Quo SMS blast (7:00am CT only, every day including weekends; no 7pm / evening send) is the Mac launchd job. Not live until merge + Mac pull + `python3 padsplit_scraper/field_mms.py --install-launchd` so Hour=7 Minute=0 is loaded. Skips when PadSplit host messages and Discord `#ai-tasks-temp` are both empty. GitHub Actions must not send it. Do not send from a box/VPS IP.
 
-Primary send path is **Quo SMS** from `+14693732048` (A2P approved) via `POST https://api.quo.com/v1/messages`, one 1:1 per recipient (Don `+12147798338` and Dad `+19452413070` by default; override with `FIELD_MMS_QUO_TO`). Quo’s `to` field is a list (batch / group is supported); this job still posts once per number so Don and Dad do not share a new group thread. Fallbacks are Google Voice group SMS (Ang’s already-signed-in Mac Chrome) then the Messages.app chat named exactly `Don Field`. Prefer the Mac job. Quo HTTP does not need a residential IP the way Google Voice does; still do not run live sends from CI or a box/VPS by default. Never paste Quo keys, Google passwords, or message-body secrets into the repo.
+Primary send path is **Quo SMS** from `+14693732048` (A2P approved) via `POST https://api.quo.com/v1/messages`, one 1:1 per recipient (Don `+12147798338`, Dad `+19452413070`, and Ang GV `+14696267260` by default; no Joe; override with `FIELD_MMS_QUO_TO`). Quo’s `to` field is a list (batch / group is supported); this job still posts once per number so Don, Dad, and Ang GV do not share a new group thread. Fallbacks are Google Voice group SMS (Ang’s already-signed-in Mac Chrome) then the Messages.app chat named exactly `Don Field`. Prefer the Mac job. Quo HTTP does not need a residential IP the way Google Voice does; still do not run live sends from CI or a box/VPS by default. Never paste Quo keys, Google passwords, or message-body secrets into the repo.
 
 Chrome fallback must already be signed into Google Voice as **mr.angli** / Voice 469. Install Playwright on the Mac once (`pip install playwright`; uses system Chrome, no Voice API key). Then set:
 
@@ -58,8 +58,8 @@ QUO_API_KEY=
 # optional; defaults to +14693732048
 # QUO_FROM_NUMBER=
 # FIELD_MMS_QUO_FROM=
-# optional comma/space list; defaults to Don + Dad
-# FIELD_MMS_QUO_TO=+12147798338,+19452413070
+# optional comma/space list; defaults to Don + Dad + Ang GV (no Joe)
+# FIELD_MMS_QUO_TO=+12147798338,+19452413070,+14696267260
 FIELD_MMS_CHROME_USER_DATA_DIR=   # Chrome user-data-dir already signed into Voice
 FIELD_MMS_CHROME_PROFILE_DIRECTORY=Default   # mr.angli Chrome profile directory
 ```
