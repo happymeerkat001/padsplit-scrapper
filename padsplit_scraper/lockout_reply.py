@@ -3,7 +3,8 @@
 
 Sequential SEND on the PadSplit member thread when house + room are 100%
 known: door code(s) first; lockbox / room code only after the member later
-says the door still failed.
+says the door still failed. Member got-it / I’m in / code-worked after the
+door stage stops the ladder (no lockbox SEND, no Discord escalate).
 
 Spanish Moss back door uses the existing Sifely path (live list / rotate /
 #new-tenants inbound share). Never use Firestore/Tinghui static back_door
@@ -203,6 +204,23 @@ _DOOR_FAIL_FOLLOWUP_RE = re.compile(
     r")",
 )
 
+# After a door-stage send only. Do not treat these as a lockout on a quiet thread.
+_ENTRY_SUCCESS_RE = re.compile(
+    r"(?i)("
+    r"\bgot[-\s]+it\b"
+    r"|\bgot[-\s]+in(?:side)?\b"
+    r"|\bgotcha\b"
+    r"|\bmade\s+it\s+in(?:side)?\b"
+    r"|\bi(?:['’]?m| am)\s+inside\b"
+    r"|\bi(?:['’]?m| am)\s+in\b(?!\s*(?:terest|to\b|trouble|need\b))"
+    r"|\bwe(?:['’]?re| are)\s+in(?:side)?\b(?!\s*(?:terest|to\b|trouble|need\b))"
+    r"|\b(?:code|keypad|door(?:\s+code)?)\s+worked\b"
+    r"|\b(?:it|that)\s+worked\b"
+    r"|\bdoor\s+opened\b"
+    r"|\b(?<!not\s)(?:all|we(?:['’]?re| are)|i(?:['’]?m| am))\s+good\b"
+    r")",
+)
+
 _ROOM_MENTION_RE = re.compile(r"(?i)\b(?:room|rm|r)\s*[:#-]?\s*(\d{1,2})\b")
 _FRONT_DOOR_RE = re.compile(r"(?i)\bfront\s+door\b")
 _BACK_DOOR_RE = re.compile(r"(?i)\bback\s+door\b")
@@ -355,6 +373,26 @@ def detect_lockout(text: str) -> bool:
 def detect_door_fail_followup(text: str) -> bool:
     """True when the member says the door/code still failed after a door reply."""
     return bool(_DOOR_FAIL_FOLLOWUP_RE.search(text or ""))
+
+
+def detect_entry_success(text: str) -> bool:
+    """True when the member confirms they got in after a door-stage send.
+
+    Precision: call this only after a door stage is already on the thread.
+    If success and door-fail cues appear in the same text, this is still True
+    and callers must prefer success (stop the ladder).
+    """
+    return bool(_ENTRY_SUCCESS_RE.search(text or ""))
+
+
+def detect_fresh_lockout(text: str) -> bool:
+    """Lockout cue that is not only a door-fail follow-up phrase.
+
+    Used after a resolved confirmation so 'still locked out' noise does not
+    re-open stage 2 without a new clear lockout.
+    """
+    stripped = _DOOR_FAIL_FOLLOWUP_RE.sub(" ", text or "")
+    return detect_lockout(stripped)
 
 
 def thread_street(thread: Dict[str, Any]) -> str:
@@ -714,6 +752,41 @@ def record_sent(
     threads[chat_id] = row
 
 
+def resolved_at(state: Dict[str, Any], chat_id: str) -> Optional[datetime]:
+    row = _thread_state(state, chat_id)
+    return parse_dt(row.get("resolved_at"))
+
+
+def already_resolved(
+    state: Dict[str, Any],
+    chat_id: str,
+    *,
+    now: datetime,
+    window: timedelta = IDEMPOTENCY_WINDOW,
+) -> bool:
+    stamp = resolved_at(state, chat_id)
+    if stamp is None:
+        return False
+    return (now - stamp) < window
+
+
+def record_resolved(
+    state: Dict[str, Any],
+    chat_id: str,
+    *,
+    now: datetime,
+    reason: str = "member confirmed entry",
+) -> None:
+    """Persist resolved so later fail-ish noise does not re-open stage 2."""
+    threads = state.setdefault("threads", {})
+    row = threads.get(chat_id) if isinstance(threads.get(chat_id), dict) else {}
+    if not row.get("resolved_at"):
+        row["resolved_at"] = now.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    row["action"] = "resolved"
+    row["resolved_reason"] = reason
+    threads[chat_id] = row
+
+
 def host_lockout_stage_messages(
     thread: Dict[str, Any],
 ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
@@ -828,6 +901,68 @@ def recent_door_fail_followup(
             newest = message
             newest_at = created
     return newest
+
+
+def recent_entry_success(
+    thread: Dict[str, Any],
+    *,
+    now: datetime,
+    after: datetime,
+    lookback: timedelta = LOOKBACK,
+) -> Optional[Dict[str, Any]]:
+    """Newest member entry-success message strictly after the door reply."""
+    newest: Optional[Dict[str, Any]] = None
+    newest_at: Optional[datetime] = None
+    for message in iter_thread_messages(thread):
+        if message.get("deleted"):
+            continue
+        if not is_member_message(thread, message):
+            continue
+        created = parse_dt(message.get("created"))
+        if created is None or created <= after:
+            continue
+        if (now - created) > lookback:
+            continue
+        text = message_text(message)
+        if not detect_entry_success(text):
+            continue
+        if newest_at is None or created > newest_at:
+            newest = message
+            newest_at = created
+    return newest
+
+
+def recent_fresh_lockout_and_fail(
+    thread: Dict[str, Any],
+    *,
+    now: datetime,
+    after: datetime,
+    lookback: timedelta = LOOKBACK,
+) -> Optional[Dict[str, Any]]:
+    """After resolved: newest fail only when a fresh lockout (not fail-only noise) exists."""
+    lockout_msg: Optional[Dict[str, Any]] = None
+    fail_msg: Optional[Dict[str, Any]] = None
+    fail_at: Optional[datetime] = None
+    for message in iter_thread_messages(thread):
+        if message.get("deleted"):
+            continue
+        if not is_member_message(thread, message):
+            continue
+        created = parse_dt(message.get("created"))
+        if created is None or created <= after:
+            continue
+        if (now - created) > lookback:
+            continue
+        text = message_text(message)
+        if detect_fresh_lockout(text):
+            lockout_msg = message
+        if detect_door_fail_followup(text):
+            if fail_at is None or created > fail_at:
+                fail_msg = message
+                fail_at = created
+    if lockout_msg is None or fail_msg is None:
+        return None
+    return fail_msg
 
 
 def fetch_property_codes(slug: str) -> Dict[str, Any]:
@@ -954,17 +1089,43 @@ def decide(
         after = door_reply_at(state, thread, chat_id)
         if after is None:
             after = datetime.min.replace(tzinfo=timezone.utc)
-        followup = recent_door_fail_followup(thread, now=now, after=after)
-        if followup is None:
-            return Decision(
-                action="already_sent",
-                reason="door stage already sent",
-                certainty=100,
-                chat_id=chat_id,
-                stage=STAGE_DOOR,
-            )
-        stage = STAGE_LOCKBOX
-        member_text = message_text(followup)
+        resolved_stamp = resolved_at(state, chat_id) if state is not None else None
+        resolved_in_window = state is not None and already_resolved(state, chat_id, now=now)
+
+        if resolved_in_window and resolved_stamp is not None:
+            success_after = recent_entry_success(thread, now=now, after=resolved_stamp)
+            reopen = recent_fresh_lockout_and_fail(thread, now=now, after=resolved_stamp)
+            if success_after is not None or reopen is None:
+                return Decision(
+                    action="resolved",
+                    reason="member confirmed entry",
+                    certainty=100,
+                    chat_id=chat_id,
+                    stage=STAGE_DOOR,
+                )
+            stage = STAGE_LOCKBOX
+            member_text = message_text(reopen)
+        else:
+            success = recent_entry_success(thread, now=now, after=after)
+            if success is not None:
+                return Decision(
+                    action="resolved",
+                    reason="member confirmed entry",
+                    certainty=100,
+                    chat_id=chat_id,
+                    stage=STAGE_DOOR,
+                )
+            followup = recent_door_fail_followup(thread, now=now, after=after)
+            if followup is None:
+                return Decision(
+                    action="already_sent",
+                    reason="door stage already sent",
+                    certainty=100,
+                    chat_id=chat_id,
+                    stage=STAGE_DOOR,
+                )
+            stage = STAGE_LOCKBOX
+            member_text = message_text(followup)
     else:
         lockout_message = recent_member_lockout(thread, now=now)
         if lockout_message is None:
@@ -1167,6 +1328,14 @@ def process_lockouts(
                     except Exception as exc:
                         _log(f"Discord post failed; continuing: {exc}")
                 row["discord"] = text
+
+        if decision.action == "resolved" and not dry_run:
+            record_resolved(
+                state,
+                decision.chat_id or chat_id,
+                now=now,
+                reason=decision.reason or "member confirmed entry",
+            )
 
         if decision.action != "send":
             results.append(row)
