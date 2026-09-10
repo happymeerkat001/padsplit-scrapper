@@ -1,6 +1,706 @@
 {
-  "scraped_at": "2026-09-10T01:30:30Z",
+  "scraped_at": "2026-09-10T06:39:44Z",
   "messages": [
+    {
+      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MTc4MzUz",
+      "title": "Lindzie Ross",
+      "chatType": "HOST_SUPPORT_CHAT",
+      "isArchived": false,
+      "occupancy": {
+        "id": "TWVzc2VuZ2VyT2NjdXBhbmN5VHlwZToxOTg3MTg=",
+        "moveInDate": "2025-07-30",
+        "moveOutDate": null,
+        "conditionalEligibilityApplied": null,
+        "room": {
+          "pk": 32873,
+          "roomNumber": 7
+        },
+        "user": {
+          "picture": "img/profiles/user_743600_fdc599e2-a99c-4bde-bf30-a05fa3e79d20.jpg",
+          "firstName": "Lindzie",
+          "lastName": "Ross",
+          "displayName": null
+        }
+      },
+      "property": {
+        "host": {
+          "firstName": "Ang",
+          "lastName": "Li",
+          "displayName": "Joe Manager",
+          "picture": ""
+        },
+        "description": "Your new home awaits! This homey Arlington home is waiting for you. This PadSplit has a Backyard, and it\u2019s newly-renovated and comfortable.\n\nThe kitchen comes equipped with a fridge, sink, oven, stovetop, as well as upgraded appliances.\n\nThe neighbourhood is close to public transit, which means you won\u2019t be far from all Arlington has to offer.",
+        "address": {
+          "street1": "3406 Green Hill Drive",
+          "street2": "",
+          "zip": "76014",
+          "city": {
+            "name": "Arlington",
+            "state": {
+              "name": "Texas"
+            }
+          }
+        }
+      },
+      "isCancelled": false,
+      "lastMessage": {
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0NTgxNDg=",
+        "created": "2026-09-10T04:03:10.893699",
+        "text": null,
+        "deleted": null,
+        "extra": null,
+        "messageType": "TICKET_UPDATE",
+        "sender": {
+          "pk": 318367,
+          "firstName": "Ang",
+          "lastName": "Li",
+          "displayName": "Joe Manager"
+        },
+        "attachments": [],
+        "paymentExtensionStatus": null,
+        "ticketStatus": {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMTUwOTMz",
+          "created": "2026-09-10T04:03:10.899730",
+          "status": "SUBMITTED",
+          "canRate": false,
+          "ticket": {
+            "id": "472415",
+            "author": {
+              "firstName": "Lindzie",
+              "lastName": "Ross",
+              "id": "743600",
+              "displayName": null
+            },
+            "details": "Front door doesn't lock\u2026you can just come in\u2026padlock isn't functioning properly",
+            "location": "DOORLOCK",
+            "status": "SUBMITTED",
+            "rating": null,
+            "comment": null,
+            "category": "UNCLASSIFIED",
+            "onHoldReason": null,
+            "withdrawReason": null
+          }
+        },
+        "bookingStatus": null
+      },
+      "member": {
+        "seenAt": "2026-09-10T02:24:55.422485",
+        "isPinned": false,
+        "isUnread": true
+      },
+      "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0NTgxNDg=",
+          "text": null,
+          "created": "2026-09-10T04:03:10.893699",
+          "messageType": "TICKET_UPDATE",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Joe Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMTUwOTMz",
+            "created": "2026-09-10T04:03:10.899730",
+            "status": "SUBMITTED",
+            "canRate": false,
+            "ticket": {
+              "id": "472415",
+              "author": {
+                "firstName": "Lindzie",
+                "lastName": "Ross",
+                "id": "743600",
+                "displayName": null
+              },
+              "details": "Front door doesn't lock\u2026you can just come in\u2026padlock isn't functioning properly",
+              "location": "DOORLOCK",
+              "status": "SUBMITTED",
+              "rating": null,
+              "comment": null,
+              "category": "UNCLASSIFIED",
+              "onHoldReason": null,
+              "withdrawReason": null
+            }
+          },
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0NTcyOTM=",
+          "text": "\u2757 wow I'm usually at work\u2026would you be able to do a check in the back bathroom\u2026because the toilet acts up sometimes maybe thats the case ",
+          "created": "2026-09-10T02:29:22.708260",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjc0MzYwMA==",
+            "pk": 743600,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_743600_fdc599e2-a99c-4bde-bf30-a05fa3e79d20.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_743600_fdc599e2-a99c-4bde-bf30-a05fa3e79d20.jpg",
+            "firstName": "Lindzie",
+            "lastName": "Ross",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 681157
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0NTM4MDU=",
+          "text": "Hi everyone \u2014 the city flagged continuous/unusual water use at this house over the last ~48 hours (~127 gallons/hour). Please CHECK now for running toilets, sinks, outdoor hose/spigot, showers left on, or anything dripping/flooding, and reply here with what you find. Unusual water usage may increase rent. Thanks!",
+          "created": "2026-09-09T23:00:42.862316",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": true,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Joe Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0MTk1NDY=",
+          "text": "0",
+          "created": "2026-09-08T14:19:03.799898",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjc0MzYwMA==",
+            "pk": 743600,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_743600_fdc599e2-a99c-4bde-bf30-a05fa3e79d20.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_743600_fdc599e2-a99c-4bde-bf30-a05fa3e79d20.jpg",
+            "firstName": "Lindzie",
+            "lastName": "Ross",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 681157
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0MTU5MTA=",
+          "text": "Hi everyone \u2014 quick check on indoor trash cans in the common areas.\nDo you need more indoor trash cans at this house, and if so how many?\nGuideline we\u2019re using: about 1 indoor can per 4 rooms.\nPlease reply in this chat with a number (0 if you\u2019re fine). Thanks!",
+          "created": "2026-09-08T11:33:38.130524",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": true,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Joe Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEwMDMxMzM=",
+          "text": "Ok thank you ",
+          "created": "2026-08-18T23:33:28.028037",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjc0MzYwMA==",
+            "pk": 743600,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_743600_fdc599e2-a99c-4bde-bf30-a05fa3e79d20.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_743600_fdc599e2-a99c-4bde-bf30-a05fa3e79d20.jpg",
+            "firstName": "Lindzie",
+            "lastName": "Ross",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 681157
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEwMDIwMDY=",
+          "text": "Hi Lindzie, just to let you know that the new lock code for the front door is 34061234.",
+          "created": "2026-08-18T22:26:56.298641",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Joe Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTEzNzkyMA==",
+          "text": "Hi everyone,\n\nThank you all for being part of the home. This is a friendly reminder for everyone to continue being respectful of one another and mindful of shared living spaces.\n\nPlease remember the following house and PadSplit rules:\n\n\u2022 Loud music should always be kept at a considerate volume, regardless of the time of day.  \n\u2022 Please close the front door firmly behind you, but avoid slamming it.  \n\u2022 Guests are not permitted inside the home at any time.  \n\u2022 Common courtesy should be practiced daily. Everyone has different schedules, so please be respectful and considerate of your housemates.  \n\u2022 Clean up after yourself after using shared spaces, including washing dishes and cleaning the toilet after use.  \n\u2022 Keeping the home clean is everyone\u2019s responsibility, not just one person\u2019s. Please do your part to maintain a clean and comfortable environment for all residents.  \n\nPlease continue following all house rules and PadSplit policies to help maintain a peaceful and respectful home for everyone.\n\nFailure to follow house rules may result in warnings or further consequences if issues continue.\n\nThank you all for your cooperation and understanding.",
+          "created": "2026-05-18T15:25:05.893054",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": true,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Joe Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODc0MTYwMg==",
+          "text": "Hi everyone, just a quick update: Mattie room 3 is still staying with us. let\u2019s all continue to keep the home respectful and peaceful for everyone. Thank you!",
+          "created": "2026-04-27T23:21:44.825173",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": true,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Joe Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODcyODYzMA==",
+          "text": "Hi everyone, just a quick update: Mattie room 3 will no longer be living with us and will be moving out. Thank you.",
+          "created": "2026-04-27T13:19:05.142826",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": true,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Joe Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        }
+      ]
+    },
+    {
+      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzE2MjA3",
+      "title": "Dre Faulkner",
+      "chatType": "HOST_SUPPORT_CHAT",
+      "isArchived": false,
+      "occupancy": {
+        "id": "TWVzc2VuZ2VyT2NjdXBhbmN5VHlwZToyODI3Mjc=",
+        "moveInDate": "2026-03-28",
+        "moveOutDate": null,
+        "conditionalEligibilityApplied": null,
+        "room": {
+          "pk": 32870,
+          "roomNumber": 4
+        },
+        "user": {
+          "picture": "img/profiles/user_1013051_95630ae3-f5e1-4abb-8aec-85e69c6805eb.jpg",
+          "firstName": "Levandre",
+          "lastName": "Faulkner",
+          "displayName": "Dre"
+        }
+      },
+      "property": {
+        "host": {
+          "firstName": "Ang",
+          "lastName": "Li",
+          "displayName": "Joe Manager",
+          "picture": ""
+        },
+        "description": "Your new home awaits! This homey Arlington home is waiting for you. This PadSplit has a Backyard, and it\u2019s newly-renovated and comfortable.\n\nThe kitchen comes equipped with a fridge, sink, oven, stovetop, as well as upgraded appliances.\n\nThe neighbourhood is close to public transit, which means you won\u2019t be far from all Arlington has to offer.",
+        "address": {
+          "street1": "3406 Green Hill Drive",
+          "street2": "",
+          "zip": "76014",
+          "city": {
+            "name": "Arlington",
+            "state": {
+              "name": "Texas"
+            }
+          }
+        }
+      },
+      "isCancelled": false,
+      "lastMessage": {
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0NTcyNjQ=",
+        "created": "2026-09-10T02:26:24.581591",
+        "text": "If u document it and send me a photo, we will give credit 5-15 ",
+        "deleted": null,
+        "extra": null,
+        "messageType": "TEXT",
+        "sender": {
+          "pk": 318367,
+          "firstName": "Ang",
+          "lastName": "Li",
+          "displayName": "Joe Manager"
+        },
+        "attachments": [],
+        "paymentExtensionStatus": null,
+        "ticketStatus": null,
+        "bookingStatus": null
+      },
+      "member": {
+        "seenAt": "2026-09-10T02:26:24.590503",
+        "isPinned": false,
+        "isUnread": false
+      },
+      "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0NTcyNjQ=",
+          "text": "If u document it and send me a photo, we will give credit 5-15 ",
+          "created": "2026-09-10T02:26:24.581591",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Joe Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0NTcyNjE=",
+          "text": "Do u need anything to help you fix it? Any items I can order off amazon to help it?",
+          "created": "2026-09-10T02:26:06.046213",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Joe Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0NTcyNTg=",
+          "text": "Thank u!",
+          "created": "2026-09-10T02:25:29.523608",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Joe Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0NTQwMzY=",
+          "text": "I had fixed it yesterday so now it stopped ",
+          "created": "2026-09-09T23:12:37.714055",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjEwMTMwNTE=",
+            "pk": 1013051,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_1013051_95630ae3-f5e1-4abb-8aec-85e69c6805eb.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1013051_95630ae3-f5e1-4abb-8aec-85e69c6805eb.jpg",
+            "firstName": "Levandre",
+            "lastName": "Faulkner",
+            "isActive": true,
+            "displayName": "Dre",
+            "padmateProfileId": 950454
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0NTM5Nzg=",
+          "text": "Its the thing in the back of the toilet that's causing the water not to rise",
+          "created": "2026-09-09T23:10:35.241901",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjEwMTMwNTE=",
+            "pk": 1013051,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_1013051_95630ae3-f5e1-4abb-8aec-85e69c6805eb.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1013051_95630ae3-f5e1-4abb-8aec-85e69c6805eb.jpg",
+            "firstName": "Levandre",
+            "lastName": "Faulkner",
+            "isActive": true,
+            "displayName": "Dre",
+            "padmateProfileId": 950454
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0NTM4NTE=",
+          "text": "The toilet in the bathroom is messed up so that's why the water is going up, we've been telling Padsplit about the toilet back to back and they even came to fix it but it keeps doing it",
+          "created": "2026-09-09T23:03:32.034394",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjEwMTMwNTE=",
+            "pk": 1013051,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_1013051_95630ae3-f5e1-4abb-8aec-85e69c6805eb.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1013051_95630ae3-f5e1-4abb-8aec-85e69c6805eb.jpg",
+            "firstName": "Levandre",
+            "lastName": "Faulkner",
+            "isActive": true,
+            "displayName": "Dre",
+            "padmateProfileId": 950454
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0NTM4MDY=",
+          "text": "Hi everyone \u2014 the city flagged continuous/unusual water use at this house over the last ~48 hours (~127 gallons/hour). Please CHECK now for running toilets, sinks, outdoor hose/spigot, showers left on, or anything dripping/flooding, and reply here with what you find. Unusual water usage may increase rent. Thanks!",
+          "created": "2026-09-09T23:00:42.915816",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": true,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Joe Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0MTczMjY=",
+          "text": "Thank you",
+          "created": "2026-09-08T12:35:26.149713",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjEwMTMwNTE=",
+            "pk": 1013051,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_1013051_95630ae3-f5e1-4abb-8aec-85e69c6805eb.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1013051_95630ae3-f5e1-4abb-8aec-85e69c6805eb.jpg",
+            "firstName": "Levandre",
+            "lastName": "Faulkner",
+            "isActive": true,
+            "displayName": "Dre",
+            "padmateProfileId": 950454
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0MTczMjA=",
+          "text": "No problem",
+          "created": "2026-09-08T12:35:10.602234",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjEwMTMwNTE=",
+            "pk": 1013051,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_1013051_95630ae3-f5e1-4abb-8aec-85e69c6805eb.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1013051_95630ae3-f5e1-4abb-8aec-85e69c6805eb.jpg",
+            "firstName": "Levandre",
+            "lastName": "Faulkner",
+            "isActive": true,
+            "displayName": "Dre",
+            "padmateProfileId": 950454
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0MTY0MDg=",
+          "text": "Will do. Thanks ",
+          "created": "2026-09-08T12:29:08.047309",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Joe Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        }
+      ]
+    },
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzQwMTQ1",
       "title": "Keyonna Pierre",
@@ -1008,334 +1708,6 @@
       ]
     },
     {
-      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzE2MjA3",
-      "title": "Dre Faulkner",
-      "chatType": "HOST_SUPPORT_CHAT",
-      "isArchived": false,
-      "occupancy": {
-        "id": "TWVzc2VuZ2VyT2NjdXBhbmN5VHlwZToyODI3Mjc=",
-        "moveInDate": "2026-03-28",
-        "moveOutDate": null,
-        "conditionalEligibilityApplied": null,
-        "room": {
-          "pk": 32870,
-          "roomNumber": 4
-        },
-        "user": {
-          "picture": "img/profiles/user_1013051_95630ae3-f5e1-4abb-8aec-85e69c6805eb.jpg",
-          "firstName": "Levandre",
-          "lastName": "Faulkner",
-          "displayName": "Dre"
-        }
-      },
-      "property": {
-        "host": {
-          "firstName": "Ang",
-          "lastName": "Li",
-          "displayName": "Joe Manager",
-          "picture": ""
-        },
-        "description": "Your new home awaits! This homey Arlington home is waiting for you. This PadSplit has a Backyard, and it\u2019s newly-renovated and comfortable.\n\nThe kitchen comes equipped with a fridge, sink, oven, stovetop, as well as upgraded appliances.\n\nThe neighbourhood is close to public transit, which means you won\u2019t be far from all Arlington has to offer.",
-        "address": {
-          "street1": "3406 Green Hill Drive",
-          "street2": "",
-          "zip": "76014",
-          "city": {
-            "name": "Arlington",
-            "state": {
-              "name": "Texas"
-            }
-          }
-        }
-      },
-      "isCancelled": false,
-      "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0NTQwMzY=",
-        "created": "2026-09-09T23:12:37.714055",
-        "text": "I had fixed it yesterday so now it stopped ",
-        "deleted": null,
-        "extra": null,
-        "messageType": "TEXT",
-        "sender": {
-          "pk": 1013051,
-          "firstName": "Levandre",
-          "lastName": "Faulkner",
-          "displayName": "Dre"
-        },
-        "attachments": [],
-        "paymentExtensionStatus": null,
-        "ticketStatus": null,
-        "bookingStatus": null
-      },
-      "member": {
-        "seenAt": "2026-09-09T23:37:04.687317",
-        "isPinned": false,
-        "isUnread": false
-      },
-      "recent_messages": [
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0NTQwMzY=",
-          "text": "I had fixed it yesterday so now it stopped ",
-          "created": "2026-09-09T23:12:37.714055",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjEwMTMwNTE=",
-            "pk": 1013051,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_1013051_95630ae3-f5e1-4abb-8aec-85e69c6805eb.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1013051_95630ae3-f5e1-4abb-8aec-85e69c6805eb.jpg",
-            "firstName": "Levandre",
-            "lastName": "Faulkner",
-            "isActive": true,
-            "displayName": "Dre",
-            "padmateProfileId": 950454
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0NTM5Nzg=",
-          "text": "Its the thing in the back of the toilet that's causing the water not to rise",
-          "created": "2026-09-09T23:10:35.241901",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjEwMTMwNTE=",
-            "pk": 1013051,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_1013051_95630ae3-f5e1-4abb-8aec-85e69c6805eb.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1013051_95630ae3-f5e1-4abb-8aec-85e69c6805eb.jpg",
-            "firstName": "Levandre",
-            "lastName": "Faulkner",
-            "isActive": true,
-            "displayName": "Dre",
-            "padmateProfileId": 950454
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0NTM4NTE=",
-          "text": "The toilet in the bathroom is messed up so that's why the water is going up, we've been telling Padsplit about the toilet back to back and they even came to fix it but it keeps doing it",
-          "created": "2026-09-09T23:03:32.034394",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjEwMTMwNTE=",
-            "pk": 1013051,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_1013051_95630ae3-f5e1-4abb-8aec-85e69c6805eb.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1013051_95630ae3-f5e1-4abb-8aec-85e69c6805eb.jpg",
-            "firstName": "Levandre",
-            "lastName": "Faulkner",
-            "isActive": true,
-            "displayName": "Dre",
-            "padmateProfileId": 950454
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0NTM4MDY=",
-          "text": "Hi everyone \u2014 the city flagged continuous/unusual water use at this house over the last ~48 hours (~127 gallons/hour). Please CHECK now for running toilets, sinks, outdoor hose/spigot, showers left on, or anything dripping/flooding, and reply here with what you find. Unusual water usage may increase rent. Thanks!",
-          "created": "2026-09-09T23:00:42.915816",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": true,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Joe Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0MTczMjY=",
-          "text": "Thank you",
-          "created": "2026-09-08T12:35:26.149713",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjEwMTMwNTE=",
-            "pk": 1013051,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_1013051_95630ae3-f5e1-4abb-8aec-85e69c6805eb.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1013051_95630ae3-f5e1-4abb-8aec-85e69c6805eb.jpg",
-            "firstName": "Levandre",
-            "lastName": "Faulkner",
-            "isActive": true,
-            "displayName": "Dre",
-            "padmateProfileId": 950454
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0MTczMjA=",
-          "text": "No problem",
-          "created": "2026-09-08T12:35:10.602234",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjEwMTMwNTE=",
-            "pk": 1013051,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_1013051_95630ae3-f5e1-4abb-8aec-85e69c6805eb.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1013051_95630ae3-f5e1-4abb-8aec-85e69c6805eb.jpg",
-            "firstName": "Levandre",
-            "lastName": "Faulkner",
-            "isActive": true,
-            "displayName": "Dre",
-            "padmateProfileId": 950454
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0MTY0MDg=",
-          "text": "Will do. Thanks ",
-          "created": "2026-09-08T12:29:08.047309",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Joe Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0MTU5NDY=",
-          "text": "And i stopped buying tissue for them because one of the padsplit members told me that its her using too much, and the waste in the trash didn't start til she came",
-          "created": "2026-09-08T11:37:46.211060",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjEwMTMwNTE=",
-            "pk": 1013051,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_1013051_95630ae3-f5e1-4abb-8aec-85e69c6805eb.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1013051_95630ae3-f5e1-4abb-8aec-85e69c6805eb.jpg",
-            "firstName": "Levandre",
-            "lastName": "Faulkner",
-            "isActive": true,
-            "displayName": "Dre",
-            "padmateProfileId": 950454
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0MTU5Mjg=",
-          "text": "Nah i think its good, but can ya'll please tell Jennifer to stop throwing her waste tissue in the trash can, its very disgusting ?",
-          "created": "2026-09-08T11:35:52.634410",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjEwMTMwNTE=",
-            "pk": 1013051,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_1013051_95630ae3-f5e1-4abb-8aec-85e69c6805eb.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1013051_95630ae3-f5e1-4abb-8aec-85e69c6805eb.jpg",
-            "firstName": "Levandre",
-            "lastName": "Faulkner",
-            "isActive": true,
-            "displayName": "Dre",
-            "padmateProfileId": 950454
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0MTU5MTE=",
-          "text": "Hi everyone \u2014 quick check on indoor trash cans in the common areas.\nDo you need more indoor trash cans at this house, and if so how many?\nGuideline we\u2019re using: about 1 indoor can per 4 rooms.\nPlease reply in this chat with a number (0 if you\u2019re fine). Thanks!",
-          "created": "2026-09-08T11:33:38.164253",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": true,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Joe Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        }
-      ]
-    },
-    {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzU5OTY2",
       "title": "Dede Evans",
       "chatType": "HOST_SUPPORT_CHAT",
@@ -2053,334 +2425,6 @@
               "withdrawReason": null
             }
           },
-          "bookingStatus": null
-        }
-      ]
-    },
-    {
-      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MTc4MzUz",
-      "title": "Lindzie Ross",
-      "chatType": "HOST_SUPPORT_CHAT",
-      "isArchived": false,
-      "occupancy": {
-        "id": "TWVzc2VuZ2VyT2NjdXBhbmN5VHlwZToxOTg3MTg=",
-        "moveInDate": "2025-07-30",
-        "moveOutDate": null,
-        "conditionalEligibilityApplied": null,
-        "room": {
-          "pk": 32873,
-          "roomNumber": 7
-        },
-        "user": {
-          "picture": "img/profiles/user_743600_fdc599e2-a99c-4bde-bf30-a05fa3e79d20.jpg",
-          "firstName": "Lindzie",
-          "lastName": "Ross",
-          "displayName": null
-        }
-      },
-      "property": {
-        "host": {
-          "firstName": "Ang",
-          "lastName": "Li",
-          "displayName": "Joe Manager",
-          "picture": ""
-        },
-        "description": "Your new home awaits! This homey Arlington home is waiting for you. This PadSplit has a Backyard, and it\u2019s newly-renovated and comfortable.\n\nThe kitchen comes equipped with a fridge, sink, oven, stovetop, as well as upgraded appliances.\n\nThe neighbourhood is close to public transit, which means you won\u2019t be far from all Arlington has to offer.",
-        "address": {
-          "street1": "3406 Green Hill Drive",
-          "street2": "",
-          "zip": "76014",
-          "city": {
-            "name": "Arlington",
-            "state": {
-              "name": "Texas"
-            }
-          }
-        }
-      },
-      "isCancelled": false,
-      "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0NTM4MDU=",
-        "created": "2026-09-09T23:00:42.862316",
-        "text": "Hi everyone \u2014 the city flagged continuous/unusual water use at this house over the last ~48 hours (~127 gallons/hour). Please CHECK now for running toilets, sinks, outdoor hose/spigot, showers left on, or anything dripping/flooding, and reply here with what you find. Unusual water usage may increase rent. Thanks!",
-        "deleted": null,
-        "extra": null,
-        "messageType": "TEXT",
-        "sender": {
-          "pk": 318367,
-          "firstName": "Ang",
-          "lastName": "Li",
-          "displayName": "Joe Manager"
-        },
-        "attachments": [],
-        "paymentExtensionStatus": null,
-        "ticketStatus": null,
-        "bookingStatus": null
-      },
-      "member": {
-        "seenAt": "2026-09-08T15:30:42.449586",
-        "isPinned": false,
-        "isUnread": false
-      },
-      "recent_messages": [
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0NTM4MDU=",
-          "text": "Hi everyone \u2014 the city flagged continuous/unusual water use at this house over the last ~48 hours (~127 gallons/hour). Please CHECK now for running toilets, sinks, outdoor hose/spigot, showers left on, or anything dripping/flooding, and reply here with what you find. Unusual water usage may increase rent. Thanks!",
-          "created": "2026-09-09T23:00:42.862316",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": true,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Joe Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0MTk1NDY=",
-          "text": "0",
-          "created": "2026-09-08T14:19:03.799898",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjc0MzYwMA==",
-            "pk": 743600,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_743600_fdc599e2-a99c-4bde-bf30-a05fa3e79d20.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_743600_fdc599e2-a99c-4bde-bf30-a05fa3e79d20.jpg",
-            "firstName": "Lindzie",
-            "lastName": "Ross",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 681157
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0MTU5MTA=",
-          "text": "Hi everyone \u2014 quick check on indoor trash cans in the common areas.\nDo you need more indoor trash cans at this house, and if so how many?\nGuideline we\u2019re using: about 1 indoor can per 4 rooms.\nPlease reply in this chat with a number (0 if you\u2019re fine). Thanks!",
-          "created": "2026-09-08T11:33:38.130524",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": true,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Joe Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEwMDMxMzM=",
-          "text": "Ok thank you ",
-          "created": "2026-08-18T23:33:28.028037",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjc0MzYwMA==",
-            "pk": 743600,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_743600_fdc599e2-a99c-4bde-bf30-a05fa3e79d20.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_743600_fdc599e2-a99c-4bde-bf30-a05fa3e79d20.jpg",
-            "firstName": "Lindzie",
-            "lastName": "Ross",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 681157
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTEwMDIwMDY=",
-          "text": "Hi Lindzie, just to let you know that the new lock code for the front door is 34061234.",
-          "created": "2026-08-18T22:26:56.298641",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Joe Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6OTEzNzkyMA==",
-          "text": "Hi everyone,\n\nThank you all for being part of the home. This is a friendly reminder for everyone to continue being respectful of one another and mindful of shared living spaces.\n\nPlease remember the following house and PadSplit rules:\n\n\u2022 Loud music should always be kept at a considerate volume, regardless of the time of day.  \n\u2022 Please close the front door firmly behind you, but avoid slamming it.  \n\u2022 Guests are not permitted inside the home at any time.  \n\u2022 Common courtesy should be practiced daily. Everyone has different schedules, so please be respectful and considerate of your housemates.  \n\u2022 Clean up after yourself after using shared spaces, including washing dishes and cleaning the toilet after use.  \n\u2022 Keeping the home clean is everyone\u2019s responsibility, not just one person\u2019s. Please do your part to maintain a clean and comfortable environment for all residents.  \n\nPlease continue following all house rules and PadSplit policies to help maintain a peaceful and respectful home for everyone.\n\nFailure to follow house rules may result in warnings or further consequences if issues continue.\n\nThank you all for your cooperation and understanding.",
-          "created": "2026-05-18T15:25:05.893054",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": true,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Joe Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODc0MTYwMg==",
-          "text": "Hi everyone, just a quick update: Mattie room 3 is still staying with us. let\u2019s all continue to keep the home respectful and peaceful for everyone. Thank you!",
-          "created": "2026-04-27T23:21:44.825173",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": true,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Joe Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODcyODYzMA==",
-          "text": "Hi everyone, just a quick update: Mattie room 3 will no longer be living with us and will be moving out. Thank you.",
-          "created": "2026-04-27T13:19:05.142826",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": true,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Joe Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODY2NTgyNQ==",
-          "text": "Hi everyone, does anyone have a reliable repair person or handyman they\u2019d recommend who knows how to change or reprogram electronic door codes? I\u2019m also open to cleaner recommendations if you have one. Looking for someone trustworthy and reasonably priced. Please send any contacts my way. Thank you!",
-          "created": "2026-04-23T17:41:41.264810",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": true,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Joe Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6ODM3ODgxMg==",
-          "text": "I\u2019m available ",
-          "created": "2026-04-07T22:19:37.238256",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjc0MzYwMA==",
-            "pk": 743600,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_743600_fdc599e2-a99c-4bde-bf30-a05fa3e79d20.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_743600_fdc599e2-a99c-4bde-bf30-a05fa3e79d20.jpg",
-            "firstName": "Lindzie",
-            "lastName": "Ross",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 681157
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
           "bookingStatus": null
         }
       ]
@@ -17512,6 +17556,48 @@
   "tasks": {
     "Requests": [
       {
+        "id": 472415,
+        "status": "submitted",
+        "comment": null,
+        "category": "unclassified",
+        "media": [],
+        "created": "2026-09-10T04:03:10.858419",
+        "modified": "2026-09-10T04:03:10.858419",
+        "room_name": "",
+        "room_number": 7,
+        "room_status": 1,
+        "room_code": "1234",
+        "location": "Doorlock",
+        "details": "Front door doesn't lock\u2026you can just come in\u2026padlock isn't functioning properly",
+        "property_id": 9369,
+        "property_address": {
+          "id": 12545,
+          "street1": "3406 Green Hill Drive",
+          "street2": "",
+          "city": "Arlington",
+          "state": "TX",
+          "zip": "76014",
+          "city_slug": "arlington-tx"
+        },
+        "reported_by": {
+          "id": 743600,
+          "name": "Lindzie Ross",
+          "role_id": 0,
+          "picture": "img/profiles/user_743600_fdc599e2-a99c-4bde-bf30-a05fa3e79d20.jpg"
+        },
+        "assigned_to": null,
+        "on_hold_reason": null,
+        "update_status_at": "2026-09-10T04:03:10.859789",
+        "rating": null,
+        "extra_data": {},
+        "has_reused_code": true,
+        "moveout_photos_count": 0,
+        "days_to_complete": null,
+        "is_on_payment_plan": false,
+        "payment_plan_end_date": null,
+        "payment_plan_reason_note": null
+      },
+      {
         "id": 466504,
         "status": "submitted",
         "comment": null,
@@ -18029,6 +18115,6 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-09-10T01:30:30Z"
+    "run_scraped_at": "2026-09-10T06:39:44Z"
   }
 }
