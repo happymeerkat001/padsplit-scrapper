@@ -62,6 +62,9 @@ QUO_FIELD_PHONE = lockout_reply.JOE_FIELD_PHONE
 WATER_KEY_YOUTUBE_URL = "https://youtube.com/shorts/SCryjPiyZcs"
 LEAK_PACK_MARKER = "Thanks for reporting the water leak"
 WATER_KEY_ORDER_MARKER = "WATER_KEY_ORDER"
+# Cart Amazon same-day. ASIN digits are spelled on Discord; keyword is digit-free.
+WATER_KEY_ASIN = "B0786ZQ5SL"
+WATER_KEY_KEYWORD = "water curb key"
 T5_LABEL = "Water leak announcement"
 T6_LABEL = "Water leak new tenants"
 WATER_LEAK_ANNOUNCEMENT_LABEL = "water leak announcement"
@@ -111,33 +114,48 @@ _DIGIT_TOKEN_RE = re.compile(
 )
 _LEADING_HOUSE_NUM_RE = re.compile(r"^\s*\d+\s*")
 
-# Current member leak reports. Required cues: leak, leaking, water leak.
-# Host-blast / historical clauses are stripped before this re-check.
-_CURRENT_LEAK_RE = re.compile(
+# Active water emergency only. Bare leak|leaking is too broad.
+# Toilet slow leak / clog / wax-ring seep do not fire unless flooding.
+_ACTIVE_WATER_RE = re.compile(
     r"(?i)("
-    r"\bwater\s+leak(?:ing)?\b"
+    r"\bpipe\s+(?:burst|broke|broken|(?:is\s+)?leak(?:ing)?)\b"
+    r"|\bburst(?:ing)?\s+pipe\b"
+    r"|\bwater\s+main\b"
+    r"|\bmain\s+(?:water\s+)?(?:line|pipe|break|broke|burst)\b"
+    r"|\bwater\s+leak(?:ing)?\b"
     r"|\bleak(?:ing)?\s+water\b"
-    r"|\bleak(?:ing)?\b"
-    r"|\bpipe\s+leak(?:ing)?\b"
-    r"|\bleak(?:ing)?\s+pipe\b"
-    r"|\b(?:sink|faucet|toilet|shower|tub|ceiling|hose|spigot|"
-    r"bathroom|kitchen)\s+(?:is\s+|has\s+(?:a\s+)?)?leak(?:ing|s)?\b"
-    r"|\bleak(?:ing)?\s+(?:sink|faucet|toilet|shower|tub|ceiling|"
-    r"pipe|hose|spigot)\b"
-    r"|\bslow\s+leak\b"
-    r"|\bleak(?:ing)?\s+(?:in|from|under|behind|near|at|by)\b"
-    r"|\b(?:there(?:['’]s| is| are)|we have|i (?:have|found|see|saw)|"
-    r"it(?:['’]s| is))\s+(?:a\s+|an\s+)?(?:water\s+)?leak(?:ing)?\b"
-    r"|\b(?:is|are)\s+leak(?:ing)?\b"
-    r"|\b(?:is|are)\s+flood(?:ing|ed)\b"
-    r"|\bflooding\b"
-    r"|\bflooded\b"
+    r"|\bwater\s+(?:is\s+)?(?:pouring|gushing|spraying|coming)\b"
+    r"|\bleak(?:ing)?\s+from\s+(?:the\s+)?(?:wall|ceiling|pipe)\b"
+    r"|\b(?:wall|ceiling)\s+(?:is\s+)?leak(?:ing)?\b"
+    r"|\bwater\s+leaking\s+from\b"
+    r"|\bflood(?:ing|ed)\b"
+    r")",
+)
+
+_TOILET_ONLY_RE = re.compile(
+    r"(?i)("
+    r"\btoilet\b"
+    r"|\bwax\s+ring\b"
+    r"|\b(?:base|bowl)\s+(?:seep|leak)"
+    r"|\bseep(?:ing)?\s+(?:at\s+)?(?:the\s+)?(?:base|bowl|wax)"
+    r"|\bclog(?:ged|ging)?\b"
+    r")",
+)
+
+_TOILET_EMERGENCY_RE = re.compile(
+    r"(?i)("
+    r"\bflood(?:ing|ed)\b"
+    r"|\bpipe\s+(?:burst|broke|broken|(?:is\s+)?leak(?:ing)?)\b"
+    r"|\bburst(?:ing)?\s+pipe\b"
+    r"|\bwater\s+main\b"
+    r"|\bleak(?:ing)?\s+from\s+(?:the\s+)?(?:wall|ceiling)\b"
+    r"|\b(?:wall|ceiling)\s+(?:is\s+)?leak(?:ing)?\b"
+    r"|\bwater\s+leaking\s+from\b"
     r")",
 )
 
 # Host reminder / historical / non-water chatter. Stripped before the
-# current-leak re-check so “was leaking … toilet has a slow leak now”
-# can still fire.
+# active-water re-check. Toilet-only leftover after this still does not fire.
 _LEAK_EXCLUDE_RE = re.compile(
     r"(?i)("
     r"water usage and leak reminder"
@@ -198,6 +216,12 @@ _IN_CASE_OPENER_RE = re.compile(
 _UNSURE_MESSAGE_RE = re.compile(
     r"(?i)If you['’]re unsure, message us immediately\.?"
 )
+_STATE_ABBREV = {
+    "texas": "TX",
+    "tx": "TX",
+}
+_HOUSE_NUM_RE = re.compile(r"\d")
+_LETTER_RE = re.compile(r"[A-Za-z]")
 
 
 @dataclass
@@ -211,6 +235,7 @@ class Decision:
     room: str = ""
     send_body: str = ""
     discord: str = ""
+    ship_to: str = ""
 
 
 @dataclass
@@ -264,17 +289,88 @@ def decode_digits_from_discord(value: str) -> str:
 
 
 def street_label_for_discord(street: str) -> str:
-    """Drop leading house numbers so Discord stays digit-free."""
+    """Drop leading house numbers. Prefer thread_ship_to for Cart."""
     return _LEADING_HOUSE_NUM_RE.sub("", lockout_reply.normalize_text(street)).strip()
 
 
+def _state_abbrev(value: str) -> str:
+    raw = lockout_reply.normalize_text(value)
+    return _STATE_ABBREV.get(raw.lower(), raw)
+
+
+def thread_ship_to(thread: Dict[str, Any]) -> str:
+    """Full ship-to of the leaking property from the PadSplit thread only.
+
+    Never invent an address. Never substitute Spanish Moss for another house.
+    """
+    address = ((thread.get("property") or {}).get("address") or {})
+    if not isinstance(address, dict):
+        return ""
+    street = lockout_reply.normalize_text(
+        address.get("street1") or address.get("full_street")
+    )
+    street2 = lockout_reply.normalize_text(address.get("street2"))
+    zip_code = lockout_reply.normalize_text(address.get("zip") or address.get("postalCode"))
+    city_obj = address.get("city")
+    city = ""
+    state = ""
+    if isinstance(city_obj, dict):
+        city = lockout_reply.normalize_text(city_obj.get("name"))
+        state_obj = city_obj.get("state")
+        if isinstance(state_obj, dict):
+            state = _state_abbrev(
+                str(state_obj.get("code") or state_obj.get("name") or "")
+            )
+        else:
+            state = _state_abbrev(str(state_obj or ""))
+    else:
+        city = lockout_reply.normalize_text(city_obj or address.get("city_name"))
+        state = _state_abbrev(str(address.get("state") or address.get("state_code") or ""))
+    if not street:
+        return ""
+    line = street
+    if street2:
+        line = f"{line} {street2}"
+    locality = ", ".join(part for part in (city, state) if part)
+    if locality and zip_code:
+        return f"{line}, {locality} {zip_code}"
+    if locality:
+        return f"{line}, {locality}"
+    if zip_code:
+        return f"{line} {zip_code}"
+    return line
+
+
+def is_full_ship_to(address: str) -> bool:
+    """Need a house number plus a street name so Cart can ship."""
+    text = lockout_reply.normalize_text(address)
+    return bool(text and _HOUSE_NUM_RE.search(text) and _LETTER_RE.search(text))
+
+
+def assert_water_key_order_safe(text: str, *, ship_to: str) -> str:
+    """Digit-free except the leaking property ship-to. No lock codes."""
+    remainder = text or ""
+    if ship_to:
+        remainder = remainder.replace(ship_to, "", 1)
+    if lock_codes.has_digit_characters(remainder):
+        raise RuntimeError("Refusing Discord outbound: digits outside ship-to address")
+    lowered = (text or "").lower()
+    if "lock code" in lowered or "door code" in lowered or "ssn" in lowered:
+        raise RuntimeError("Refusing Discord outbound: codes or SSN")
+    return text
+
+
 def detect_leak(text: str) -> bool:
-    """True only at 100% current member leak / flood language."""
+    """True only for active water leak / flood. Toilet-only seeps do not fire."""
     raw = text or ""
     if _HOST_BLAST_RE.search(raw) and len(raw) > 280:
         return False
     stripped = _LEAK_EXCLUDE_RE.sub(" ", raw)
-    return bool(_CURRENT_LEAK_RE.search(stripped))
+    if not _ACTIVE_WATER_RE.search(stripped):
+        return False
+    if _TOILET_ONLY_RE.search(stripped) and not _TOILET_EMERGENCY_RE.search(stripped):
+        return False
+    return True
 
 
 def canonicalize_water_key_youtube(text: str) -> str:
@@ -371,29 +467,34 @@ def format_leak_body(
 def discord_water_key_order_text(
     *,
     house_label: str = "",
+    ship_to: str = "",
     street: str = "",
     room: str = "",
     chat_id: str = "",
-) -> str:
-    """Digit-free Cart event. No codes. Chat id / room digits are spelled."""
-    house = lockout_reply.normalize_text(house_label) or "unknown"
-    addr = street_label_for_discord(street)
+) -> Optional[str]:
+    """Cart event. Digit-free except full ship-to. Requires house + address.
+
+    Never uses a Spanish Moss override address for another house.
+    """
+    house = lockout_reply.normalize_text(house_label)
+    dest = lockout_reply.normalize_text(ship_to) or lockout_reply.normalize_text(street)
+    if not house or not is_full_ship_to(dest):
+        return None
+    if lock_codes.is_spanish_moss_address(dest) and "spanish moss" not in house.lower():
+        return None
     room_token = encode_digits_for_discord(room) if room else "unknown"
     chat_token = encode_digits_for_discord(chat_id) if chat_id else "unknown"
-    parts = [
-        WATER_KEY_ORDER_MARKER,
-        f"house={house}",
-    ]
-    if addr:
-        parts.append(f"addr={addr}")
-    parts.extend(
-        [
-            f"room={room_token}",
-            f"chat={chat_token}",
-        ]
+    asin_token = encode_digits_for_discord(WATER_KEY_ASIN)
+    text = (
+        f"{WATER_KEY_ORDER_MARKER} "
+        f'house="{house}" '
+        f'ship_to="{dest}" '
+        f'keyword="{WATER_KEY_KEYWORD}" '
+        f"asin={asin_token} "
+        f"room={room_token} "
+        f"chat={chat_token}"
     )
-    text = " ".join(parts)
-    return lock_codes.assert_discord_outbound_safe(text)
+    return assert_water_key_order_safe(text, ship_to=dest)
 
 
 def load_state(path: Path = STATE_PATH) -> Dict[str, Any]:
@@ -516,7 +617,12 @@ def decide(
 
     member_text = lockout_reply.message_text(leak_message)
     street = lockout_reply.thread_street(thread)
-    house = lockout_reply.match_house(street, member_text)
+    # House + ship-to from the thread property only. Do not let member text
+    # or a Spanish Moss default override the leaking house address.
+    house = lockout_reply.match_house(street, "")
+    ship_to = thread_ship_to(thread)
+    if lock_codes.is_spanish_moss_address(ship_to) and house.slug != "spanish_moss":
+        ship_to = ""
     room = lockout_reply.resolve_room(thread, member_text)
     return Decision(
         action="send",
@@ -525,24 +631,45 @@ def decide(
         chat_id=chat_id,
         house_label=house.label,
         street=street,
+        ship_to=ship_to,
         room=room.room or "",
         send_body=leak_body if leak_body is not None else format_leak_body(),
         discord=discord_water_key_order_text(
             house_label=house.label,
+            ship_to=ship_to,
             street=street,
             room=room.room or "",
             chat_id=chat_id,
-        ),
+        )
+        or "",
     )
 
 
 def post_automations_discord(
     text: str,
     *,
+    ship_to: str = "",
     token: Optional[str] = None,
     channel: Optional[str] = None,
 ) -> Optional[Dict[str, Any]]:
-    return lockout_reply.post_automations_discord(text, token=token, channel=channel)
+    """Post WATER_KEY_ORDER. Digit-free except ship_to. Do not use lock_codes.assert on the full text."""
+    safe = assert_water_key_order_safe(text, ship_to=ship_to)
+    token = token or (os.getenv("DISCORD_BOT_TOKEN") or "").strip()
+    channel = channel or (
+        (os.getenv("DISCORD_AUTOMATIONS_CHANNEL_ID") or "").strip()
+        or (os.getenv("DISCORD_CHANNEL_ID") or "").strip()
+    )
+    if not token or not channel:
+        _log("Discord token or automations channel missing; skip WATER_KEY_ORDER")
+        return None
+    response = requests.post(
+        f"{lock_codes.DISCORD_API_BASE}/channels/{channel}/messages",
+        headers={"Authorization": f"Bot {token}", "Content-Type": "application/json"},
+        json={"content": safe},
+        timeout=DEFAULT_TIMEOUT,
+    )
+    response.raise_for_status()
+    return response.json()
 
 
 def process_leaks(
@@ -574,6 +701,7 @@ def process_leaks(
             "certainty": decision.certainty,
             "house_label": decision.house_label,
             "room": decision.room,
+            "ship_to": decision.ship_to,
         }
         if decision.discord:
             row["discord"] = decision.discord
@@ -616,7 +744,7 @@ def process_leaks(
                 post_discord(decision.discord)
             else:
                 try:
-                    post_automations_discord(decision.discord)
+                    post_automations_discord(decision.discord, ship_to=decision.ship_to)
                 except Exception as exc:
                     _log(f"Discord post failed; continuing: {exc}")
         row["action"] = "sent"
@@ -688,8 +816,9 @@ def run(
 
     sent = sum(1 for row in rows if row.get("action") == "sent")
     posts = [str(row["discord"]) for row in rows if row.get("discord") and row.get("action") == "sent"]
-    for text in posts:
-        lock_codes.assert_discord_outbound_safe(text)
+    for row in rows:
+        if row.get("discord") and row.get("action") == "sent":
+            assert_water_key_order_safe(str(row["discord"]), ship_to=str(row.get("ship_to") or ""))
     summary = "sent" if sent else (rows[0]["action"] if rows else "noop")
     result = RunResult(
         action=summary,

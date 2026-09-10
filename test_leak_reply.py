@@ -19,14 +19,17 @@ NOW = datetime(2026, 9, 10, 15, 0, tzinfo=timezone.utc)
 def member_thread(
     *,
     chat_id: str = "chat-leana",
-    street: str = "Leana Drive",
+    street: str = "6623 Leana Avenue",
     room: int = 2,
-    text: str = "there's a water leak in the kitchen",
+    text: str = "water leaking from the ceiling",
     created: str = "2026-09-10T14:30:00Z",
     host_texts: list[str] | None = None,
     host_created: str = "2026-09-10T14:35:00Z",
     move_out: str | None = None,
     role_id: str = "A_0",
+    city: str = "Dallas",
+    state: str = "Texas",
+    zip_code: str = "75241",
 ) -> dict:
     messages = [
         {
@@ -54,7 +57,13 @@ def member_thread(
             "user": {"firstName": "Member", "lastName": "Example"},
             "room": {"roomNumber": room},
         },
-        "property": {"address": {"street1": street}},
+        "property": {
+            "address": {
+                "street1": street,
+                "zip": zip_code,
+                "city": {"name": city, "state": {"name": state}} if city else {},
+            }
+        },
         "recent_messages": messages,
         "lastMessage": messages[0],
     }
@@ -114,25 +123,50 @@ def run_process(fake: FakeSend, threads: list[dict], **kwargs):
 
 
 class DetectTests(unittest.TestCase):
-    def test_current_leak_phrases(self) -> None:
+    def test_active_water_phrases_fire(self) -> None:
+        for text in (
+            "pipe burst in the backyard",
+            "the pipe burst",
+            "burst pipe by the meter",
+            "water main is leaking",
+            "the water main broke",
+            "main water line burst",
+            "the bathroom is flooding",
+            "it's flooding in the hallway",
+            "water leaking from the ceiling",
+            "water leaking from the wall",
+            "ceiling is leaking water",
+            "there's a water leak in the kitchen",
+            "active water leak under the house",
+            "pipe leak in the bathroom",
+            "the pipe is leaking",
+        ):
+            self.assertTrue(leak_reply.detect_leak(text), msg=text)
+
+    def test_toilet_only_and_broad_leak_do_not_fire(self) -> None:
         for text in (
             "leak",
             "leaking",
-            "water leak",
-            "water leaking",
-            "leak in the kitchen sink",
-            "the kitchen sink is leaking",
-            "water leak under the sink",
-            "water leaking from the ceiling",
-            "pipe leak in the bathroom",
-            "pipe is leaking",
-            "there's a water leak",
-            "there is a leak in the bathroom",
-            "the bathroom is flooding",
             "toilet has a slow leak",
+            "the toilet is leaking",
+            "toilet clogged",
+            "the toilet is clogged",
+            "wax ring is leaking",
+            "seep at the base of the toilet",
+            "toilet base seep",
             "I found a leak behind the toilet",
+            "the kitchen sink is leaking",
+            "leak in the kitchen sink",
         ):
-            self.assertTrue(leak_reply.detect_leak(text), msg=text)
+            self.assertFalse(leak_reply.detect_leak(text), msg=text)
+
+    def test_toilet_plus_flooding_still_fires(self) -> None:
+        self.assertTrue(
+            leak_reply.detect_leak("the toilet overflowed and the bathroom is flooding")
+        )
+        self.assertTrue(
+            leak_reply.detect_leak("toilet clogged and water is flooding the floor")
+        )
 
     def test_host_reminder_and_historical_do_not_fire(self) -> None:
         blast = (
@@ -158,12 +192,12 @@ class DetectTests(unittest.TestCase):
         ):
             self.assertFalse(leak_reply.detect_leak(text), msg=text)
 
-    def test_current_leak_after_historical_clause_still_fires(self) -> None:
+    def test_historical_plus_toilet_slow_leak_does_not_fire(self) -> None:
         text = (
             "The sink faucet that was leaking is fixed the only leaking "
             "I've found now is the toilet has a slow leak."
         )
-        self.assertTrue(leak_reply.detect_leak(text))
+        self.assertFalse(leak_reply.detect_leak(text))
 
 
 class BodyTests(unittest.TestCase):
@@ -212,30 +246,57 @@ class BodyTests(unittest.TestCase):
 
 
 class DiscordTests(unittest.TestCase):
-    def test_water_key_order_is_digit_free_and_round_trips(self) -> None:
+    def test_water_key_order_requires_house_and_full_address(self) -> None:
+        ship_to = "6623 Leana Avenue, Dallas, TX 75241"
         text = leak_reply.discord_water_key_order_text(
             house_label="Leana",
-            street="6623 Leana Drive",
+            ship_to=ship_to,
             room="2",
             chat_id="TWVzc2VuZ2VyQ2hhdFR5cGU6MTc4MzUz",
         )
+        self.assertIsNotNone(text)
+        assert text is not None
         self.assertIn(leak_reply.WATER_KEY_ORDER_MARKER, text)
-        self.assertIn("house=Leana", text)
-        self.assertIn("addr=Leana Drive", text)
-        self.assertFalse(lock_codes.has_digit_characters(text))
-        lock_codes.assert_discord_outbound_safe(text)
-        self.assertEqual(leak_reply.decode_digits_from_discord("[two]"), "2")
-        self.assertIn("room=[two]", text)
-        self.assertIn(
-            leak_reply.encode_digits_for_discord("TWVzc2VuZ2VyQ2hhdFR5cGU6MTc4MzUz"),
-            text,
-        )
+        self.assertIn('house="Leana"', text)
+        self.assertIn(f'ship_to="{ship_to}"', text)
+        self.assertIn(f'keyword="{leak_reply.WATER_KEY_KEYWORD}"', text)
+        self.assertIn("water curb key", text)
+        self.assertIn(leak_reply.encode_digits_for_discord(leak_reply.WATER_KEY_ASIN), text)
+        self.assertNotIn(leak_reply.WATER_KEY_ASIN, text)
+        remainder = text.replace(ship_to, "", 1)
+        self.assertFalse(lock_codes.has_digit_characters(remainder))
+        leak_reply.assert_water_key_order_safe(text, ship_to=ship_to)
         self.assertEqual(
             leak_reply.decode_digits_from_discord(
-                leak_reply.encode_digits_for_discord("TWVzc2VuZ2VyQ2hhdFR5cGU6MTc4MzUz")
+                leak_reply.encode_digits_for_discord(leak_reply.WATER_KEY_ASIN)
             ),
-            "TWVzc2VuZ2VyQ2hhdFR5cGU6MTc4MzUz",
+            leak_reply.WATER_KEY_ASIN,
         )
+        self.assertIsNone(
+            leak_reply.discord_water_key_order_text(house_label="Leana", ship_to="Leana Avenue")
+        )
+        self.assertIsNone(
+            leak_reply.discord_water_key_order_text(
+                house_label="",
+                ship_to=ship_to,
+            )
+        )
+
+    def test_spanish_moss_is_not_an_address_override(self) -> None:
+        moss = "123 Spanish Moss Lane, Dallas, TX 75241"
+        self.assertIsNone(
+            leak_reply.discord_water_key_order_text(
+                house_label="Leana",
+                ship_to=moss,
+            )
+        )
+        allowed = leak_reply.discord_water_key_order_text(
+            house_label="Spanish Moss",
+            ship_to=moss,
+        )
+        self.assertIsNotNone(allowed)
+        assert allowed is not None
+        self.assertIn(moss, allowed)
 
 
 class EnableGateTests(unittest.TestCase):
@@ -286,8 +347,19 @@ class FlowTests(unittest.TestCase):
         self.assertEqual(fake.order, ["close", "send"])
         self.assertEqual(len(fake.posts), 1)
         self.assertIn(leak_reply.WATER_KEY_ORDER_MARKER, fake.posts[0])
-        self.assertFalse(lock_codes.has_digit_characters(fake.posts[0]))
+        ship_to = rows[0]["ship_to"]
+        remainder = fake.posts[0].replace(ship_to, "", 1)
+        self.assertFalse(lock_codes.has_digit_characters(remainder))
+        self.assertIn("6623 Leana Avenue", fake.posts[0])
+        self.assertIn("water curb key", fake.posts[0])
         self.assertIn("sent_at", state["threads"]["chat-leana"])
+
+    def test_toilet_slow_leak_does_not_send(self) -> None:
+        fake = FakeSend()
+        rows, _ = run_process(fake, [member_thread(text="toilet has a slow leak")])
+        self.assertEqual(rows[0]["action"], "skip")
+        self.assertEqual(fake.sends, [])
+        self.assertEqual(fake.posts, [])
 
     def test_host_message_does_not_fire(self) -> None:
         fake = FakeSend()
