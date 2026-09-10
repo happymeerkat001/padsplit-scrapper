@@ -873,6 +873,16 @@ def run(messages_only: bool = False) -> int:
         except Exception as exc:
             sys.stderr.write(f"# Lockout auto-reply failed; continuing scrape: {exc}\n")
 
+        try:
+            try:
+                from padsplit_scraper.leak_reply import run_for_scraper as run_leak
+            except ModuleNotFoundError:  # Support the cron entry point: python3 padsplit_scraper/scraper.py
+                from leak_reply import run_for_scraper as run_leak
+
+            run_leak(session, creds, messages)
+        except Exception as exc:
+            sys.stderr.write(f"# Leak auto-reply failed; continuing scrape: {exc}\n")
+
         scraped_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         payload: Dict[str, Any] = {"scraped_at": scraped_at, "messages": messages}
         out_path = _persist_latest_payload(payload, scraped_at=scraped_at)

@@ -72,6 +72,8 @@ Spanish Moss back-door lock-code automation (Sifely, v1) is Mac morning/afternoo
 
 Lockout auto-reply (`padsplit_scraper/lockout_reply.py`) detects member lockout messages and SENDS sequentially on the PadSplit member thread only when house and room are 100% known: door code(s) first (deadbolt tip + fail ladder); lockbox / room code + location only after the member later says the door still failed; member got-it / I’m in / code-worked after the door stage stops the ladder (no lockbox SEND, no Discord escalate). Default off until Mac `.env` sets `LOCKOUT_REPLY_ENABLE=1`. CI must not send. Spanish Moss back door uses the Sifely path (never a static Firestore/Tinghui back-door value). Discord `#ai-automations` drafts may say lockout detected / needs a tap / ask Joe, and never include codes or any digits.
 
+Water-leak auto-reply (`padsplit_scraper/leak_reply.py`) detects an **active** member water emergency only: pipe burst / pipe leak, water main, flooding, or water leaking from wall or ceiling. Bare `leak`/`leaking`, slow leaks, drips, seepage, and toilet-only cases do **not** fire (no curb-key / whole-house shutoff). Flooding still fires even with a toilet mention. SENDS a 1:1 adaptation of Firestore `templates/shared` **t5** (`n5` Water leak announcement) on that PadSplit thread, with Quo call/text added (t5 is house-wide and has no Quo). Live t5 is preferred; baked t5 is the fallback. Canonical water-key YouTube: `https://youtube.com/shorts/SCryjPiyZcs`. It also posts a `WATER_KEY_ORDER` event to Discord `#ai-automations` (digit-free except the leaking property ship-to) for Cart: house label, full street address, Orbit ASIN / `water curb key`. No Amazon purchase in this scraper. No Spanish Moss address override. Host reminder blasts and historical “previous leak” chatter do not fire. Default off until Mac `.env` sets `LEAK_REPLY_ENABLE=1`. CI must not send. Discord posts never include lock codes. Nest is interim-handling leak replies until enable is live — tell Nest to stop duplicates when this is turned on.
+
 Write Obsidian daily digest:
 
 ```bash
@@ -102,6 +104,7 @@ python3 test_field_mms.py
 python3 test_seo_monthly.py
 python3 test_lock_codes.py
 python3 test_lockout_reply.py
+python3 test_leak_reply.py
 python3 test_codes_dashboard.py
 node test_codes_dashboard_render.mjs
 ```
