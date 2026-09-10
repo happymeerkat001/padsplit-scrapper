@@ -82,6 +82,17 @@ class FakeSend:
         return {"ok": True}
 
 
+def firestore_t5_doc(text: str | None = None) -> dict:
+    return {
+        "fields": {
+            "n5": {"stringValue": "Water leak announcement"},
+            "t5": {"stringValue": text or leak_reply.BAKED_T5_TEXT},
+            "n6": {"stringValue": "Water leak new tenants"},
+            "t6": {"stringValue": "Welcome variant — not used for auto member leak reply"},
+        }
+    }
+
+
 def run_process(fake: FakeSend, threads: list[dict], **kwargs):
     with tempfile.TemporaryDirectory() as tmpdir:
         state_path = Path(tmpdir) / "state.json"
@@ -94,6 +105,7 @@ def run_process(fake: FakeSend, threads: list[dict], **kwargs):
             post_discord=fake.posts.append,
             send_enabled=True,
             dry_run=False,
+            fetch_doc=lambda: firestore_t5_doc(),
         )
         defaults.update(kwargs)
         rows = leak_reply.process_leaks(threads, **defaults)
@@ -104,6 +116,10 @@ def run_process(fake: FakeSend, threads: list[dict], **kwargs):
 class DetectTests(unittest.TestCase):
     def test_current_leak_phrases(self) -> None:
         for text in (
+            "leak",
+            "leaking",
+            "water leak",
+            "water leaking",
             "leak in the kitchen sink",
             "the kitchen sink is leaking",
             "water leak under the sink",
@@ -130,6 +146,7 @@ class DetectTests(unittest.TestCase):
         )
         for text in (
             blast,
+            leak_reply.BAKED_T5_TEXT,
             "the previous leak is fixed",
             "the sink faucet that was leaking is fixed",
             "thanks, the last leak is already fixed",
@@ -151,8 +168,9 @@ class DetectTests(unittest.TestCase):
 
 class BodyTests(unittest.TestCase):
     def test_body_contains_quo_and_youtube(self) -> None:
-        body = leak_reply.format_leak_body()
+        body = leak_reply.format_leak_body(leak_reply.BAKED_T5_TEXT)
         self.assertIn(leak_reply.QUO_FIELD_PHONE, body)
+        self.assertIn("Call/text Quo:", body)
         self.assertIn("+1 (469) 373-2048", body)
         self.assertIn(leak_reply.WATER_KEY_YOUTUBE_URL, body)
         self.assertIn("https://youtube.com/shorts/SCryjPiyZcs", body)
@@ -160,9 +178,37 @@ class BodyTests(unittest.TestCase):
         self.assertNotIn("utm_", body)
         self.assertIn("between the water meter and the house", body)
         self.assertIn("water key", body.lower())
+        self.assertIn("drinking water", body.lower())
+        self.assertNotIn("Dear All", body)
+        self.assertNotIn("common closet", body.lower())
         self.assertNotIn("lock code", body.lower())
         self.assertNotIn("ssn", body.lower())
         self.assertNotIn("amazon", body.lower())
+        self.assertIn(leak_reply.LEAK_PACK_MARKER, body)
+
+    def test_live_t5_is_adapted_and_quo_injected(self) -> None:
+        body = leak_reply.format_leak_body(fetch_doc=lambda: firestore_t5_doc())
+        self.assertIn(leak_reply.QUO_FIELD_PHONE, body)
+        self.assertIn(leak_reply.WATER_KEY_YOUTUBE_URL, body)
+        self.assertNotIn("si=", body)
+        self.assertNotIn("Welcome variant", body)
+
+    def test_t6_welcome_variant_is_not_the_auto_source(self) -> None:
+        source = leak_reply.pick_t5_source(
+            leak_reply.load_shared_template_fields(lambda: firestore_t5_doc())
+        )
+        self.assertIn("Dear All", source)
+        self.assertNotIn("Welcome variant", source)
+        self.assertEqual(leak_reply.T6_LABEL.lower(), "water leak new tenants")
+
+    def test_t5_fetch_failure_falls_back_to_baked(self) -> None:
+        def boom() -> dict:
+            raise RuntimeError("firestore down")
+
+        body = leak_reply.format_leak_body(fetch_doc=boom)
+        self.assertIn(leak_reply.QUO_FIELD_PHONE, body)
+        self.assertIn(leak_reply.WATER_KEY_YOUTUBE_URL, body)
+        self.assertIn(leak_reply.LEAK_PACK_MARKER, body)
 
 
 class DiscordTests(unittest.TestCase):
@@ -271,6 +317,7 @@ class FlowTests(unittest.TestCase):
                 post_discord=fake.posts.append,
                 send_enabled=True,
             )
+            kwargs["fetch_doc"] = lambda: firestore_t5_doc()
             first = leak_reply.process_leaks([member_thread()], **kwargs)
             second = leak_reply.process_leaks([member_thread()], **kwargs)
         self.assertEqual(first[0]["action"], "sent")
@@ -282,7 +329,7 @@ class FlowTests(unittest.TestCase):
         fake = FakeSend()
         rows, _ = run_process(
             fake,
-            [member_thread(host_texts=[leak_reply.format_leak_body()])],
+            [member_thread(host_texts=[leak_reply.format_leak_body(leak_reply.BAKED_T5_TEXT)])],
         )
         self.assertEqual(rows[0]["action"], "already_sent")
         self.assertEqual(fake.sends, [])

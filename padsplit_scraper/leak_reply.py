@@ -2,9 +2,9 @@
 """PadSplit host water-leak auto-reply (Ang GO / Chief).
 
 When a current member reports a water leak at 100% precision, SEND a
-shut-off pack on that PadSplit thread (Quo + water-key YouTube + host
-shut-off copy) and emit a digit-free WATER_KEY_ORDER event on Discord
-#ai-automations for Cart. No Amazon purchase in this scraper.
+1:1 adaptation of Firestore templates/shared t5 (n5 Water leak
+announcement) plus Quo, and emit a digit-free WATER_KEY_ORDER event on
+Discord #ai-automations for Cart. No Amazon purchase in this scraper.
 
 High precision only: member messages, current leak language. Do not fire
 on host reminder blasts or historical “previous leak” chatter.
@@ -25,18 +25,29 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Callable, Dict, Iterable, List, Optional, Sequence
 
+import requests
 from dotenv import load_dotenv
 
 try:
     from padsplit_scraper import lock_codes
     from padsplit_scraper import lockout_reply
     from padsplit_scraper import new_booking
-    from padsplit_scraper.scraper import create_session, load_credentials, login
+    from padsplit_scraper.scraper import (
+        DEFAULT_TIMEOUT,
+        create_session,
+        load_credentials,
+        login,
+    )
 except ModuleNotFoundError:  # python3 padsplit_scraper/leak_reply.py
     import lock_codes  # type: ignore
     import lockout_reply  # type: ignore
     import new_booking  # type: ignore
-    from scraper import create_session, load_credentials, login  # type: ignore
+    from scraper import (  # type: ignore
+        DEFAULT_TIMEOUT,
+        create_session,
+        load_credentials,
+        login,
+    )
 
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
@@ -46,11 +57,42 @@ STATE_PATH = ROOT_DIR / "logs" / "leak_reply_state.json"
 LOOKBACK = timedelta(hours=36)
 IDEMPOTENCY_WINDOW = timedelta(hours=24)
 
-# Member-thread only. Same Quo field line as lockout / live fleet templates.
+# Member-thread only. Same Quo field line as lockout. t5 does not include Quo.
 QUO_FIELD_PHONE = lockout_reply.JOE_FIELD_PHONE
 WATER_KEY_YOUTUBE_URL = "https://youtube.com/shorts/SCryjPiyZcs"
-LEAK_PACK_MARKER = "Sorry about the water leak — please shut the water off now"
+LEAK_PACK_MARKER = "Thanks for reporting the water leak"
 WATER_KEY_ORDER_MARKER = "WATER_KEY_ORDER"
+T5_LABEL = "Water leak announcement"
+T6_LABEL = "Water leak new tenants"
+WATER_LEAK_ANNOUNCEMENT_LABEL = "water leak announcement"
+
+# Canonical t5 from live Firestore templates/shared (Mac fetch). House-wide
+# copy; AUTO member reply adapts this to 1:1 and adds Quo.
+BAKED_T5_TEXT = """Dear All,
+
+Quick important update for everyone’s safety:
+
+In case of a water leak or pipe issue, please act immediately to prevent flooding and damage. Please place this in the common closet where everyone can reach it.
+
+👉 Location:
+The water shut-off box is located between the water meter and the house.
+
+👉 What to do:
+1. Use the water key to turn OFF the water immediately
+2. This helps prevent damage to the house and your personal belongings
+3. You may turn it ON briefly if needed (for drinking water), but please keep it OFF afterward
+
+We will send someone out ASAP to fix the issue.
+
+🎥 How to use a water key:
+https://youtube.com/shorts/SCryjPiyZcs?si=NfvowNCrVSnHK99w
+
+⚠️ Reminder:
+Leaks and flooding are considered emergency maintenance issues, so quick action helps protect everyone.
+
+If you’re unsure, message us immediately.
+
+Thank you for helping keep the home safe."""
 
 _DIGIT_WORDS = (
     "zero",
@@ -69,12 +111,13 @@ _DIGIT_TOKEN_RE = re.compile(
 )
 _LEADING_HOUSE_NUM_RE = re.compile(r"^\s*\d+\s*")
 
-# Current member leak reports. Bare “leak” without water/flood/fixture
-# context is not 100% and must not fire.
+# Current member leak reports. Required cues: leak, leaking, water leak.
+# Host-blast / historical clauses are stripped before this re-check.
 _CURRENT_LEAK_RE = re.compile(
     r"(?i)("
     r"\bwater\s+leak(?:ing)?\b"
     r"|\bleak(?:ing)?\s+water\b"
+    r"|\bleak(?:ing)?\b"
     r"|\bpipe\s+leak(?:ing)?\b"
     r"|\bleak(?:ing)?\s+pipe\b"
     r"|\b(?:sink|faucet|toilet|shower|tub|ceiling|hose|spigot|"
@@ -107,6 +150,7 @@ _LEAK_EXCLUDE_RE = re.compile(
     r"|prevent (?:possible )?leaks"
     r"|prevent flooding"
     r"|avoid flooding"
+    r"|leaks and flooding"
     r"|flooding and (?:damage|costly)"
     r"|\bprevious (?:water )?leak"
     r"|\blast (?:water )?leak"
@@ -132,7 +176,27 @@ _HOST_BLAST_RE = re.compile(
     r"|youtube\.com/shorts/scryjpiyzcs"
     r"|please be reminded to use water"
     r"|dear all"
+    r"|quick important update for everyone"
     r")",
+)
+
+_YOUTUBE_SHORT_RE = re.compile(
+    r"https?://(?:www\.)?youtube\.com/shorts/SCryjPiyZcs[^\s)\]>]*",
+    re.IGNORECASE,
+)
+_DEAR_ALL_RE = re.compile(r"(?i)^\s*dear\s+all\s*,?\s*")
+_HOUSEWIDE_OPENER_RE = re.compile(
+    r"(?i)^\s*Quick important update for everyone['’]s safety:\s*"
+)
+_COMMON_CLOSET_RE = re.compile(
+    r"(?i)\s*Please place this in the common closet where everyone can reach it\.?\s*"
+)
+_IN_CASE_OPENER_RE = re.compile(
+    r"(?i)^In case of a water leak or pipe issue, please act immediately "
+    r"to prevent flooding and damage\.\s*"
+)
+_UNSURE_MESSAGE_RE = re.compile(
+    r"(?i)If you['’]re unsure, message us immediately\.?"
 )
 
 
@@ -213,24 +277,95 @@ def detect_leak(text: str) -> bool:
     return bool(_CURRENT_LEAK_RE.search(stripped))
 
 
-def format_leak_body() -> str:
-    """PadSplit host body. No lock codes, no SSN, no Amazon."""
-    return "\n".join(
-        [
-            f"{LEAK_PACK_MARKER}.",
-            "",
-            f"Call/text Quo: {QUO_FIELD_PHONE}",
-            "",
-            "The water shut-off box is between the water meter and the house.",
-            "1. Use the water key to turn OFF the water immediately.",
-            "2. Keep the water OFF except a brief turn-on if you need drinking water, then OFF again.",
-            "",
-            "How to use a water key:",
-            WATER_KEY_YOUTUBE_URL,
-            "",
-            "We’ll send someone out ASAP. If you’re unsure, call/text the number above.",
-        ]
+def canonicalize_water_key_youtube(text: str) -> str:
+    """Keep the canonical short URL; strip ?si= / utm tracking."""
+    return _YOUTUBE_SHORT_RE.sub(WATER_KEY_YOUTUBE_URL, text or "")
+
+
+def load_shared_template_fields(
+    fetch_doc: Optional[Callable[[], Dict[str, Any]]] = None,
+) -> Dict[str, str]:
+    """Same templates/shared doc new_booking uses for the Hirevire card."""
+    if fetch_doc is None:
+
+        def fetch_doc() -> Dict[str, Any]:
+            resp = requests.get(new_booking.TEMPLATES_DOC_URL, timeout=DEFAULT_TIMEOUT)
+            resp.raise_for_status()
+            return resp.json()
+
+    return new_booking.parse_firestore_string_map(fetch_doc())
+
+
+def pick_t5_source(fields: Dict[str, str]) -> str:
+    for index in range(16):
+        label = (fields.get(f"n{index}") or "").strip()
+        if label.lower() == WATER_LEAK_ANNOUNCEMENT_LABEL:
+            return new_booking.template_send_body(label, fields.get(f"t{index}") or "")
+    return new_booking.template_send_body(fields.get("n5") or T5_LABEL, fields.get("t5") or "")
+
+
+def load_t5_source(
+    fetch_doc: Optional[Callable[[], Dict[str, Any]]] = None,
+) -> str:
+    try:
+        source = pick_t5_source(load_shared_template_fields(fetch_doc))
+        if source.strip():
+            return source
+    except Exception as exc:
+        _log(f"templates/shared t5 load failed; using baked copy: {exc}")
+    return BAKED_T5_TEXT
+
+
+def adapt_t5_to_member_thread(text: str) -> str:
+    """1:1 tone from house-wide t5. Always add Quo. No lock codes / SSN / Amazon."""
+    body = new_booking.template_send_body(T5_LABEL, text or "")
+    if not body.strip():
+        body = BAKED_T5_TEXT
+    body = _DEAR_ALL_RE.sub("", body).strip()
+    body = _HOUSEWIDE_OPENER_RE.sub("", body).strip()
+    body = _COMMON_CLOSET_RE.sub("\n\n", body)
+    body = _IN_CASE_OPENER_RE.sub(
+        f"{LEAK_PACK_MARKER} — please act immediately to prevent flooding and damage.\n\n",
+        body,
+        count=1,
     )
+    if LEAK_PACK_MARKER not in body:
+        body = (
+            f"{LEAK_PACK_MARKER} — please act immediately to prevent flooding "
+            f"and damage.\n\n{body}"
+        )
+    body = canonicalize_water_key_youtube(body)
+    body = _UNSURE_MESSAGE_RE.sub(
+        f"If you’re unsure, call/text Quo: {QUO_FIELD_PHONE}.",
+        body,
+    )
+    quo = f"Call/text Quo: {QUO_FIELD_PHONE}"
+    if quo not in body:
+        parts = body.split("\n\n", 1)
+        body = (
+            f"{parts[0]}\n\n{quo}\n\n{parts[1]}"
+            if len(parts) == 2
+            else f"{body}\n\n{quo}"
+        )
+    if WATER_KEY_YOUTUBE_URL not in body:
+        body = f"{body}\n\nHow to use a water key:\n{WATER_KEY_YOUTUBE_URL}"
+    body = canonicalize_water_key_youtube(body)
+    return re.sub(r"\n{3,}", "\n\n", body).strip()
+
+
+def format_leak_body(
+    source: Optional[str] = None,
+    *,
+    fetch_doc: Optional[Callable[[], Dict[str, Any]]] = None,
+) -> str:
+    """PadSplit 1:1 body from live t5 (or baked t5). Quo + canonical YouTube."""
+    raw = source if source is not None else load_t5_source(fetch_doc)
+    body = adapt_t5_to_member_thread(raw)
+    if QUO_FIELD_PHONE not in body:
+        raise RuntimeError("refusing to format leak body without Quo number")
+    if "lock code" in body.lower() or "ssn" in body.lower():
+        raise RuntimeError("refusing leak body that mentions lock codes or SSN")
+    return body
 
 
 def discord_water_key_order_text(
@@ -343,6 +478,7 @@ def decide(
     *,
     now: datetime,
     state: Optional[Dict[str, Any]] = None,
+    leak_body: Optional[str] = None,
 ) -> Decision:
     chat_id = str(thread.get("id") or "")
     if not chat_id:
@@ -390,7 +526,7 @@ def decide(
         house_label=house.label,
         street=street,
         room=room.room or "",
-        send_body=format_leak_body(),
+        send_body=leak_body if leak_body is not None else format_leak_body(),
         discord=discord_water_key_order_text(
             house_label=house.label,
             street=street,
@@ -421,13 +557,16 @@ def process_leaks(
     post_discord: Optional[Callable[[str], Any]] = None,
     send_enabled: bool = True,
     dry_run: bool = False,
+    fetch_doc: Optional[Callable[[], Dict[str, Any]]] = None,
+    leak_body: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     now = now or datetime.now(timezone.utc)
     state = state if state is not None else load_state(state_path)
     results: List[Dict[str, Any]] = []
+    body = leak_body if leak_body is not None else format_leak_body(fetch_doc=fetch_doc)
 
     for thread in threads:
-        decision = decide(thread, now=now, state=state)
+        decision = decide(thread, now=now, state=state, leak_body=body)
         row = {
             "chat_id": decision.chat_id,
             "action": decision.action,
@@ -504,6 +643,7 @@ def run(
     state_path: Path = STATE_PATH,
     session=None,
     creds: Optional[Dict[str, str]] = None,
+    fetch_doc: Optional[Callable[[], Dict[str, Any]]] = None,
 ) -> RunResult:
     load_environment()
     current = now or datetime.now(timezone.utc)
@@ -541,6 +681,7 @@ def run(
         post_discord=post_discord,
         send_enabled=not dry_run,
         dry_run=dry_run,
+        fetch_doc=fetch_doc,
     )
     if leftover_compose_tabs is None and not dry_run:
         new_booking.save_leftover_compose_tabs(tabs, leftover_tabs_path)
