@@ -294,6 +294,80 @@ class NewBookingFirstMessageTests(unittest.TestCase):
         self.assertEqual(fake.sends, [])
         self.assertEqual(len(fake.packs), 1)
 
+    def test_existing_hirevire_still_screens_eviction_and_skips_pack(self) -> None:
+        fake = FakeSend()
+        thread = occupancy_thread(host_texts=[HIREVIRE_BODY])
+        results, state, _ = run_process(
+            fake,
+            [thread],
+            rental_history_fn=lambda _thread: {"latestEvictionMonth": "2022-03", "totalEvictions": 1},
+        )
+        self.assertEqual(results[0]["action"], "auto_deny_eviction")
+        self.assertEqual(fake.sends, [])
+        self.assertEqual(fake.packs, [])
+        self.assertEqual(state["bookings"]["booking-1"]["action"], "auto_deny_eviction")
+        self.assertFalse(state["bookings"]["booking-1"]["pack_posted"])
+
+    def test_failed_pack_after_existing_hirevire_retries(self) -> None:
+        fake = FakeSend()
+        thread = occupancy_thread(host_texts=[HIREVIRE_BODY])
+        with tempfile.TemporaryDirectory() as tmpdir:
+            state_path = Path(tmpdir) / "state.json"
+
+            def fail_notify(_result: dict) -> dict:
+                return {"posted": False, "reason": "missing_webhook"}
+
+            first = new_booking.process_new_bookings(
+                [thread],
+                pending_inbox=pending_inbox("booking-1"),
+                now=NOW,
+                state_path=state_path,
+                load_template=lambda: TEMPLATE,
+                rental_history_fn=lambda _thread: {"totalEvictions": 0},
+                leftover_compose_tabs=fake.tabs,
+                close_tabs_fn=fake.close_tabs,
+                send_fn=fake.send,
+                notify_fn=fail_notify,
+            )
+            self.assertEqual(first[0]["action"], "skipped_already_sent")
+            self.assertFalse(first[0]["pack_posted"])
+            self.assertFalse(new_booking.already_handled(json.loads(state_path.read_text()), "booking-1"))
+
+            second = new_booking.process_new_bookings(
+                [thread],
+                pending_inbox=pending_inbox("booking-1"),
+                now=NOW,
+                state_path=state_path,
+                load_template=lambda: TEMPLATE,
+                rental_history_fn=lambda _thread: {"totalEvictions": 0},
+                leftover_compose_tabs=fake.tabs,
+                close_tabs_fn=fake.close_tabs,
+                send_fn=fake.send,
+                notify_fn=fake.notify,
+            )
+        self.assertEqual(second[0]["action"], "pack_posted")
+        self.assertTrue(second[0]["pack_posted"])
+        self.assertEqual(fake.sends, [])
+        self.assertEqual(len(fake.packs), 1)
+
+    def test_pack_refuses_without_joe_user_id(self) -> None:
+        snap = new_booking.build_screening_snapshot(
+            booking_id="booking-1",
+            thread=occupancy_thread(),
+            hirevire_sent=True,
+        )
+        with self.assertRaises(RuntimeError):
+            new_booking.format_new_tenants_pack(snap, joe_user_id="")
+        with (
+            patch.object(new_booking, "live_send_enabled", return_value=True),
+            patch.dict("os.environ", {"DISCORD_JOE_USER_ID": ""}, clear=False),
+        ):
+            posted = new_booking.notify_new_tenants_pack_for_joe(
+                {"screening_snapshot": snap},
+                post_fn=lambda _url, _payload: (_ for _ in ()).throw(AssertionError("posted")),
+            )
+        self.assertEqual(posted, {"posted": False, "reason": "missing_joe_id"})
+
     def test_old_eviction_outside_7_years_would_send(self) -> None:
         self.assertFalse(
             new_booking.has_recent_eviction(
