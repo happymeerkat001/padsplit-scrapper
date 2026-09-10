@@ -26,6 +26,7 @@ python3 thermostat/scraper.py
 ./run_seo_monthly.sh  # monthly SEO / vacancy advice (1st 9:00am CT; CI must not post)
 # Spanish Moss back-door lock codes run from morning/afternoon (Mac only; CI no-op)
 # Lockout auto-reply runs from morning/afternoon + scraper (LOCKOUT_REPLY_ENABLE; CI no-op)
+# Leak auto-reply runs from morning/afternoon + scraper (LEAK_REPLY_ENABLE; CI no-op)
 ```
 
 ## Tests
@@ -45,6 +46,7 @@ python3 test_field_mms.py
 python3 test_seo_monthly.py
 python3 test_lock_codes.py
 python3 test_lockout_reply.py
+python3 test_leak_reply.py
 ```
 
 No build step or linter configuration; tests use direct Python execution.
@@ -100,6 +102,7 @@ No build step or linter configuration; tests use direct Python execution.
 - `padsplit_scraper/seo_monthly.py` — 1st 9:00am CT SEO / vacancy advice pack (live rooms + occupancy; Joe-only Discord dry-run in CI)
 - `padsplit_scraper/lock_codes.py` — Spanish Moss back-door Sifely lock-code v1 (Mac morning/afternoon; CI must not rotate or post)
 - `padsplit_scraper/lockout_reply.py` — member lockout auto-SEND on PadSplit when house/room are 100% known: door codes first, lockbox only after a door-fail follow-up; got-it / I’m in / code-worked after door stops the ladder (Mac; `LOCKOUT_REPLY_ENABLE`; CI must not send). Spanish Moss back door uses Sifely, never Firestore static. Discord posts never include codes or digits.
+- `padsplit_scraper/leak_reply.py` — member water-leak auto-SEND on PadSplit at 100% current-leak precision (Quo + water-key YouTube + shut-off copy). Emits digit-free `WATER_KEY_ORDER` on `#ai-automations` for Cart. No Amazon purchase here. Default off until Mac `.env` sets `LEAK_REPLY_ENABLE=1`. CI must not send. Discord posts never include codes or digits.
 - `slack_task_digest.py` — scheduled DFW weather and task digest, posts to Discord
 - `padsplit_scraper/firestore_status_monitor.py` — Firestore integration
 - `obsidian_daily_digest.py` — daily note generation from scraped data
@@ -127,8 +130,9 @@ DISCORD_WEBHOOK_NEW_TENANTS= # #new-tenants pack (Joe only; CI must not post)
 DISCORD_JOE_USER_ID=     # Discord snowflake for @Joe on #new-tenants (never @ Cindy)
 DISCORD_BOT_TOKEN=
 DISCORD_CHANNEL_ID=
-DISCORD_AUTOMATIONS_CHANNEL_ID= # optional #ai-automations; lockout drafts, no digits
+DISCORD_AUTOMATIONS_CHANNEL_ID= # optional #ai-automations; lockout drafts + leak WATER_KEY_ORDER, no digits
 LOCKOUT_REPLY_ENABLE=          # default off; Mac .env sets 1 to auto-SEND lockout door then lockbox
+LEAK_REPLY_ENABLE=             # default off; Mac .env sets 1 to auto-SEND water-leak shut-off pack + WATER_KEY_ORDER
 SIFELY_API_KEY=          # raw sk- key, no Bearer; missing = Need-you no-op
 SIFELY_LOCK_ID=          # optional Spanish Moss back-door lock id
 SIFELY_KEYBOARD_PWD_ID=  # optional tenant passcode id
