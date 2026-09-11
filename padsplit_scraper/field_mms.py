@@ -6,11 +6,11 @@ morning window when PadSplit host messages and/or Discord #ai-tasks-temp have
 something to say. Skip when both sources are empty.
 Never send from GitHub Actions / CI. Do not send from a box/VPS IP.
 
-Primary send path is Quo SMS from +1 (469) 373-2048 (A2P) to Don and Dad
-(one POST per recipient). Fallbacks are Google Voice group SMS (Ang's Mac
-Chrome) then the Messages.app chat named exactly "Don Field". Prefer the
-Mac launchd job; Quo HTTP does not need a residential IP the way Google
-Voice does.
+Primary send path is Quo SMS from +1 (469) 373-2048 (A2P) to Don, Dad,
+and Ang GV as one group conversation (one POST, ``to`` is the full list).
+Fallbacks are Google Voice group SMS (Ang's Mac Chrome) then the
+Messages.app chat named exactly "Don Field". Prefer the Mac launchd job;
+Quo HTTP does not need a residential IP the way Google Voice does.
 """
 
 from __future__ import annotations
@@ -64,13 +64,15 @@ FIELD_MMS_TRANSPORT_DEFAULT = "auto"
 
 # Thread owner (From) for GV / Messages group fallback.
 ANG_VOICE_PHONE = "+14696267260"
+ANG_GV_PHONE = ANG_VOICE_PHONE
 DAD_PHONE = "+19452413070"
 JOE_PHONE = "+14693732048"
 DON_PHONE = "+12147798338"
 DON_WRONG_PHONE = "+12144541768"
 GROUP_RECIPIENTS = (DAD_PHONE, JOE_PHONE, DON_PHONE)
-# Quo blast defaults: Don + Dad 1:1 SMS. Override with FIELD_MMS_QUO_TO.
-QUO_RECIPIENTS_DEFAULT = (DON_PHONE, DAD_PHONE)
+# Quo blast defaults: Don + Dad + Ang GV in one group conversation.
+# Joe is not on this list. Override with FIELD_MMS_QUO_TO.
+QUO_RECIPIENTS_DEFAULT = (DON_PHONE, DAD_PHONE, ANG_GV_PHONE)
 
 # Quo public API (verified send path: POST /v1/messages). Dated API 2026-03-30
 # does not yet document send-message; v1 remains the live send endpoint.
@@ -188,7 +190,10 @@ def assert_group_recipients(recipients: Sequence[str]) -> List[str]:
 
 
 def assert_quo_recipients(recipients: Sequence[str]) -> List[str]:
-    """Don + Dad required. Extra E.164 numbers from FIELD_MMS_QUO_TO are allowed."""
+    """Don + Dad required. Ang GV is the default third. Joe is not required.
+
+    Extra E.164 numbers from FIELD_MMS_QUO_TO are allowed.
+    """
     unique: List[str] = []
     seen: Set[str] = set()
     for item in recipients:
@@ -629,11 +634,12 @@ def send_via_quo(
     *,
     http_post: Optional[Callable[..., Any]] = None,
 ) -> None:
-    """Send one 1:1 Quo SMS per recipient. Never log the API key.
+    """Send one Quo group SMS/MMS to all recipients. Never log the API key.
 
     Quo POST /v1/messages accepts ``to`` as a list (batch / group). This blast
-    uses one POST per recipient so Don and Dad each get a 1:1, not a new group
-    thread. GV / Messages still use the existing Don Field group as fallback.
+    uses one POST with the full recipient list so Don, Dad, and Ang GV share
+    one conversation. GV / Messages still use the existing Don Field group
+    as fallback.
     """
     if not sending_allowed():
         raise RuntimeError("CI / non-Mac must not send MMS")
@@ -649,24 +655,23 @@ def send_via_quo(
         "Content-Type": "application/json",
     }
     poster = http_post or requests.post
-    for to_number in targets:
-        payload = {
-            "content": body,
-            "from": from_number,
-            "to": [to_number],
-        }
-        try:
-            response = poster(
-                QUO_MESSAGES_URL,
-                headers=headers,
-                json=payload,
-                timeout=DEFAULT_TIMEOUT,
-            )
-        except requests.RequestException as exc:
-            raise QuoTransportError(f"Quo SMS request failed: {type(exc).__name__}") from exc
-        status = getattr(response, "status_code", None)
-        if status not in QUO_SUCCESS_STATUSES:
-            raise QuoTransportError(f"Quo SMS send failed: HTTP {status}")
+    payload = {
+        "content": body,
+        "from": from_number,
+        "to": targets,
+    }
+    try:
+        response = poster(
+            QUO_MESSAGES_URL,
+            headers=headers,
+            json=payload,
+            timeout=DEFAULT_TIMEOUT,
+        )
+    except requests.RequestException as exc:
+        raise QuoTransportError(f"Quo SMS request failed: {type(exc).__name__}") from exc
+    status = getattr(response, "status_code", None)
+    if status not in QUO_SUCCESS_STATUSES:
+        raise QuoTransportError(f"Quo SMS send failed: HTTP {status}")
 
 
 def messages_chat_name() -> str:
