@@ -29,7 +29,6 @@ from test_lockout_reply import (
 )
 from test_leak_reply import firestore_t5_doc
 from test_leak_reply import member_thread as leak_member_thread
-from test_leak_reply import run_process as run_leak_process
 
 
 def _block_network(*_args, **_kwargs):
@@ -108,7 +107,8 @@ class PreviewGateTests(NetworkGuard):
         fake = FakeSend()
         rows, _ = run_process(
             fake,
-            [member_thread(room=99)],
+            [member_thread()],
+            codes_fn=lambda _slug: {},
             send_enabled=False,
             dry_run=False,
         )
@@ -214,8 +214,21 @@ class LeakBoundaryTests(NetworkGuard):
 
     def test_leak_send_uses_t5_and_is_idempotent(self) -> None:
         fake = FakeSend()
-        first, _ = run_leak_process(fake, [leak_member_thread()])
-        second, _ = run_leak_process(fake, [leak_member_thread()])
+        with tempfile.TemporaryDirectory() as tmpdir:
+            state_path = Path(tmpdir) / "state.json"
+            kwargs = dict(
+                now=datetime(2026, 9, 10, 15, 0, tzinfo=timezone.utc),
+                state_path=state_path,
+                leftover_compose_tabs=fake.tabs,
+                close_tabs_fn=fake.close_tabs,
+                send_fn=fake.send,
+                post_discord=fake.posts.append,
+                send_enabled=True,
+                dry_run=False,
+                fetch_doc=lambda: firestore_t5_doc(),
+            )
+            first = leak_reply.process_leaks([leak_member_thread()], **kwargs)
+            second = leak_reply.process_leaks([leak_member_thread()], **kwargs)
         self.assertEqual(first[0]["action"], "sent")
         self.assertEqual(second[0]["action"], "already_sent")
         self.assertEqual(len(fake.sends), 1)
