@@ -9,6 +9,7 @@ from unittest.mock import Mock, patch
 from zoneinfo import ZoneInfo
 
 from padsplit_scraper.field_mms import (
+    ANG_GV_PHONE,
     ANG_VOICE_PHONE,
     DAD_PHONE,
     DON_PHONE,
@@ -199,17 +200,30 @@ class FieldMmsTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "never solo Don|group MMS only"):
             assert_group_recipients((DON_PHONE,))
 
-    def test_quo_recipients_are_don_and_dad(self) -> None:
+    def test_quo_recipients_are_don_dad_and_ang_gv(self) -> None:
         self.assertEqual(normalize_phone("(945) 241-3070"), DAD_PHONE)
-        self.assertEqual(QUO_RECIPIENTS_DEFAULT, (DON_PHONE, DAD_PHONE))
+        self.assertEqual(normalize_phone("(469) 626-7260"), ANG_GV_PHONE)
+        self.assertEqual(ANG_GV_PHONE, ANG_VOICE_PHONE)
+        self.assertEqual(QUO_RECIPIENTS_DEFAULT, (DON_PHONE, DAD_PHONE, ANG_GV_PHONE))
+        self.assertNotIn(JOE_PHONE, QUO_RECIPIENTS_DEFAULT)
         self.assertEqual(assert_quo_recipients(QUO_RECIPIENTS_DEFAULT), list(QUO_RECIPIENTS_DEFAULT))
-        self.assertEqual(assert_quo_recipients(["(214) 779-8338", "(945) 241-3070"]), list(QUO_RECIPIENTS_DEFAULT))
+        # Don + Dad remain the required pair; Ang GV is allowed, Joe is not required.
+        self.assertEqual(
+            assert_quo_recipients(["(214) 779-8338", "(945) 241-3070"]),
+            [DON_PHONE, DAD_PHONE],
+        )
+        self.assertEqual(
+            assert_quo_recipients((DON_PHONE, DAD_PHONE, ANG_GV_PHONE)),
+            [DON_PHONE, DAD_PHONE, ANG_GV_PHONE],
+        )
         with self.assertRaisesRegex(RuntimeError, "wrong Don number"):
             assert_quo_recipients((DAD_PHONE, DON_WRONG_PHONE))
         with self.assertRaisesRegex(RuntimeError, "Don is missing"):
-            assert_quo_recipients((DAD_PHONE,))
+            assert_quo_recipients((DAD_PHONE, ANG_GV_PHONE))
         with self.assertRaisesRegex(RuntimeError, "Dad is missing"):
-            assert_quo_recipients((DON_PHONE,))
+            assert_quo_recipients((DON_PHONE, ANG_GV_PHONE))
+        with self.assertRaisesRegex(RuntimeError, "Dad is missing"):
+            assert_quo_recipients((DON_PHONE, JOE_PHONE))
 
     def test_field_mms_quo_to_env_extends_defaults(self) -> None:
         with patch.dict(os.environ, {}, clear=False):
@@ -223,6 +237,11 @@ class FieldMmsTests(unittest.TestCase):
             self.assertEqual(resolve_quo_recipients(), [DON_PHONE, DAD_PHONE, extra])
         with patch.dict(os.environ, {"FIELD_MMS_QUO_TO": f"{DON_PHONE} {DAD_PHONE}"}):
             self.assertEqual(resolve_quo_recipients(), [DON_PHONE, DAD_PHONE])
+        with patch.dict(
+            os.environ,
+            {"FIELD_MMS_QUO_TO": f"{DON_PHONE},{DAD_PHONE},{ANG_GV_PHONE}"},
+        ):
+            self.assertEqual(resolve_quo_recipients(), list(QUO_RECIPIENTS_DEFAULT))
 
     def test_sms_body_never_contains_lock_code_like_strings(self) -> None:
         threads = [
@@ -261,7 +280,7 @@ class FieldMmsTests(unittest.TestCase):
         self.assertNotIn(fake_token, cleaned)
         self.assertIn("[redacted]", cleaned)
 
-    def test_thread_owner_is_ang_voice_and_quo_blast_is_don_and_dad(self) -> None:
+    def test_thread_owner_is_ang_voice_and_quo_blast_is_don_dad_ang_gv(self) -> None:
         window = window_for(datetime(2026, 9, 1, 7, 0, tzinfo=CT))
         plan = plan_send(["10235 Ridge Oak Rm 1 — AC out"], [], window, set())
         self.assertEqual(plan.thread_owner, ANG_VOICE_PHONE)
@@ -269,6 +288,7 @@ class FieldMmsTests(unittest.TestCase):
         self.assertEqual(tuple(plan.recipients), QUO_RECIPIENTS_DEFAULT)
         self.assertIn(DON_PHONE, plan.recipients)
         self.assertIn(DAD_PHONE, plan.recipients)
+        self.assertIn(ANG_GV_PHONE, plan.recipients)
         self.assertNotIn(JOE_PHONE, plan.recipients)
 
     def test_ci_never_sends(self) -> None:
@@ -618,9 +638,9 @@ class FieldMmsQuoTests(unittest.TestCase):
                     http_post=http_post,
                 )
 
-        self.assertEqual(len(posted), 2)
+        self.assertEqual(len(posted), 3)
         to_lists = [call["json"]["to"] for call in posted]
-        self.assertEqual(to_lists, [[DON_PHONE], [DAD_PHONE]])
+        self.assertEqual(to_lists, [[DON_PHONE], [DAD_PHONE], [ANG_GV_PHONE]])
         for call in posted:
             self.assertEqual(call["url"], QUO_MESSAGES_URL)
             self.assertEqual(call["url"], "https://api.quo.com/v1/messages")
@@ -711,18 +731,18 @@ class FieldMmsQuoTests(unittest.TestCase):
                     {"QUO_API_KEY": FAKE_QUO_KEY, "QUO_FROM_NUMBER": FAKE_QUO_FROM},
                 ):
                     send_via_quo("PadSplit: kitchen sink leak", QUO_RECIPIENTS_DEFAULT)
-        self.assertEqual(post.call_count, 2)
+        self.assertEqual(post.call_count, 3)
         self.assertEqual(post.call_args_list[0][0][0], QUO_MESSAGES_URL)
         headers = post.call_args_list[0].kwargs["headers"]
         self.assertEqual(headers["Authorization"], FAKE_QUO_KEY)
         self.assertEqual(headers["Quo-Api-Version"], QUO_API_VERSION)
         self.assertEqual(
             [call.kwargs["json"]["from"] for call in post.call_args_list],
-            [FAKE_QUO_FROM, FAKE_QUO_FROM],
+            [FAKE_QUO_FROM, FAKE_QUO_FROM, FAKE_QUO_FROM],
         )
         self.assertEqual(
             [call.kwargs["json"]["to"] for call in post.call_args_list],
-            [[DON_PHONE], [DAD_PHONE]],
+            [[DON_PHONE], [DAD_PHONE], [ANG_GV_PHONE]],
         )
 
     def test_send_via_quo_request_exception_is_transport_error(self) -> None:
