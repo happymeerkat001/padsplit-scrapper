@@ -236,10 +236,8 @@ class LeakBoundaryTests(NetworkGuard):
         self.assertIn(leak_reply.QUO_FIELD_PHONE, fake.sends[0][1])
 
 
-class CharacterizationTests(NetworkGuard):
-    """Known-risk documentation. Not acceptance criteria."""
-
-    def test_corrupt_state_fail_open_lockout(self) -> None:
+class SafetyAcceptanceTests(NetworkGuard):
+    def test_corrupt_state_stops_sends(self) -> None:
         fake = FakeSend()
         with tempfile.TemporaryDirectory() as tmpdir:
             state_path = Path(tmpdir) / "state.json"
@@ -256,40 +254,35 @@ class CharacterizationTests(NetworkGuard):
                 send_enabled=True,
                 dry_run=False,
             )
-        # Characterization: corrupt JSON is treated as empty and sending proceeds.
-        self.assertEqual(rows[0]["action"], "sent")
+            self.assertEqual(state_path.read_text(), "{not-json")
+        self.assertEqual(rows[0]["action"], "blocked_corrupt_state")
+        self.assertEqual(fake.sends, [])
+        self.assertEqual(fake.posts, [])
 
-    def test_discord_callback_failure_loses_checkpoint(self) -> None:
+    def test_discord_failure_keeps_send_checkpoint(self) -> None:
         def boom(_text: str) -> None:
             raise RuntimeError("discord down")
 
         with tempfile.TemporaryDirectory() as tmpdir:
             state_path = Path(tmpdir) / "state.json"
-            thread = leak_member_thread()
-            with self.assertRaises(RuntimeError):
-                leak_reply.process_leaks(
-                    [thread],
-                    now=datetime(2026, 9, 10, 15, 0, tzinfo=timezone.utc),
-                    state_path=state_path,
-                    leftover_compose_tabs=[],
-                    close_tabs_fn=lambda tabs, chat_id: new_booking.close_leftover_compose_tabs(
-                        tabs, chat_id
-                    ),
-                    send_fn=lambda chat_id, text: {"ok": True},
-                    post_discord=boom,
-                    send_enabled=True,
-                    dry_run=False,
-                    fetch_doc=lambda: firestore_t5_doc(),
-                )
-            saved = {}
-            if state_path.exists():
-                try:
-                    saved = json.loads(state_path.read_text())
-                except ValueError:
-                    saved = {}
-        # Characterization: member send already happened; checkpoint was not saved.
-        threads = saved.get("threads") or {}
-        self.assertNotIn("chat-leana", threads)
+            rows = leak_reply.process_leaks(
+                [leak_member_thread()],
+                now=datetime(2026, 9, 10, 15, 0, tzinfo=timezone.utc),
+                state_path=state_path,
+                leftover_compose_tabs=[],
+                close_tabs_fn=lambda tabs, chat_id: new_booking.close_leftover_compose_tabs(
+                    tabs, chat_id
+                ),
+                send_fn=lambda chat_id, text: {"ok": True},
+                post_discord=boom,
+                send_enabled=True,
+                dry_run=False,
+                fetch_doc=lambda: firestore_t5_doc(),
+            )
+            saved = json.loads(state_path.read_text())
+        self.assertEqual(rows[0]["action"], "sent")
+        self.assertIn("chat-leana", saved.get("threads") or {})
+        self.assertTrue((saved["threads"]["chat-leana"] or {}).get("sent_at"))
 
 
 class StateStoreOutboxTests(NetworkGuard):

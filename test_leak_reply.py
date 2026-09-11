@@ -340,6 +340,8 @@ class EnableGateTests(unittest.TestCase):
             if key not in {"CI", "GITHUB_ACTIONS"}
         }
         clean["LEAK_REPLY_ENABLE"] = "1"
+        clean["PADSPLIT_ENABLE_ACTION_HOOKS"] = "1"
+        clean.pop("PADSPLIT_COLLECTION_ONLY", None)
         with patch.dict("os.environ", clean, clear=True):
             self.assertTrue(leak_reply.live_send_enabled())
 

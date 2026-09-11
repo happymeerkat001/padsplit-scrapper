@@ -557,13 +557,15 @@ def load_state(path: Path = STATE_PATH) -> Dict[str, Any]:
         return {"threads": {}}
     try:
         payload = json.loads(path.read_text())
-    except (OSError, ValueError):
-        return {"threads": {}}
+    except (OSError, ValueError) as exc:
+        raise lockout_reply.CorruptStateError(f"corrupt leak state at {path}") from exc
     if not isinstance(payload, dict):
-        return {"threads": {}}
+        raise lockout_reply.CorruptStateError(f"corrupt leak state at {path}: not an object")
     payload.setdefault("threads", {})
     if not isinstance(payload["threads"], dict):
-        payload["threads"] = {}
+        raise lockout_reply.CorruptStateError(
+            f"corrupt leak state at {path}: threads is not an object"
+        )
     return payload
 
 
@@ -743,7 +745,18 @@ def process_leaks(
     leak_body: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     now = now or datetime.now(timezone.utc)
-    state = state if state is not None else load_state(state_path)
+    if state is None:
+        try:
+            state = load_state(state_path)
+        except lockout_reply.CorruptStateError as exc:
+            _log(f"corrupt state; refusing to send: {exc}")
+            return [
+                {
+                    "action": "blocked_corrupt_state",
+                    "reason": "corrupt state",
+                    "certainty": 0,
+                }
+            ]
     results: List[Dict[str, Any]] = []
     body = leak_body if leak_body is not None else format_leak_body(fetch_doc=fetch_doc)
 
@@ -794,14 +807,16 @@ def process_leaks(
             continue
 
         record_sent(state, decision.chat_id, now=now)
+        if not dry_run:
+            save_state(state, state_path)
         if decision.discord:
-            if post_discord is not None:
-                post_discord(decision.discord)
-            else:
-                try:
+            try:
+                if post_discord is not None:
+                    post_discord(decision.discord)
+                else:
                     post_automations_discord(decision.discord, ship_to=decision.ship_to)
-                except Exception as exc:
-                    _log(f"Discord post failed; continuing: {exc}")
+            except Exception as exc:
+                _log(f"Discord post failed; continuing: {exc}")
         row["action"] = "sent"
         results.append(row)
 

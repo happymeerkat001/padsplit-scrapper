@@ -25,9 +25,29 @@ class RuntimeFlagTests(unittest.TestCase):
         self.assertEqual(tuple(runtime.enabled_send_actions(env)), ())
 
     def test_legacy_aliases_enable_when_ci_is_off(self) -> None:
-        env = {"CI": "", "GITHUB_ACTIONS": "", "LOCKOUT_REPLY_ENABLE": "1"}
+        env = {
+            "CI": "",
+            "GITHUB_ACTIONS": "",
+            "PADSPLIT_ENABLE_ACTION_HOOKS": "1",
+            "LOCKOUT_REPLY_ENABLE": "1",
+        }
+        self.assertFalse(runtime.collection_only(env))
         self.assertTrue(runtime.send_enabled("lockout", env))
         self.assertFalse(runtime.send_enabled("leak", env))
+
+    def test_collection_only_overrides_legacy_send_flag(self) -> None:
+        env = {
+            "CI": "",
+            "GITHUB_ACTIONS": "",
+            "PADSPLIT_COLLECTION_ONLY": "1",
+            "PADSPLIT_ENABLE_ACTION_HOOKS": "1",
+            "LOCKOUT_REPLY_ENABLE": "1",
+            "LEAK_REPLY_ENABLE": "1",
+        }
+        self.assertTrue(runtime.collection_only(env))
+        self.assertFalse(runtime.send_enabled("lockout", env))
+        self.assertFalse(runtime.send_enabled("leak", env))
+        self.assertEqual(tuple(runtime.enabled_send_actions(env)), ())
 
     def test_explicit_false_wins_over_later_true_alias(self) -> None:
         env = {

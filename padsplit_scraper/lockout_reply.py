@@ -272,6 +272,10 @@ class Decision:
     stage: str = ""
 
 
+class CorruptStateError(ValueError):
+    """State file exists but is unusable. Fail closed — do not send."""
+
+
 @dataclass
 class RunResult:
     action: str
@@ -674,13 +678,13 @@ def load_state(path: Path = STATE_PATH) -> Dict[str, Any]:
         return {"threads": {}}
     try:
         payload = json.loads(path.read_text())
-    except (OSError, ValueError):
-        return {"threads": {}}
+    except (OSError, ValueError) as exc:
+        raise CorruptStateError(f"corrupt lockout state at {path}") from exc
     if not isinstance(payload, dict):
-        return {"threads": {}}
+        raise CorruptStateError(f"corrupt lockout state at {path}: not an object")
     payload.setdefault("threads", {})
     if not isinstance(payload["threads"], dict):
-        payload["threads"] = {}
+        raise CorruptStateError(f"corrupt lockout state at {path}: threads is not an object")
     return payload
 
 
@@ -1268,7 +1272,18 @@ def process_lockouts(
     dry_run: bool = False,
 ) -> List[Dict[str, Any]]:
     now = now or datetime.now(timezone.utc)
-    state = state if state is not None else load_state(state_path)
+    if state is None:
+        try:
+            state = load_state(state_path)
+        except CorruptStateError as exc:
+            _log(f"corrupt state; refusing to send: {exc}")
+            return [
+                {
+                    "action": "blocked_corrupt_state",
+                    "reason": "corrupt state",
+                    "certainty": 0,
+                }
+            ]
     results: List[Dict[str, Any]] = []
     codes_cache: Dict[str, Dict[str, Any]] = {}
     sifely_cache: Optional[Tuple[str, str]] = None
@@ -1327,11 +1342,12 @@ def process_lockouts(
         if decision.discord_kind:
             text = _discord_text(decision.discord_kind, decision.house_label)
             if text:
-                if send_enabled and not dry_run and post_discord is not None:
-                    post_discord(text)
-                elif send_enabled and not dry_run and post_discord is None:
+                if send_enabled and not dry_run:
                     try:
-                        post_automations_discord(text)
+                        if post_discord is not None:
+                            post_discord(text)
+                        else:
+                            post_automations_discord(text)
                     except Exception as exc:
                         _log(f"Discord post failed; continuing: {exc}")
                 row["discord"] = text
@@ -1383,6 +1399,8 @@ def process_lockouts(
             action="sent",
             stage=decision.stage or STAGE_DOOR,
         )
+        if not dry_run:
+            save_state(state, state_path)
         row["action"] = "sent"
         results.append(row)
 

@@ -49,14 +49,14 @@ def flag_value(raw: Optional[str]) -> Optional[bool]:
 
 
 def send_enabled(action: str, environ: Optional[os._Environ[str]] = None) -> bool:
-    """Return True only when CI is off and an action-specific flag is on."""
+    """Return True only when CI is off, collection-only is off, and a flag is on."""
 
     env = environ if environ is not None else os.environ
-    if running_in_ci(env):
-        return False
     names = ACTION_FLAGS.get(action)
     if not names:
         raise KeyError(f"unknown send action: {action}")
+    if running_in_ci(env) or collection_only(env):
+        return False
     for name in names:
         parsed = flag_value(env.get(name))
         if parsed is False:
