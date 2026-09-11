@@ -32,6 +32,7 @@ try:
     from padsplit_scraper import lock_codes
     from padsplit_scraper import lockout_reply
     from padsplit_scraper import new_booking
+    from padsplit_scraper import runtime
     from padsplit_scraper.scraper import (
         DEFAULT_TIMEOUT,
         create_session,
@@ -42,6 +43,7 @@ except ModuleNotFoundError:  # python3 padsplit_scraper/leak_reply.py
     import lock_codes  # type: ignore
     import lockout_reply  # type: ignore
     import new_booking  # type: ignore
+    import runtime  # type: ignore
     from scraper import (  # type: ignore
         DEFAULT_TIMEOUT,
         create_session,
@@ -168,6 +170,39 @@ _TOILET_EMERGENCY_RE = re.compile(
     r")",
 )
 
+# Negation of an emergency term ("there is no flooding").
+_NEGATED_EMERGENCY_RE = re.compile(
+    r"(?i)("
+    r"\b(?:there\s+(?:is|was)\s+)?no\s+(?:active\s+|current\s+)?"
+    r"(?:flood(?:ing|ed)?|pipe\s+burst|burst(?:ing)?\s+pipe|water\s+main|"
+    r"water\s+leak(?:ing)?|leak(?:ing)?)\b"
+    r"|\b(?:is|was|are|were)\s+not\s+(?:flood(?:ing|ed)?|burst(?:ing)?|leaking)\b"
+    r"|\b(?:isn['’]?t|aren['’]?t|wasn['’]?t|weren['’]?t)\s+"
+    r"(?:flood(?:ing|ed)?|burst(?:ing)?|leaking)\b"
+    r"|\bno\s+longer\s+(?:flood(?:ing|ed)?|burst(?:ing)?|leaking)\b"
+    r")"
+)
+
+# Past emergency that is already resolved ("pipe burst last week and is fixed").
+_RESOLVED_HISTORY_RE = re.compile(
+    r"(?i)("
+    r"(?:the\s+)?(?:pipe\s+burst|burst(?:ing)?\s+pipe|water\s+main|"
+    r"flood(?:ing|ed)|water\s+leak(?:ing)?|pipe\s+leak).{0,80}"
+    r"(?:last\s+(?:week|month|year|night)|yesterday|"
+    r"\d+\s+(?:days?|weeks?|months?)\s+ago).{0,80}"
+    r"(?:fix(?:ed)?|resolved|repaired|already|not\s+anymore|no\s+longer)"
+    r")"
+)
+
+# Location / identity questions ("Where is the water main?").
+_INFO_QUESTION_RE = re.compile(
+    r"(?i)("
+    r"\b(?:where|what|which|how(?:\s+do(?:\s+i|\s+you)?|s)?)\b"
+    r".{0,80}\b(?:water\s+main|shut-?off|water\s+key|curb\s+key|meter)\b"
+    r"|\b(?:water\s+main|shut-?off).{0,24}\?"
+    r")"
+)
+
 # Host reminder / historical / non-water chatter. Stripped before the
 # active-water re-check. Toilet-only leftover after this still does not fire.
 _LEAK_EXCLUDE_RE = re.compile(
@@ -266,15 +301,16 @@ def load_environment() -> None:
 
 
 def running_in_ci() -> bool:
-    return bool(os.getenv("GITHUB_ACTIONS") or os.getenv("CI"))
+    return runtime.running_in_ci()
 
 
 def live_send_enabled() -> bool:
-    """Default off until Mac .env sets LEAK_REPLY_ENABLE. CI must not send."""
-    if running_in_ci():
-        return False
-    flag = (os.getenv("LEAK_REPLY_ENABLE") or "").strip().lower()
-    return flag in {"1", "true", "yes", "on"}
+    """Default off until Mac .env sets LEAK_REPLY_ENABLE. CI must not send.
+
+    Darwin is not an implicit send permission. PADSPLIT_SEND_LEAK is the
+    Stage A–B alias; LEAK_REPLY_ENABLE remains the legacy flag.
+    """
+    return runtime.send_enabled("leak")
 
 
 def _log(message: str) -> None:
@@ -380,6 +416,9 @@ def detect_leak(text: str) -> bool:
     if _HOST_BLAST_RE.search(raw) and len(raw) > 280:
         return False
     stripped = _LEAK_EXCLUDE_RE.sub(" ", raw)
+    stripped = _NEGATED_EMERGENCY_RE.sub(" ", stripped)
+    stripped = _RESOLVED_HISTORY_RE.sub(" ", stripped)
+    stripped = _INFO_QUESTION_RE.sub(" ", stripped)
     if _LOW_URGENCY_RE.search(stripped) and not _LOW_URGENCY_OVERRIDE_RE.search(stripped):
         return False
     if not _ACTIVE_WATER_RE.search(stripped):

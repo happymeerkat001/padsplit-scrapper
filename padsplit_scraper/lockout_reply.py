@@ -35,6 +35,7 @@ from dotenv import load_dotenv
 try:
     from padsplit_scraper import lock_codes
     from padsplit_scraper import new_booking
+    from padsplit_scraper import runtime
     from padsplit_scraper.scraper import (
         create_session,
         load_credentials,
@@ -43,6 +44,7 @@ try:
 except ModuleNotFoundError:  # python3 padsplit_scraper/lockout_reply.py
     import lock_codes  # type: ignore
     import new_booking  # type: ignore
+    import runtime  # type: ignore
     from scraper import create_session, load_credentials, login  # type: ignore
 
 
@@ -284,15 +286,16 @@ def load_environment() -> None:
 
 
 def running_in_ci() -> bool:
-    return bool(os.getenv("GITHUB_ACTIONS") or os.getenv("CI"))
+    return runtime.running_in_ci()
 
 
 def live_send_enabled() -> bool:
-    """Default off until Mac .env sets LOCKOUT_REPLY_ENABLE. CI must not send."""
-    if running_in_ci():
-        return False
-    flag = (os.getenv("LOCKOUT_REPLY_ENABLE") or "").strip().lower()
-    return flag in {"1", "true", "yes", "on"}
+    """Default off until Mac .env sets LOCKOUT_REPLY_ENABLE. CI must not send.
+
+    Darwin is not an implicit send permission. PADSPLIT_SEND_LOCKOUT is
+    the Stage A–B alias; LOCKOUT_REPLY_ENABLE remains the legacy flag.
+    """
+    return runtime.send_enabled("lockout")
 
 
 def _log(message: str) -> None:
@@ -1280,8 +1283,10 @@ def process_lockouts(
         codes_doc: Optional[Dict[str, Any]] = None
         sifely_back = ""
         sifely_source = ""
-        # Only pull codes (and never touch Sifely) after a lockout / door-fail is in-window.
-        if lockout_message and house_preview.slug:
+        # Codes / Sifely only after an in-window lockout from a current occupant.
+        # Default obtain_spanish_moss_back never runs in preview/dry_run or when
+        # send is disabled. An injected sifely_fn may still run for fixtures.
+        if lockout_message and house_preview.slug and current_occupant(thread, now):
             if house_preview.slug not in codes_cache:
                 loader = codes_fn or fetch_property_codes
                 try:
@@ -1291,14 +1296,16 @@ def process_lockouts(
                     codes_cache[house_preview.slug] = {}
             codes_doc = codes_cache[house_preview.slug]
             if HOUSE_PROFILES[house_preview.slug].get("sifely_back"):
-                if sifely_cache is None:
-                    getter = sifely_fn or obtain_spanish_moss_back
-                    try:
-                        sifely_cache = getter()
-                    except Exception as exc:
-                        _log(f"Sifely obtain failed: {exc}")
-                        sifely_cache = ("", "missing")
-                sifely_back, sifely_source = sifely_cache
+                allow_default_sifely = send_enabled and not dry_run
+                if sifely_fn is not None or allow_default_sifely:
+                    if sifely_cache is None:
+                        getter = sifely_fn or obtain_spanish_moss_back
+                        try:
+                            sifely_cache = getter()
+                        except Exception as exc:
+                            _log(f"Sifely obtain failed: {exc}")
+                            sifely_cache = ("", "missing")
+                    sifely_back, sifely_source = sifely_cache
 
         decision = decide(
             thread,
@@ -1320,9 +1327,9 @@ def process_lockouts(
         if decision.discord_kind:
             text = _discord_text(decision.discord_kind, decision.house_label)
             if text:
-                if not dry_run and post_discord is not None:
+                if send_enabled and not dry_run and post_discord is not None:
                     post_discord(text)
-                elif not dry_run and post_discord is None and send_enabled:
+                elif send_enabled and not dry_run and post_discord is None:
                     try:
                         post_automations_discord(text)
                     except Exception as exc:
