@@ -208,6 +208,22 @@ class DetectTests(unittest.TestCase):
         )
         self.assertFalse(leak_reply.detect_leak(text))
 
+    def test_negation_history_and_question_false_positives_do_not_fire(self) -> None:
+        for text in (
+            "There is no flooding",
+            "The pipe burst last week and is fixed now",
+            "Where is the water main?",
+        ):
+            self.assertFalse(leak_reply.detect_leak(text), msg=text)
+
+    def test_true_emergencies_still_fire_after_fp_filters(self) -> None:
+        for text in (
+            "pipe burst",
+            "water leaking from ceiling",
+            "toilet flooding",
+        ):
+            self.assertTrue(leak_reply.detect_leak(text), msg=text)
+
 
 class BodyTests(unittest.TestCase):
     def test_body_contains_quo_and_youtube(self) -> None:
@@ -324,6 +340,8 @@ class EnableGateTests(unittest.TestCase):
             if key not in {"CI", "GITHUB_ACTIONS"}
         }
         clean["LEAK_REPLY_ENABLE"] = "1"
+        clean["PADSPLIT_ENABLE_ACTION_HOOKS"] = "1"
+        clean.pop("PADSPLIT_COLLECTION_ONLY", None)
         with patch.dict("os.environ", clean, clear=True):
             self.assertTrue(leak_reply.live_send_enabled())
 

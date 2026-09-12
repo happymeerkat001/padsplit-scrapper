@@ -24,5 +24,8 @@ __pycache__/
 # Runtime logs
 logs/
 
+# Private Stage A–B state (never commit)
+.runtime-state/
+
 *.log
 padsplit_scraper/output/latest.json

@@ -3,8 +3,25 @@
 from __future__ import annotations
 
 import json
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+DEGRADED_EXIT_CODE = 2
+
+
+@dataclass(frozen=True)
+class RunOutcome:
+    """Structured worker result. ``exit_code`` is the runner contract.
+
+    ``process_exit_code`` stays 0 for ok and degraded so ``scraper.main``
+    keeps its existing Mac/CI degraded-is-zero mapping.
+    """
+
+    action: str
+    exit_code: int
+    run_status: Dict[str, Any] = field(default_factory=dict)
+    process_exit_code: int = 0
 
 try:
     from padsplit_scraper.kpis import _extract_earnings_rows, _to_num, compute_monthly_kpis
@@ -59,6 +76,59 @@ def _load_json_if_exists(path: Path) -> Optional[Dict[str, Any]]:
     return data if isinstance(data, dict) else None
 
 
+def configure_output_dirs(*, output_dir: Path, docs_data_dir: Optional[Path] = None) -> None:
+    """Point persist writes at an explicit tree. Used by the isolated runner."""
+    global OUTPUT_DIR, DOCS_DATA_DIR
+    OUTPUT_DIR = Path(output_dir)
+    DOCS_DATA_DIR = Path(docs_data_dir) if docs_data_dir is not None else OUTPUT_DIR / "docs-data"
+
+
+def snapshot_output_dirs() -> Dict[str, Path]:
+    """Capture persist globals so a runner can restore them after isolation."""
+    return {
+        "OUTPUT_DIR": Path(OUTPUT_DIR),
+        "DOCS_DATA_DIR": Path(DOCS_DATA_DIR),
+    }
+
+
+def restore_output_dirs(snapshot: Dict[str, Path]) -> None:
+    """Restore persist globals captured by ``snapshot_output_dirs``."""
+    global OUTPUT_DIR, DOCS_DATA_DIR
+    OUTPUT_DIR = Path(snapshot["OUTPUT_DIR"])
+    DOCS_DATA_DIR = Path(snapshot["DOCS_DATA_DIR"])
+
+
+def prior_last_complete_success(
+    previous: Optional[Dict[str, Any]],
+    *,
+    this_run_scraped_at: str,
+) -> Optional[str]:
+    """Last complete success from a prior payload, rejecting stale run health.
+
+    Never treat a previous ``run_status`` as this run. If prior
+    ``run_scraped_at`` is missing, equal to, or newer than this run, the
+    structured health is stale and is ignored.
+    """
+    if not isinstance(previous, dict):
+        return None
+    prior = previous.get("run_status")
+    prior_run_at = None
+    if isinstance(prior, dict):
+        prior_run_at = prior.get("run_scraped_at")
+        if not prior_run_at or str(prior_run_at) >= this_run_scraped_at:
+            return None
+        last = prior.get("last_complete_success")
+        if last:
+            return str(last)
+        if prior.get("state") == "ok":
+            return str(prior_run_at or previous.get("scraped_at") or "") or None
+        return None
+    scraped = previous.get("scraped_at")
+    if scraped and str(scraped) < this_run_scraped_at:
+        return str(scraped)
+    return None
+
+
 def _build_run_status(
     *,
     state: str,
@@ -68,8 +138,15 @@ def _build_run_status(
     error_type: Optional[str] = None,
     error_message: Optional[str] = None,
     fallback_used: bool = False,
+    sources: Optional[Dict[str, Any]] = None,
+    started_at: Optional[str] = None,
+    finished_at: Optional[str] = None,
+    host: Optional[str] = None,
+    counts: Optional[Dict[str, Any]] = None,
+    last_complete_success: Optional[str] = None,
+    omissions: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
-    return {
+    payload: Dict[str, Any] = {
         "state": state,
         "mode": mode,
         "failed_phase": failed_phase,
@@ -78,6 +155,21 @@ def _build_run_status(
         "fallback_used": fallback_used,
         "run_scraped_at": run_scraped_at,
     }
+    if started_at:
+        payload["started_at"] = started_at
+    if finished_at:
+        payload["finished_at"] = finished_at
+    if host:
+        payload["host"] = host
+    if counts is not None:
+        payload["counts"] = counts
+    if last_complete_success:
+        payload["last_complete_success"] = last_complete_success
+    if omissions:
+        payload["omissions"] = list(omissions)
+    if sources:
+        payload["sources"] = sources
+    return payload
 
 
 def _attach_run_status(payload: Dict[str, Any], run_status: Dict[str, Any]) -> Dict[str, Any]:

@@ -29,6 +29,8 @@ except ModuleNotFoundError:  # Support the cron entry point: python3 padsplit_sc
 
 try:
     from padsplit_scraper.persist import (
+        DEGRADED_EXIT_CODE,
+        RunOutcome,
         _build_monthly_history_payload,
         _build_run_status,
         _build_stats_payload,
@@ -39,9 +41,12 @@ try:
         _persist_occupancy_payload,
         _stats_output_path,
         _write_json,
+        prior_last_complete_success,
     )
 except ModuleNotFoundError:  # Support the cron entry point: python3 padsplit_scraper/scraper.py
-    from persist import (
+    from persist import (  # type: ignore
+        DEGRADED_EXIT_CODE,
+        RunOutcome,
         _build_monthly_history_payload,
         _build_run_status,
         _build_stats_payload,
@@ -52,6 +57,7 @@ except ModuleNotFoundError:  # Support the cron entry point: python3 padsplit_sc
         _persist_occupancy_payload,
         _stats_output_path,
         _write_json,
+        prior_last_complete_success,
     )
 
 
@@ -839,7 +845,173 @@ def _enrich_recent_threads(session: requests.Session, creds: Dict[str, str], mes
 
 
 
-def run(messages_only: bool = False) -> int:
+def _action_hooks_allowed(policy=None) -> bool:
+    """Hooks follow an explicit policy when one is provided.
+
+    Collection runners pass an immutable collection-only policy. Ambient
+    ``os.environ`` and dotenv-loaded flags are ignored on that path.
+    """
+    if policy is not None:
+        return bool(getattr(policy, "allow_hooks", False))
+    try:
+        from padsplit_scraper import runtime
+    except ModuleNotFoundError:
+        import runtime  # type: ignore
+    return runtime.action_hooks_enabled()
+
+
+def _invoke_action_hook(module_name: str, func_name: str, session, creds, messages) -> None:
+    """Import-and-call one outbound hook. Collection-only never reaches here."""
+    try:
+        module = __import__(f"padsplit_scraper.{module_name}", fromlist=[func_name])
+    except ModuleNotFoundError:
+        module = __import__(module_name)
+    getattr(module, func_name)(session, creds, messages)
+
+
+def _run_action_hooks(session, creds: Dict[str, str], messages: List[Dict[str, Any]], policy=None) -> None:
+    if not _action_hooks_allowed(policy):
+        return
+    hooks = (
+        ("new_booking", "run_for_scraper"),
+        ("lockout_reply", "run_for_scraper"),
+        ("leak_reply", "run_for_scraper"),
+    )
+    labels = {
+        "new_booking": "New-booking first host message",
+        "lockout_reply": "Lockout auto-reply",
+        "leak_reply": "Leak auto-reply",
+    }
+    for module_name, func_name in hooks:
+        try:
+            _invoke_action_hook(module_name, func_name, session, creds, messages)
+        except Exception as exc:
+            sys.stderr.write(f"# {labels[module_name]} failed; continuing scrape: {exc}\n")
+
+
+def _apply_isolated_output() -> Path:
+    try:
+        from padsplit_scraper import persist as persist_mod
+        from padsplit_scraper import runtime
+    except ModuleNotFoundError:
+        import persist as persist_mod  # type: ignore
+        import runtime  # type: ignore
+    output_dir = runtime.collection_output_dir()
+    persist_mod.configure_output_dirs(output_dir=output_dir)
+    return output_dir
+
+
+def _source_health(
+    *,
+    messages_scraped_at: str,
+    stats_state: str,
+    stats_scraped_at: Optional[str] = None,
+    fallback_used: bool = False,
+) -> Dict[str, Any]:
+    stats: Dict[str, Any] = {"state": stats_state}
+    if stats_scraped_at:
+        stats["scraped_at"] = stats_scraped_at
+    if fallback_used:
+        stats["fallback_used"] = True
+    return {
+        "messages": {"state": "ok", "scraped_at": messages_scraped_at},
+        "stats": stats,
+    }
+
+
+def _count_tasks(fetched: Any) -> int:
+    if not fetched:
+        return 0
+    if isinstance(fetched, dict):
+        return sum(len(v) if isinstance(v, list) else 0 for v in fetched.values())
+    if isinstance(fetched, list):
+        return len(fetched)
+    return 0
+
+
+def _earnings_row_count(earnings_payload: Any) -> int:
+    if isinstance(earnings_payload, dict):
+        rows = earnings_payload.get("results")
+        if isinstance(rows, list):
+            return len(rows)
+    return 0
+
+
+def _this_run_health(
+    *,
+    state: str,
+    mode: str,
+    run_scraped_at: str,
+    started_at: str,
+    messages: List[Dict[str, Any]],
+    previous: Optional[Dict[str, Any]] = None,
+    fetched_tasks: Any = None,
+    rooms: Optional[List[Any]] = None,
+    properties: Optional[List[Any]] = None,
+    earnings_payload: Any = None,
+    failed_phase: Optional[str] = None,
+    error_type: Optional[str] = None,
+    error_message: Optional[str] = None,
+    fallback_used: bool = False,
+    sources: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Build this run's health. Never reuse a prior ``run_status`` object."""
+    try:
+        from padsplit_scraper import runtime
+    except ModuleNotFoundError:
+        import runtime  # type: ignore
+
+    finished_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    host = runtime.host_identity()
+    omissions = ["release"]
+    if state == "ok" and mode == "full":
+        last_complete = run_scraped_at
+    else:
+        last_complete = prior_last_complete_success(previous, this_run_scraped_at=run_scraped_at)
+    counts: Dict[str, Any] = {"messages": len(messages or [])}
+    if fetched_tasks is not None:
+        counts["tasks"] = _count_tasks(fetched_tasks)
+    if rooms is not None:
+        counts["rooms"] = len(rooms)
+    if properties is not None:
+        counts["properties"] = len(properties)
+    if earnings_payload is not None:
+        counts["earnings_properties"] = _earnings_row_count(earnings_payload)
+    return _build_run_status(
+        state=state,
+        mode=mode,
+        run_scraped_at=run_scraped_at,
+        failed_phase=failed_phase,
+        error_type=error_type,
+        error_message=error_message,
+        fallback_used=fallback_used,
+        sources=sources,
+        started_at=started_at,
+        finished_at=finished_at,
+        host=host,
+        counts=counts,
+        last_complete_success=last_complete,
+        omissions=omissions,
+    )
+
+
+def _ok_outcome(run_status: Dict[str, Any]) -> RunOutcome:
+    return RunOutcome(action="ok", exit_code=0, process_exit_code=0, run_status=run_status)
+
+
+def _degraded_outcome(run_status: Dict[str, Any]) -> RunOutcome:
+    return RunOutcome(
+        action="degraded",
+        exit_code=DEGRADED_EXIT_CODE,
+        process_exit_code=0,
+        run_status=run_status,
+    )
+
+
+def run(messages_only: bool = False, *, isolate_output: bool = False, policy=None) -> RunOutcome:
+    started_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    if isolate_output:
+        _apply_isolated_output()
     creds = load_credentials()
     mode = "messages_only" if messages_only else "full"
 
@@ -852,36 +1024,7 @@ def run(messages_only: bool = False) -> int:
 
         messages = _run_phase("Fetching messages...", "messages", lambda: fetch_messages(session, creds))
         _enrich_recent_threads(session, creds, messages)
-        try:
-            try:
-                from padsplit_scraper.new_booking import run_for_scraper
-            except ModuleNotFoundError:  # Support the cron entry point: python3 padsplit_scraper/scraper.py
-                from new_booking import run_for_scraper
-
-            # Booking-hit source is hostPendingBookingRequests, not the message digest.
-            run_for_scraper(session, creds, messages)
-        except Exception as exc:
-            sys.stderr.write(f"# New-booking first host message failed; continuing scrape: {exc}\n")
-
-        try:
-            try:
-                from padsplit_scraper.lockout_reply import run_for_scraper as run_lockout
-            except ModuleNotFoundError:  # Support the cron entry point: python3 padsplit_scraper/scraper.py
-                from lockout_reply import run_for_scraper as run_lockout
-
-            run_lockout(session, creds, messages)
-        except Exception as exc:
-            sys.stderr.write(f"# Lockout auto-reply failed; continuing scrape: {exc}\n")
-
-        try:
-            try:
-                from padsplit_scraper.leak_reply import run_for_scraper as run_leak
-            except ModuleNotFoundError:  # Support the cron entry point: python3 padsplit_scraper/scraper.py
-                from leak_reply import run_for_scraper as run_leak
-
-            run_leak(session, creds, messages)
-        except Exception as exc:
-            sys.stderr.write(f"# Leak auto-reply failed; continuing scrape: {exc}\n")
+        _run_action_hooks(session, creds, messages, policy=policy)
 
         scraped_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         payload: Dict[str, Any] = {"scraped_at": scraped_at, "messages": messages}
@@ -889,10 +1032,20 @@ def run(messages_only: bool = False) -> int:
         tasks_for_kpis: Dict[str, List[Dict[str, Any]]] = {}
 
         if messages_only:
-            run_status = _build_run_status(state="ok", mode=mode, run_scraped_at=scraped_at)
+            run_status = _this_run_health(
+                state="ok",
+                mode=mode,
+                run_scraped_at=scraped_at,
+                started_at=started_at,
+                messages=messages,
+                sources=_source_health(
+                    messages_scraped_at=scraped_at,
+                    stats_state="skipped",
+                ),
+            )
             _persist_latest_payload(payload, scraped_at=scraped_at, run_status=run_status, write_timestamped=True)
             sys.stderr.write(f"# Saved raw data to {out_path}\n")
-            return 0
+            return _ok_outcome(run_status)
 
         fetched_tasks = _run_phase("Fetching tasks...", "tasks", lambda: fetch_tasks(session, creds))
         payload["tasks"] = fetched_tasks
@@ -905,6 +1058,9 @@ def run(messages_only: bool = False) -> int:
         except Exception as exc:
             sys.stderr.write(f"# Occupancy derivation failed; continuing scrape: {exc}\n")
 
+        rooms: List[Any] = []
+        properties: List[Any] = []
+        earnings_payload: Dict[str, Any] = {}
         try:
             rooms = _run_phase("Fetching room stats...", "room_stats", lambda: fetch_rooms(session, creds))
             properties = _run_phase(
@@ -944,30 +1100,62 @@ def run(messages_only: bool = False) -> int:
                 lambda: fetch_performance_history(session, creds),
             )
         except ScrapePhaseError as exc:
-            run_status = _build_run_status(
+            fallback_stats = _load_json_if_exists(_stats_output_path())
+            prior_stats_ts = fallback_stats.get("scraped_at") if fallback_stats else None
+            run_status = _this_run_health(
                 state="degraded",
                 mode=mode,
+                run_scraped_at=scraped_at,
+                started_at=started_at,
+                messages=messages,
+                previous=fallback_stats,
+                fetched_tasks=fetched_tasks,
+                rooms=rooms,
+                properties=properties,
+                earnings_payload=earnings_payload,
                 failed_phase=exc.phase,
                 error_type=exc.original.__class__.__name__ if exc.original else exc.__class__.__name__,
                 error_message=str(exc),
-                fallback_used=_stats_output_path().exists(),
-                run_scraped_at=scraped_at,
+                fallback_used=fallback_stats is not None,
+                sources=_source_health(
+                    messages_scraped_at=scraped_at,
+                    stats_state="degraded",
+                    stats_scraped_at=str(prior_stats_ts) if prior_stats_ts else None,
+                    fallback_used=fallback_stats is not None,
+                ),
             )
             _persist_latest_payload(payload, scraped_at=scraped_at, run_status=run_status, write_timestamped=True)
 
-            fallback_stats = _load_json_if_exists(_stats_output_path())
             if fallback_stats is not None:
-                fallback_stats["run_status"] = run_status
-                _write_json(_stats_output_path(), fallback_stats)
+                # Keep the prior source timestamp; attach this run's health only.
+                # Do not copy previous run_status — it is stale for this run.
+                preserved = dict(fallback_stats)
+                preserved["run_status"] = run_status
+                _write_json(_stats_output_path(), preserved)
                 sys.stderr.write(f"# Degraded stats run; re-used prior stats from {_stats_output_path()}\n")
             else:
                 sys.stderr.write(f"# Degraded stats run; no prior stats fallback at {_stats_output_path()}\n")
 
             sys.stderr.write(f"{exc}\n")
             sys.stderr.write(f"# Saved raw data to {out_path}\n")
-            return 0
+            return _degraded_outcome(run_status)
 
-        run_status = _build_run_status(state="ok", mode=mode, run_scraped_at=scraped_at)
+        run_status = _this_run_health(
+            state="ok",
+            mode=mode,
+            run_scraped_at=scraped_at,
+            started_at=started_at,
+            messages=messages,
+            fetched_tasks=fetched_tasks,
+            rooms=rooms,
+            properties=properties,
+            earnings_payload=earnings_payload,
+            sources=_source_health(
+                messages_scraped_at=scraped_at,
+                stats_state="ok",
+                stats_scraped_at=scraped_at,
+            ),
+        )
         _persist_latest_payload(payload, scraped_at=scraped_at, run_status=run_status, write_timestamped=True)
         stats_payload = _build_stats_payload(
             scraped_at=scraped_at,
@@ -985,15 +1173,21 @@ def run(messages_only: bool = False) -> int:
         _write_json(_stats_output_path(), stats_payload)
         _write_json(_monthly_history_path(), monthly_history_payload)
         sys.stderr.write(f"# Saved raw data to {out_path}\n")
-        return 0
+        return _ok_outcome(run_status)
 
 
 def main(argv: Optional[List[str]] = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--messages-only", action="store_true", help="Skip tasks; summarize messages only")
+    parser.add_argument(
+        "--isolate-output",
+        action="store_true",
+        help="Write JSON under PADSPLIT_OUTPUT_DIR / isolated state dir (no docs/data)",
+    )
     args = parser.parse_args(argv)
     try:
-        return run(messages_only=args.messages_only)
+        outcome = run(messages_only=args.messages_only, isolate_output=args.isolate_output)
+        return outcome.process_exit_code
     except ScrapePhaseError as exc:
         sys.stderr.write(f"{exc}\n")
         return 1

@@ -21,6 +21,9 @@ def stats_freshness(payload: Optional[Dict[str, Any]], now: datetime) -> Dict[st
     missing = scraped is None
     age = None if missing else now - scraped
     stale = degraded or missing or (age is not None and age > STALE_AFTER)
+    sources = run.get("sources") if isinstance(run.get("sources"), dict) else {}
+    messages = sources.get("messages") if isinstance(sources.get("messages"), dict) else {}
+    stats_src = sources.get("stats") if isinstance(sources.get("stats"), dict) else {}
     return {
         "stale": stale,
         "degraded": degraded,
@@ -30,6 +33,10 @@ def stats_freshness(payload: Optional[Dict[str, Any]], now: datetime) -> Dict[st
         "failed_phase": run.get("failed_phase"),
         "state": run.get("state"),
         "fallback_used": bool(run.get("fallback_used")),
+        "messages_state": messages.get("state"),
+        "messages_scraped_at": messages.get("scraped_at"),
+        "stats_state": stats_src.get("state") or run.get("state"),
+        "stats_scraped_at": stats_src.get("scraped_at") or data.get("scraped_at"),
     }
 
 

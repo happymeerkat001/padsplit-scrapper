@@ -32,6 +32,7 @@ try:
     from padsplit_scraper import lock_codes
     from padsplit_scraper import lockout_reply
     from padsplit_scraper import new_booking
+    from padsplit_scraper import runtime
     from padsplit_scraper.scraper import (
         DEFAULT_TIMEOUT,
         create_session,
@@ -42,6 +43,7 @@ except ModuleNotFoundError:  # python3 padsplit_scraper/leak_reply.py
     import lock_codes  # type: ignore
     import lockout_reply  # type: ignore
     import new_booking  # type: ignore
+    import runtime  # type: ignore
     from scraper import (  # type: ignore
         DEFAULT_TIMEOUT,
         create_session,
@@ -168,6 +170,39 @@ _TOILET_EMERGENCY_RE = re.compile(
     r")",
 )
 
+# Negation of an emergency term ("there is no flooding").
+_NEGATED_EMERGENCY_RE = re.compile(
+    r"(?i)("
+    r"\b(?:there\s+(?:is|was)\s+)?no\s+(?:active\s+|current\s+)?"
+    r"(?:flood(?:ing|ed)?|pipe\s+burst|burst(?:ing)?\s+pipe|water\s+main|"
+    r"water\s+leak(?:ing)?|leak(?:ing)?)\b"
+    r"|\b(?:is|was|are|were)\s+not\s+(?:flood(?:ing|ed)?|burst(?:ing)?|leaking)\b"
+    r"|\b(?:isn['’]?t|aren['’]?t|wasn['’]?t|weren['’]?t)\s+"
+    r"(?:flood(?:ing|ed)?|burst(?:ing)?|leaking)\b"
+    r"|\bno\s+longer\s+(?:flood(?:ing|ed)?|burst(?:ing)?|leaking)\b"
+    r")"
+)
+
+# Past emergency that is already resolved ("pipe burst last week and is fixed").
+_RESOLVED_HISTORY_RE = re.compile(
+    r"(?i)("
+    r"(?:the\s+)?(?:pipe\s+burst|burst(?:ing)?\s+pipe|water\s+main|"
+    r"flood(?:ing|ed)|water\s+leak(?:ing)?|pipe\s+leak).{0,80}"
+    r"(?:last\s+(?:week|month|year|night)|yesterday|"
+    r"\d+\s+(?:days?|weeks?|months?)\s+ago).{0,80}"
+    r"(?:fix(?:ed)?|resolved|repaired|already|not\s+anymore|no\s+longer)"
+    r")"
+)
+
+# Location / identity questions ("Where is the water main?").
+_INFO_QUESTION_RE = re.compile(
+    r"(?i)("
+    r"\b(?:where|what|which|how(?:\s+do(?:\s+i|\s+you)?|s)?)\b"
+    r".{0,80}\b(?:water\s+main|shut-?off|water\s+key|curb\s+key|meter)\b"
+    r"|\b(?:water\s+main|shut-?off).{0,24}\?"
+    r")"
+)
+
 # Host reminder / historical / non-water chatter. Stripped before the
 # active-water re-check. Toilet-only leftover after this still does not fire.
 _LEAK_EXCLUDE_RE = re.compile(
@@ -266,15 +301,16 @@ def load_environment() -> None:
 
 
 def running_in_ci() -> bool:
-    return bool(os.getenv("GITHUB_ACTIONS") or os.getenv("CI"))
+    return runtime.running_in_ci()
 
 
 def live_send_enabled() -> bool:
-    """Default off until Mac .env sets LEAK_REPLY_ENABLE. CI must not send."""
-    if running_in_ci():
-        return False
-    flag = (os.getenv("LEAK_REPLY_ENABLE") or "").strip().lower()
-    return flag in {"1", "true", "yes", "on"}
+    """Default off until Mac .env sets LEAK_REPLY_ENABLE. CI must not send.
+
+    Darwin is not an implicit send permission. PADSPLIT_SEND_LEAK is the
+    Stage A–B alias; LEAK_REPLY_ENABLE remains the legacy flag.
+    """
+    return runtime.send_enabled("leak")
 
 
 def _log(message: str) -> None:
@@ -380,6 +416,9 @@ def detect_leak(text: str) -> bool:
     if _HOST_BLAST_RE.search(raw) and len(raw) > 280:
         return False
     stripped = _LEAK_EXCLUDE_RE.sub(" ", raw)
+    stripped = _NEGATED_EMERGENCY_RE.sub(" ", stripped)
+    stripped = _RESOLVED_HISTORY_RE.sub(" ", stripped)
+    stripped = _INFO_QUESTION_RE.sub(" ", stripped)
     if _LOW_URGENCY_RE.search(stripped) and not _LOW_URGENCY_OVERRIDE_RE.search(stripped):
         return False
     if not _ACTIVE_WATER_RE.search(stripped):
@@ -518,13 +557,15 @@ def load_state(path: Path = STATE_PATH) -> Dict[str, Any]:
         return {"threads": {}}
     try:
         payload = json.loads(path.read_text())
-    except (OSError, ValueError):
-        return {"threads": {}}
+    except (OSError, ValueError) as exc:
+        raise lockout_reply.CorruptStateError(f"corrupt leak state at {path}") from exc
     if not isinstance(payload, dict):
-        return {"threads": {}}
+        raise lockout_reply.CorruptStateError(f"corrupt leak state at {path}: not an object")
     payload.setdefault("threads", {})
     if not isinstance(payload["threads"], dict):
-        payload["threads"] = {}
+        raise lockout_reply.CorruptStateError(
+            f"corrupt leak state at {path}: threads is not an object"
+        )
     return payload
 
 
@@ -704,7 +745,18 @@ def process_leaks(
     leak_body: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     now = now or datetime.now(timezone.utc)
-    state = state if state is not None else load_state(state_path)
+    if state is None:
+        try:
+            state = load_state(state_path)
+        except lockout_reply.CorruptStateError as exc:
+            _log(f"corrupt state; refusing to send: {exc}")
+            return [
+                {
+                    "action": "blocked_corrupt_state",
+                    "reason": "corrupt state",
+                    "certainty": 0,
+                }
+            ]
     results: List[Dict[str, Any]] = []
     body = leak_body if leak_body is not None else format_leak_body(fetch_doc=fetch_doc)
 
@@ -755,14 +807,16 @@ def process_leaks(
             continue
 
         record_sent(state, decision.chat_id, now=now)
+        if not dry_run:
+            save_state(state, state_path)
         if decision.discord:
-            if post_discord is not None:
-                post_discord(decision.discord)
-            else:
-                try:
+            try:
+                if post_discord is not None:
+                    post_discord(decision.discord)
+                else:
                     post_automations_discord(decision.discord, ship_to=decision.ship_to)
-                except Exception as exc:
-                    _log(f"Discord post failed; continuing: {exc}")
+            except Exception as exc:
+                _log(f"Discord post failed; continuing: {exc}")
         row["action"] = "sent"
         results.append(row)
 

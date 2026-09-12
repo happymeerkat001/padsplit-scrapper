@@ -284,6 +284,45 @@ class PadSplitScraperTests(unittest.TestCase):
             self.assertEqual(latest_payload["run_status"]["state"], "degraded")
             self.assertIn("tasks", latest_payload)
 
+    def test_collection_default_does_not_import_action_hooks(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_dir = Path(tmpdir) / "output"
+            docs_data_dir = Path(tmpdir) / "docs" / "data"
+            env = {
+                "CI": "",
+                "GITHUB_ACTIONS": "",
+                "LOCKOUT_REPLY_ENABLE": "1",
+                "LEAK_REPLY_ENABLE": "1",
+                "PADSPLIT_COLLECTION_ONLY": "1",
+            }
+            with (
+                patch.dict("os.environ", env, clear=False),
+                patch.object(persist, "OUTPUT_DIR", output_dir),
+                patch.object(persist, "DOCS_DATA_DIR", docs_data_dir),
+                patch.object(scraper, "load_credentials", return_value={"email": "user", "password": "pw"}),
+                patch.object(scraper, "create_session", return_value=DummySession()),
+                patch.object(scraper, "login"),
+                patch.object(scraper, "fetch_messages", return_value=recent_chat()),
+                patch.object(scraper, "fetch_thread_messages", return_value=[{"id": "message-1"}]),
+                patch.object(scraper, "fetch_tasks", return_value={"Requests": []}),
+                patch.object(scraper, "fetch_rooms", return_value=[{"id": 1}]),
+                patch.object(scraper, "fetch_properties_stats", return_value=[{"id": 9}]),
+                patch.object(scraper, "fetch_earnings", return_value={"results": []}),
+                patch.object(scraper, "compute_kpis", return_value=sample_kpis(92)),
+                patch.object(
+                    scraper,
+                    "fetch_performance_history",
+                    return_value={"2026-05": {"avg_flip_days": 2.0, "occupancy_pct": 95.0, "avg_tenure_days": 180.0}},
+                ),
+                patch.object(
+                    scraper,
+                    "_invoke_action_hook",
+                    side_effect=AssertionError("action hook must not run"),
+                ),
+            ):
+                exit_code = scraper.main([])
+            self.assertEqual(exit_code, 0)
+
     def test_auth_refresh_uses_forced_login_only_after_second_auth_failure(self) -> None:
         session = Mock()
         session.request = Mock(side_effect=[FakeResponse(403), FakeResponse(403), FakeResponse(200)])
