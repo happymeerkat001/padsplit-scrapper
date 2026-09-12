@@ -18,6 +18,7 @@ import requests
 
 from padsplit_scraper import job_runner
 from padsplit_scraper import persist
+from padsplit_scraper import process_lock
 from padsplit_scraper import runtime
 from padsplit_scraper import scraper
 
@@ -364,7 +365,7 @@ class JobRunnerTests(unittest.TestCase):
                 lock_directory=lock,
             )
             self.assertEqual(failed["action"], "failed")
-            self.assertFalse(lock.exists())
+            self.assertFalse(process_lock.lock_is_held(lock))
             restarted = job_runner.run_collection(
                 run_fn=_fake_ok_run,
                 environ=env,
