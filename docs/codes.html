@@ -158,6 +158,12 @@
       border-radius: 6px;
       padding: 0.25rem 0.4rem;
     }
+    textarea.code-input {
+      min-height: 4.5rem;
+      resize: vertical;
+      line-height: 1.4;
+      font-family: inherit;
+    }
     .code-input.overdue {
       border-color: #e53e3e;
       background: #fff5f5;
@@ -575,22 +581,6 @@
             { key: "dryer_lint_notes", label: "Dryer lint notes", value: "", placeholder: "Optional" }
           ]}
         ]
-      },
-      {
-        slug: "spanish_moss",
-        address: "Spanish Moss",
-        sections: [
-          { label: "Door Codes", fields: [
-            { key: "back_door", label: "Back Door", value: "" }
-          ]},
-          { label: "Contact", fields: [
-            { key: "responsible_tenant", label: "Responsible Tenant", value: "", placeholder: "Name, Phone" },
-            { key: "ac_filter_date", label: "AC filter date", value: "", type: "date" },
-            { key: "ac_filter_size", label: "AC filter size", value: "", placeholder: "16x25x1" },
-            { key: "dryer_lint_date", label: "Dryer lint date", value: "", type: "date" },
-            { key: "dryer_lint_notes", label: "Dryer lint notes", value: "", placeholder: "Optional" }
-          ]}
-        ]
       }
     ];
 
@@ -634,11 +624,21 @@
 
     const OVERDUE_DAYS = {
       ac_filter_date: 90,
-      dryer_lint_date: 30
+      dryer_lint_date: 30,
+      garage_ac_filter_date: 90
     };
     const EXTRA_LOCKBOX_COUNT = 2;
     const ROOM_TABLE_HEADERS = ['Room', 'Room code', 'Lockbox code', 'Lockbox location', 'Lockbox notes', 'AC filter size'];
     const EXTRA_LOCKBOX_HEADERS = ['Name / number', 'Lockbox code', 'Location', 'Notes'];
+    const HOUSE_NOTES_SECTION = {
+      label: 'House notes',
+      fields: [
+        { key: 'garage_ac', label: 'Garage AC', value: '', placeholder: 'Present / model / location' },
+        { key: 'garage_ac_filter_date', label: 'Garage AC filter change date', value: '', type: 'date' },
+        { key: 'garage_ac_filter_size', label: 'Garage AC filter size', value: '', placeholder: '16x25x1' },
+        { key: 'other_special', label: 'Other special things', value: '', type: 'textarea', placeholder: 'Freeform notes: garage extras, quirks, vendor info…' }
+      ]
+    };
 
     function roomNumberFromKey(key) {
       const match = /^r(\d+)$/.exec(key);
@@ -683,13 +683,15 @@
     }
 
     function createFieldInput(property, fieldKey, value, options = {}) {
-      const input = document.createElement('input');
-      input.type = options.type || 'text';
-      input.className = 'code-input';
+      const isTextarea = options.type === 'textarea';
+      const input = document.createElement(isTextarea ? 'textarea' : 'input');
+      if (!isTextarea) input.type = options.type || 'text';
+      input.className = isTextarea ? 'code-input code-textarea' : 'code-input';
       input.dataset.prop = property.slug;
       input.dataset.field = fieldKey;
       input.value = value;
       if (options.placeholder) input.placeholder = options.placeholder;
+      if (isTextarea) input.rows = options.rows || 3;
       updateDateOverdueState(input);
       input.addEventListener('input', () => updateDateOverdueState(input));
       return input;
@@ -917,6 +919,13 @@
         body.appendChild(renderExtraLockboxesTable(property, savedValues));
       }
 
+      appendSectionLabel(
+        body,
+        HOUSE_NOTES_SECTION.label,
+        'Garage AC and other per-house details. Saved with this house, same as Contact.'
+      );
+      body.appendChild(renderLabelValueTable(property, HOUSE_NOTES_SECTION, savedValues));
+
       details.appendChild(body);
       return details;
     }
@@ -937,7 +946,7 @@
           e.preventDefault();
           e.stopPropagation();
           const slug = btn.dataset.save;
-          const inputs = list.querySelectorAll(`input[data-prop="${slug}"]`);
+          const inputs = list.querySelectorAll(`input[data-prop="${slug}"], textarea[data-prop="${slug}"]`);
           const payload = {};
           inputs.forEach((input) => {
             payload[input.dataset.field] = input.value.trim();
