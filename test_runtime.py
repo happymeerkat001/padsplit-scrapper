@@ -112,6 +112,13 @@ class RuntimeFlagTests(unittest.TestCase):
     def test_host_identity_is_nonempty(self) -> None:
         self.assertTrue(runtime.host_identity())
 
+    def test_collection_policy_is_frozen_and_disallows_hooks(self) -> None:
+        policy = runtime.COLLECTION_ONLY_POLICY
+        self.assertTrue(policy.collection_only)
+        self.assertFalse(policy.allow_hooks)
+        with self.assertRaises(Exception):
+            policy.allow_hooks = True  # type: ignore[misc]
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -8,8 +8,24 @@ from __future__ import annotations
 
 import os
 import socket
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable, Optional
+
+
+@dataclass(frozen=True)
+class CollectionPolicy:
+    """Immutable worker policy. Collection runners pass this explicitly.
+
+    Ambient ``os.environ`` / dotenv flags must not override a collection-only
+    policy once it has been handed to the worker.
+    """
+
+    collection_only: bool = True
+    allow_hooks: bool = False
+
+
+COLLECTION_ONLY_POLICY = CollectionPolicy(collection_only=True, allow_hooks=False)
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
