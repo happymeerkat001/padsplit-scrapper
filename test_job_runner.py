@@ -9,6 +9,7 @@ import os
 import tempfile
 import time
 import unittest
+from contextlib import ExitStack
 from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import patch
@@ -164,11 +165,11 @@ class JobRunnerTests(unittest.TestCase):
                 seen["policy_allow_hooks"] = getattr(policy, "allow_hooks", None)
                 return real_hooks(session, creds, messages, policy=policy)
 
-            with (
-                patch.dict("os.environ", ambient, clear=False),
-                patch.object(scraper, "_run_action_hooks", side_effect=wrap_hooks),
-                *_scraper_io_patches(),
-            ):
+            with ExitStack() as stack:
+                stack.enter_context(patch.dict("os.environ", ambient, clear=False))
+                stack.enter_context(patch.object(scraper, "_run_action_hooks", side_effect=wrap_hooks))
+                for cm in _scraper_io_patches():
+                    stack.enter_context(cm)
                 before_output = Path(persist.OUTPUT_DIR)
                 before_docs = Path(persist.DOCS_DATA_DIR)
                 result = job_runner.run_collection(
@@ -223,12 +224,12 @@ class JobRunnerTests(unittest.TestCase):
                 "PADSPLIT_OUTPUT_DIR": str(output),
             }
             before_output = Path(persist.OUTPUT_DIR)
-            with (
-                patch.dict("os.environ", ambient, clear=False),
-                *_scraper_io_patches(
+            with ExitStack() as stack:
+                stack.enter_context(patch.dict("os.environ", ambient, clear=False))
+                for cm in _scraper_io_patches(
                     earnings_error=requests.exceptions.ConnectionError("earnings down"),
-                ),
-            ):
+                ):
+                    stack.enter_context(cm)
                 result = job_runner.run_collection(
                     environ=injected,
                     lock_directory=Path(tmpdir) / "lock",
@@ -270,12 +271,12 @@ class JobRunnerTests(unittest.TestCase):
                 "PADSPLIT_OUTPUT_DIR": str(output),
             }
             before_output = Path(persist.OUTPUT_DIR)
-            with (
-                patch.dict("os.environ", ambient, clear=False),
-                *_scraper_io_patches(
+            with ExitStack() as stack:
+                stack.enter_context(patch.dict("os.environ", ambient, clear=False))
+                for cm in _scraper_io_patches(
                     earnings_error=requests.exceptions.ConnectionError("earnings down"),
-                ),
-            ):
+                ):
+                    stack.enter_context(cm)
                 result = job_runner.run_collection(
                     environ=injected,
                     lock_directory=Path(tmpdir) / "lock",
