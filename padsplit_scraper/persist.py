@@ -59,6 +59,13 @@ def _load_json_if_exists(path: Path) -> Optional[Dict[str, Any]]:
     return data if isinstance(data, dict) else None
 
 
+def configure_output_dirs(*, output_dir: Path, docs_data_dir: Optional[Path] = None) -> None:
+    """Point persist writes at an explicit tree. Used by the isolated runner."""
+    global OUTPUT_DIR, DOCS_DATA_DIR
+    OUTPUT_DIR = Path(output_dir)
+    DOCS_DATA_DIR = Path(docs_data_dir) if docs_data_dir is not None else OUTPUT_DIR / "docs-data"
+
+
 def _build_run_status(
     *,
     state: str,
@@ -68,8 +75,9 @@ def _build_run_status(
     error_type: Optional[str] = None,
     error_message: Optional[str] = None,
     fallback_used: bool = False,
+    sources: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
-    return {
+    payload: Dict[str, Any] = {
         "state": state,
         "mode": mode,
         "failed_phase": failed_phase,
@@ -78,6 +86,9 @@ def _build_run_status(
         "fallback_used": fallback_used,
         "run_scraped_at": run_scraped_at,
     }
+    if sources:
+        payload["sources"] = sources
+    return payload
 
 
 def _attach_run_status(payload: Dict[str, Any], run_status: Dict[str, Any]) -> Dict[str, Any]:

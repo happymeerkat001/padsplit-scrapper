@@ -101,6 +101,14 @@ class RuntimeFlagTests(unittest.TestCase):
         self.assertEqual(runtime.lock_dir("leak", env), Path("/tmp") / "padsplit-leak.lock")
         self.assertEqual(runtime.state_dir(env), runtime.REPO_ROOT / ".runtime-state")
 
+    def test_collection_output_dir_is_isolated(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            env = {"PADSPLIT_OUTPUT_DIR": tmpdir}
+            self.assertEqual(runtime.collection_output_dir(env), Path(tmpdir))
+        env = {"PADSPLIT_STATE_DIR": "/tmp/padsplit-state", "PADSPLIT_OUTPUT_DIR": ""}
+        self.assertEqual(runtime.collection_output_dir(env), Path("/tmp/padsplit-state") / "collection")
+        self.assertNotIn("docs/data", str(runtime.collection_output_dir(env)))
+
     def test_host_identity_is_nonempty(self) -> None:
         self.assertTrue(runtime.host_identity())
 

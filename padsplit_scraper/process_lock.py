@@ -108,16 +108,39 @@ def lock_is_stale(path: Path, *, empty_grace: float = STALE_EMPTY_SECONDS) -> bo
     return not _pid_alive(pid)
 
 
+def _trash_is_recoverable(trash: Path) -> bool:
+    """True when a renamed lock dir still looks stale (dead/missing owner)."""
+    pid = read_lock_pid(trash)
+    if pid is None:
+        return True
+    return not _pid_alive(pid)
+
+
 def _remove_stale(path: Path) -> None:
+    """Atomically move a stale lock aside so we cannot delete a new owner's files."""
     if not lock_is_stale(path):
         raise LockError(f"lock not stale: {path}")
-    pid_file = path / PID_FILENAME
+    observed = read_lock_pid(path)
+    if read_lock_pid(path) != observed or not lock_is_stale(path):
+        raise LockError(f"lock owner changed: {path}")
+    trash = path.parent / f".{path.name}.stale-{os.getpid()}-{time.time_ns()}"
     try:
+        os.rename(path, trash)
+    except OSError as exc:
+        raise LockError(f"could not retire stale lock at {path}: {exc}") from exc
+    if not _trash_is_recoverable(trash):
+        try:
+            os.rename(trash, path)
+        except OSError:
+            pass
+        raise LockError(f"refusing to steal a live lock at {path}")
+    try:
+        pid_file = trash / PID_FILENAME
         if pid_file.exists():
             pid_file.unlink()
-        path.rmdir()
-    except OSError as exc:
-        raise LockError(f"could not remove stale lock at {path}: {exc}") from exc
+        trash.rmdir()
+    except OSError:
+        pass
 
 
 def _write_pid_exclusive(path: Path, pid: int) -> None:

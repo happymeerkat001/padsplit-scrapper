@@ -92,6 +92,15 @@ def git_publish_enabled(environ: Optional[os._Environ[str]] = None) -> bool:
     return flag_value(env.get("PADSPLIT_GIT_PUBLISH")) is True
 
 
+def collection_output_dir(environ: Optional[os._Environ[str]] = None) -> Path:
+    """Isolated collection output. Never the live git-tracked docs/data tree."""
+    env = environ if environ is not None else os.environ
+    raw = (env.get("PADSPLIT_OUTPUT_DIR") or "").strip()
+    if raw:
+        return Path(raw).expanduser()
+    return state_dir(env) / "collection"
+
+
 def state_dir(environ: Optional[os._Environ[str]] = None) -> Path:
     env = environ if environ is not None else os.environ
     raw = (env.get("PADSPLIT_STATE_DIR") or "").strip()

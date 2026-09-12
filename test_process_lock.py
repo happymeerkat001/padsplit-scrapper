@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Offline tests for stale-PID directory lock recovery."""
 
+import multiprocessing
 import os
 import tempfile
 import threading
@@ -122,6 +123,36 @@ class ProcessLockTests(unittest.TestCase):
                 self.assertEqual(held.pid, os.getpid())
             self.assertFalse(path.exists())
 
+    def test_multiprocess_overlap_and_stale_recovery(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            lock_path = str(Path(tmpdir) / "mp.lock")
+            ready = str(Path(tmpdir) / "ready")
+            release = str(Path(tmpdir) / "release")
+            child = multiprocessing.Process(
+                target=_child_hold_lock,
+                args=(lock_path, ready, release),
+            )
+            child.start()
+            deadline = time.time() + 5
+            while not Path(ready).exists() and time.time() < deadline:
+                time.sleep(0.05)
+            self.assertTrue(Path(ready).exists())
+            with self.assertRaises(process_lock.LockError):
+                process_lock.acquire_lock("mp", directory=Path(lock_path), timeout=0)
+            Path(release).write_text("go")
+            child.join(5)
+            self.assertEqual(child.exitcode, 0)
+            held = process_lock.acquire_lock("mp", directory=Path(lock_path), timeout=0)
+            process_lock.release_lock(held)
+
+            dead = multiprocessing.Process(target=_child_die_holding, args=(lock_path,))
+            dead.start()
+            dead.join(5)
+            self.assertNotEqual(dead.exitcode, 0)
+            recovered = process_lock.acquire_lock("mp", directory=Path(lock_path), timeout=1)
+            self.assertTrue(recovered.recovered_stale)
+            process_lock.release_lock(recovered)
+
     def test_cli_status_json(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             env = {"PADSPLIT_LOCK_DIR": tmpdir}
@@ -129,6 +160,20 @@ class ProcessLockTests(unittest.TestCase):
             self.assertEqual(path, Path(tmpdir) / "cli")
             status = process_lock.lock_is_stale(path)
             self.assertFalse(status)
+
+
+def _child_hold_lock(lock_path: str, ready_path: str, release_path: str) -> None:
+    held = process_lock.acquire_lock("mp", directory=Path(lock_path))
+    Path(ready_path).write_text("ready")
+    deadline = time.time() + 5
+    while not Path(release_path).exists() and time.time() < deadline:
+        time.sleep(0.05)
+    process_lock.release_lock(held)
+
+
+def _child_die_holding(lock_path: str) -> None:
+    process_lock.acquire_lock("mp", directory=Path(lock_path))
+    os._exit(17)
 
 
 if __name__ == "__main__":
