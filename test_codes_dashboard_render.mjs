@@ -63,7 +63,7 @@ const fakeDocument = {
   }
 };
 
-const fn = new Function("document", `${rendererSrc}\nreturn { renderProperty, lockboxCodeKey, roomAcFilterSizeKey, extraLockboxKeys, OVERDUE_DAYS, EXTRA_LOCKBOX_COUNT, ROOM_TABLE_HEADERS };`);
+const fn = new Function("document", `${rendererSrc}\nreturn { renderProperty, lockboxCodeKey, roomAcFilterSizeKey, extraLockboxKeys, OVERDUE_DAYS, EXTRA_LOCKBOX_COUNT, ROOM_TABLE_HEADERS, HOUSE_NOTES_SECTION };`);
 const api = fn(fakeDocument);
 
 const dummy = {
@@ -107,7 +107,7 @@ const tree = api.renderProperty(dummy, {});
 const inputs = [];
 const texts = [];
 walk(tree, (el) => {
-  if (el.tagName === "INPUT") inputs.push(el);
+  if (el.tagName === "INPUT" || el.tagName === "TEXTAREA") inputs.push(el);
   if (el.textContent) texts.push(el.textContent);
 });
 
@@ -127,6 +127,10 @@ assert.ok(fieldSet.has("ac_filter_size"));
 assert.ok(fieldSet.has("ac_filter_date"));
 assert.ok(fieldSet.has("dryer_lint_date"));
 assert.ok(fieldSet.has("dryer_lint_notes"));
+assert.ok(fieldSet.has("garage_ac"));
+assert.ok(fieldSet.has("garage_ac_filter_date"));
+assert.ok(fieldSet.has("garage_ac_filter_size"));
+assert.ok(fieldSet.has("other_special"));
 assert.ok(fieldSet.has("extra_lockbox_1_name"));
 assert.ok(fieldSet.has("extra_lockbox_1_code"));
 assert.ok(fieldSet.has("extra_lockbox_1_location"));
@@ -145,13 +149,25 @@ for (const header of api.ROOM_TABLE_HEADERS) {
   assert.ok(texts.includes(header), `missing header ${header}`);
 }
 assert.ok(texts.includes("Extra Lockboxes"));
+assert.ok(texts.includes("House notes"));
+assert.ok(texts.includes("Garage AC"));
+assert.ok(texts.includes("Garage AC filter change date"));
+assert.ok(texts.includes("Garage AC filter size"));
+assert.ok(texts.includes("Other special things"));
 assert.ok(!texts.includes("Lockboxes") || texts.includes("Extra Lockboxes"));
+assert.ok(!texts.includes("Spanish Moss"));
 
 assert.equal(api.lockboxCodeKey(3), "lockbox_3");
 assert.equal(api.roomAcFilterSizeKey(4), "r4_ac_filter_size");
 assert.equal(api.OVERDUE_DAYS.ac_filter_date, 90);
 assert.equal(api.OVERDUE_DAYS.dryer_lint_date, 30);
+assert.equal(api.OVERDUE_DAYS.garage_ac_filter_date, 90);
 assert.equal(api.EXTRA_LOCKBOX_COUNT, 2);
+assert.equal(api.HOUSE_NOTES_SECTION.label, "House notes");
+assert.deepEqual(
+  api.HOUSE_NOTES_SECTION.fields.map((field) => field.key),
+  ["garage_ac", "garage_ac_filter_date", "garage_ac_filter_size", "other_special"]
+);
 
 const payload = {};
 inputs.forEach((input) => {
@@ -164,6 +180,10 @@ for (const key of [
   "r1_ac_filter_size",
   "ac_filter_size",
   "dryer_lint_date",
+  "garage_ac",
+  "garage_ac_filter_date",
+  "garage_ac_filter_size",
+  "other_special",
   "extra_lockbox_1_code"
 ]) {
   assert.ok(Object.prototype.hasOwnProperty.call(payload, key), `payload missing ${key}`);
@@ -192,16 +212,23 @@ const noRooms = {
 const noRoomsTree = api.renderProperty(noRooms, {});
 const noRoomsInputs = [];
 walk(noRoomsTree, (el) => {
-  if (el.tagName === "INPUT") noRoomsInputs.push(el);
+  if (el.tagName === "INPUT" || el.tagName === "TEXTAREA") noRoomsInputs.push(el);
 });
 const noRoomsFields = new Set(noRoomsInputs.map((el) => el.dataset.field));
 assert.ok(noRoomsFields.has("back_door"));
 assert.ok(noRoomsFields.has("ac_filter_size"));
 assert.ok(noRoomsFields.has("dryer_lint_date"));
+assert.ok(noRoomsFields.has("garage_ac"));
+assert.ok(noRoomsFields.has("garage_ac_filter_date"));
+assert.ok(noRoomsFields.has("garage_ac_filter_size"));
+assert.ok(noRoomsFields.has("other_special"));
 assert.ok(noRoomsFields.has("extra_lockbox_1_code"));
 assert.ok(noRoomsFields.has("extra_lockbox_1_location"));
 assert.ok(!noRoomsFields.has("r1"));
 assert.ok(!noRoomsFields.has("lockbox_1"));
+
+const otherSpecial = inputs.find((el) => el.dataset.field === "other_special");
+assert.equal(otherSpecial.tagName, "TEXTAREA");
 
 console.log("codes dashboard renderer structure ok");
 console.log(`inputs=${inputs.length} no_rooms_inputs=${noRoomsInputs.length}`);
