@@ -211,6 +211,12 @@ def save_state(state: Dict[str, Any], path: Path = STATE_PATH) -> None:
 
 
 def load_leftover_compose_tabs(path: Path = LEFTOVER_TABS_PATH) -> List[Dict[str, Any]]:
+    """Known leftover-tab records. Missing file means none recorded.
+
+    Live PadSplit has no leftover-tab GraphQL. GraphQL sendMessage does not
+    open compose tabs. A missing store is an empty record list, not an
+    unwired closer (that is leftover_compose_tabs=None on the send path).
+    """
     if not path.exists():
         return []
     try:
@@ -511,9 +517,12 @@ def already_handled(state: Dict[str, Any], booking_id: str) -> bool:
     meta = (state.get("bookings") or {}).get(booking_id)
     if not isinstance(meta, dict):
         return False
-    if meta.get("action") in {"auto_deny_eviction", "skipped_already_sent"}:
+    if meta.get("action") == "auto_deny_eviction":
         return True
-    return meta.get("action") == "sent" and bool(meta.get("pack_posted"))
+    # skipped_already_sent / sent are only terminal after the Joe pack posts.
+    if meta.get("action") in {"sent", "skipped_already_sent", "pack_posted"}:
+        return bool(meta.get("pack_posted"))
+    return False
 
 
 def record_booking(
@@ -578,7 +587,12 @@ def format_new_tenants_pack(
     *,
     joe_user_id: str = "",
 ) -> str:
-    mention = f"<@{joe_user_id}>" if (joe_user_id or "").strip() else "Joe"
+    joe = (joe_user_id or "").strip()
+    if not joe:
+        raise RuntimeError(
+            f"{DISCORD_JOE_USER_ID_ENV} missing; refusing to post #new-tenants pack"
+        )
+    mention = f"<@{joe}>"
     room = snapshot.get("room")
     room_bit = f" · Rm {room}" if room not in (None, "") else ""
     name = snapshot.get("first_name") or "Applicant"
@@ -631,6 +645,8 @@ def notify_new_tenants_pack_for_joe(
         return {"posted": False, "reason": "ci"}
     snapshot = result.get("screening_snapshot") or {}
     joe_user_id = (os.getenv(DISCORD_JOE_USER_ID_ENV) or "").strip()
+    if not joe_user_id:
+        return {"posted": False, "reason": "missing_joe_id"}
     text = format_new_tenants_pack(snapshot, joe_user_id=joe_user_id)
     return post_new_tenants_webhook(text, post_fn=post_fn)
 
@@ -904,44 +920,44 @@ def process_new_bookings(
             hirevire_already = host_already_sent_hirevire(thread, text)
 
         occupancy_id = _occupancy_id_for_hit(hit)
+        try:
+            if rental_history_fn is not None:
+                rental_history = rental_history_fn(thread or {"occupancy": {"id": occupancy_id}})
+            elif occupancy_id:
+                rental_history = {}  # live fetch is injected by run_for_scraper
+            else:
+                rental_history = {}
+        except Exception as exc:
+            sys.stderr.write(f"# Rental history failed for {booking_id}; skipping send: {exc}\n")
+            results.append(
+                {
+                    "booking_id": booking_id,
+                    "chat_id": chat_id,
+                    "action": "skipped_rental_history_error",
+                    "source": BOOKING_HIT_SOURCE,
+                }
+            )
+            continue
+
+        if has_recent_eviction(rental_history, now=now):
+            record_booking(
+                state,
+                booking_id,
+                chat_id=str(chat_id or ""),
+                action="auto_deny_eviction",
+                now=now,
+            )
+            results.append(
+                {
+                    "booking_id": booking_id,
+                    "chat_id": chat_id,
+                    "action": "auto_deny_eviction",
+                    "source": BOOKING_HIT_SOURCE,
+                }
+            )
+            continue
+
         if not hirevire_already:
-            try:
-                if rental_history_fn is not None:
-                    rental_history = rental_history_fn(thread or {"occupancy": {"id": occupancy_id}})
-                elif occupancy_id:
-                    rental_history = {}  # live fetch is injected by run_for_scraper
-                else:
-                    rental_history = {}
-            except Exception as exc:
-                sys.stderr.write(f"# Rental history failed for {booking_id}; skipping send: {exc}\n")
-                results.append(
-                    {
-                        "booking_id": booking_id,
-                        "chat_id": chat_id,
-                        "action": "skipped_rental_history_error",
-                        "source": BOOKING_HIT_SOURCE,
-                    }
-                )
-                continue
-
-            if has_recent_eviction(rental_history, now=now):
-                record_booking(
-                    state,
-                    booking_id,
-                    chat_id=str(chat_id or ""),
-                    action="auto_deny_eviction",
-                    now=now,
-                )
-                results.append(
-                    {
-                        "booking_id": booking_id,
-                        "chat_id": chat_id,
-                        "action": "auto_deny_eviction",
-                        "source": BOOKING_HIT_SOURCE,
-                    }
-                )
-                continue
-
             if not chat_id:
                 results.append(
                     {
