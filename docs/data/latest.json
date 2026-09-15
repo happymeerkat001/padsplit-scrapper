@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-09-15T06:11:54Z",
+  "scraped_at": "2026-09-15T11:51:06Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MjI3OTM1",
@@ -12125,50 +12125,6 @@
         "is_on_payment_plan": false,
         "payment_plan_end_date": null,
         "payment_plan_reason_note": null
-      },
-      {
-        "id": 469738,
-        "status": "completed",
-        "comment": null,
-        "category": "unclassified",
-        "media": [],
-        "created": "2026-09-05T00:59:19.686559",
-        "modified": "2026-09-08T00:06:31.309891",
-        "room_name": "Room 6",
-        "room_number": 6,
-        "room_status": 1,
-        "room_code": "3414",
-        "location": "Doorlock",
-        "details": "Code given by Mgmt. Doesn\u2019t seem to work. It\u2019s 1032 doesn\u2019t work on either door.?",
-        "property_id": 8127,
-        "property_address": {
-          "id": 10664,
-          "street1": "10235 Ridge Oak Street",
-          "street2": "",
-          "city": "Dallas",
-          "state": "TX",
-          "zip": "75227",
-          "city_slug": "dallas-tx"
-        },
-        "reported_by": {
-          "id": 911226,
-          "name": "Marianne Fried",
-          "role_id": 0,
-          "picture": "img/profiles/user_911226_ad3e5aff-96a6-4362-a21a-8cab4464471a.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-09-08T00:06:31.298384",
-        "rating": null,
-        "extra_data": {
-          "checklist": {}
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
       }
     ]
   },
@@ -12179,13 +12135,13 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-09-15T06:11:54Z",
-    "started_at": "2026-09-15T06:11:41Z",
-    "finished_at": "2026-09-15T06:12:03Z",
+    "run_scraped_at": "2026-09-15T11:51:06Z",
+    "started_at": "2026-09-15T11:50:51Z",
+    "finished_at": "2026-09-15T11:51:16Z",
     "host": "runnervmlun5p",
     "counts": {
       "messages": 52,
-      "tasks": 13,
+      "tasks": 12,
       "rooms": 62,
       "properties": 9,
       "earnings_properties": 0
@@ -12196,7 +12152,7 @@
     "sources": {
       "messages": {
         "state": "ok",
-        "scraped_at": "2026-09-15T06:11:54Z"
+        "scraped_at": "2026-09-15T11:51:06Z"
       },
       "stats": {
         "state": "degraded",
