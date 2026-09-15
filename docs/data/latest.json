@@ -1,6 +1,525 @@
 {
-  "scraped_at": "2026-09-15T00:59:43Z",
+  "scraped_at": "2026-09-15T06:11:54Z",
   "messages": [
+    {
+      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MjI3OTM1",
+      "title": "Christopher Ames",
+      "chatType": "HOST_SUPPORT_CHAT",
+      "isArchived": false,
+      "occupancy": {
+        "id": "TWVzc2VuZ2VyT2NjdXBhbmN5VHlwZToyMjk5Mzg=",
+        "moveInDate": "2025-11-15",
+        "moveOutDate": null,
+        "conditionalEligibilityApplied": null,
+        "room": {
+          "pk": 55032,
+          "roomNumber": 3
+        },
+        "user": {
+          "picture": "img/profiles/user_634613_07c60de8-b199-44b1-8823-b4641f3ecce8.jpg",
+          "firstName": "Christopher",
+          "lastName": "Ames",
+          "displayName": null
+        }
+      },
+      "property": {
+        "host": {
+          "firstName": "Ang",
+          "lastName": "Li",
+          "displayName": null,
+          "picture": ""
+        },
+        "description": "Move into a newly-renovated House today! Homey and comfortable, this is the perfect place to call home. \n\nThe kitchen comes equipped with a fridge, sink, oven, stovetop, as well as garbage disposal, making it the perfect spot to whip up a meal or two.\n\nThe neighbourhood is near highways, and you won\u2019t be far from all Haltom City has to offer.",
+        "address": {
+          "street1": "3541 Parker Road East",
+          "street2": "",
+          "zip": "76117",
+          "city": {
+            "name": "Haltom City",
+            "state": {
+              "name": "Texas"
+            }
+          }
+        }
+      },
+      "isCancelled": false,
+      "lastMessage": {
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE1NTc5NTA=",
+        "created": "2026-09-15T02:38:35.061131",
+        "text": null,
+        "deleted": null,
+        "extra": null,
+        "messageType": "TICKET_UPDATE",
+        "sender": {
+          "pk": 701127,
+          "firstName": "Ang",
+          "lastName": "Li",
+          "displayName": null
+        },
+        "attachments": [],
+        "paymentExtensionStatus": null,
+        "ticketStatus": {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMTU5NDEx",
+          "created": "2026-09-15T02:38:35.080328",
+          "status": "SUBMITTED",
+          "canRate": false,
+          "ticket": {
+            "id": "475019",
+            "author": {
+              "firstName": "Christopher",
+              "lastName": "Ames",
+              "id": "634613",
+              "displayName": null
+            },
+            "details": "I tested the dryer after the notification. It runs for ten minutes, chimes, blinks, and stops with wet clothes. The repair attempt was unsuccessful. Please schedule a qualified appliance technician to diagnose the actual issue, as the current fix isn't working.",
+            "location": "LAUNDRY",
+            "status": "SUBMITTED",
+            "rating": null,
+            "comment": null,
+            "category": "UNCLASSIFIED",
+            "onHoldReason": null,
+            "withdrawReason": null
+          }
+        },
+        "bookingStatus": null
+      },
+      "member": {
+        "seenAt": "2026-09-14T21:38:53.017054",
+        "isPinned": false,
+        "isUnread": true
+      },
+      "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE1NTc5NTA=",
+          "text": null,
+          "created": "2026-09-15T02:38:35.061131",
+          "messageType": "TICKET_UPDATE",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjcwMTEyNw==",
+            "pk": 701127,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 638709
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMTU5NDEx",
+            "created": "2026-09-15T02:38:35.080328",
+            "status": "SUBMITTED",
+            "canRate": false,
+            "ticket": {
+              "id": "475019",
+              "author": {
+                "firstName": "Christopher",
+                "lastName": "Ames",
+                "id": "634613",
+                "displayName": null
+              },
+              "details": "I tested the dryer after the notification. It runs for ten minutes, chimes, blinks, and stops with wet clothes. The repair attempt was unsuccessful. Please schedule a qualified appliance technician to diagnose the actual issue, as the current fix isn't working.",
+              "location": "LAUNDRY",
+              "status": "SUBMITTED",
+              "rating": null,
+              "comment": null,
+              "category": "UNCLASSIFIED",
+              "onHoldReason": null,
+              "withdrawReason": null
+            }
+          },
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE1NTIwMzU=",
+          "text": null,
+          "created": "2026-09-14T21:36:05.791282",
+          "messageType": "TICKET_UPDATE",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjcwMTEyNw==",
+            "pk": 701127,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 638709
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMTU5MDc2",
+            "created": "2026-09-14T21:36:05.823444",
+            "status": "COMPLETED",
+            "canRate": false,
+            "ticket": {
+              "id": "458008",
+              "author": {
+                "firstName": "Christopher",
+                "lastName": "Ames",
+                "id": "634613",
+                "displayName": null
+              },
+              "details": "Dryer is not functioning properly. Will cycle for about 10 minutes before shutting off without drying clothes",
+              "location": "LAUNDRY",
+              "status": "COMPLETED",
+              "rating": null,
+              "comment": null,
+              "category": "UNCLASSIFIED",
+              "onHoldReason": null,
+              "withdrawReason": null
+            }
+          },
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE1NTIwMjQ=",
+          "text": "Hi Christopher, we\u2019ve decided to replace the dryer. We\u2019ll let everyone know once the new dryer arrives and is ready to use. Thank you for your patience and for helping us troubleshoot the issue!",
+          "created": "2026-09-14T21:35:42.477801",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Joe Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0NjUxNDY=",
+          "text": "Hey, I really appreciate the follow up. So, it's still doing the same thing. And here's what I've done up to date. I shortened the vent hose to eliminate any extra curves. I checked the outdoor vent while it was running and there's some air flow. I looked in the tube that's in the back of the dryer and it seems to be clear. I've looked in the front where the lint filter is but I couldn't really see any blockage, not to say that it isn't blocked where I can't see it. I looked on Google and did a memory reset to see if might be locked on an error code. \n\nThe dryer cycles usually about ten to fifteen minutes, regardless of the cycle or temperature setting. It will stop and chime like it's complete, then follows with a warning signal and the light for \"flow sense\" blinks. And it will continue giving the warning beeps until the machine is turned back on and then off. \n\nAll of us would really appreciate it if you could expedite the repair. \n\nThank you",
+          "created": "2026-09-10T15:48:25.969866",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjYzNDYxMw==",
+            "pk": 634613,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_634613_07c60de8-b199-44b1-8823-b4641f3ecce8.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_634613_07c60de8-b199-44b1-8823-b4641f3ecce8.jpg",
+            "firstName": "Christopher",
+            "lastName": "Ames",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 572255
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0NjMwODc=",
+          "text": "Hi Christopher, just following up on the dryer. Were you able to do your laundry yesterday, and is the dryer working properly now? Please let me know if you\u2019re still experiencing any issues. Thanks!",
+          "created": "2026-09-10T14:24:56.856134",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Joe Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0NTQ0ODI=",
+          "text": "I'll be doing some laundry today. I'll let you know. ",
+          "created": "2026-09-09T23:32:05.343161",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjYzNDYxMw==",
+            "pk": 634613,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_634613_07c60de8-b199-44b1-8823-b4641f3ecce8.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_634613_07c60de8-b199-44b1-8823-b4641f3ecce8.jpg",
+            "firstName": "Christopher",
+            "lastName": "Ames",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 572255
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0NTQzNzY=",
+          "text": "Hi Christopher, just wanted to check if maintenance guy came to fix the dryer? Is it working fine now?",
+          "created": "2026-09-09T23:22:59.301671",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Joe Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0MzY0Njk=",
+          "text": "Room 8 is locked. Room 4 appears to be occupied. ",
+          "created": "2026-09-09T03:34:30.515861",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjYzNDYxMw==",
+            "pk": 634613,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_634613_07c60de8-b199-44b1-8823-b4641f3ecce8.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_634613_07c60de8-b199-44b1-8823-b4641f3ecce8.jpg",
+            "firstName": "Christopher",
+            "lastName": "Ames",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 572255
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0MzA1MjE=",
+          "text": "Hi Christopher, could you please help me check rooms 4 and 8 whether they are empty and clean?",
+          "created": "2026-09-08T21:56:13.760436",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Joe Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0MTk2NjE=",
+          "text": "1 more please.",
+          "created": "2026-09-08T14:23:39.867952",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjYzNDYxMw==",
+            "pk": 634613,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_634613_07c60de8-b199-44b1-8823-b4641f3ecce8.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_634613_07c60de8-b199-44b1-8823-b4641f3ecce8.jpg",
+            "firstName": "Christopher",
+            "lastName": "Ames",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 572255
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        }
+      ]
+    },
+    {
+      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6NDM3MzUw",
+      "title": "Sandro Barbaresso",
+      "chatType": "HOST_SUPPORT_CHAT",
+      "isArchived": false,
+      "occupancy": {
+        "id": "TWVzc2VuZ2VyT2NjdXBhbmN5VHlwZTozNjEyNDA=",
+        "moveInDate": "2026-09-19",
+        "moveOutDate": null,
+        "conditionalEligibilityApplied": null,
+        "room": {
+          "pk": 32869,
+          "roomNumber": 3
+        },
+        "user": {
+          "picture": "img/profiles/user_732628_d8ad04cd-c825-468b-a537-66b4fddff716.jpg",
+          "firstName": "Sandro",
+          "lastName": "Barbaresso",
+          "displayName": null
+        }
+      },
+      "property": {
+        "host": {
+          "firstName": "Ang",
+          "lastName": "Li",
+          "displayName": "Joe Manager",
+          "picture": ""
+        },
+        "description": "Your new home awaits! This homey Arlington home is waiting for you. This PadSplit has a Backyard, and it\u2019s newly-renovated and comfortable.\n\nThe kitchen comes equipped with a fridge, sink, oven, stovetop, as well as upgraded appliances.\n\nThe neighbourhood is close to public transit, which means you won\u2019t be far from all Arlington has to offer.",
+        "address": {
+          "street1": "3406 Green Hill Drive",
+          "street2": "",
+          "zip": "76014",
+          "city": {
+            "name": "Arlington",
+            "state": {
+              "name": "Texas"
+            }
+          }
+        }
+      },
+      "isCancelled": false,
+      "lastMessage": {
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE1NTc1NTI=",
+        "created": "2026-09-15T02:06:32.307049",
+        "text": "- Professional engineer working in electronic since 26 years\n- Need to be close to work to avoid traffic\n- Been with PadSplit for 3+years",
+        "deleted": null,
+        "extra": null,
+        "messageType": "TEXT",
+        "sender": {
+          "pk": 732628,
+          "firstName": "Sandro",
+          "lastName": "Barbaresso",
+          "displayName": null
+        },
+        "attachments": [],
+        "paymentExtensionStatus": null,
+        "ticketStatus": null,
+        "bookingStatus": null
+      },
+      "member": {
+        "seenAt": null,
+        "isPinned": false,
+        "isUnread": true
+      },
+      "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE1NTc1NTI=",
+          "text": "- Professional engineer working in electronic since 26 years\n- Need to be close to work to avoid traffic\n- Been with PadSplit for 3+years",
+          "created": "2026-09-15T02:06:32.307049",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjczMjYyOA==",
+            "pk": 732628,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_732628_d8ad04cd-c825-468b-a537-66b4fddff716.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_732628_d8ad04cd-c825-468b-a537-66b4fddff716.jpg",
+            "firstName": "Sandro",
+            "lastName": "Barbaresso",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 670204
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE1NTc1MTk=",
+          "text": null,
+          "created": "2026-09-15T02:03:09.808782",
+          "messageType": "BOOKING_STATUS",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Joe Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZUJvb2tpbmdTdGF0dXM6MzUwMDk0",
+            "created": "2026-09-15T02:03:09.817612",
+            "status": "APPROVED",
+            "verificationTimeInHours": 24
+          }
+        }
+      ]
+    },
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6OTAyNjg=",
       "title": "Brenda Lopez",
@@ -648,378 +1167,6 @@
             "isActive": true,
             "displayName": "Chris",
             "padmateProfileId": 859343
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        }
-      ]
-    },
-    {
-      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MjI3OTM1",
-      "title": "Christopher Ames",
-      "chatType": "HOST_SUPPORT_CHAT",
-      "isArchived": false,
-      "occupancy": {
-        "id": "TWVzc2VuZ2VyT2NjdXBhbmN5VHlwZToyMjk5Mzg=",
-        "moveInDate": "2025-11-15",
-        "moveOutDate": null,
-        "conditionalEligibilityApplied": null,
-        "room": {
-          "pk": 55032,
-          "roomNumber": 3
-        },
-        "user": {
-          "picture": "img/profiles/user_634613_07c60de8-b199-44b1-8823-b4641f3ecce8.jpg",
-          "firstName": "Christopher",
-          "lastName": "Ames",
-          "displayName": null
-        }
-      },
-      "property": {
-        "host": {
-          "firstName": "Ang",
-          "lastName": "Li",
-          "displayName": null,
-          "picture": ""
-        },
-        "description": "Move into a newly-renovated House today! Homey and comfortable, this is the perfect place to call home. \n\nThe kitchen comes equipped with a fridge, sink, oven, stovetop, as well as garbage disposal, making it the perfect spot to whip up a meal or two.\n\nThe neighbourhood is near highways, and you won\u2019t be far from all Haltom City has to offer.",
-        "address": {
-          "street1": "3541 Parker Road East",
-          "street2": "",
-          "zip": "76117",
-          "city": {
-            "name": "Haltom City",
-            "state": {
-              "name": "Texas"
-            }
-          }
-        }
-      },
-      "isCancelled": false,
-      "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE1NTIwMzU=",
-        "created": "2026-09-14T21:36:05.791282",
-        "text": null,
-        "deleted": null,
-        "extra": null,
-        "messageType": "TICKET_UPDATE",
-        "sender": {
-          "pk": 701127,
-          "firstName": "Ang",
-          "lastName": "Li",
-          "displayName": null
-        },
-        "attachments": [],
-        "paymentExtensionStatus": null,
-        "ticketStatus": {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMTU5MDc2",
-          "created": "2026-09-14T21:36:05.823444",
-          "status": "COMPLETED",
-          "canRate": false,
-          "ticket": {
-            "id": "458008",
-            "author": {
-              "firstName": "Christopher",
-              "lastName": "Ames",
-              "id": "634613",
-              "displayName": null
-            },
-            "details": "Dryer is not functioning properly. Will cycle for about 10 minutes before shutting off without drying clothes",
-            "location": "LAUNDRY",
-            "status": "COMPLETED",
-            "rating": null,
-            "comment": null,
-            "category": "UNCLASSIFIED",
-            "onHoldReason": null,
-            "withdrawReason": null
-          }
-        },
-        "bookingStatus": null
-      },
-      "member": {
-        "seenAt": "2026-09-14T21:38:53.017054",
-        "isPinned": false,
-        "isUnread": false
-      },
-      "recent_messages": [
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE1NTIwMzU=",
-          "text": null,
-          "created": "2026-09-14T21:36:05.791282",
-          "messageType": "TICKET_UPDATE",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjcwMTEyNw==",
-            "pk": 701127,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 638709
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": {
-            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMTU5MDc2",
-            "created": "2026-09-14T21:36:05.823444",
-            "status": "COMPLETED",
-            "canRate": false,
-            "ticket": {
-              "id": "458008",
-              "author": {
-                "firstName": "Christopher",
-                "lastName": "Ames",
-                "id": "634613",
-                "displayName": null
-              },
-              "details": "Dryer is not functioning properly. Will cycle for about 10 minutes before shutting off without drying clothes",
-              "location": "LAUNDRY",
-              "status": "COMPLETED",
-              "rating": null,
-              "comment": null,
-              "category": "UNCLASSIFIED",
-              "onHoldReason": null,
-              "withdrawReason": null
-            }
-          },
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE1NTIwMjQ=",
-          "text": "Hi Christopher, we\u2019ve decided to replace the dryer. We\u2019ll let everyone know once the new dryer arrives and is ready to use. Thank you for your patience and for helping us troubleshoot the issue!",
-          "created": "2026-09-14T21:35:42.477801",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Joe Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0NjUxNDY=",
-          "text": "Hey, I really appreciate the follow up. So, it's still doing the same thing. And here's what I've done up to date. I shortened the vent hose to eliminate any extra curves. I checked the outdoor vent while it was running and there's some air flow. I looked in the tube that's in the back of the dryer and it seems to be clear. I've looked in the front where the lint filter is but I couldn't really see any blockage, not to say that it isn't blocked where I can't see it. I looked on Google and did a memory reset to see if might be locked on an error code. \n\nThe dryer cycles usually about ten to fifteen minutes, regardless of the cycle or temperature setting. It will stop and chime like it's complete, then follows with a warning signal and the light for \"flow sense\" blinks. And it will continue giving the warning beeps until the machine is turned back on and then off. \n\nAll of us would really appreciate it if you could expedite the repair. \n\nThank you",
-          "created": "2026-09-10T15:48:25.969866",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjYzNDYxMw==",
-            "pk": 634613,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_634613_07c60de8-b199-44b1-8823-b4641f3ecce8.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_634613_07c60de8-b199-44b1-8823-b4641f3ecce8.jpg",
-            "firstName": "Christopher",
-            "lastName": "Ames",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 572255
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0NjMwODc=",
-          "text": "Hi Christopher, just following up on the dryer. Were you able to do your laundry yesterday, and is the dryer working properly now? Please let me know if you\u2019re still experiencing any issues. Thanks!",
-          "created": "2026-09-10T14:24:56.856134",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Joe Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0NTQ0ODI=",
-          "text": "I'll be doing some laundry today. I'll let you know. ",
-          "created": "2026-09-09T23:32:05.343161",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjYzNDYxMw==",
-            "pk": 634613,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_634613_07c60de8-b199-44b1-8823-b4641f3ecce8.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_634613_07c60de8-b199-44b1-8823-b4641f3ecce8.jpg",
-            "firstName": "Christopher",
-            "lastName": "Ames",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 572255
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0NTQzNzY=",
-          "text": "Hi Christopher, just wanted to check if maintenance guy came to fix the dryer? Is it working fine now?",
-          "created": "2026-09-09T23:22:59.301671",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Joe Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0MzY0Njk=",
-          "text": "Room 8 is locked. Room 4 appears to be occupied. ",
-          "created": "2026-09-09T03:34:30.515861",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjYzNDYxMw==",
-            "pk": 634613,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_634613_07c60de8-b199-44b1-8823-b4641f3ecce8.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_634613_07c60de8-b199-44b1-8823-b4641f3ecce8.jpg",
-            "firstName": "Christopher",
-            "lastName": "Ames",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 572255
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0MzA1MjE=",
-          "text": "Hi Christopher, could you please help me check rooms 4 and 8 whether they are empty and clean?",
-          "created": "2026-09-08T21:56:13.760436",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Joe Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0MTk2NjE=",
-          "text": "1 more please.",
-          "created": "2026-09-08T14:23:39.867952",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjYzNDYxMw==",
-            "pk": 634613,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_634613_07c60de8-b199-44b1-8823-b4641f3ecce8.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_634613_07c60de8-b199-44b1-8823-b4641f3ecce8.jpg",
-            "firstName": "Christopher",
-            "lastName": "Ames",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 572255
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE0MTU4MzQ=",
-          "text": "Hi everyone \u2014 quick check on indoor trash cans in the common areas.\nDo you need more indoor trash cans at this house, and if so how many?\nGuideline we\u2019re using: about 1 indoor can per 4 rooms.\nPlease reply in this chat with a number (0 if you\u2019re fine). Thanks!",
-          "created": "2026-09-08T11:26:17.411350",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": true,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Joe Manager",
-            "padmateProfileId": 257098
           },
           "attachments": [],
           "reactions": [],
@@ -11422,6 +11569,48 @@
   "tasks": {
     "Requests": [
       {
+        "id": 475019,
+        "status": "submitted",
+        "comment": null,
+        "category": "unclassified",
+        "media": [],
+        "created": "2026-09-15T02:38:35.000896",
+        "modified": "2026-09-15T02:38:35.000896",
+        "room_name": "",
+        "room_number": 3,
+        "room_status": 1,
+        "room_code": "1234(give it when appying)",
+        "location": "Laundry",
+        "details": "I tested the dryer after the notification. It runs for ten minutes, chimes, blinks, and stops with wet clothes. The repair attempt was unsuccessful. Please schedule a qualified appliance technician to diagnose the actual issue, as the current fix isn't working.",
+        "property_id": 15799,
+        "property_address": {
+          "id": 21682,
+          "street1": "3541 Parker Road East",
+          "street2": "",
+          "city": "Haltom City",
+          "state": "TX",
+          "zip": "76117",
+          "city_slug": "haltom-city-tx"
+        },
+        "reported_by": {
+          "id": 634613,
+          "name": "Christopher Ames",
+          "role_id": 0,
+          "picture": "img/profiles/user_634613_07c60de8-b199-44b1-8823-b4641f3ecce8.jpg"
+        },
+        "assigned_to": null,
+        "on_hold_reason": null,
+        "update_status_at": "2026-09-15T02:38:35.003028",
+        "rating": null,
+        "extra_data": {},
+        "has_reused_code": true,
+        "moveout_photos_count": 0,
+        "days_to_complete": null,
+        "is_on_payment_plan": false,
+        "payment_plan_end_date": null,
+        "payment_plan_reason_note": null
+      },
+      {
         "id": 463747,
         "status": "submitted",
         "comment": null,
@@ -11990,13 +12179,13 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-09-15T00:59:43Z",
-    "started_at": "2026-09-15T00:59:29Z",
-    "finished_at": "2026-09-15T00:59:53Z",
+    "run_scraped_at": "2026-09-15T06:11:54Z",
+    "started_at": "2026-09-15T06:11:41Z",
+    "finished_at": "2026-09-15T06:12:03Z",
     "host": "runnervmlun5p",
     "counts": {
-      "messages": 51,
-      "tasks": 12,
+      "messages": 52,
+      "tasks": 13,
       "rooms": 62,
       "properties": 9,
       "earnings_properties": 0
@@ -12007,7 +12196,7 @@
     "sources": {
       "messages": {
         "state": "ok",
-        "scraped_at": "2026-09-15T00:59:43Z"
+        "scraped_at": "2026-09-15T06:11:54Z"
       },
       "stats": {
         "state": "degraded",
