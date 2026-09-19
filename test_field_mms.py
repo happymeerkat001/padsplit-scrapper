@@ -127,7 +127,7 @@ class FieldMmsTests(unittest.TestCase):
         self.assertIn("kitchen sink leak", sent[0][0])
         self.assertEqual(sent[0][1], QUO_RECIPIENTS_DEFAULT)
 
-    def test_evening_run_same_day_is_same_morning_window(self) -> None:
+    def test_evening_run_same_day_is_skipped_outside_morning(self) -> None:
         sent: list[str] = []
 
         def host(_since: datetime) -> list[str]:
@@ -154,9 +154,79 @@ class FieldMmsTests(unittest.TestCase):
 
         self.assertEqual(morning.action, "send")
         self.assertEqual(morning.window_id, "2026-09-01-07")
-        self.assertEqual(evening.action, "skip_duplicate")
+        self.assertEqual(evening.action, "skip_outside_morning")
         self.assertEqual(evening.window_id, "2026-09-01-07")
         self.assertEqual(len(sent), 1)
+
+    def test_run_window_skips_outside_morning_without_sending(self) -> None:
+        sent: list[str] = []
+        fetched: list[str] = []
+
+        def host(_since: datetime) -> list[str]:
+            fetched.append("host")
+            return ["10235 Ridge Oak Rm 5 — kitchen sink leak"]
+
+        def tasks(_since: datetime) -> list[str]:
+            fetched.append("tasks")
+            return []
+
+        def sender(body: str, _recipients) -> None:
+            sent.append(body)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            state = Path(tmp) / "sent.json"
+            afternoon = run_window(
+                now=datetime(2026, 9, 1, 13, 30, tzinfo=CT),
+                host_fetcher=host,
+                task_fetcher=tasks,
+                sender=sender,
+                state_path=state,
+                ci=False,
+            )
+            just_after = run_window(
+                now=datetime(2026, 9, 1, 8, 0, tzinfo=CT),
+                host_fetcher=host,
+                task_fetcher=tasks,
+                sender=sender,
+                state_path=state,
+                ci=False,
+            )
+            dry = run_window(
+                now=datetime(2026, 9, 1, 15, 0, tzinfo=CT),
+                host_fetcher=host,
+                task_fetcher=tasks,
+                sender=sender,
+                state_path=state,
+                ci=False,
+                dry_run=True,
+            )
+            catchup = run_window(
+                now=datetime(2026, 9, 1, 6, 30, tzinfo=CT),
+                host_fetcher=host,
+                task_fetcher=tasks,
+                sender=sender,
+                state_path=state,
+                ci=False,
+            )
+            morning = run_window(
+                now=datetime(2026, 9, 1, 7, 0, tzinfo=CT),
+                host_fetcher=host,
+                task_fetcher=tasks,
+                sender=sender,
+                state_path=state,
+                ci=False,
+            )
+
+        self.assertEqual(afternoon.action, "skip_outside_morning")
+        self.assertEqual(afternoon.window_id, "2026-09-01-07")
+        self.assertEqual(just_after.action, "skip_outside_morning")
+        self.assertEqual(dry.action, "send")
+        self.assertEqual(catchup.action, "send")
+        self.assertEqual(catchup.window_id, "2026-08-31-07")
+        self.assertEqual(morning.action, "send")
+        self.assertEqual(morning.window_id, "2026-09-01-07")
+        self.assertEqual(len(sent), 2)
+        self.assertEqual(fetched, ["host", "tasks", "host", "tasks", "host", "tasks"])
 
     def test_window_for_is_morning_7am_only(self) -> None:
         self.assertEqual(MORNING_HOUR, 7)
@@ -325,8 +395,10 @@ class FieldMmsTests(unittest.TestCase):
     def test_launchd_plist_is_7am_every_day(self) -> None:
         payload = build_launchd_plist(Path("/Users/leon/Documents/Code/padsplit-scraper"))
         slot = payload["StartCalendarInterval"]
+        self.assertIsInstance(slot, dict)
         self.assertEqual(slot, {"Hour": 7, "Minute": 0})
         self.assertNotIn("Weekday", slot)
+        self.assertNotIsInstance(slot, list)
         self.assertEqual(payload["Label"], "com.padsplit.field-mms")
         self.assertTrue(str(payload["ProgramArguments"][1]).endswith("run_field_mms.sh"))
         example = plistlib.loads(

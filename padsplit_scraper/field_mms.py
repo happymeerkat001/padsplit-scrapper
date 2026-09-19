@@ -129,7 +129,7 @@ class Window:
 
 @dataclass
 class SendPlan:
-    action: str  # send | skip_empty | skip_duplicate | skip_ci
+    action: str  # send | skip_empty | skip_duplicate | skip_ci | skip_outside_morning
     window_id: str
     body: str = ""
     host_lines: List[str] = field(default_factory=list)
@@ -796,6 +796,12 @@ def run_window(
 ) -> SendPlan:
     current = (now or datetime.now(CT)).astimezone(CT)
     window = window_for(current)
+    if current.hour > MORNING_HOUR and not dry_run:
+        plan = SendPlan(action="skip_outside_morning", window_id=window.id)
+        sys.stderr.write(
+            f"[field-mms] {plan.action} window={plan.window_id} hour={current.hour}\n"
+        )
+        return plan
     since = current - LOOKBACK
     host_lines = (host_fetcher or collect_host_lines)(since)
     task_lines = (task_fetcher or collect_task_lines)(since)

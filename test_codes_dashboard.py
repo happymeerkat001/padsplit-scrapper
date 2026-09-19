@@ -20,7 +20,6 @@ HOUSE_SLUGS = [
     "pioneer_1404",
     "burton_5509",
     "broken_crest_1025",
-    "spanish_moss",
 ]
 
 ROOM_COUNTS = {
@@ -33,7 +32,6 @@ ROOM_COUNTS = {
     "pioneer_1404": 7,
     "burton_5509": 7,
     "broken_crest_1025": 9,
-    "spanish_moss": 0,
 }
 
 LEGACY_LOCKBOX_COUNTS = {
@@ -46,6 +44,13 @@ CONTACT_OPS_KEYS = (
     "ac_filter_size",
     "dryer_lint_date",
     "dryer_lint_notes",
+)
+
+HOUSE_NOTES_KEYS = (
+    "garage_ac",
+    "garage_ac_filter_date",
+    "garage_ac_filter_size",
+    "other_special",
 )
 
 EXTRA_LOCKBOX_COUNT = 2
@@ -114,6 +119,7 @@ def extra_lockbox_keys(n: int) -> list[str]:
 def expected_save_ops_keys(room_count: int) -> set[str]:
     keys = set(room_ops_keys(room_count))
     keys.update(CONTACT_OPS_KEYS)
+    keys.update(HOUSE_NOTES_KEYS)
     for n in range(1, EXTRA_LOCKBOX_COUNT + 1):
         keys.update(extra_lockbox_keys(n))
     return keys
@@ -126,15 +132,13 @@ class CodesDashboardStructureTests(unittest.TestCase):
         cls.defaults = _defaults_block(cls.html)
         cls.houses = _house_blocks(cls.html)
 
-    def test_known_houses_include_spanish_moss(self):
-        slugs = _slugs(self.html)
+    def test_rental_houses_exclude_spanish_moss(self):
+        slugs = _slugs(self.defaults)
         self.assertEqual(slugs, HOUSE_SLUGS)
-        self.assertEqual(len(slugs), 10)
-        self.assertIn("back_door", _field_keys(self.houses["spanish_moss"]))
-        self.assertEqual(
-            [k for k in _field_keys(self.houses["spanish_moss"]) if re.fullmatch(r"r\d+", k)],
-            [],
-        )
+        self.assertEqual(len(slugs), 9)
+        self.assertNotIn("spanish_moss", slugs)
+        self.assertNotIn("spanish_moss", self.houses)
+        self.assertNotIn("Spanish Moss", self.defaults)
 
     def test_room_counts_match_defaults(self):
         for slug, count in ROOM_COUNTS.items():
@@ -153,6 +157,27 @@ class CodesDashboardStructureTests(unittest.TestCase):
                 self.assertIn(key, keys, msg=f"{slug} missing {key}")
             self.assertIn('label: "AC filter date"', block)
             self.assertIn('placeholder: "16x25x1"', block)
+        self.assertEqual(set(self.houses), set(HOUSE_SLUGS))
+
+    def test_house_notes_fields_on_every_house(self):
+        self.assertIn("const HOUSE_NOTES_SECTION = {", self.html)
+        self.assertIn("label: 'House notes'", self.html)
+        self.assertIn("body.appendChild(renderLabelValueTable(property, HOUSE_NOTES_SECTION, savedValues))", self.html)
+        for key in HOUSE_NOTES_KEYS:
+            self.assertIn(f"key: '{key}'", self.html)
+        self.assertIn("label: 'Garage AC'", self.html)
+        self.assertIn("label: 'Garage AC filter change date'", self.html)
+        self.assertIn("label: 'Garage AC filter size'", self.html)
+        self.assertIn("label: 'Other special things'", self.html)
+        self.assertIn("placeholder: '16x25x1'", self.html)
+        self.assertIn("type: 'textarea'", self.html)
+        self.assertIn('input[data-prop="${slug}"], textarea[data-prop="${slug}"]', self.html)
+        for key in HOUSE_NOTES_KEYS:
+            self.assertRegex(
+                self.html,
+                rf"key: '{key}'[^\n]*value: ''",
+                msg=f"{key} must have an empty default",
+            )
 
     def test_new_ops_fields_have_empty_defaults(self):
         for slug, block in self.houses.items():
@@ -187,11 +212,8 @@ class CodesDashboardStructureTests(unittest.TestCase):
                 expected.issuperset({"ac_filter_size", "dryer_lint_date", "extra_lockbox_1_code"}),
                 msg=f"{slug} ops keys",
             )
-            if count == 0:
-                self.assertNotIn("r1", expected)
-                self.assertNotIn("lockbox_1", expected)
-                continue
             self.assertTrue(expected.issuperset({"r1", "lockbox_1"}))
+            self.assertTrue(expected.issuperset(HOUSE_NOTES_KEYS))
             self.assertIn(f"lockbox_{count}", expected)
             self.assertIn(f"r{count}_ac_filter_size", expected)
 
@@ -217,6 +239,7 @@ class CodesDashboardStructureTests(unittest.TestCase):
     def test_overdue_windows(self):
         self.assertIn("ac_filter_date: 90", self.html)
         self.assertIn("dryer_lint_date: 30", self.html)
+        self.assertIn("garage_ac_filter_date: 90", self.html)
 
     def test_firestore_merge_and_gate_unchanged(self):
         self.assertIn("collection(db, 'property_codes')", self.html)
@@ -261,6 +284,8 @@ class CodesDashboardStructureTests(unittest.TestCase):
             self.skipTest("main codes.html not available for comparison")
         main_houses = _house_blocks(main_html)
         for slug, main_block in main_houses.items():
+            if slug not in self.houses:
+                continue
             current = _key_values(self.houses[slug])
             previous = _key_values(main_block)
             for key, old_value in previous.items():

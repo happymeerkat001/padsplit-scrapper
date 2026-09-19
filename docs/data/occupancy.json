@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-09-10T06:39:44Z",
+  "scraped_at": "2026-09-19T14:50:15Z",
   "derived_from": [
     "messages",
     "tasks"
@@ -9,19 +9,17 @@
       "property_id": 8127,
       "address": "10235 Ridge Oak Street",
       "room_number": 1,
-      "occupant_present": true,
+      "occupant_present": false,
       "listed_move_out": "2026-08-27",
       "next_move_in": null,
-      "open_turn_ticket_ids": [
-        466504
-      ],
+      "open_turn_ticket_ids": [],
       "open_eviction_ticket_ids": [],
       "open_hold_ticket_ids": [],
       "move_out_photos": 0,
-      "vacant": false,
+      "vacant": true,
       "turned": false,
       "rent_ready": false,
-      "days_vacant": 0,
+      "days_vacant": 23,
       "seo_eligible": false
     },
     {
@@ -32,25 +30,6 @@
       "listed_move_out": null,
       "next_move_in": null,
       "open_turn_ticket_ids": [],
-      "open_eviction_ticket_ids": [],
-      "open_hold_ticket_ids": [],
-      "move_out_photos": 0,
-      "vacant": false,
-      "turned": false,
-      "rent_ready": false,
-      "days_vacant": 0,
-      "seo_eligible": false
-    },
-    {
-      "property_id": 8127,
-      "address": "10235 Ridge Oak Street",
-      "room_number": 4,
-      "occupant_present": true,
-      "listed_move_out": "2026-08-12",
-      "next_move_in": null,
-      "open_turn_ticket_ids": [
-        457440
-      ],
       "open_eviction_ticket_ids": [],
       "open_hold_ticket_ids": [],
       "move_out_photos": 0,
@@ -78,45 +57,11 @@
       "seo_eligible": false
     },
     {
-      "property_id": 8127,
+      "property_id": null,
       "address": "10235 Ridge Oak Street",
       "room_number": 6,
       "occupant_present": true,
       "listed_move_out": null,
-      "next_move_in": null,
-      "open_turn_ticket_ids": [],
-      "open_eviction_ticket_ids": [],
-      "open_hold_ticket_ids": [],
-      "move_out_photos": 0,
-      "vacant": false,
-      "turned": false,
-      "rent_ready": false,
-      "days_vacant": 0,
-      "seo_eligible": false
-    },
-    {
-      "property_id": 31523,
-      "address": "1025 Broken Crest",
-      "room_number": 1,
-      "occupant_present": true,
-      "listed_move_out": "2026-09-04",
-      "next_move_in": null,
-      "open_turn_ticket_ids": [],
-      "open_eviction_ticket_ids": [],
-      "open_hold_ticket_ids": [],
-      "move_out_photos": 0,
-      "vacant": false,
-      "turned": false,
-      "rent_ready": false,
-      "days_vacant": 0,
-      "seo_eligible": false
-    },
-    {
-      "property_id": 31523,
-      "address": "1025 Broken Crest",
-      "room_number": 3,
-      "occupant_present": true,
-      "listed_move_out": "2026-06-29",
       "next_move_in": null,
       "open_turn_ticket_ids": [],
       "open_eviction_ticket_ids": [],
@@ -318,13 +263,15 @@
       "seo_eligible": false
     },
     {
-      "property_id": null,
+      "property_id": 20021,
       "address": "1404 Pioneer Lane",
       "room_number": 7,
       "occupant_present": true,
-      "listed_move_out": null,
+      "listed_move_out": "2026-09-18",
       "next_move_in": null,
-      "open_turn_ticket_ids": [],
+      "open_turn_ticket_ids": [
+        476635
+      ],
       "open_eviction_ticket_ids": [],
       "open_hold_ticket_ids": [],
       "move_out_photos": 0,
@@ -358,7 +305,9 @@
       "occupant_present": true,
       "listed_move_out": "2026-09-08",
       "next_move_in": null,
-      "open_turn_ticket_ids": [],
+      "open_turn_ticket_ids": [
+        471349
+      ],
       "open_eviction_ticket_ids": [],
       "open_hold_ticket_ids": [],
       "move_out_photos": 0,
@@ -426,7 +375,9 @@
       "occupant_present": true,
       "listed_move_out": "2026-08-24",
       "next_move_in": null,
-      "open_turn_ticket_ids": [],
+      "open_turn_ticket_ids": [
+        463747
+      ],
       "open_eviction_ticket_ids": [],
       "open_hold_ticket_ids": [],
       "move_out_photos": 0,
@@ -488,7 +439,7 @@
       "seo_eligible": false
     },
     {
-      "property_id": 9369,
+      "property_id": null,
       "address": "3406 Green Hill Drive",
       "room_number": 7,
       "occupant_present": true,
@@ -505,7 +456,7 @@
       "seo_eligible": false
     },
     {
-      "property_id": null,
+      "property_id": 5735,
       "address": "3414 Pebbleshores Drive",
       "room_number": 1,
       "occupant_present": true,
@@ -514,7 +465,7 @@
       "open_turn_ticket_ids": [],
       "open_eviction_ticket_ids": [],
       "open_hold_ticket_ids": [],
-      "move_out_photos": 0,
+      "move_out_photos": 2,
       "vacant": false,
       "turned": false,
       "rent_ready": false,
@@ -543,7 +494,7 @@
       "address": "3414 Pebbleshores Drive",
       "room_number": 3,
       "occupant_present": true,
-      "listed_move_out": null,
+      "listed_move_out": "2026-10-11",
       "next_move_in": null,
       "open_turn_ticket_ids": [],
       "open_eviction_ticket_ids": [],
@@ -749,10 +700,10 @@
       "occupant_present": true,
       "listed_move_out": "2026-08-18",
       "next_move_in": null,
-      "open_turn_ticket_ids": [
+      "open_turn_ticket_ids": [],
+      "open_eviction_ticket_ids": [
         460572
       ],
-      "open_eviction_ticket_ids": [],
       "open_hold_ticket_ids": [],
       "move_out_photos": 0,
       "vacant": false,
@@ -762,7 +713,7 @@
       "seo_eligible": false
     },
     {
-      "property_id": null,
+      "property_id": 24516,
       "address": "5509 Burton Avenue",
       "room_number": 1,
       "occupant_present": true,

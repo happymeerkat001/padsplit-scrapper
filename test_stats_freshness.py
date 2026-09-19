@@ -48,6 +48,32 @@ class StatsFreshnessTests(unittest.TestCase):
         )
         self.assertTrue(info["stale"])
 
+    def test_source_health_distinguishes_fresh_messages_from_degraded_stats(self) -> None:
+        info = stats_freshness.stats_freshness(
+            {
+                "scraped_at": "2026-05-15T21:44:07Z",
+                "run_status": {
+                    "state": "degraded",
+                    "fallback_used": True,
+                    "run_scraped_at": "2026-08-27T16:33:18Z",
+                    "sources": {
+                        "messages": {"state": "ok", "scraped_at": "2026-08-27T16:33:18Z"},
+                        "stats": {
+                            "state": "degraded",
+                            "scraped_at": "2026-05-15T21:44:07Z",
+                            "fallback_used": True,
+                        },
+                    },
+                },
+            },
+            NOW,
+        )
+        self.assertTrue(info["degraded"])
+        self.assertEqual(info["messages_state"], "ok")
+        self.assertEqual(info["messages_scraped_at"], "2026-08-27T16:33:18Z")
+        self.assertEqual(info["stats_state"], "degraded")
+        self.assertEqual(info["stats_scraped_at"], "2026-05-15T21:44:07Z")
+
     def test_missing_payload_is_stale(self) -> None:
         info = stats_freshness.stats_freshness(None, NOW)
         self.assertTrue(info["stale"])
