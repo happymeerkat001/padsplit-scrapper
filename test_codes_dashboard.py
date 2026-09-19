@@ -27,7 +27,7 @@ ROOM_COUNTS = {
     "leana_6623": 5,
     "sylvia_2516": 6,
     "ridge_oak_10235": 6,
-    "pebbleshores_3414": 6,
+    "pebbleshores_3414": 7,
     "greenhill_3406": 7,
     "parker_4351": 8,
     "pioneer_1404": 7,
