@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-09-19T17:47:18Z",
+  "scraped_at": "2026-09-19T17:53:27Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzYxNDQy",
@@ -44,17 +44,17 @@
       },
       "isCancelled": false,
       "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE2NjExMjU=",
-        "created": "2026-09-19T17:38:28.156993",
-        "text": "Hi Marianne, is there a designated place where we can safely store these items, such as a closet or another secure, locked area? This would help keep everything organized and ensure the tools are safely stored after use.",
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE2NjEzNjk=",
+        "created": "2026-09-19T17:50:00.639109",
+        "text": "Unfortunately, the only secured areas are each of our rooms. There is no locked place that would also afford group access. I am confused by this question when the only people allowed here are renters. Shouldn\u2019t these tools be accessible to those renters? if you mean a safe storage space are you referring to a place where there\u2019s a lock included ? ",
         "deleted": null,
         "extra": null,
         "messageType": "TEXT",
         "sender": {
-          "pk": 318367,
-          "firstName": "Ang",
-          "lastName": "Li",
-          "displayName": "Joe Manager"
+          "pk": 911226,
+          "firstName": "Marianne",
+          "lastName": "Fried",
+          "displayName": null
         },
         "attachments": [],
         "paymentExtensionStatus": null,
@@ -64,9 +64,35 @@
       "member": {
         "seenAt": "2026-09-19T17:38:31.775351",
         "isPinned": false,
-        "isUnread": false
+        "isUnread": true
       },
       "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE2NjEzNjk=",
+          "text": "Unfortunately, the only secured areas are each of our rooms. There is no locked place that would also afford group access. I am confused by this question when the only people allowed here are renters. Shouldn\u2019t these tools be accessible to those renters? if you mean a safe storage space are you referring to a place where there\u2019s a lock included ? ",
+          "created": "2026-09-19T17:50:00.639109",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkxMTIyNg==",
+            "pk": 911226,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_911226_ad3e5aff-96a6-4362-a21a-8cab4464471a.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_911226_ad3e5aff-96a6-4362-a21a-8cab4464471a.jpg",
+            "firstName": "Marianne",
+            "lastName": "Fried",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 848697
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
         {
           "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE2NjExMjU=",
           "text": "Hi Marianne, is there a designated place where we can safely store these items, such as a closet or another secure, locked area? This would help keep everything organized and ensure the tools are safely stored after use.",
@@ -294,32 +320,6 @@
             "isActive": true,
             "displayName": "Joe Manager",
             "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE1MTY5MjM=",
-          "text": "Joseph, if you would this whole exchange is extremely distasteful. Please just apply the four extra dollars to my rent. ",
-          "created": "2026-09-12T23:39:56.164758",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkxMTIyNg==",
-            "pk": 911226,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_911226_ad3e5aff-96a6-4362-a21a-8cab4464471a.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_911226_ad3e5aff-96a6-4362-a21a-8cab4464471a.jpg",
-            "firstName": "Marianne",
-            "lastName": "Fried",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 848697
           },
           "attachments": [],
           "reactions": [],
@@ -12895,9 +12895,9 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-09-19T17:47:18Z",
-    "started_at": "2026-09-19T17:47:07Z",
-    "finished_at": "2026-09-19T17:47:29Z",
+    "run_scraped_at": "2026-09-19T17:53:27Z",
+    "started_at": "2026-09-19T17:53:16Z",
+    "finished_at": "2026-09-19T17:53:37Z",
     "host": "runnervmlun5p",
     "counts": {
       "messages": 51,
@@ -12912,7 +12912,7 @@
     "sources": {
       "messages": {
         "state": "ok",
-        "scraped_at": "2026-09-19T17:47:18Z"
+        "scraped_at": "2026-09-19T17:53:27Z"
       },
       "stats": {
         "state": "degraded",
