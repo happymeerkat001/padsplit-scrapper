@@ -252,6 +252,15 @@ class CodesDashboardStructureTests(unittest.TestCase):
     def test_history_control_and_restore_overwrite(self):
         self.assertIn("code_versions", self.html)
         self.assertIn("history-btn", self.html)
+        self.assertIn(".history-panel {", self.html)
+        self.assertIn('id="page-history-btn"', self.html)
+        self.assertIn('id="page-history-panel"', self.html)
+        self.assertLess(
+            self.html.index('id="page-history-btn"'),
+            self.html.index("Values in parentheses indicate known conflicting entries"),
+        )
+        self.assertIn("startAfter", self.html)
+        self.assertIn("history-older", self.html)
         self.assertIn("async function restoreLiveCodes", self.html)
         self.assertIn("8jOJNgLoxpfyseZ0RY1PDZ1DXbi2", self.html)
         self.assertIn("hashCodeFields", self.html)
