@@ -34,6 +34,9 @@ class RuntimeFlagTests(unittest.TestCase):
         self.assertFalse(runtime.collection_only(env))
         self.assertTrue(runtime.send_enabled("lockout", env))
         self.assertFalse(runtime.send_enabled("leak", env))
+        self.assertFalse(runtime.send_enabled("lock_codes", env))
+        env["LOCK_CODES_ENABLE"] = "1"
+        self.assertTrue(runtime.send_enabled("lock_codes", env))
 
     def test_collection_only_overrides_legacy_send_flag(self) -> None:
         env = {
