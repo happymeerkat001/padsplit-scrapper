@@ -36,9 +36,8 @@ commit_and_push() {
   git -C "$WORKSPACE" add \
     padsplit_scraper/output/latest.json \
     padsplit_scraper/output/stats.json \
-    docs/data/latest.json \
-    docs/data/monthly_history.json \
-    docs/data/stats.json 2>/dev/null || true
+    padsplit_scraper/output/monthly_history.json \
+    docs/data/latest.json 2>/dev/null || true
 
   if git -C "$WORKSPACE" diff --cached --quiet; then
     echo "[$(date)] Nothing to commit"

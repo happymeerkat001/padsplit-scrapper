@@ -39,6 +39,7 @@ try:
         _persist_occupancy_payload,
         _stats_output_path,
         _write_json,
+        upload_stats_to_firestore,
     )
 except ModuleNotFoundError:  # Support the cron entry point: python3 padsplit_scraper/scraper.py
     from persist import (
@@ -52,6 +53,7 @@ except ModuleNotFoundError:  # Support the cron entry point: python3 padsplit_sc
         _persist_occupancy_payload,
         _stats_output_path,
         _write_json,
+        upload_stats_to_firestore,
     )
 
 
@@ -984,6 +986,7 @@ def run(messages_only: bool = False) -> int:
         )
         _write_json(_stats_output_path(), stats_payload)
         _write_json(_monthly_history_path(), monthly_history_payload)
+        upload_stats_to_firestore(stats_payload, monthly_history_payload)
         sys.stderr.write(f"# Saved raw data to {out_path}\n")
         return 0
 

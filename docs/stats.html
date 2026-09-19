@@ -370,9 +370,61 @@
     .notes-copy-btn:hover { color: var(--accent); border-color: var(--accent); }
     .notes-copy-btn.copied { color: var(--success); border-color: var(--success); }
     .notes-copy-btn svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    #gate-wrap {
+      max-width: 430px;
+      margin: 12vh auto 0;
+    }
+    .gate-title { margin-top: 0; margin-bottom: 0.35rem; }
+    .gate-form {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 0.8rem;
+    }
+    .gate-form input {
+      flex: 1;
+      min-width: 180px;
+      background: #0b1222;
+      border: 1px solid rgba(148,163,184,0.35);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 0.45rem 0.6rem;
+    }
+    .gate-form button {
+      border: none;
+      border-radius: 8px;
+      background: var(--accent);
+      color: #0b1222;
+      font-weight: 700;
+      padding: 0.45rem 0.9rem;
+      cursor: pointer;
+    }
+    .hidden { display: none; }
+    .shake {
+      animation: shake 240ms linear 2;
+    }
+    @keyframes shake {
+      0% { transform: translateX(0); }
+      25% { transform: translateX(-4px); }
+      50% { transform: translateX(4px); }
+      75% { transform: translateX(-4px); }
+      100% { transform: translateX(0); }
+    }
   </style>
 </head>
 <body>
+  <div id="gate-wrap" class="card hidden">
+    <h2 class="gate-title">Stats Access</h2>
+    <div class="muted">Owner email and password. Vendors stay on occupancy.</div>
+    <form id="gate-form" class="gate-form">
+      <input id="gate-email" type="email" placeholder="Email" autocomplete="email" />
+      <input id="gate-input" type="password" placeholder="Password" autocomplete="current-password" />
+      <button type="submit">Unlock</button>
+    </form>
+    <div id="gate-error" class="error hidden" style="margin-top:0.6rem">Incorrect email or password.</div>
+  </div>
+
+  <div id="app-wrap" class="hidden">
   <header>
     <h1>Manager KPI Dashboard</h1>
     <div class="header-meta">
@@ -381,6 +433,7 @@
       <a href="./index.html" class="header-link">Dashboard</a>
       <a href="./templates.html" class="header-link">Templates</a>
       <a href="./codes.html" class="header-link">Codes</a>
+      <button id="signout-btn" class="header-link" style="background:none;border:none;cursor:pointer;padding:0">Sign out</button>
     </div>
   </header>
 
@@ -1013,11 +1066,8 @@
       }
     }
 
-    async function init() {
+    function renderStats(data) {
       try {
-        const res = await fetch("./data/stats.json", { cache: "no-cache" });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
         const kpis = data && typeof data.kpis === "object" ? data.kpis : {};
         scrapedKpis = kpis;
         applyStatsFreshness(data);
@@ -1033,11 +1083,9 @@
         document.getElementById("manual-reset-btn").addEventListener("click", resetManualInputs);
       } catch (err) {
         document.getElementById("updated").textContent = "Failed to load stats";
-        document.body.insertAdjacentHTML("beforeend", `<div class="error" style="margin-top:1rem">Failed to load data/stats.json: ${err.message}</div>`);
+        document.body.insertAdjacentHTML("beforeend", `<div class="error" style="margin-top:1rem">Failed to load stats/latest: ${err.message}</div>`);
       }
     }
-
-    init();
   </script>
 
   <section class="notes-section" style="padding:0 clamp(1rem,4vw,2.5rem) 2rem">
@@ -1073,6 +1121,75 @@
     copyBtn.addEventListener('click', () => {
       navigator.clipboard.writeText(ta.value).then(() => { copyBtn.classList.add('copied'); setTimeout(() => copyBtn.classList.remove('copied'), 1500); });
     });
+  </script>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const OWNER_UID = "8jOJNgLoxpfyseZ0RY1PDZ1DXbi2";
+    const firebaseConfig = {
+      apiKey: "AIzaSyCSWOHI6QLqugy_Fao2p4bBehg02_fu3No",
+      authDomain: "padsplit-scrapper.firebaseapp.com",
+      projectId: "padsplit-scrapper",
+      storageBucket: "padsplit-scrapper.firebasestorage.app",
+      messagingSenderId: "281696703679",
+      appId: "1:281696703679:web:f94ba04e92cb43b4f9a20a"
+    };
+    const statsApp = initializeApp(firebaseConfig, "stats-auth");
+    const auth = getAuth(statsApp);
+    const db = getFirestore(statsApp);
+    const gateWrap = document.getElementById("gate-wrap");
+    const appWrap = document.getElementById("app-wrap");
+    const gateForm = document.getElementById("gate-form");
+    const gateError = document.getElementById("gate-error");
+
+    function showApp() {
+      gateWrap.classList.add("hidden");
+      appWrap.classList.remove("hidden");
+    }
+    function showGate() {
+      gateWrap.classList.remove("hidden");
+      appWrap.classList.add("hidden");
+    }
+    async function loadStats() {
+      const snap = await getDoc(doc(db, "stats", "latest"));
+      if (!snap.exists()) throw new Error("stats/latest missing");
+      const raw = snap.data().json;
+      renderStats(typeof raw === "string" ? JSON.parse(raw) : raw);
+    }
+
+    gateForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      try {
+        await signInWithEmailAndPassword(
+          auth,
+          document.getElementById("gate-email").value.trim(),
+          document.getElementById("gate-input").value
+        );
+        gateError.classList.add("hidden");
+      } catch (err) {
+        console.error(err);
+        gateError.classList.remove("hidden");
+        gateWrap.classList.remove("shake");
+        void gateWrap.offsetWidth;
+        gateWrap.classList.add("shake");
+      }
+    });
+    onAuthStateChanged(auth, (user) => {
+      if (user && user.uid === OWNER_UID) {
+        showApp();
+        loadStats().catch((err) => {
+          document.getElementById("updated").textContent = "Failed to load stats";
+          document.body.insertAdjacentHTML("beforeend", `<div class="error" style="margin-top:1rem">Failed to load stats/latest: ${err.message}</div>`);
+        });
+      } else {
+        showGate();
+      }
+    });
+    document.getElementById("signout-btn").addEventListener("click", () => signOut(auth));
   </script>
 </body>
 </html>
