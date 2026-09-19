@@ -80,7 +80,7 @@ Write Obsidian daily digest:
 python3 obsidian_daily_digest.py
 ```
 
-Codes dashboard (GitHub Pages `docs/codes.html`, password-gated): after login, Contact holds house AC filter date/size and dryer lint date/notes. The Rooms table holds room code, lockbox code/location/notes, and optional per-room AC filter size. Extra lockboxes are for non-room boxes (front door, gate). Saves merge into Firestore `property_codes/{slug}`. Previous opens dated snapshots in Firestore (`code_versions`, 90 days) so a bad save can be restored. Occupancy JSON does not store codes or filter sizes. History is never written to disk or git.
+Codes dashboard (GitHub Pages `docs/codes.html`, password-gated): after login, Contact holds house AC filter date/size and dryer lint date/notes. The Rooms table holds room code, lockbox code/location/notes, and optional per-room AC filter size. Extra lockboxes are for non-room boxes (front door, gate). Saves merge into Firestore `property_codes/{slug}`. History (top of page) or Previous (next to Save) opens dated snapshots in Firestore (`code_versions`, 90 days) so a bad save can be restored. Older pages past the first 50. Occupancy JSON does not store codes or filter sizes. History is never written to disk or git.
 
 Generate message drafts:
 

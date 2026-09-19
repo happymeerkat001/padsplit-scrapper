@@ -105,6 +105,15 @@
       cursor: pointer;
     }
     .history-btn:hover { color: var(--accent); border-color: var(--accent); }
+    .codes-intro {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .codes-intro .muted { margin: 0; }
+    #page-history-panel { margin-top: 0.85rem; }
+    .history-older { margin-top: 0.35rem; }
     .history-panel {
       margin-bottom: 0.85rem;
       padding: 0.75rem;
@@ -275,7 +284,11 @@
     </header>
 
     <div class="card">
-      <div class="muted">Values in parentheses indicate known conflicting entries and can be edited.</div>
+      <div class="codes-intro">
+        <button type="button" id="page-history-btn" class="history-btn">History</button>
+        <div class="muted">Values in parentheses indicate known conflicting entries and can be edited.</div>
+      </div>
+      <div id="page-history-panel" class="history-panel hidden"></div>
       <div id="codes-list"></div>
     </div>
 
@@ -294,7 +307,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import { getFirestore, collection, getDocs, getDoc, setDoc, doc, serverTimestamp, onSnapshot, query, orderBy, limit, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, getDoc, setDoc, doc, serverTimestamp, onSnapshot, query, orderBy, limit, startAfter, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCSWOHI6QLqugy_Fao2p4bBehg02_fu3No",
@@ -1036,17 +1049,68 @@
         return String(value);
       }
 
-      async function loadHistory(panel, slug, address) {
+      function historyOpts(panel) {
+        return panel.id === 'page-history-panel'
+          ? { onHouses: () => renderHousePicker(panel) }
+          : {};
+      }
+
+      function appendHousesBack(panel, onHouses) {
+        const back = document.createElement('button');
+        back.type = 'button';
+        back.className = 'history-cancel';
+        back.textContent = 'Houses';
+        back.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onHouses();
+        });
+        panel.appendChild(back);
+      }
+
+      function renderHousePicker(panel) {
         panel.innerHTML = '';
+        DEFAULTS.forEach((property) => {
+          const row = document.createElement('button');
+          row.type = 'button';
+          row.className = 'history-row';
+          row.textContent = property.address;
+          row.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            try {
+              await loadHistory(panel, property.slug, property.address, historyOpts(panel));
+            } catch (err) {
+              console.error(err);
+              panel.textContent = 'Could not load history.';
+            }
+          });
+          panel.appendChild(row);
+        });
+      }
+
+      async function loadHistory(panel, slug, address, opts = {}) {
+        const cursor = opts.cursor || null;
+        const onHouses = opts.onHouses || null;
+        if (!cursor) panel.innerHTML = '';
         if (!isCodesUser() || slug === 'spanish_moss') {
           panel.textContent = 'History is unavailable.';
           return;
         }
-        const snap = await getDocs(query(versionsCol(slug), orderBy('createdAt', 'desc'), limit(50)));
-        if (snap.empty) {
-          panel.textContent = 'No previous codes yet.';
+        const q = cursor
+          ? query(versionsCol(slug), orderBy('createdAt', 'desc'), startAfter(cursor), limit(50))
+          : query(versionsCol(slug), orderBy('createdAt', 'desc'), limit(50));
+        const snap = await getDocs(q);
+        if (!cursor && snap.empty) {
+          panel.innerHTML = '';
+          const note = document.createElement('div');
+          note.className = 'muted';
+          note.textContent = 'No previous codes yet. Snapshots start after a Save or the daily Mac catch-up.';
+          panel.appendChild(note);
+          if (onHouses) appendHousesBack(panel, onHouses);
           return;
         }
+        if (!cursor && onHouses) appendHousesBack(panel, onHouses);
         snap.docs.forEach((item) => {
           const row = document.createElement('button');
           row.type = 'button';
@@ -1059,6 +1123,20 @@
           });
           panel.appendChild(row);
         });
+        const oldOlder = panel.querySelector('.history-older');
+        if (oldOlder) oldOlder.remove();
+        if (snap.docs.length === 50) {
+          const older = document.createElement('button');
+          older.type = 'button';
+          older.className = 'history-row history-older';
+          older.textContent = 'Older';
+          older.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            loadHistory(panel, slug, address, { cursor: snap.docs[snap.docs.length - 1], onHouses });
+          });
+          panel.appendChild(older);
+        }
       }
 
       function showVersion(panel, slug, address, versionId, data) {
@@ -1085,7 +1163,7 @@
         cancel.addEventListener('click', (e) => {
           e.preventDefault();
           e.stopPropagation();
-          loadHistory(panel, slug, address);
+          loadHistory(panel, slug, address, historyOpts(panel));
         });
         panel.innerHTML = '';
         panel.appendChild(preview);
@@ -1149,7 +1227,7 @@
             panel.classList.toggle('hidden');
             if (!panel.classList.contains('hidden')) {
               try {
-                await loadHistory(panel, slug, address);
+                await loadHistory(panel, slug, address, historyOpts(panel));
               } catch (err) {
                 console.error(err);
                 panel.textContent = 'Could not load history.';
@@ -1216,6 +1294,19 @@
         list.appendChild(node);
         bindHouse(node, property.slug, property.address);
       });
+
+      const pageHistoryBtn = document.getElementById('page-history-btn');
+      const pageHistoryPanel = document.getElementById('page-history-panel');
+      if (pageHistoryBtn && pageHistoryPanel && pageHistoryBtn.dataset.bound !== '1') {
+        pageHistoryBtn.dataset.bound = '1';
+        pageHistoryBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          pageHistoryPanel.classList.toggle('hidden');
+          if (!pageHistoryPanel.classList.contains('hidden')) {
+            renderHousePicker(pageHistoryPanel);
+          }
+        });
+      }
     }
 
     onAuthStateChanged(auth, (user) => {
