@@ -200,7 +200,7 @@
 <body>
   <div id="gate-wrap" class="card hidden">
     <h2 class="gate-title">Stats Access</h2>
-    <div class="muted">Owner email and password. Vendors stay on occupancy.</div>
+    <div class="muted">Stats-only login. The Codes password will not unlock this tab.</div>
     <form id="gate-form" class="gate-form">
       <input id="gate-email" type="email" placeholder="Email" autocomplete="email" />
       <input id="gate-input" type="password" placeholder="Password" autocomplete="current-password" />
@@ -570,7 +570,7 @@
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    const OWNER_UID = "8jOJNgLoxpfyseZ0RY1PDZ1DXbi2";
+    const STATS_UID = "pcJSHjdXeDfOeGRQMgso11Gvlxh2";
     const firebaseConfig = {
       apiKey: "AIzaSyCSWOHI6QLqugy_Fao2p4bBehg02_fu3No",
       authDomain: "padsplit-scrapper.firebaseapp.com",
@@ -617,7 +617,7 @@
       }
     });
     onAuthStateChanged(auth, (user) => {
-      if (user && user.uid === OWNER_UID) {
+      if (user && user.uid === STATS_UID) {
         showApp();
         loadHistory().catch((err) => {
           document.getElementById("updated-label").textContent = `Error: ${err.message}`;
