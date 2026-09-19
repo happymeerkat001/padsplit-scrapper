@@ -24,7 +24,7 @@ python3 thermostat/scraper.py
 ./run_afternoon.sh    # padsplit only
 ./run_field_mms.sh    # Don+Dad+Ang GV Quo group SMS blast (morning 7am CT only; skip if both sources empty)
 ./run_seo_monthly.sh  # monthly SEO / vacancy advice (1st 9:00am CT; CI must not post)
-# Spanish Moss back-door lock codes run from morning/afternoon (Mac only; CI no-op)
+# Sifely lock codes run from morning/afternoon (Mac only; LOCK_CODES_ENABLE; CI no-op)
 # Lockout auto-reply runs from morning/afternoon + scraper (LOCKOUT_REPLY_ENABLE; CI no-op)
 # Leak auto-reply runs from morning/afternoon + scraper (LEAK_REPLY_ENABLE; CI no-op)
 ```
@@ -105,7 +105,7 @@ No build step or linter configuration; tests use direct Python execution.
 - `padsplit_scraper/discord_notifier.py` — Discord bot alerts on error
 - `padsplit_scraper/field_mms.py` — morning 7am CT Don+Dad+Ang GV Quo group SMS blast (PadSplit host inbox + Discord #ai-tasks-temp; no Joe). Sends via Quo SMS (`QUO_API_KEY`) first (one POST, `to` is the full recipient list), then `google_voice_chrome.py` (Mac Chrome / Voice), then Messages `Don Field`.
 - `padsplit_scraper/seo_monthly.py` — 1st 9:00am CT SEO / vacancy advice pack (live rooms + occupancy; Joe-only Discord dry-run in CI)
-- `padsplit_scraper/lock_codes.py` — Spanish Moss back-door Sifely lock-code v1 (Mac morning/afternoon; CI must not rotate or post)
+- `padsplit_scraper/lock_codes.py` — Sifely Open API lock-codes (move-in last-four + Ang yes/no rotate). Mac morning/afternoon only; default off until `LOCK_CODES_ENABLE=1`. CI must not rotate or post. Discord `#ai-automations` is digit-free. lockout_reply still obtains Spanish Moss back via this module.
 - `padsplit_scraper/lockout_reply.py` — member lockout auto-SEND on PadSplit when house/room are 100% known: door codes first, lockbox only after a door-fail follow-up; got-it / I’m in / code-worked after door stops the ladder (Mac; `LOCKOUT_REPLY_ENABLE`; CI must not send). Spanish Moss back door uses Sifely, never Firestore static. Discord posts never include codes or digits.
 - `padsplit_scraper/leak_reply.py` — member water-leak auto-SEND on PadSplit for active water emergencies only (burst / pipe / main / flooding / wall-ceiling). Slow leak, drip, seepage, and toilet-only cases do not fire (no curb-key shutoff). Body is a 1:1 adaptation of Firestore `templates/shared` t5 (Water leak announcement) plus Quo; baked t5 fallback. Emits `WATER_KEY_ORDER` on `#ai-automations` for Cart (house + full ship-to; digit-free except address). No Amazon purchase here. Default off until Mac `.env` sets `LEAK_REPLY_ENABLE=1`. CI must not send. Discord posts never include codes. Nest interim-handles until enable is live.
 - `slack_task_digest.py` — scheduled DFW weather and task digest, posts to Discord
@@ -135,12 +135,15 @@ DISCORD_WEBHOOK_NEW_TENANTS= # #new-tenants pack (Joe only; CI must not post)
 DISCORD_JOE_USER_ID=     # Discord snowflake for @Joe on #new-tenants (never @ Cindy)
 DISCORD_BOT_TOKEN=
 DISCORD_CHANNEL_ID=
-DISCORD_AUTOMATIONS_CHANNEL_ID= # optional #ai-automations; lockout drafts + leak WATER_KEY_ORDER, no digits
+DISCORD_AUTOMATIONS_CHANNEL_ID= # optional #ai-automations; lockout drafts + leak WATER_KEY_ORDER + lock-code Ang asks, no digits
 LOCKOUT_REPLY_ENABLE=          # default off; Mac .env sets 1 to auto-SEND lockout door then lockbox
 LEAK_REPLY_ENABLE=             # default off; Mac .env sets 1 to auto-SEND water-leak shut-off pack + WATER_KEY_ORDER
+LOCK_CODES_ENABLE=             # default off; Mac .env sets 1 after merge to rotate Sifely codes (never set from CI/cloud)
 SIFELY_API_KEY=          # raw sk- key, no Bearer; missing = Need-you no-op
 SIFELY_LOCK_ID=          # optional Spanish Moss back-door lock id
 SIFELY_KEYBOARD_PWD_ID=  # optional tenant passcode id
+# FIREBASE_SERVICE_ACCOUNT_JSON=  # required for codes.html records; missing = Need-you fail-closed
+# GOOGLE_APPLICATION_CREDENTIALS= # alt Firebase SA path; do not invent credentials
 OBSIDIAN_DAILY_NOTES_DIR=
 FIELD_MMS_TRANSPORT=auto   # auto | quo | google_voice | messages; Quo first, then Mac Chrome Voice, then Messages Don Field
 QUO_API_KEY=               # required for Quo path; Authorization header, no Bearer; never log
