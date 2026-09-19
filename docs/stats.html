@@ -1129,7 +1129,7 @@
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    const STATS_UID = "pcJSHjdXeDfOeGRQMgso11Gvlxh2";
+    const STATS_UID = "TXSU0LOpmDWNBbbv0x3uHHBnZb12";
     const firebaseConfig = {
       apiKey: "AIzaSyCSWOHI6QLqugy_Fao2p4bBehg02_fu3No",
       authDomain: "padsplit-scrapper.firebaseapp.com",
@@ -1178,6 +1178,8 @@
         gateWrap.classList.add("shake");
       }
     });
+    showGate();
+    await signOut(auth);
     onAuthStateChanged(auth, (user) => {
       if (user && user.uid === STATS_UID) {
         showApp();

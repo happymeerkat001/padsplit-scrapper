@@ -71,10 +71,11 @@ class StatsFirestoreTests(unittest.TestCase):
 
     def test_rules_allowlist_stats_and_keep_default_deny(self) -> None:
         self.assertIn("match /stats/{document}", RULES)
-        self.assertIn("pcJSHjdXeDfOeGRQMgso11Gvlxh2", RULES)
+        self.assertIn("TXSU0LOpmDWNBbbv0x3uHHBnZb12", RULES)
         self.assertIn("8jOJNgLoxpfyseZ0RY1PDZ1DXbi2", RULES)
         stats_block = RULES.split("match /stats/{document}")[1].split("match /{document=**}")[0]
-        self.assertIn("pcJSHjdXeDfOeGRQMgso11Gvlxh2", stats_block)
+        self.assertIn("TXSU0LOpmDWNBbbv0x3uHHBnZb12", stats_block)
+        self.assertNotIn("pcJSHjdXeDfOeGRQMgso11Gvlxh2", stats_block)
         self.assertNotIn("8jOJNgLoxpfyseZ0RY1PDZ1DXbi2", stats_block)
         self.assertIn("allow read, write: if false", RULES)
 
