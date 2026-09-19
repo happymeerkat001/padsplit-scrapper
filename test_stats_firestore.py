@@ -84,6 +84,7 @@ class StatsFirestoreTests(unittest.TestCase):
         self.assertNotIn("docs/data/monthly_history.json", WORKFLOW)
         self.assertIn("docs/data/occupancy.json", WORKFLOW)
         self.assertIn("docs/data/latest.json", WORKFLOW)
+        self.assertIn("FIREBASE_SERVICE_ACCOUNT_JSON", WORKFLOW)
         self.assertNotIn("docs/data/stats.json", MORNING)
         self.assertNotIn("docs/data/monthly_history.json", MORNING)
         self.assertIn("docs/data/occupancy.json", MORNING)
