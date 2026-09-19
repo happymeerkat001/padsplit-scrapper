@@ -508,7 +508,6 @@ def load_stale_bundle() -> DataBundle:
     stats = _load_first_json(
         [
             ROOT_DIR / "padsplit_scraper" / "output" / "stats.json",
-            ROOT_DIR / "docs" / "data" / "stats.json",
         ]
     )
     occupancy = _load_first_json(

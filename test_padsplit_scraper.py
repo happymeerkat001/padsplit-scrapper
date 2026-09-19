@@ -137,7 +137,7 @@ class PadSplitScraperTests(unittest.TestCase):
 
             latest_payload = json.loads((output_dir / "latest.json").read_text())
             stats_payload = json.loads((output_dir / "stats.json").read_text())
-            monthly_history = json.loads((docs_data_dir / "monthly_history.json").read_text())
+            monthly_history = json.loads((output_dir / "monthly_history.json").read_text())
 
             self.assertEqual(latest_payload["run_status"]["state"], "ok")
             self.assertEqual(latest_payload["run_status"]["mode"], "full")
@@ -154,7 +154,7 @@ class PadSplitScraperTests(unittest.TestCase):
             timestamped_files = [
                 path
                 for path in output_dir.glob("*.json")
-                if path.name not in {"latest.json", "stats.json", "occupancy.json"}
+                if path.name not in {"latest.json", "stats.json", "occupancy.json", "monthly_history.json"}
             ]
             self.assertEqual(len(timestamped_files), 1)
 
@@ -216,7 +216,7 @@ class PadSplitScraperTests(unittest.TestCase):
                 "months": [{"month": "2026-05", "score": 77}],
             }
             (output_dir / "stats.json").write_text(json.dumps(prior_stats, indent=2))
-            monthly_path = docs_data_dir / "monthly_history.json"
+            monthly_path = output_dir / "monthly_history.json"
             monthly_path.write_text(json.dumps(prior_monthly_history, indent=2))
             seeded_occupancy = {"scraped_at": "2026-05-01T12:00:00Z", "derived_from": ["messages", "tasks"], "rooms": []}
             (output_dir / "occupancy.json").write_text(json.dumps(seeded_occupancy, indent=2))

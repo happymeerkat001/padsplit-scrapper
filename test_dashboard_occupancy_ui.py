@@ -27,6 +27,8 @@ class DashboardOccupancyUiTests(unittest.TestCase):
         self.assertIn("index.html#occupancy-section", STATS)
         self.assertNotIn("Occupancy Summary", STATS)
         self.assertNotIn("room_code", STATS)
+        self.assertNotIn('./data/stats.json', STATS)
+        self.assertNotIn("./data/stats.json", STATS)
 
     def test_digest_does_not_publish_vacancy_rooms_as_occupancy(self) -> None:
         self.assertNotIn("format_vacancy_alert", DIGEST)
