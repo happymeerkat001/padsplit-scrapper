@@ -1134,6 +1134,8 @@ def run(messages_only: bool = False, *, isolate_output: bool = False, policy=Non
                 preserved = dict(fallback_stats)
                 preserved["run_status"] = run_status
                 _write_json(_stats_output_path(), preserved)
+                history_payload = _load_json_if_exists(_monthly_history_path()) or {}
+                upload_stats_to_firestore(preserved, history_payload)
                 sys.stderr.write(f"# Degraded stats run; re-used prior stats from {_stats_output_path()}\n")
             else:
                 sys.stderr.write(f"# Degraded stats run; no prior stats fallback at {_stats_output_path()}\n")

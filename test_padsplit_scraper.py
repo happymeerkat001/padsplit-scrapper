@@ -235,10 +235,15 @@ class PadSplitScraperTests(unittest.TestCase):
                     "fetch_rooms",
                     side_effect=requests.exceptions.ConnectionError("socket hangup"),
                 ),
+                patch.object(scraper, "upload_stats_to_firestore") as upload_stats,
             ):
                 exit_code = scraper.main([])
 
             self.assertEqual(exit_code, 0)
+            upload_stats.assert_called_once()
+            uploaded_stats, uploaded_history = upload_stats.call_args.args
+            self.assertEqual(uploaded_stats["scraped_at"], "2026-05-01T12:00:00Z")
+            self.assertEqual(uploaded_history, prior_monthly_history)
             latest_payload = json.loads((output_dir / "latest.json").read_text())
             stats_payload = json.loads((output_dir / "stats.json").read_text())
             self.assertEqual(latest_payload["run_status"]["state"], "degraded")
