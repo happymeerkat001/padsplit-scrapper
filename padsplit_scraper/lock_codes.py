@@ -1,14 +1,34 @@
 #!/usr/bin/env python3
-"""Spanish Moss back-door lock-code automation (v1).
+"""Sifely Open API lock-code automation (move-in last-4 + Ang rotate).
 
 Sifely Open API on the free Developer plan. Auth header is the raw
 SIFELY_API_KEY value (sk- key, no Bearer). Base URL cus-openapi.sifely.com.
 
-Not live until Ang merges. Spanish Moss back door only — not Green Hill,
-not other houses. GitHub Actions / CI must not rotate locks or post Discord.
+Default off until Mac ``LOCK_CODES_ENABLE=1`` (and action hooks). GitHub
+Actions / CI must not rotate locks or post Discord.
 
-Safety: never write lock codes, PIN digits, API keys, or Sifely tokens to
-git, logs, Discord outbound, or README examples. Tests use REDACTED.
+New move-in: set that room lock to the last four digits of the tenant
+phone, message the tenant on PadSplit (digits allowed there only), update
+Firestore ``property_codes`` for codes.html, then post a digit-free notice
+to Discord #ai-automations.
+
+Move-out / member terminated: ALWAYS set the vacated room lock to the
+vacant default and update the codes page (do not wait for Ang on the
+room). ALWAYS ask Ang on #ai-automations whether to change front/back
+door keycodes for that house (doors only; Discord is house/room/member,
+never digits). After Ang yes: rotate front/back, update the codes page,
+and PadSplit-blast remaining tenants at that house with the new door
+codes (digits allowed on PadSplit only). After Ang no: leave front/back
+alone; the room is already the vacant default.
+
+Firebase service-account missing is fail-closed Need-you / skip.
+
+Safety: never write lock codes, PIN digits, phone digits, API keys, or
+Sifely tokens to git, logs, Discord outbound, or README examples.
+Tests use REDACTED. Discord outbound must refuse digits.
+
+lockout_reply Spanish Moss back-door obtain still uses list/resolve/change
+on this module. Do not break that path.
 """
 
 from __future__ import annotations
@@ -21,15 +41,16 @@ import re
 import secrets
 import sys
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any, Callable, Dict, Iterable, List, Optional, Sequence
+from typing import Any, Callable, Dict, Iterable, List, Optional, Sequence, Tuple
 from zoneinfo import ZoneInfo
 
 import requests
 from dotenv import load_dotenv
 
 try:
+    from padsplit_scraper import runtime
     from padsplit_scraper.scraper import (
         DEFAULT_TIMEOUT,
         GRAPHQL_URL,
@@ -39,6 +60,7 @@ try:
         login,
     )
 except ModuleNotFoundError:  # python3 padsplit_scraper/lock_codes.py
+    import runtime  # type: ignore
     from scraper import (  # type: ignore
         DEFAULT_TIMEOUT,
         GRAPHQL_URL,
@@ -65,11 +87,100 @@ PROPERTY_LABEL = "Spanish Moss"
 PROPERTY_SLUG = "spanish_moss"
 LOCK_FIELD = "back_door"
 CODES_COLLECTION = "property_codes"
+# Vacant-room default after move-out. Never put this on Discord or in logs.
+VACANT_ROOM_DEFAULT = "0417"
+RECENT_EVENT_DAYS = 3
+
+# Digit-free Discord labels only. Street numbers stay out of Discord.
+# Aliases include compact forms (spanishmoss) for Sifely lock names.
+HOUSE_LOCK_PROFILES: Dict[str, Dict[str, Any]] = {
+    "leana_6623": {
+        "label": "Leana",
+        "aliases": ("leana", "leanna"),
+        "has_front": True,
+        "has_back": False,
+        "front_field": "front_door",
+        "back_field": "",
+    },
+    "sylvia_2516": {
+        "label": "Sylvia",
+        "aliases": ("sylvia",),
+        "has_front": True,
+        "has_back": False,
+        "front_field": "front_door",
+        "back_field": "",
+    },
+    "ridge_oak_10235": {
+        "label": "Ridge Oak",
+        "aliases": ("ridge oak", "ridgeoak"),
+        "has_front": True,
+        "has_back": True,
+        "front_field": "front_door",
+        "back_field": "back_door",
+    },
+    "pebbleshores_3414": {
+        "label": "Pebbleshores",
+        "aliases": ("pebbleshores", "pebble shores", "pebble shore"),
+        "has_front": True,
+        "has_back": True,
+        "front_field": "front_back",
+        "back_field": "front_back",
+    },
+    "greenhill_3406": {
+        "label": "Greenhill",
+        "aliases": ("greenhill", "green hill"),
+        "has_front": True,
+        "has_back": False,
+        "front_field": "front_door",
+        "back_field": "",
+    },
+    "parker_4351": {
+        "label": "Parker",
+        "aliases": ("parker",),
+        "has_front": True,
+        "has_back": True,
+        "front_field": "front_door",
+        "back_field": "back_door",
+    },
+    "pioneer_1404": {
+        "label": "Pioneer",
+        "aliases": ("pioneer",),
+        "has_front": True,
+        "has_back": True,
+        "front_field": "front_door",
+        "back_field": "back_door",
+    },
+    "burton_5509": {
+        "label": "Burton",
+        "aliases": ("burton",),
+        "has_front": True,
+        "has_back": False,
+        "front_field": "front_door",
+        "back_field": "",
+    },
+    "broken_crest_1025": {
+        "label": "Broken Crest",
+        "aliases": ("broken crest", "brokencrest"),
+        "has_front": True,
+        "has_back": False,
+        "front_field": "front_door",
+        "back_field": "",
+    },
+    "spanish_moss": {
+        "label": "Spanish Moss",
+        "aliases": ("spanish moss", "spanishmoss"),
+        "has_front": True,
+        "has_back": True,
+        "front_field": "front_door",
+        "back_field": "back_door",
+    },
+}
 
 # PadSplit Ops bot posts here. Outbound content must contain no digits.
 # #new-tenants is inbound-only for the API-down Sifely-share fallback.
 DISCORD_API_BASE = "https://discord.com/api/v10"
 DISCORD_NEW_TENANTS_CHANNEL_ID = "1542260130614354055"
+DISCORD_AUTOMATIONS_CHANNEL_ID = "1543396445799845908"
 DISCORD_GUILD_ID = "1540475742104719380"
 
 # Host UI mutation, same path as the Hirevire first-host-message PR.
@@ -93,9 +204,34 @@ mutation sendMessage($chatId: ID!, $text: String, $attachments: [ChatAttachmentI
 }
 """
 
+# Occupancy user phone for move-in last-four. Never log the result.
+OCCUPANCY_PHONE_QUERY = """
+query occupancyPhone($id: ID!) {
+  occupancy(id: $id) {
+    id
+    user {
+      phone
+      phoneNumber
+    }
+  }
+}
+"""
+
 NEED_YOU_MISSING_KEY = (
     "Need you: missing SIFELY_API_KEY. "
-    "Spanish Moss back-door lock-code automation is blocked."
+    "Lock-code automation is blocked."
+)
+NEED_YOU_MISSING_FIREBASE = (
+    "Need you: missing Firebase service account. "
+    "Lock-code records cannot update. Skipping rotate."
+)
+NEED_YOU_MISSING_PHONE = (
+    "Need you: new move-in is missing a tenant phone. "
+    "Room code was not set."
+)
+NEED_YOU_MISSING_LOCK = (
+    "Need you: no Sifely lock matched that house or room. "
+    "Skipping rotate."
 )
 DISCORD_HUMAN_CHANGE = "Spanish Moss code changed."
 DISCORD_ROTATED = "Spanish Moss lock was rotated."
@@ -104,6 +240,34 @@ _DIGIT_RUN = re.compile(r"\d+")
 _CODE_TOKEN = re.compile(r"\b(?:passcode|code|pin|keyboard\s*pwd)\b\s*[:#-]?\s*(\S+)", re.I)
 _SK_KEY = re.compile(r"sk-[A-Za-z0-9]+")
 _SECRET_HEADER = re.compile(r"(?i)(authorization\s*:\s*)\S+")
+_ROOM_IN_LABEL = re.compile(
+    r"(?i)(?:(?:room|rm)\s*[:#-]?\s*(\d{1,2})|\br(\d{1,2})\b)"
+)
+_ANG_YES = re.compile(
+    r"(?i)^\s*(yes|yeah|yep|approve|approved|do it|ok|okay|y)(\s|[.!]|$)"
+)
+_ANG_NO = re.compile(
+    r"(?i)^\s*(nope|do not|don'?t|negative|skip|no|n)(\s|[.!]|$)"
+)
+_TERMINATED_STATUSES = {
+    "TERMINATED",
+    "CANCELLED",
+    "CANCELED",
+    "MEMBER_TERMINATED",
+    "ENDED",
+}
+_ROOM_WORDS = {
+    "1": "one",
+    "2": "two",
+    "3": "three",
+    "4": "four",
+    "5": "five",
+    "6": "six",
+    "7": "seven",
+    "8": "eight",
+    "9": "nine",
+    "10": "ten",
+}
 
 
 class SifelyUnavailable(RuntimeError):
@@ -128,6 +292,29 @@ class RunResult:
     discord_posts: List[str] = field(default_factory=list)
     digest_updated: bool = False
     padsplit_notified: int = 0
+    events: List[str] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class LockMatch:
+    lock_id: str
+    slug: str
+    role: str  # front | back | room | shared
+    room: str = ""
+    alias: str = ""
+
+
+@dataclass
+class LockEvent:
+    kind: str  # move_in | move_out | terminated
+    key: str
+    house_slug: str
+    house_label: str
+    room: str
+    member: str
+    chat_id: str = ""
+    occupancy_id: str = ""
+    phone: str = ""
 
 
 def load_environment() -> None:
@@ -135,22 +322,25 @@ def load_environment() -> None:
 
 
 def running_in_ci() -> bool:
-    return bool(os.getenv("GITHUB_ACTIONS") or os.getenv("CI"))
+    return runtime.running_in_ci()
 
 
 def live_actions_enabled() -> bool:
-    """Mac morning/afternoon only. GitHub Actions / CI must not rotate or post."""
-    if running_in_ci():
-        return False
-    flag = (os.getenv("LOCK_CODES_ENABLE") or "").strip().lower()
-    if flag in {"0", "false", "no"}:
-        return False
-    return True
+    """Default off until LOCK_CODES_ENABLE=1. GitHub Actions / CI must not rotate or post."""
+    return runtime.send_enabled("lock_codes")
 
 
 def sifely_api_key() -> str:
     """Return SIFELY_API_KEY or empty. Never invent a key. Never print it."""
     return (os.getenv("SIFELY_API_KEY") or "").strip()
+
+
+def firebase_credentials_ready() -> bool:
+    """True when a service account is configured. Never invent credentials."""
+    return bool(
+        (os.getenv("FIREBASE_SERVICE_ACCOUNT_JSON") or "").strip()
+        or (os.getenv("GOOGLE_APPLICATION_CREDENTIALS") or "").strip()
+    )
 
 
 def has_digit_characters(text: str) -> bool:
@@ -174,22 +364,30 @@ def generate_passcode() -> str:
     return "".join(str(secrets.randbelow(10)) for _ in range(6))
 
 
+def compact_text(value: Any) -> str:
+    return re.sub(r"[^a-z0-9]+", "", str(value or "").lower())
+
+
 def is_spanish_moss_address(value: Any) -> bool:
     text = str(value or "").strip().lower()
     if not text:
         return False
-    if "green hill" in text or "greenhill" in text:
+    compact = compact_text(text)
+    if "greenhill" in compact and "spanishmoss" not in compact:
         return False
-    return "spanish" in text and "moss" in text
+    if "green hill" in text and "spanish" not in text:
+        return False
+    return "spanishmoss" in compact or ("spanish" in text and "moss" in text)
 
 
 def is_spanish_moss_back_lock(lock: Dict[str, Any]) -> bool:
     label = f"{lock.get('lockAlias') or ''} {lock.get('lockName') or ''}".lower()
-    if "green hill" in label or "greenhill" in label:
+    compact = compact_text(label)
+    if "greenhill" in compact and "spanishmoss" not in compact:
         return False
-    if "front" in label:
+    if "front" in label and "back" not in label:
         return False
-    return "spanish" in label and "moss" in label
+    return "spanishmoss" in compact or ("spanish" in label and "moss" in label)
 
 
 def vacancy_allows_rotate(room: Dict[str, Any]) -> bool:
@@ -230,23 +428,31 @@ def pending_auto_rotate_rooms(
 
 
 def current_member_threads(messages: Sequence[Dict[str, Any]], now: datetime) -> List[Dict[str, Any]]:
-    today = now.astimezone(CT).date()
+    """Spanish Moss current occupants. lockout/v1 tests depend on this filter."""
+    return house_member_threads(messages, "spanish_moss", now)
+
+
+def house_member_threads(
+    messages: Sequence[Dict[str, Any]],
+    slug: str,
+    now: datetime,
+    *,
+    exclude_chat_ids: Iterable[str] = (),
+) -> List[Dict[str, Any]]:
+    """Current occupants at one house. Used for the Ang-yes PadSplit door blast."""
+    skip = {str(item) for item in exclude_chat_ids if item}
     current: List[Dict[str, Any]] = []
     for thread in messages:
-        prop = thread.get("property") if isinstance(thread.get("property"), dict) else {}
-        address = (prop.get("address") or {}) if isinstance(prop.get("address"), dict) else {}
-        street = address.get("street1") or address.get("full_street") or ""
-        if not is_spanish_moss_address(street):
+        if not isinstance(thread, dict):
             continue
-        occupancy = thread.get("occupancy") if isinstance(thread.get("occupancy"), dict) else {}
-        user = occupancy.get("user")
-        if not isinstance(user, dict) or not user:
+        if match_house_slug(_thread_street(thread)) != slug:
             continue
-        move_out = _date_only(occupancy.get("moveOutDate"))
-        if move_out is not None and move_out < today:
+        if not _current_occupant(thread, now):
             continue
-        if thread.get("id"):
-            current.append(thread)
+        chat_id = str(thread.get("id") or "")
+        if not chat_id or chat_id in skip:
+            continue
+        current.append(thread)
     return current
 
 
@@ -264,10 +470,7 @@ def parse_sifely_share_code(text: str) -> Optional[str]:
 
 
 def _mentions_spanish_moss_lock(text: str) -> bool:
-    lowered = (text or "").lower()
-    if "green hill" in lowered or "greenhill" in lowered:
-        return False
-    return "spanish" in lowered and "moss" in lowered
+    return is_spanish_moss_address(text)
 
 
 def discord_human_change_text() -> str:
@@ -282,6 +485,40 @@ def need_you_missing_key_text() -> str:
     return NEED_YOU_MISSING_KEY
 
 
+def need_you_missing_firebase_text() -> str:
+    return NEED_YOU_MISSING_FIREBASE
+
+
+def need_you_missing_phone_text() -> str:
+    return NEED_YOU_MISSING_PHONE
+
+
+def need_you_missing_lock_text() -> str:
+    return NEED_YOU_MISSING_LOCK
+
+
+def discord_room_word(room: Any) -> str:
+    """Digit-free room label for Discord. Unknown rooms become 'a room'."""
+    key = str(room or "").strip()
+    return _ROOM_WORDS.get(key, "a room")
+
+
+def discord_member_label(name: str) -> str:
+    cleaned = re.sub(r"\d+", "", name or "")
+    cleaned = re.sub(r"\s+", " ", cleaned).strip(" ,.-")
+    return cleaned or "a member"
+
+
+def member_display_name(user: Any) -> str:
+    if not isinstance(user, dict):
+        return ""
+    display = str(user.get("displayName") or "").strip()
+    if display:
+        return display
+    parts = [str(user.get("firstName") or "").strip(), str(user.get("lastName") or "").strip()]
+    return " ".join(part for part in parts if part)
+
+
 def member_host_message(code: str) -> str:
     """PadSplit host inbox may include the new code. Do not log this string."""
     return (
@@ -290,10 +527,101 @@ def member_host_message(code: str) -> str:
     )
 
 
+def member_move_in_message(house_label: str, room: str, code: str) -> str:
+    """PadSplit member message may include the room code. Do not log this string."""
+    house = house_label or "your house"
+    room_bit = str(room or "").strip() or "your"
+    return (
+        f"Hi, welcome to {house}. "
+        f"Your room {room_bit} lock code is {code}. "
+        "This code is for your room lock only."
+    )
+
+
+def member_shared_door_message(house_label: str, codes: Dict[str, str]) -> str:
+    """PadSplit housemate blast may include new door codes. Do not log this string."""
+    house = house_label or "the house"
+    front = (codes.get("front") or "").strip()
+    back = (codes.get("back") or "").strip()
+    shared = (codes.get("shared") or "").strip()
+    if shared and not front and not back:
+        return (
+            f"Hi, the {house} front and back door code was rotated. "
+            f"The new door code is {shared}."
+        )
+    lines = [f"Hi, the {house} front and back door codes were rotated."]
+    if front:
+        lines.append(f"Front door: {front}")
+    if back:
+        lines.append(f"Back door: {back}")
+    if shared and shared not in {front, back}:
+        lines.append(f"Door code: {shared}")
+    return "\n".join(lines)
+
+
+def discord_move_in_text(house_label: str, room: Any, member: str) -> str:
+    text = (
+        f"PadSplit Ops: room code set for new move-in at {house_label or 'a house'}, "
+        f"{discord_room_word(room)}, member {discord_member_label(member)}. "
+        "Codes page updated. No digits posted."
+    )
+    return assert_discord_outbound_safe(text)
+
+
+def discord_ask_ang_text(house_label: str, room: Any, member: str, *, kind: str = "move_out") -> str:
+    why = "was terminated" if kind == "terminated" else "moved out"
+    text = (
+        f"PadSplit Ops asking Ang: {discord_member_label(member)} {why} at "
+        f"{house_label or 'a house'}, {discord_room_word(room)}. "
+        "Change front and back door keycodes for that house? "
+        "Reply yes or no in this channel."
+    )
+    return assert_discord_outbound_safe(text)
+
+
+def discord_ang_yes_text(house_label: str, room: Any, *, shared_rotated: bool) -> str:
+    shared = (
+        "Shared front and back keycodes were rotated. "
+        "Remaining members were messaged on PadSplit."
+        if shared_rotated
+        else "Shared front and back keycodes were not matched, so they were left unchanged."
+    )
+    text = (
+        f"PadSplit Ops: {house_label or 'a house'} {discord_room_word(room)}. "
+        f"{shared} Room lock was already reset to the vacant default. "
+        "Codes page updated. No digits posted."
+    )
+    return assert_discord_outbound_safe(text)
+
+
+def discord_ang_no_text(house_label: str, room: Any) -> str:
+    text = (
+        f"PadSplit Ops: {house_label or 'a house'} {discord_room_word(room)}. "
+        "Shared front and back keycodes were left unchanged after Ang said no. "
+        "Room lock was already reset to the vacant default. No digits posted."
+    )
+    return assert_discord_outbound_safe(text)
+
+
 def assert_discord_outbound_safe(text: str) -> str:
     if has_digit_characters(text):
         raise RuntimeError("Refusing Discord outbound: message contains digits")
     return text
+
+
+def phone_digits(phone: str) -> str:
+    digits = re.sub(r"\D", "", phone or "")
+    if len(digits) == 11 and digits.startswith("1"):
+        digits = digits[1:]
+    return digits
+
+
+def phone_last4(phone: str) -> Optional[str]:
+    """Last four of a tenant phone. In-memory only. Never log the value."""
+    digits = phone_digits(phone)
+    if len(digits) < 4:
+        return None
+    return digits[-4:]
 
 
 def decide(
@@ -304,8 +632,9 @@ def decide(
     human_change: bool,
     pending_vacancy: bool,
     inbound_share: bool,
+    firebase_ready: bool = True,
 ) -> Plan:
-    """Pure v1 decision table. Side effects stay in execute/run."""
+    """Pure decision table. Side effects stay in execute/run."""
     if in_ci:
         return Plan(action="skip_ci", reason="GitHub Actions / CI must not rotate or post Discord")
     if not api_key_present:
@@ -324,12 +653,12 @@ def decide(
         )
     if pending_vacancy and api_available:
         return Plan(
-            action="auto_rotate",
-            reason="PadSplit vacant and empty/turned photo",
-            update_digest=True,
-            notify_padsplit=True,
-            discord_kind="rotated",
-            rotate_via_api=True,
+            action="ask_ang",
+            reason="move-out asks Ang about shared doors only; room already vacant-default",
+            discord_kind="ask_ang",
+            update_digest=False,
+            notify_padsplit=False,
+            rotate_via_api=False,
         )
     if not api_available and inbound_share:
         return Plan(
@@ -339,7 +668,13 @@ def decide(
             notify_padsplit=True,
             use_inbound_share=True,
         )
-    return Plan(action="noop", reason="no Spanish Moss back-door action")
+    if not firebase_ready:
+        return Plan(
+            action="need_you",
+            reason="missing Firebase service account",
+            discord_kind="need_you_firebase",
+        )
+    return Plan(action="noop", reason="no pending lock-code decision")
 
 
 def load_state(path: Path = STATE_PATH) -> Dict[str, Any]:
@@ -351,13 +686,21 @@ def load_state(path: Path = STATE_PATH) -> Dict[str, Any]:
         return _empty_state()
     if not isinstance(payload, dict):
         return _empty_state()
-    payload.setdefault("passcode_hashes", {})
-    payload.setdefault("rotated_vacancy_keys", [])
-    payload.setdefault("processed_discord_ids", [])
-    payload.setdefault("last_auto_rotate_hash", "")
-    payload.setdefault("need_you_sent_on", "")
-    if not isinstance(payload["passcode_hashes"], dict):
+    empty = _empty_state()
+    for key, default in empty.items():
+        payload.setdefault(key, default if not isinstance(default, (dict, list)) else type(default)())
+    if not isinstance(payload.get("passcode_hashes"), dict):
         payload["passcode_hashes"] = {}
+    for list_key in (
+        "rotated_vacancy_keys",
+        "processed_discord_ids",
+        "processed_move_ins",
+        "processed_events",
+        "pending_ang_asks",
+        "seen_occupancies",
+    ):
+        if not isinstance(payload.get(list_key), list):
+            payload[list_key] = []
     return payload
 
 
@@ -373,6 +716,10 @@ def _empty_state() -> Dict[str, Any]:
         "processed_discord_ids": [],
         "last_auto_rotate_hash": "",
         "need_you_sent_on": "",
+        "processed_move_ins": [],
+        "processed_events": [],
+        "pending_ang_asks": [],
+        "seen_occupancies": [],
     }
 
 
@@ -453,7 +800,7 @@ def list_locks(api_key: str, *, session: Optional[requests.Session] = None) -> L
         "POST",
         SIFELY_LOCK_LIST_PATH,
         api_key=api_key,
-        params={"pageNo": "1", "pageSize": "20"},
+        params={"pageNo": "1", "pageSize": "100"},
         session=session,
     )
     rows = payload.get("list") if isinstance(payload, dict) else payload
@@ -514,6 +861,7 @@ def change_passcode(
 
 
 def resolve_lock(locks: Sequence[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    """Spanish Moss back door only. lockout_reply obtain path depends on this."""
     configured = (os.getenv("SIFELY_LOCK_ID") or "").strip()
     matches = [lock for lock in locks if is_spanish_moss_back_lock(lock)]
     if configured:
@@ -521,7 +869,8 @@ def resolve_lock(locks: Sequence[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
             if str(lock.get("lockId")) != configured:
                 continue
             label = f"{lock.get('lockAlias') or ''} {lock.get('lockName') or ''}".lower()
-            if "green hill" in label or "greenhill" in label:
+            compact = compact_text(label)
+            if "greenhill" in compact and "spanishmoss" not in compact:
                 return None
             return lock
         return None
@@ -549,6 +898,109 @@ def resolve_keyboard_pwd_id(passcodes: Sequence[Dict[str, Any]]) -> Optional[str
         only = passcodes[0]
         return str(only.get("keyboardPwdId") or only.get("id") or "") or None
     return None
+
+
+def match_house_slug(text: str) -> Optional[str]:
+    """Unique house slug from an address or Sifely lock label. None if ambiguous."""
+    hay = str(text or "").lower()
+    compact = compact_text(text)
+    if not hay and not compact:
+        return None
+    moss = is_spanish_moss_address(text)
+    green = "greenhill" in compact or "green hill" in hay
+    if moss and green:
+        return None
+    hits: List[str] = []
+    for slug, profile in HOUSE_LOCK_PROFILES.items():
+        aliases: Sequence[str] = profile["aliases"]
+        if any(alias in hay or compact_text(alias) in compact for alias in aliases):
+            hits.append(slug)
+    unique = list(dict.fromkeys(hits))
+    if moss and "spanish_moss" in unique:
+        return "spanish_moss"
+    if len(unique) == 1:
+        return unique[0]
+    return None
+
+
+def classify_sifely_lock(lock: Dict[str, Any]) -> Optional[LockMatch]:
+    alias = str(lock.get("lockAlias") or "")
+    name = str(lock.get("lockName") or "")
+    label = f"{alias} {name}".strip()
+    slug = match_house_slug(label)
+    if not slug:
+        return None
+    lock_id = str(lock.get("lockId") or "")
+    if not lock_id:
+        return None
+    lowered = label.lower()
+    has_front = "front" in lowered
+    has_back = "back" in lowered
+    room_match = _ROOM_IN_LABEL.search(label)
+    if has_front and has_back:
+        return LockMatch(lock_id=lock_id, slug=slug, role="shared", alias=alias)
+    if has_front:
+        return LockMatch(lock_id=lock_id, slug=slug, role="front", alias=alias)
+    if has_back:
+        return LockMatch(lock_id=lock_id, slug=slug, role="back", alias=alias)
+    if room_match:
+        room = room_match.group(1) or room_match.group(2) or ""
+        if room:
+            return LockMatch(lock_id=lock_id, slug=slug, role="room", room=str(room), alias=alias)
+    return None
+
+
+def inventory_locks(locks: Sequence[Dict[str, Any]]) -> List[LockMatch]:
+    found: List[LockMatch] = []
+    for lock in locks:
+        if not isinstance(lock, dict):
+            continue
+        match = classify_sifely_lock(lock)
+        if match is not None:
+            found.append(match)
+    return found
+
+
+def find_lock(
+    inventory: Sequence[LockMatch],
+    slug: str,
+    role: str,
+    room: str = "",
+) -> Optional[LockMatch]:
+    matches: List[LockMatch] = []
+    for item in inventory:
+        if item.slug != slug:
+            continue
+        if role == "room":
+            if item.role == "room" and str(item.room) == str(room):
+                matches.append(item)
+            continue
+        if item.role == role or item.role == "shared":
+            matches.append(item)
+    if len(matches) == 1:
+        return matches[0]
+    if role in {"front", "back"}:
+        exact = [item for item in matches if item.role == role]
+        if len(exact) == 1:
+            return exact[0]
+        shared = [item for item in matches if item.role == "shared"]
+        if len(shared) == 1:
+            return shared[0]
+    return None
+
+
+def codes_field_for(slug: str, role: str, room: str = "") -> str:
+    profile = HOUSE_LOCK_PROFILES.get(slug) or {}
+    if role == "room":
+        digits = re.sub(r"\D", "", str(room or ""))
+        return f"r{digits}" if digits else ""
+    if role == "front":
+        return str(profile.get("front_field") or "front_door")
+    if role == "back":
+        return str(profile.get("back_field") or "back_door")
+    if role == "shared":
+        return str(profile.get("front_field") or profile.get("back_field") or "front_back")
+    return ""
 
 
 def send_host_message(
@@ -608,16 +1060,68 @@ def post_ops_discord(text: str, *, token: Optional[str] = None, channel: Optiona
     return response.json()
 
 
+def automations_channel_id() -> str:
+    return (
+        (os.getenv("DISCORD_AUTOMATIONS_CHANNEL_ID") or "").strip()
+        or DISCORD_AUTOMATIONS_CHANNEL_ID
+    )
+
+
+def post_automations_discord(
+    text: str,
+    *,
+    token: Optional[str] = None,
+    channel: Optional[str] = None,
+) -> Optional[Dict[str, Any]]:
+    safe = assert_discord_outbound_safe(text)
+    token = token or (os.getenv("DISCORD_BOT_TOKEN") or "").strip()
+    channel = channel or automations_channel_id()
+    if not token or not channel:
+        _log("DISCORD_BOT_TOKEN or automations channel missing; skip PadSplit Ops post")
+        return None
+    return post_ops_discord(safe, token=token, channel=channel)
+
+
 def fetch_new_tenants_messages(token: str) -> List[Dict[str, Any]]:
+    return fetch_channel_messages(DISCORD_NEW_TENANTS_CHANNEL_ID, token)
+
+
+def fetch_channel_messages(channel_id: str, token: str, *, limit: int = 50) -> List[Dict[str, Any]]:
     response = requests.get(
-        f"{DISCORD_API_BASE}/channels/{DISCORD_NEW_TENANTS_CHANNEL_ID}/messages",
+        f"{DISCORD_API_BASE}/channels/{channel_id}/messages",
         headers={"Authorization": f"Bot {token}"},
-        params={"limit": 30},
+        params={"limit": limit},
         timeout=DEFAULT_TIMEOUT,
     )
     response.raise_for_status()
     messages = response.json() or []
     return list(reversed(messages))
+
+
+def classify_ang_reply(text: str) -> Optional[str]:
+    """Return yes/no from a digit-free Ang reply. Digit-bearing replies are ignored."""
+    content = (text or "").strip()
+    if not content or has_digit_characters(content):
+        return None
+    if _ANG_YES.search(content):
+        return "yes"
+    if _ANG_NO.search(content):
+        return "no"
+    return None
+
+
+def parse_ang_reply(messages: Sequence[Dict[str, Any]], ask_message_id: str) -> Optional[str]:
+    ask_id = str(ask_message_id or "")
+    if not ask_id:
+        return None
+    for message in messages or []:
+        ref = message.get("message_reference") if isinstance(message.get("message_reference"), dict) else {}
+        if str(ref.get("message_id") or "") != ask_id:
+            continue
+        decision = classify_ang_reply(str(message.get("content") or ""))
+        if decision:
+            return decision
+    return None
 
 
 def load_json_file(path: Path) -> Any:
@@ -648,13 +1152,16 @@ def load_host_messages() -> List[Dict[str, Any]]:
     return []
 
 
-def update_codes_page(code: str) -> bool:
-    """Write the new code to Firestore property_codes (GitHub Pages codes.html)."""
+def update_codes_records(slug: str, fields: Dict[str, Any]) -> bool:
+    """Merge fields into Firestore property_codes/{slug} (codes.html). Fail closed."""
+    if not firebase_credentials_ready():
+        _log("FIREBASE_SERVICE_ACCOUNT_JSON missing; fail closed, skip codes page update")
+        return False
     try:
         import firebase_admin
         from firebase_admin import credentials, firestore
     except ImportError:
-        _log("firebase-admin missing; skip codes page update")
+        _log("firebase-admin missing; fail closed, skip codes page update")
         return False
 
     service_account_json = os.getenv("FIREBASE_SERVICE_ACCOUNT_JSON")
@@ -665,14 +1172,65 @@ def update_codes_page(code: str) -> bool:
         elif google_credentials:
             firebase_admin.initialize_app(credentials.Certificate(google_credentials))
         else:
-            _log("FIREBASE_SERVICE_ACCOUNT_JSON missing; skip codes page update")
+            _log("FIREBASE_SERVICE_ACCOUNT_JSON missing; fail closed, skip codes page update")
             return False
     client = firestore.client()
-    client.collection(CODES_COLLECTION).document(PROPERTY_SLUG).set(
-        {LOCK_FIELD: code, "updatedAt": datetime.now(timezone.utc).isoformat()},
-        merge=True,
-    )
+    payload = dict(fields)
+    payload["updatedAt"] = datetime.now(timezone.utc).isoformat()
+    client.collection(CODES_COLLECTION).document(slug).set(payload, merge=True)
     return True
+
+
+def update_codes_page(code: str, *, slug: str = PROPERTY_SLUG, field: str = LOCK_FIELD) -> bool:
+    """Write one lock field. lockout_reply still calls this with the SM back-door code."""
+    return update_codes_records(slug, {field: code})
+
+
+def occupancy_phone(thread: Dict[str, Any], fetch_fn: Optional[Callable[[Dict[str, Any]], str]] = None) -> str:
+    occupancy = thread.get("occupancy") if isinstance(thread.get("occupancy"), dict) else {}
+    user = occupancy.get("user") if isinstance(occupancy.get("user"), dict) else {}
+    for key in ("phone", "phoneNumber", "mobilePhone", "mobile"):
+        value = user.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    if fetch_fn is not None:
+        return str(fetch_fn(thread) or "").strip()
+    return ""
+
+
+def fetch_occupancy_phone(
+    session: requests.Session,
+    creds: Dict[str, str],
+    occupancy_id: str,
+    *,
+    request_fn=None,
+) -> str:
+    """Live PadSplit phone lookup. Never log the returned value."""
+    if not occupancy_id:
+        return ""
+    request_fn = request_fn or _authed_request
+    resp = request_fn(
+        session,
+        "POST",
+        GRAPHQL_URL,
+        creds=creds,
+        login_fn=login,
+        headers={"Content-Type": "application/json", "Accept": "application/json"},
+        json={"query": OCCUPANCY_PHONE_QUERY, "variables": {"id": occupancy_id}},
+        timeout=DEFAULT_TIMEOUT,
+    )
+    resp.raise_for_status()
+    payload = resp.json()
+    if payload.get("errors"):
+        return ""
+    user = (((payload.get("data") or {}).get("occupancy") or {}).get("user") or {})
+    if not isinstance(user, dict):
+        return ""
+    for key in ("phone", "phoneNumber"):
+        value = user.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return ""
 
 
 def _log(message: str) -> None:
@@ -693,9 +1251,264 @@ def _date_only(value: Any):
         return None
 
 
+def _parse_dt(value: Any) -> Optional[datetime]:
+    if not value or not isinstance(value, str):
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        return parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
+def _is_recent_date(value: Any, now: datetime, *, days: int = RECENT_EVENT_DAYS) -> bool:
+    day = _date_only(value)
+    if day is None:
+        return False
+    today = now.astimezone(CT).date()
+    delta = (today - day).days
+    return 0 <= delta <= days
+
+
+def _is_recent_dt(value: Any, now: datetime, *, days: int = RECENT_EVENT_DAYS) -> bool:
+    parsed = _parse_dt(value)
+    if parsed is None:
+        return False
+    delta = now - parsed
+    return timedelta(0) <= delta <= timedelta(days=days)
+
+
+def _thread_street(thread: Dict[str, Any]) -> str:
+    prop = thread.get("property") if isinstance(thread.get("property"), dict) else {}
+    address = prop.get("address") if isinstance(prop.get("address"), dict) else {}
+    return str(address.get("street1") or address.get("full_street") or "")
+
+
+def _thread_room(thread: Dict[str, Any]) -> str:
+    occupancy = thread.get("occupancy") if isinstance(thread.get("occupancy"), dict) else {}
+    room = occupancy.get("room") if isinstance(occupancy.get("room"), dict) else {}
+    value = room.get("roomNumber")
+    if value in (None, ""):
+        return ""
+    return str(value).strip()
+
+
+def _thread_occupancy_id(thread: Dict[str, Any]) -> str:
+    occupancy = thread.get("occupancy") if isinstance(thread.get("occupancy"), dict) else {}
+    return str(occupancy.get("id") or "")
+
+
+def _current_occupant(thread: Dict[str, Any], now: datetime) -> bool:
+    occupancy = thread.get("occupancy") if isinstance(thread.get("occupancy"), dict) else {}
+    user = occupancy.get("user")
+    if not isinstance(user, dict) or not user:
+        return False
+    move_out = _date_only(occupancy.get("moveOutDate"))
+    today = now.astimezone(CT).date()
+    if move_out is not None and move_out < today:
+        return False
+    if thread.get("isCancelled") is True:
+        return False
+    return True
+
+
+def _terminated_status(thread: Dict[str, Any]) -> bool:
+    if thread.get("isCancelled") is True:
+        return True
+    last = thread.get("lastMessage") if isinstance(thread.get("lastMessage"), dict) else {}
+    booking = last.get("bookingStatus") if isinstance(last.get("bookingStatus"), dict) else {}
+    status = str(booking.get("status") or "").upper()
+    if status in _TERMINATED_STATUSES:
+        return True
+    for message in thread.get("recent_messages") or []:
+        if not isinstance(message, dict):
+            continue
+        row = message.get("bookingStatus") if isinstance(message.get("bookingStatus"), dict) else {}
+        if str(row.get("status") or "").upper() in _TERMINATED_STATUSES:
+            return True
+    return False
+
+
+def _event_house(thread: Dict[str, Any]) -> Tuple[str, str]:
+    slug = match_house_slug(_thread_street(thread))
+    if not slug:
+        return "", ""
+    return slug, str(HOUSE_LOCK_PROFILES[slug]["label"])
+
+
+def move_in_event_key(thread: Dict[str, Any]) -> str:
+    occupancy = thread.get("occupancy") if isinstance(thread.get("occupancy"), dict) else {}
+    slug, _label = _event_house(thread)
+    return "|".join(
+        [
+            "move_in",
+            _thread_occupancy_id(thread) or str(thread.get("id") or ""),
+            slug,
+            _thread_room(thread),
+            str(occupancy.get("moveInDate") or ""),
+        ]
+    )
+
+
+def move_out_event_key(thread: Dict[str, Any], *, kind: str) -> str:
+    occupancy = thread.get("occupancy") if isinstance(thread.get("occupancy"), dict) else {}
+    slug, _label = _event_house(thread)
+    return "|".join(
+        [
+            kind,
+            _thread_occupancy_id(thread) or str(thread.get("id") or ""),
+            slug,
+            _thread_room(thread),
+            str(occupancy.get("moveOutDate") or ""),
+        ]
+    )
+
+
+def collect_move_in_events(
+    messages: Sequence[Dict[str, Any]],
+    now: datetime,
+    processed: Iterable[str],
+) -> List[LockEvent]:
+    seen = set(processed)
+    events: List[LockEvent] = []
+    for thread in messages:
+        if not isinstance(thread, dict):
+            continue
+        if not _current_occupant(thread, now):
+            continue
+        occupancy = thread.get("occupancy") if isinstance(thread.get("occupancy"), dict) else {}
+        if not _is_recent_date(occupancy.get("moveInDate"), now):
+            continue
+        slug, label = _event_house(thread)
+        room = _thread_room(thread)
+        if not slug or not room:
+            continue
+        key = move_in_event_key(thread)
+        if key in seen:
+            continue
+        events.append(
+            LockEvent(
+                kind="move_in",
+                key=key,
+                house_slug=slug,
+                house_label=label,
+                room=room,
+                member=member_display_name(occupancy.get("user")),
+                chat_id=str(thread.get("id") or ""),
+                occupancy_id=_thread_occupancy_id(thread),
+                phone=occupancy_phone(thread),
+            )
+        )
+        seen.add(key)
+    return events
+
+
+def collect_move_out_events(
+    messages: Sequence[Dict[str, Any]],
+    rooms: Sequence[Dict[str, Any]],
+    now: datetime,
+    processed: Iterable[str],
+    pending_keys: Iterable[str],
+) -> List[LockEvent]:
+    skip = set(processed) | set(pending_keys)
+    events: List[LockEvent] = []
+    seen_keys = set()
+    seen_rooms: set[tuple[str, str]] = set()
+
+    def _add(event: LockEvent) -> None:
+        room_id = (event.house_slug, str(event.room))
+        if event.key in skip or event.key in seen_keys or room_id in seen_rooms:
+            return
+        if not event.house_slug or not event.room:
+            return
+        events.append(event)
+        seen_keys.add(event.key)
+        seen_rooms.add(room_id)
+
+    for thread in messages:
+        if not isinstance(thread, dict):
+            continue
+        occupancy = thread.get("occupancy") if isinstance(thread.get("occupancy"), dict) else {}
+        slug, label = _event_house(thread)
+        room = _thread_room(thread)
+        member = member_display_name(occupancy.get("user"))
+        terminated = _terminated_status(thread)
+        move_out = occupancy.get("moveOutDate")
+        recent_out = _is_recent_date(move_out, now)
+        last = thread.get("lastMessage") if isinstance(thread.get("lastMessage"), dict) else {}
+        recent_activity = _is_recent_dt(last.get("created"), now)
+        if terminated and (recent_out or recent_activity):
+            _add(
+                LockEvent(
+                    kind="terminated",
+                    key=move_out_event_key(thread, kind="terminated"),
+                    house_slug=slug,
+                    house_label=label,
+                    room=room,
+                    member=member,
+                    chat_id=str(thread.get("id") or ""),
+                    occupancy_id=_thread_occupancy_id(thread),
+                )
+            )
+            continue
+        today = now.astimezone(CT).date()
+        out_day = _date_only(move_out)
+        if out_day is not None and out_day <= today and recent_out:
+            _add(
+                LockEvent(
+                    kind="move_out",
+                    key=move_out_event_key(thread, kind="move_out"),
+                    house_slug=slug,
+                    house_label=label,
+                    room=room,
+                    member=member,
+                    chat_id=str(thread.get("id") or ""),
+                    occupancy_id=_thread_occupancy_id(thread),
+                )
+            )
+
+    for room in rooms:
+        if not isinstance(room, dict) or room.get("vacant") is not True:
+            continue
+        if not _is_recent_date(room.get("listed_move_out"), now):
+            continue
+        slug = match_house_slug(str(room.get("address") or ""))
+        if not slug:
+            continue
+        room_number = str(room.get("room_number") or "").strip()
+        key = "|".join(
+            [
+                "move_out",
+                str(room.get("property_id") or ""),
+                slug,
+                room_number,
+                str(room.get("listed_move_out") or ""),
+            ]
+        )
+        _add(
+            LockEvent(
+                kind="move_out",
+                key=key,
+                house_slug=slug,
+                house_label=str(HOUSE_LOCK_PROFILES[slug]["label"]),
+                room=room_number,
+                member="a member",
+            )
+        )
+    return events
+
+
 def _discord_text_for(kind: Optional[str]) -> Optional[str]:
     if kind == "need_you":
         return need_you_missing_key_text()
+    if kind == "need_you_firebase":
+        return need_you_missing_firebase_text()
+    if kind == "need_you_phone":
+        return need_you_missing_phone_text()
+    if kind == "need_you_lock":
+        return need_you_missing_lock_text()
     if kind == "human":
         return discord_human_change_text()
     if kind == "rotated":
@@ -703,11 +1516,61 @@ def _discord_text_for(kind: Optional[str]) -> Optional[str]:
     return None
 
 
-def _mark_vacancies_handled(state: Dict[str, Any], rooms: Sequence[Dict[str, Any]]) -> None:
-    keys = set(state.get("rotated_vacancy_keys") or [])
-    for room in rooms:
-        keys.add(vacancy_key(room))
-    state["rotated_vacancy_keys"] = sorted(keys)
+def _mark_list(state: Dict[str, Any], field: str, value: str) -> None:
+    items = [str(item) for item in (state.get(field) or []) if item]
+    if value and value not in items:
+        items.append(value)
+    state[field] = items[-200:]
+
+
+def _pending_keys(state: Dict[str, Any]) -> List[str]:
+    keys: List[str] = []
+    for row in state.get("pending_ang_asks") or []:
+        if isinstance(row, dict) and row.get("event_key"):
+            keys.append(str(row["event_key"]))
+    return keys
+
+
+def _handled_rooms(state: Dict[str, Any]) -> set[tuple[str, str]]:
+    rooms: set[tuple[str, str]] = set()
+    for row in state.get("pending_ang_asks") or []:
+        if not isinstance(row, dict):
+            continue
+        slug = str(row.get("house_slug") or "")
+        room = str(row.get("room") or "")
+        if slug and room:
+            rooms.add((slug, room))
+    for raw in state.get("processed_events") or []:
+        parts = str(raw).split("|")
+        if len(parts) >= 4 and parts[0] in {"move_out", "terminated", "vacancy"}:
+            slug = parts[2]
+            room = parts[3]
+            if slug and room:
+                rooms.add((slug, room))
+    return rooms
+
+
+def _need_you_once(
+    state: Dict[str, Any],
+    now: datetime,
+    kind: str,
+    poster: Callable[[str], Any],
+    result: RunResult,
+    *,
+    dry_run: bool,
+) -> None:
+    today = now.astimezone(CT).date().isoformat()
+    stamp = f"{kind}:{today}"
+    if state.get("need_you_sent_on") == stamp and not dry_run:
+        return
+    text = _discord_text_for(kind)
+    if not text:
+        return
+    safe = assert_discord_outbound_safe(text)
+    if not dry_run:
+        poster(safe)
+        state["need_you_sent_on"] = stamp
+    result.discord_posts.append(safe)
 
 
 def run(
@@ -720,61 +1583,52 @@ def run(
     inbound_messages: Optional[List[Dict[str, Any]]] = None,
     post_discord: Optional[Callable[[str], Any]] = None,
     update_digest: Optional[Callable[[str], bool]] = None,
+    update_records: Optional[Callable[[str, Dict[str, Any]], bool]] = None,
     notify_members: Optional[Callable[[str], int]] = None,
+    notify_member: Optional[Callable[[str, str], int]] = None,
     generate_code: Optional[Callable[[], str]] = None,
+    fetch_phone: Optional[Callable[[Dict[str, Any]], str]] = None,
+    fetch_discord: Optional[Callable[[], List[Dict[str, Any]]]] = None,
+    locks: Optional[List[Dict[str, Any]]] = None,
+    passcodes_by_lock: Optional[Dict[str, List[Dict[str, Any]]]] = None,
+    change_fn: Optional[Callable[..., Any]] = None,
+    firebase_ready: Optional[bool] = None,
     state_path: Path = STATE_PATH,
 ) -> RunResult:
     load_environment()
     current = now or datetime.now(timezone.utc)
+    if running_in_ci() and not dry_run:
+        return RunResult(action="skip_ci", reason="GitHub Actions / CI must not rotate or post Discord")
+    if not live_actions_enabled() and not dry_run:
+        return RunResult(action="disabled", reason="LOCK_CODES_ENABLE is off")
+
     state = load_state(state_path)
     rooms = occupancy_rooms if occupancy_rooms is not None else load_occupancy_rooms()
     messages = host_messages if host_messages is not None else load_host_messages()
     pending_rooms = pending_auto_rotate_rooms(rooms, state.get("rotated_vacancy_keys") or [])
-    pending_vacancy = bool(pending_rooms)
 
     api_key = sifely_api_key()
+    ready = firebase_credentials_ready() if firebase_ready is None else bool(firebase_ready)
+    inventory: List[LockMatch] = []
     api_available = False
-    human_change = False
-    inbound_share_code: Optional[str] = None
-    inbound_share = False
-    lock: Optional[Dict[str, Any]] = None
-    keyboard_pwd_id: Optional[str] = None
-    current_hashes: Dict[str, str] = {}
 
     if api_key and not running_in_ci():
         try:
-            locks = list_locks(api_key, session=sifely_session)
-            lock = resolve_lock(locks)
-            if lock is not None:
-                passcodes = list_passcodes(api_key, lock.get("lockId"), session=sifely_session)
-                keyboard_pwd_id = resolve_keyboard_pwd_id(passcodes)
-                current_hashes = passcode_hashes_from_list(passcodes)
-                human_change = detect_human_change(
-                    current_hashes,
-                    state.get("passcode_hashes") or {},
-                    state.get("last_auto_rotate_hash") or "",
-                )
+            lock_rows = locks if locks is not None else list_locks(api_key, session=sifely_session)
+            inventory = inventory_locks(lock_rows)
             api_available = True
         except SifelyUnavailable as exc:
             _log(f"Sifely API cannot run: {exc}")
             api_available = False
 
-    if api_key and not api_available and not running_in_ci():
-        inbound_share_code, inbound_id = _first_new_share(
-            inbound_messages,
-            processed_ids=state.get("processed_discord_ids") or [],
-        )
-        inbound_share = bool(inbound_share_code)
-    else:
-        inbound_id = None
-
     plan = decide(
         in_ci=running_in_ci(),
         api_key_present=bool(api_key),
-        api_available=api_available,
-        human_change=human_change,
-        pending_vacancy=pending_vacancy,
-        inbound_share=inbound_share,
+        api_available=api_available or bool(inventory),
+        human_change=False,
+        pending_vacancy=False,
+        inbound_share=False,
+        firebase_ready=True,
     )
     result = RunResult(action=plan.action, reason=plan.reason)
     _log(f"{plan.action} ({plan.reason})")
@@ -782,89 +1636,439 @@ def run(
     if plan.action == "skip_ci":
         return result
 
-    poster = post_discord or (lambda text: None if dry_run else post_ops_discord(text))
-    digest_fn = update_digest or (lambda code: False if dry_run else update_codes_page(code))
-    member_fn = notify_members or (
-        lambda code: 0 if dry_run else _notify_current_members(code, messages, current)
+    poster = post_discord or (lambda text: None if dry_run else post_automations_discord(text))
+    records_fn = update_records or (
+        (lambda slug, fields: False if dry_run else update_codes_records(slug, fields))
     )
+    digest_fn = update_digest
+    member_one = notify_member
+    member_all = notify_members
     new_code_fn = generate_code or generate_passcode
+    changer = change_fn or (
+        (
+            lambda **kwargs: change_passcode(
+                api_key,
+                session=sifely_session,
+                **kwargs,
+            )
+        )
+        if api_key
+        else None
+    )
 
-    if plan.discord_kind == "need_you":
-        today = current.astimezone(CT).date().isoformat()
-        if state.get("need_you_sent_on") != today and not dry_run:
-            text = assert_discord_outbound_safe(need_you_missing_key_text())
-            poster(text)
-            result.discord_posts.append(text)
-            state["need_you_sent_on"] = today
-            save_state(state, state_path)
-        elif dry_run:
-            result.discord_posts.append(need_you_missing_key_text())
-        return result
-
-    if plan.action == "announce_human":
-        text = assert_discord_outbound_safe(discord_human_change_text())
-        if not dry_run:
-            poster(text)
-        result.discord_posts.append(text)
-        if current_hashes:
-            state["passcode_hashes"] = current_hashes
-        _mark_vacancies_handled(state, pending_rooms)
+    if plan.action == "need_you":
+        kind = plan.discord_kind or "need_you"
+        _need_you_once(state, current, kind, poster, result, dry_run=dry_run)
         if not dry_run:
             save_state(state, state_path)
         return result
 
-    working_code: Optional[str] = None
-    if plan.rotate_via_api:
-        if lock is None or not keyboard_pwd_id:
-            _log("Need you: could not resolve Spanish Moss back-door lock or passcode id")
-            return result
-        working_code = new_code_fn()
-        if not dry_run:
-            try:
-                change_passcode(
-                    api_key,
-                    lock_id=lock.get("lockId"),
-                    keyboard_pwd_id=keyboard_pwd_id,
-                    new_code=working_code,
-                    session=sifely_session,
-                )
-            except SifelyUnavailable as exc:
-                _log(f"rotate failed; will wait for #new-tenants fallback: {exc}")
-                return result
-        state["last_auto_rotate_hash"] = hash_passcode(working_code)
-        if keyboard_pwd_id:
-            hashes = dict(state.get("passcode_hashes") or {})
-            hashes[str(keyboard_pwd_id)] = state["last_auto_rotate_hash"]
-            state["passcode_hashes"] = hashes
-        elif current_hashes:
-            state["passcode_hashes"] = current_hashes
-        _mark_vacancies_handled(state, pending_rooms)
+    def _passcodes_for(lock_id: str) -> List[Dict[str, Any]]:
+        if passcodes_by_lock is not None:
+            return list(passcodes_by_lock.get(str(lock_id)) or [])
+        if not api_key:
+            return []
+        return list_passcodes(api_key, lock_id, session=sifely_session)
 
-    if plan.use_inbound_share:
-        working_code = inbound_share_code
-        if inbound_id:
-            processed = set(state.get("processed_discord_ids") or [])
-            processed.add(str(inbound_id))
-            state["processed_discord_ids"] = sorted(processed)[-50:]
-        _mark_vacancies_handled(state, pending_rooms)
+    def _rotate_lock(match: LockMatch, new_code: str) -> bool:
+        if dry_run:
+            return True
+        if changer is None:
+            return False
+        pwd_id = resolve_keyboard_pwd_id(_passcodes_for(match.lock_id))
+        if not pwd_id:
+            _log("Need you: could not resolve keyboard passcode id")
+            return False
+        try:
+            changer(lock_id=match.lock_id, keyboard_pwd_id=pwd_id, new_code=new_code)
+        except SifelyUnavailable as exc:
+            _log(f"rotate failed: {exc}")
+            return False
+        return True
 
-    if working_code and plan.update_digest:
-        result.digest_updated = bool(digest_fn(working_code))
-    if working_code and plan.notify_padsplit:
-        result.padsplit_notified = int(member_fn(working_code))
+    def _write_fields(slug: str, fields: Dict[str, Any]) -> bool:
+        clean = {key: value for key, value in fields.items() if key and value}
+        if not clean:
+            return False
+        if digest_fn is not None and slug == PROPERTY_SLUG and LOCK_FIELD in clean:
+            digest_fn(str(clean[LOCK_FIELD]))
+        return bool(records_fn(slug, clean))
 
-    if plan.discord_kind == "rotated":
-        text = assert_discord_outbound_safe(discord_rotated_text())
-        if not dry_run:
-            poster(text)
-        result.discord_posts.append(text)
+    _ = inbound_messages
+    _process_pending_asks(
+        state=state,
+        result=result,
+        inventory=inventory,
+        ready=ready,
+        now=current,
+        dry_run=dry_run,
+        poster=poster,
+        fetch_discord=fetch_discord,
+        rotate_lock=_rotate_lock,
+        write_fields=_write_fields,
+        new_code_fn=new_code_fn,
+        messages=messages,
+        notify_one=member_one,
+    )
 
-    if current_hashes and plan.action == "noop":
-        state["passcode_hashes"] = current_hashes
+    if api_key and api_available:
+        _process_move_ins(
+            messages=messages,
+            state=state,
+            result=result,
+            inventory=inventory,
+            ready=ready,
+            now=current,
+            dry_run=dry_run,
+            poster=poster,
+            fetch_phone=fetch_phone,
+            rotate_lock=_rotate_lock,
+            write_fields=_write_fields,
+            notify_one=member_one,
+            notify_all=member_all,
+        )
+        _process_move_outs(
+            messages=messages,
+            rooms=rooms,
+            pending_rooms=pending_rooms,
+            state=state,
+            result=result,
+            inventory=inventory,
+            ready=ready,
+            now=current,
+            dry_run=dry_run,
+            poster=poster,
+            rotate_lock=_rotate_lock,
+            write_fields=_write_fields,
+        )
+
+    if result.events:
+        result.action = result.events[-1]
+        result.reason = f"{len(result.events)} lock-code event(s)"
+    elif result.action == "noop":
+        result.reason = "no new move-in or move-out events"
 
     if not dry_run:
         save_state(state, state_path)
     return result
+
+
+def _process_pending_asks(
+    *,
+    state: Dict[str, Any],
+    result: RunResult,
+    inventory: Sequence[LockMatch],
+    ready: bool,
+    now: datetime,
+    dry_run: bool,
+    poster: Callable[[str], Any],
+    fetch_discord: Optional[Callable[[], List[Dict[str, Any]]]],
+    rotate_lock: Callable[[LockMatch, str], bool],
+    write_fields: Callable[[str, Dict[str, Any]], bool],
+    new_code_fn: Callable[[], str],
+    messages: Sequence[Dict[str, Any]],
+    notify_one: Optional[Callable[[str, str], int]],
+) -> None:
+    pending = [row for row in (state.get("pending_ang_asks") or []) if isinstance(row, dict)]
+    if not pending:
+        return
+    token = (os.getenv("DISCORD_BOT_TOKEN") or "").strip()
+    rows = fetch_discord() if fetch_discord is not None else None
+    if rows is None and token and not dry_run:
+        try:
+            rows = fetch_channel_messages(automations_channel_id(), token)
+        except requests.RequestException as exc:
+            _log(f"#ai-automations fetch failed: {exc}")
+            rows = []
+    rows = rows or []
+
+    remaining: List[Dict[str, Any]] = []
+    for ask in pending:
+        if not ask.get("room_reset"):
+            if _reset_vacated_room(
+                ask,
+                inventory=inventory,
+                ready=ready,
+                now=now,
+                dry_run=dry_run,
+                poster=poster,
+                result=result,
+                rotate_lock=rotate_lock,
+                write_fields=write_fields,
+                state=state,
+            ):
+                ask["room_reset"] = True
+        decision = parse_ang_reply(rows, str(ask.get("discord_message_id") or ""))
+        if decision is None:
+            remaining.append(ask)
+            continue
+        house_slug = str(ask.get("house_slug") or "")
+        house_label = str(ask.get("house_label") or "")
+        room = str(ask.get("room") or "")
+        if decision != "yes":
+            text = discord_ang_no_text(house_label, room)
+            if not dry_run:
+                poster(text)
+            result.discord_posts.append(text)
+            result.events.append("ang_no")
+            _mark_list(state, "processed_events", str(ask.get("event_key") or ""))
+            continue
+        if not ready:
+            _need_you_once(state, now, "need_you_firebase", poster, result, dry_run=dry_run)
+            remaining.append(ask)
+            continue
+        fields: Dict[str, Any] = {}
+        door_codes: Dict[str, str] = {}
+        used_ids: set[str] = set()
+        shared_rotated = False
+        for role in ("front", "back"):
+            match = find_lock(inventory, house_slug, role)
+            if match is None or match.lock_id in used_ids:
+                continue
+            shared_code = new_code_fn()
+            if not rotate_lock(match, shared_code):
+                continue
+            used_ids.add(match.lock_id)
+            field_name = codes_field_for(house_slug, match.role, room)
+            if field_name:
+                fields[field_name] = shared_code
+            door_codes[match.role] = shared_code
+            shared_rotated = True
+        if fields:
+            _write_or_skip(write_fields, house_slug, fields, result)
+        if shared_rotated:
+            result.padsplit_notified += _blast_house_door_codes(
+                messages,
+                house_slug,
+                house_label,
+                door_codes,
+                now,
+                dry_run=dry_run,
+                notify_one=notify_one,
+                exclude_chat_ids=(str(ask.get("chat_id") or ""),),
+            )
+        text = discord_ang_yes_text(house_label, room, shared_rotated=shared_rotated)
+        if not dry_run:
+            poster(text)
+        result.discord_posts.append(text)
+        result.events.append("ang_yes")
+        _mark_list(state, "processed_events", str(ask.get("event_key") or ""))
+    state["pending_ang_asks"] = remaining
+
+
+def _reset_vacated_room(
+    event_or_ask: Any,
+    *,
+    inventory: Sequence[LockMatch],
+    ready: bool,
+    now: datetime,
+    dry_run: bool,
+    poster: Callable[[str], Any],
+    result: RunResult,
+    rotate_lock: Callable[[LockMatch, str], bool],
+    write_fields: Callable[[str, Dict[str, Any]], bool],
+    state: Dict[str, Any],
+) -> bool:
+    """Set vacated room to vacant default and update codes. Do not wait for Ang."""
+    if isinstance(event_or_ask, LockEvent):
+        house_slug = event_or_ask.house_slug
+        room = event_or_ask.room
+    else:
+        house_slug = str(event_or_ask.get("house_slug") or "")
+        room = str(event_or_ask.get("room") or "")
+    if not ready:
+        _need_you_once(state, now, "need_you_firebase", poster, result, dry_run=dry_run)
+        return False
+    match = find_lock(inventory, house_slug, "room", room)
+    if match is None or not rotate_lock(match, VACANT_ROOM_DEFAULT):
+        _need_you_once(state, now, "need_you_lock", poster, result, dry_run=dry_run)
+        return False
+    field_name = codes_field_for(house_slug, "room", room)
+    if field_name and not _write_or_skip(write_fields, house_slug, {field_name: VACANT_ROOM_DEFAULT}, result):
+        _need_you_once(state, now, "need_you_firebase", poster, result, dry_run=dry_run)
+        return False
+    return True
+
+
+def _blast_house_door_codes(
+    messages: Sequence[Dict[str, Any]],
+    house_slug: str,
+    house_label: str,
+    codes: Dict[str, str],
+    now: datetime,
+    *,
+    dry_run: bool,
+    notify_one: Optional[Callable[[str, str], int]],
+    exclude_chat_ids: Iterable[str] = (),
+) -> int:
+    """PadSplit-blast remaining housemates. Digits allowed here only. Never log."""
+    if not any(codes.values()):
+        return 0
+    body = member_shared_door_message(house_label, codes)
+    sent = 0
+    for thread in house_member_threads(messages, house_slug, now, exclude_chat_ids=exclude_chat_ids):
+        chat_id = str(thread.get("id") or "")
+        if not chat_id:
+            continue
+        if notify_one is not None:
+            sent += int(notify_one(chat_id, body))
+        elif not dry_run:
+            sent += _notify_one_member(chat_id, body)
+    return sent
+
+
+def _write_or_skip(
+    write_fields: Callable[[str, Dict[str, Any]], bool],
+    slug: str,
+    fields: Dict[str, Any],
+    result: RunResult,
+) -> bool:
+    ok = write_fields(slug, fields)
+    if ok:
+        result.digest_updated = True
+    return ok
+
+
+def _process_move_ins(
+    *,
+    messages: Sequence[Dict[str, Any]],
+    state: Dict[str, Any],
+    result: RunResult,
+    inventory: Sequence[LockMatch],
+    ready: bool,
+    now: datetime,
+    dry_run: bool,
+    poster: Callable[[str], Any],
+    fetch_phone: Optional[Callable[[Dict[str, Any]], str]],
+    rotate_lock: Callable[[LockMatch, str], bool],
+    write_fields: Callable[[str, Dict[str, Any]], bool],
+    notify_one: Optional[Callable[[str, str], int]],
+    notify_all: Optional[Callable[[str], int]],
+) -> None:
+    events = collect_move_in_events(messages, now, state.get("processed_move_ins") or [])
+    if not events:
+        return
+    if not ready:
+        _need_you_once(state, now, "need_you_firebase", poster, result, dry_run=dry_run)
+        return
+    threads_by_id = {str(thread.get("id") or ""): thread for thread in messages if isinstance(thread, dict)}
+    for event in events:
+        thread = threads_by_id.get(event.chat_id) or {}
+        phone = event.phone or occupancy_phone(thread, fetch_phone)
+        last4 = phone_last4(phone)
+        if not last4:
+            _need_you_once(state, now, "need_you_phone", poster, result, dry_run=dry_run)
+            continue
+        match = find_lock(inventory, event.house_slug, "room", event.room)
+        if match is None or not rotate_lock(match, last4):
+            _need_you_once(state, now, "need_you_lock", poster, result, dry_run=dry_run)
+            continue
+        field_name = codes_field_for(event.house_slug, "room", event.room)
+        if not _write_or_skip(write_fields, event.house_slug, {field_name: last4} if field_name else {}, result):
+            _need_you_once(state, now, "need_you_firebase", poster, result, dry_run=dry_run)
+            continue
+        body = member_move_in_message(event.house_label, event.room, last4)
+        sent = 0
+        if notify_one is not None and event.chat_id:
+            sent = int(notify_one(event.chat_id, body))
+        elif notify_all is not None:
+            sent = int(notify_all(last4))
+        elif event.chat_id and not dry_run:
+            sent = _notify_one_member(event.chat_id, body)
+        result.padsplit_notified += sent
+        text = discord_move_in_text(event.house_label, event.room, event.member)
+        if not dry_run:
+            poster(text)
+        result.discord_posts.append(text)
+        result.events.append("move_in")
+        _mark_list(state, "processed_move_ins", event.key)
+        if event.occupancy_id:
+            _mark_list(state, "seen_occupancies", event.occupancy_id)
+
+
+def _process_move_outs(
+    *,
+    messages: Sequence[Dict[str, Any]],
+    rooms: Sequence[Dict[str, Any]],
+    pending_rooms: Sequence[Dict[str, Any]],
+    state: Dict[str, Any],
+    result: RunResult,
+    inventory: Sequence[LockMatch],
+    ready: bool,
+    now: datetime,
+    dry_run: bool,
+    poster: Callable[[str], Any],
+    rotate_lock: Callable[[LockMatch, str], bool],
+    write_fields: Callable[[str, Dict[str, Any]], bool],
+) -> None:
+    asked_rooms = _handled_rooms(state)
+    events = [
+        event
+        for event in collect_move_out_events(
+            messages,
+            rooms,
+            now,
+            state.get("processed_events") or [],
+            _pending_keys(state),
+        )
+        if (event.house_slug, str(event.room)) not in asked_rooms
+    ]
+    asked_rooms.update((event.house_slug, str(event.room)) for event in events)
+    for room in pending_rooms:
+        slug = match_house_slug(str(room.get("address") or ""))
+        room_number = str(room.get("room_number") or "")
+        if not slug or (slug, room_number) in asked_rooms:
+            continue
+        key = "vacancy|" + vacancy_key(room)
+        if key in set(state.get("processed_events") or []) or key in set(_pending_keys(state)):
+            continue
+        events.append(
+            LockEvent(
+                kind="move_out",
+                key=key,
+                house_slug=slug,
+                house_label=str(HOUSE_LOCK_PROFILES[slug]["label"]),
+                room=room_number,
+                member="a member",
+            )
+        )
+        asked_rooms.add((slug, room_number))
+    for event in events:
+        room_ok = _reset_vacated_room(
+            event,
+            inventory=inventory,
+            ready=ready,
+            now=now,
+            dry_run=dry_run,
+            poster=poster,
+            result=result,
+            rotate_lock=rotate_lock,
+            write_fields=write_fields,
+            state=state,
+        )
+        if room_ok:
+            result.events.append("room_reset")
+        text = discord_ask_ang_text(event.house_label, event.room, event.member, kind=event.kind)
+        posted = None if dry_run else poster(text)
+        result.discord_posts.append(text)
+        result.events.append("ask_ang")
+        ask = {
+            "event_key": event.key,
+            "house_slug": event.house_slug,
+            "house_label": event.house_label,
+            "room": event.room,
+            "member": discord_member_label(event.member),
+            "kind": event.kind,
+            "chat_id": event.chat_id,
+            "room_reset": room_ok,
+            "discord_message_id": "",
+            "asked_at": now.astimezone(timezone.utc).isoformat(),
+        }
+        if isinstance(posted, dict) and posted.get("id"):
+            ask["discord_message_id"] = str(posted["id"])
+        pending = [row for row in (state.get("pending_ang_asks") or []) if isinstance(row, dict)]
+        pending.append(ask)
+        state["pending_ang_asks"] = pending[-100:]
 
 
 def _first_new_share(
@@ -893,6 +2097,20 @@ def _first_new_share(
     return None, None
 
 
+def _notify_one_member(chat_id: str, text: str) -> int:
+    if not chat_id:
+        return 0
+    try:
+        creds = load_credentials()
+        with create_session() as session:
+            login(session, creds["email"], creds["password"], force=False)
+            send_host_message(session, creds, chat_id, text)
+        return 1
+    except Exception as exc:
+        _log(f"PadSplit host send failed; continuing: {exc}")
+        return 0
+
+
 def _notify_current_members(
     code: str,
     messages: Sequence[Dict[str, Any]],
@@ -919,7 +2137,7 @@ def _notify_current_members(
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
-    parser = argparse.ArgumentParser(description="Spanish Moss back-door lock-code automation v1")
+    parser = argparse.ArgumentParser(description="Sifely lock-code automation (move-in last-four + Ang rotate)")
     parser.add_argument("--dry-run", action="store_true", help="Decide only; do not rotate or post")
     args = parser.parse_args(argv)
     load_environment()
