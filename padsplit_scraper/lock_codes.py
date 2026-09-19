@@ -12,11 +12,14 @@ phone, message the tenant on PadSplit (digits allowed there only), update
 Firestore ``property_codes`` for codes.html, then post a digit-free notice
 to Discord #ai-automations.
 
-Move-out / member terminated: ask Ang on #ai-automations whether to change
-front + back door keycodes and set the room lock to the vacant default.
-Wait for yes/no before rotating shared front/back. After no, skip shared
-doors; still reset the room lock to the vacant default so a departed
-tenant last-four does not remain.
+Move-out / member terminated: ALWAYS set the vacated room lock to the
+vacant default and update the codes page (do not wait for Ang on the
+room). ALWAYS ask Ang on #ai-automations whether to change front/back
+door keycodes for that house (doors only; Discord is house/room/member,
+never digits). After Ang yes: rotate front/back, update the codes page,
+and PadSplit-blast remaining tenants at that house with the new door
+codes (digits allowed on PadSplit only). After Ang no: leave front/back
+alone; the room is already the vacant default.
 
 Firebase service-account missing is fail-closed Need-you / skip.
 
@@ -425,23 +428,31 @@ def pending_auto_rotate_rooms(
 
 
 def current_member_threads(messages: Sequence[Dict[str, Any]], now: datetime) -> List[Dict[str, Any]]:
-    today = now.astimezone(CT).date()
+    """Spanish Moss current occupants. lockout/v1 tests depend on this filter."""
+    return house_member_threads(messages, "spanish_moss", now)
+
+
+def house_member_threads(
+    messages: Sequence[Dict[str, Any]],
+    slug: str,
+    now: datetime,
+    *,
+    exclude_chat_ids: Iterable[str] = (),
+) -> List[Dict[str, Any]]:
+    """Current occupants at one house. Used for the Ang-yes PadSplit door blast."""
+    skip = {str(item) for item in exclude_chat_ids if item}
     current: List[Dict[str, Any]] = []
     for thread in messages:
-        prop = thread.get("property") if isinstance(thread.get("property"), dict) else {}
-        address = (prop.get("address") or {}) if isinstance(prop.get("address"), dict) else {}
-        street = address.get("street1") or address.get("full_street") or ""
-        if not is_spanish_moss_address(street):
+        if not isinstance(thread, dict):
             continue
-        occupancy = thread.get("occupancy") if isinstance(thread.get("occupancy"), dict) else {}
-        user = occupancy.get("user")
-        if not isinstance(user, dict) or not user:
+        if match_house_slug(_thread_street(thread)) != slug:
             continue
-        move_out = _date_only(occupancy.get("moveOutDate"))
-        if move_out is not None and move_out < today:
+        if not _current_occupant(thread, now):
             continue
-        if thread.get("id"):
-            current.append(thread)
+        chat_id = str(thread.get("id") or "")
+        if not chat_id or chat_id in skip:
+            continue
+        current.append(thread)
     return current
 
 
@@ -527,6 +538,27 @@ def member_move_in_message(house_label: str, room: str, code: str) -> str:
     )
 
 
+def member_shared_door_message(house_label: str, codes: Dict[str, str]) -> str:
+    """PadSplit housemate blast may include new door codes. Do not log this string."""
+    house = house_label or "the house"
+    front = (codes.get("front") or "").strip()
+    back = (codes.get("back") or "").strip()
+    shared = (codes.get("shared") or "").strip()
+    if shared and not front and not back:
+        return (
+            f"Hi, the {house} front and back door code was rotated. "
+            f"The new door code is {shared}."
+        )
+    lines = [f"Hi, the {house} front and back door codes were rotated."]
+    if front:
+        lines.append(f"Front door: {front}")
+    if back:
+        lines.append(f"Back door: {back}")
+    if shared and shared not in {front, back}:
+        lines.append(f"Door code: {shared}")
+    return "\n".join(lines)
+
+
 def discord_move_in_text(house_label: str, room: Any, member: str) -> str:
     text = (
         f"PadSplit Ops: room code set for new move-in at {house_label or 'a house'}, "
@@ -541,21 +573,22 @@ def discord_ask_ang_text(house_label: str, room: Any, member: str, *, kind: str 
     text = (
         f"PadSplit Ops asking Ang: {discord_member_label(member)} {why} at "
         f"{house_label or 'a house'}, {discord_room_word(room)}. "
-        "Change front and back door keycodes for that house, and set the "
-        "room lock to the vacant default? Reply yes or no in this channel."
+        "Change front and back door keycodes for that house? "
+        "Reply yes or no in this channel."
     )
     return assert_discord_outbound_safe(text)
 
 
 def discord_ang_yes_text(house_label: str, room: Any, *, shared_rotated: bool) -> str:
     shared = (
-        "Shared front and back keycodes were rotated."
+        "Shared front and back keycodes were rotated. "
+        "Remaining members were messaged on PadSplit."
         if shared_rotated
         else "Shared front and back keycodes were not matched, so they were left unchanged."
     )
     text = (
-        f"PadSplit Ops: {house_label or 'a house'} {discord_room_word(room)} "
-        f"room lock reset to vacant default. {shared} "
+        f"PadSplit Ops: {house_label or 'a house'} {discord_room_word(room)}. "
+        f"{shared} Room lock was already reset to the vacant default. "
         "Codes page updated. No digits posted."
     )
     return assert_discord_outbound_safe(text)
@@ -563,10 +596,9 @@ def discord_ang_yes_text(house_label: str, room: Any, *, shared_rotated: bool) -
 
 def discord_ang_no_text(house_label: str, room: Any) -> str:
     text = (
-        f"PadSplit Ops: {house_label or 'a house'} {discord_room_word(room)} "
-        "room lock reset to vacant default. Shared front and back keycodes "
-        "were left unchanged after Ang said no. Codes page updated for the "
-        "room only. No digits posted."
+        f"PadSplit Ops: {house_label or 'a house'} {discord_room_word(room)}. "
+        "Shared front and back keycodes were left unchanged after Ang said no. "
+        "Room lock was already reset to the vacant default. No digits posted."
     )
     return assert_discord_outbound_safe(text)
 
@@ -622,7 +654,7 @@ def decide(
     if pending_vacancy and api_available:
         return Plan(
             action="ask_ang",
-            reason="move-out needs Ang yes or no before shared-door rotate",
+            reason="move-out asks Ang about shared doors only; room already vacant-default",
             discord_kind="ask_ang",
             update_digest=False,
             notify_padsplit=False,
@@ -1499,6 +1531,25 @@ def _pending_keys(state: Dict[str, Any]) -> List[str]:
     return keys
 
 
+def _handled_rooms(state: Dict[str, Any]) -> set[tuple[str, str]]:
+    rooms: set[tuple[str, str]] = set()
+    for row in state.get("pending_ang_asks") or []:
+        if not isinstance(row, dict):
+            continue
+        slug = str(row.get("house_slug") or "")
+        room = str(row.get("room") or "")
+        if slug and room:
+            rooms.add((slug, room))
+    for raw in state.get("processed_events") or []:
+        parts = str(raw).split("|")
+        if len(parts) >= 4 and parts[0] in {"move_out", "terminated", "vacancy"}:
+            slug = parts[2]
+            room = parts[3]
+            if slug and room:
+                rooms.add((slug, room))
+    return rooms
+
+
 def _need_you_once(
     state: Dict[str, Any],
     now: datetime,
@@ -1656,6 +1707,8 @@ def run(
         rotate_lock=_rotate_lock,
         write_fields=_write_fields,
         new_code_fn=new_code_fn,
+        messages=messages,
+        notify_one=member_one,
     )
 
     if api_key and api_available:
@@ -1680,9 +1733,13 @@ def run(
             pending_rooms=pending_rooms,
             state=state,
             result=result,
+            inventory=inventory,
+            ready=ready,
             now=current,
             dry_run=dry_run,
             poster=poster,
+            rotate_lock=_rotate_lock,
+            write_fields=_write_fields,
         )
 
     if result.events:
@@ -1709,6 +1766,8 @@ def _process_pending_asks(
     rotate_lock: Callable[[LockMatch, str], bool],
     write_fields: Callable[[str, Dict[str, Any]], bool],
     new_code_fn: Callable[[], str],
+    messages: Sequence[Dict[str, Any]],
+    notify_one: Optional[Callable[[str, str], int]],
 ) -> None:
     pending = [row for row in (state.get("pending_ang_asks") or []) if isinstance(row, dict)]
     if not pending:
@@ -1725,52 +1784,137 @@ def _process_pending_asks(
 
     remaining: List[Dict[str, Any]] = []
     for ask in pending:
+        if not ask.get("room_reset"):
+            if _reset_vacated_room(
+                ask,
+                inventory=inventory,
+                ready=ready,
+                now=now,
+                dry_run=dry_run,
+                poster=poster,
+                result=result,
+                rotate_lock=rotate_lock,
+                write_fields=write_fields,
+                state=state,
+            ):
+                ask["room_reset"] = True
         decision = parse_ang_reply(rows, str(ask.get("discord_message_id") or ""))
         if decision is None:
-            remaining.append(ask)
-            continue
-        if not ready:
-            _need_you_once(state, now, "need_you_firebase", poster, result, dry_run=dry_run)
             remaining.append(ask)
             continue
         house_slug = str(ask.get("house_slug") or "")
         house_label = str(ask.get("house_label") or "")
         room = str(ask.get("room") or "")
-        fields: Dict[str, Any] = {}
-        room_match = find_lock(inventory, house_slug, "room", room)
-        if room_match is None or not rotate_lock(room_match, VACANT_ROOM_DEFAULT):
-            _need_you_once(state, now, "need_you_lock", poster, result, dry_run=dry_run)
+        if decision != "yes":
+            text = discord_ang_no_text(house_label, room)
+            if not dry_run:
+                poster(text)
+            result.discord_posts.append(text)
+            result.events.append("ang_no")
+            _mark_list(state, "processed_events", str(ask.get("event_key") or ""))
+            continue
+        if not ready:
+            _need_you_once(state, now, "need_you_firebase", poster, result, dry_run=dry_run)
             remaining.append(ask)
             continue
-        room_field = codes_field_for(house_slug, "room", room)
-        if room_field:
-            fields[room_field] = VACANT_ROOM_DEFAULT
+        fields: Dict[str, Any] = {}
+        door_codes: Dict[str, str] = {}
+        used_ids: set[str] = set()
         shared_rotated = False
-        if decision == "yes":
-            used_ids = {room_match.lock_id}
-            for role in ("front", "back"):
-                match = find_lock(inventory, house_slug, role)
-                if match is None or match.lock_id in used_ids:
-                    continue
-                shared_code = new_code_fn()
-                if not rotate_lock(match, shared_code):
-                    continue
-                used_ids.add(match.lock_id)
-                field_name = codes_field_for(house_slug, match.role, room)
-                if field_name:
-                    fields[field_name] = shared_code
-                shared_rotated = True
-            text = discord_ang_yes_text(house_label, room, shared_rotated=shared_rotated)
-        else:
-            text = discord_ang_no_text(house_label, room)
-        if _write_or_skip(write_fields, house_slug, fields, result):
-            result.digest_updated = True
+        for role in ("front", "back"):
+            match = find_lock(inventory, house_slug, role)
+            if match is None or match.lock_id in used_ids:
+                continue
+            shared_code = new_code_fn()
+            if not rotate_lock(match, shared_code):
+                continue
+            used_ids.add(match.lock_id)
+            field_name = codes_field_for(house_slug, match.role, room)
+            if field_name:
+                fields[field_name] = shared_code
+            door_codes[match.role] = shared_code
+            shared_rotated = True
+        if fields:
+            _write_or_skip(write_fields, house_slug, fields, result)
+        if shared_rotated:
+            result.padsplit_notified += _blast_house_door_codes(
+                messages,
+                house_slug,
+                house_label,
+                door_codes,
+                now,
+                dry_run=dry_run,
+                notify_one=notify_one,
+                exclude_chat_ids=(str(ask.get("chat_id") or ""),),
+            )
+        text = discord_ang_yes_text(house_label, room, shared_rotated=shared_rotated)
         if not dry_run:
             poster(text)
         result.discord_posts.append(text)
-        result.events.append("ang_yes" if decision == "yes" else "ang_no")
+        result.events.append("ang_yes")
         _mark_list(state, "processed_events", str(ask.get("event_key") or ""))
     state["pending_ang_asks"] = remaining
+
+
+def _reset_vacated_room(
+    event_or_ask: Any,
+    *,
+    inventory: Sequence[LockMatch],
+    ready: bool,
+    now: datetime,
+    dry_run: bool,
+    poster: Callable[[str], Any],
+    result: RunResult,
+    rotate_lock: Callable[[LockMatch, str], bool],
+    write_fields: Callable[[str, Dict[str, Any]], bool],
+    state: Dict[str, Any],
+) -> bool:
+    """Set vacated room to vacant default and update codes. Do not wait for Ang."""
+    if isinstance(event_or_ask, LockEvent):
+        house_slug = event_or_ask.house_slug
+        room = event_or_ask.room
+    else:
+        house_slug = str(event_or_ask.get("house_slug") or "")
+        room = str(event_or_ask.get("room") or "")
+    if not ready:
+        _need_you_once(state, now, "need_you_firebase", poster, result, dry_run=dry_run)
+        return False
+    match = find_lock(inventory, house_slug, "room", room)
+    if match is None or not rotate_lock(match, VACANT_ROOM_DEFAULT):
+        _need_you_once(state, now, "need_you_lock", poster, result, dry_run=dry_run)
+        return False
+    field_name = codes_field_for(house_slug, "room", room)
+    if field_name and not _write_or_skip(write_fields, house_slug, {field_name: VACANT_ROOM_DEFAULT}, result):
+        _need_you_once(state, now, "need_you_firebase", poster, result, dry_run=dry_run)
+        return False
+    return True
+
+
+def _blast_house_door_codes(
+    messages: Sequence[Dict[str, Any]],
+    house_slug: str,
+    house_label: str,
+    codes: Dict[str, str],
+    now: datetime,
+    *,
+    dry_run: bool,
+    notify_one: Optional[Callable[[str, str], int]],
+    exclude_chat_ids: Iterable[str] = (),
+) -> int:
+    """PadSplit-blast remaining housemates. Digits allowed here only. Never log."""
+    if not any(codes.values()):
+        return 0
+    body = member_shared_door_message(house_label, codes)
+    sent = 0
+    for thread in house_member_threads(messages, house_slug, now, exclude_chat_ids=exclude_chat_ids):
+        chat_id = str(thread.get("id") or "")
+        if not chat_id:
+            continue
+        if notify_one is not None:
+            sent += int(notify_one(chat_id, body))
+        elif not dry_run:
+            sent += _notify_one_member(chat_id, body)
+    return sent
 
 
 def _write_or_skip(
@@ -1849,15 +1993,15 @@ def _process_move_outs(
     pending_rooms: Sequence[Dict[str, Any]],
     state: Dict[str, Any],
     result: RunResult,
+    inventory: Sequence[LockMatch],
+    ready: bool,
     now: datetime,
     dry_run: bool,
     poster: Callable[[str], Any],
+    rotate_lock: Callable[[LockMatch, str], bool],
+    write_fields: Callable[[str, Dict[str, Any]], bool],
 ) -> None:
-    asked_rooms = {
-        (str(row.get("house_slug") or ""), str(row.get("room") or ""))
-        for row in (state.get("pending_ang_asks") or [])
-        if isinstance(row, dict)
-    }
+    asked_rooms = _handled_rooms(state)
     events = [
         event
         for event in collect_move_out_events(
@@ -1890,6 +2034,20 @@ def _process_move_outs(
         )
         asked_rooms.add((slug, room_number))
     for event in events:
+        room_ok = _reset_vacated_room(
+            event,
+            inventory=inventory,
+            ready=ready,
+            now=now,
+            dry_run=dry_run,
+            poster=poster,
+            result=result,
+            rotate_lock=rotate_lock,
+            write_fields=write_fields,
+            state=state,
+        )
+        if room_ok:
+            result.events.append("room_reset")
         text = discord_ask_ang_text(event.house_label, event.room, event.member, kind=event.kind)
         posted = None if dry_run else poster(text)
         result.discord_posts.append(text)
@@ -1901,6 +2059,8 @@ def _process_move_outs(
             "room": event.room,
             "member": discord_member_label(event.member),
             "kind": event.kind,
+            "chat_id": event.chat_id,
+            "room_reset": room_ok,
             "discord_message_id": "",
             "asked_at": now.astimezone(timezone.utc).isoformat(),
         }
