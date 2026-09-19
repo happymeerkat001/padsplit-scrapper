@@ -142,6 +142,16 @@ assert.equal(inputs.filter((el) => el.dataset.field === "lockbox_1").length, 1);
 const lockbox1 = inputs.find((el) => el.dataset.field === "lockbox_1");
 assert.equal(lockbox1.value, "MAPPED", "legacy lockbox_N still maps to the code column");
 
+const liveTree = api.renderProperty(dummy, { front_door: "X" }, true);
+const liveInputs = [];
+walk(liveTree, (el) => {
+  if (el.tagName === "INPUT" || el.tagName === "TEXTAREA") liveInputs.push(el);
+});
+const liveLockbox = liveInputs.find((el) => el.dataset.field === "lockbox_1");
+assert.equal(liveLockbox.value, "", "live doc missing key is empty, not DEFAULTS");
+const liveFront = liveInputs.find((el) => el.dataset.field === "front_door");
+assert.equal(liveFront.value, "X");
+
 const room1 = inputs.find((el) => el.dataset.field === "r1");
 assert.notEqual(room1, lockbox1);
 

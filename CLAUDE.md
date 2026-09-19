@@ -47,6 +47,8 @@ python3 test_stats_gate.py
 python3 test_stats_firestore.py
 python3 test_seo_monthly.py
 python3 test_lock_codes.py
+python3 test_codes_history.py
+python3 test_codes_dashboard.py
 python3 test_lockout_reply.py
 python3 test_leak_reply.py
 ```

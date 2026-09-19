@@ -249,6 +249,23 @@ class CodesDashboardStructureTests(unittest.TestCase):
         self.assertIn("doc(db, 'notes', 'codes')", self.html)
         self.assertIn('id="gate-wrap"', self.html)
 
+    def test_history_control_and_restore_overwrite(self):
+        self.assertIn("code_versions", self.html)
+        self.assertIn("history-btn", self.html)
+        self.assertIn("async function restoreLiveCodes", self.html)
+        self.assertIn("8jOJNgLoxpfyseZ0RY1PDZ1DXbi2", self.html)
+        self.assertIn("hashCodeFields", self.html)
+        self.assertIn("SHA-256", self.html)
+        self.assertIn("deletes live keys", self.html)
+        self.assertIn("Unsaved edits for this house are lost", self.html)
+        self.assertIn("window.confirm", self.html)
+        self.assertIn("slug === 'spanish_moss'", self.html)
+        restore_fn = self.html.split("async function restoreLiveCodes", 1)[1].split("function bindHouse", 1)[0]
+        self.assertIn("setDoc(liveRef(slug)", restore_fn)
+        self.assertNotIn("{ merge: true }", restore_fn)
+        save_fn = self.html.split("btn.addEventListener('click', async (e) => {", 1)[1]
+        self.assertIn("{ merge: true }", save_fn)
+
     def test_occupancy_json_has_no_codes_or_filter_sizes(self):
         occupancy = OCCUPANCY_PATH.read_text(encoding="utf-8")
         for forbidden in (
@@ -257,6 +274,7 @@ class CodesDashboardStructureTests(unittest.TestCase):
             "lockbox_",
             "room_code",
             "wifi_",
+            "code_versions",
         ):
             self.assertNotIn(forbidden, occupancy)
 
