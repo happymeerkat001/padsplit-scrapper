@@ -384,10 +384,13 @@ class CodesDashboardStructureTests(unittest.TestCase):
 
     def test_codes_page_has_no_client_value_fallback(self):
         self.assertIn("if (!currentHasLiveDoc) return '';", self.html)
+        self.assertIn("function angCodesUid()", self.html)
         self.assertIn("function approvedCodesUid()", self.html)
         self.assertIn("return '';", self.html)
         self.assertIn("function isApprovedCodesUser(user)", self.html)
-        self.assertIn("return !!(user && uid && user.uid === uid);", self.html)
+        self.assertIn("user.uid === angCodesUid()", self.html)
+        self.assertIn("const joe = approvedCodesUid();", self.html)
+        self.assertIn("return !!(joe && user.uid === joe);", self.html)
         self.assertIn("if (!isApprovedCodesUser(user))", self.html)
         self.assertNotIn("CODES_UID", self.html)
         resolver = self.html.split("function resolveSavedOrDefault", 1)[1].split("function ", 1)[0]
@@ -420,11 +423,14 @@ class CodesDashboardStructureTests(unittest.TestCase):
         self.assertIn("clear ${key}", self.html)
         self.assertIn("save ${count} ${noun} to ${houseName}? ${labels.join(', ')}", self.html)
         self.assertIn("function nextEditingSlug", self.html)
-        self.assertIn("discard unsaved changes to ${currentName}?", self.html)
-        edit = self.html.split("function openHouseEdit", 1)[1].split("function showSaveConfirm", 1)[0]
-        self.assertIn("nextEditingSlug", edit)
+        self.assertIn("has unsaved changes. discard them?", self.html)
+        self.assertIn("keep editing", self.html)
+        self.assertIn("keep.focus()", self.html)
+        edit = self.html.split("async function openHouseEdit", 1)[1].split("function showSaveConfirm", 1)[0]
+        self.assertIn("askDiscard", edit)
         self.assertIn("restoreHouseFields", edit)
         self.assertIn("setHouseEditing(editingSlug, false)", edit)
+        self.assertNotIn("window.confirm", edit)
         commit = self.html.split("async function commitHouseSave", 1)[1].split("function bindHouse", 1)[0]
         self.assertLess(commit.index("codes-conflict"), commit.index("transaction.set"))
         self.assertIn("updatedAt: serverTimestamp()", commit)

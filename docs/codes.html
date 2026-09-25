@@ -127,6 +127,32 @@
       gap: 0.35rem;
     }
     .save-confirm.hidden { display: none; }
+    .discard-prompt {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(15, 23, 42, 0.72);
+      padding: 1rem;
+    }
+    .discard-prompt p {
+      margin: 0 0 0.75rem;
+      max-width: 22rem;
+      text-align: center;
+    }
+    .discard-prompt-actions {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    .discard-prompt-card {
+      background: var(--card);
+      border: 1px solid rgba(148,163,184,0.25);
+      border-radius: 10px;
+      padding: 1rem;
+    }
     .lock-note, .save-status, .save-confirm-line {
       margin: 0;
       max-width: 18rem;
@@ -675,13 +701,18 @@
     const gateError = document.getElementById('gate-error');
     const list = document.getElementById('codes-list');
     const codesStatus = document.getElementById('codes-status');
+    function angCodesUid() {
+      return '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2';
+    }
     function approvedCodesUid() {
-      // Same empty slot as firestore.rules approvedCodesUid(). Ang fills Joe's uid in both.
+      // Joe's slot. Same empty return as firestore.rules approvedCodesUid(). Ang keeps angCodesUid().
       return '';
     }
     function isApprovedCodesUser(user) {
-      const uid = approvedCodesUid();
-      return !!(user && uid && user.uid === uid);
+      if (!user || !user.uid) return false;
+      if (user.uid === angCodesUid()) return true;
+      const joe = approvedCodesUid();
+      return !!(joe && user.uid === joe);
     }
     let loadGeneration = 0;
 
@@ -1205,6 +1236,45 @@
       return nextSlug;
     }
 
+    function discardPromptCopy(houseName) {
+      return `${houseName} has unsaved changes. discard them?`;
+    }
+
+    function buildDiscardPrompt(doc, houseName) {
+      const wrap = doc.createElement('div');
+      wrap.className = 'discard-prompt';
+      wrap.setAttribute('role', 'dialog');
+      wrap.setAttribute('aria-modal', 'true');
+      const card = doc.createElement('div');
+      card.className = 'discard-prompt-card';
+      const line = doc.createElement('p');
+      line.className = 'discard-prompt-line';
+      line.textContent = discardPromptCopy(houseName);
+      const actions = doc.createElement('div');
+      actions.className = 'discard-prompt-actions';
+      const keep = doc.createElement('button');
+      keep.type = 'button';
+      keep.className = 'discard-keep';
+      keep.textContent = 'keep editing';
+      const discardBtn = doc.createElement('button');
+      discardBtn.type = 'button';
+      discardBtn.className = 'discard-go';
+      discardBtn.textContent = 'discard';
+      actions.appendChild(keep);
+      actions.appendChild(discardBtn);
+      card.appendChild(line);
+      card.appendChild(actions);
+      wrap.appendChild(card);
+      (doc.body || doc).appendChild(wrap);
+      keep.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter') return;
+        event.preventDefault();
+        keep.click();
+      });
+      keep.focus();
+      return { wrap, keep, discard: discardBtn, line };
+    }
+
     function rememberHouseLoad(slug, data) {
       const saved = data && typeof data === 'object' ? data : {};
       baselineBySlug.set(slug, canonicalizeCodeFields(saved));
@@ -1458,15 +1528,45 @@
         });
       }
 
-      function openHouseEdit(slug) {
+      let discardPromptOpen = false;
+
+      function askDiscard(houseName) {
+        if (discardPromptOpen) return Promise.resolve(false);
+        discardPromptOpen = true;
+        return new Promise((resolve) => {
+          const prompt = buildDiscardPrompt(document, houseName);
+          const finish = (discarded) => {
+            discardPromptOpen = false;
+            if (prompt.wrap.remove) prompt.wrap.remove();
+            resolve(discarded);
+          };
+          prompt.keep.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            finish(false);
+          });
+          prompt.discard.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            finish(true);
+          });
+        });
+      }
+
+      async function openHouseEdit(slug) {
         if (!isCodesUser()) return;
-        const dirty = Boolean(editingSlug && editingSlug !== slug && changeLabels(baselineBySlug.get(editingSlug) || {}, collectForm(editingSlug)).length);
-        const currentName = houseDisplayName((DEFAULTS.find((item) => item.slug === editingSlug) || {}).address);
-        const next = nextEditingSlug(editingSlug, slug, dirty, () => window.confirm(`discard unsaved changes to ${currentName}?`));
-        if (next !== slug) return;
-        if (editingSlug && editingSlug !== slug) {
-          if (dirty) restoreHouseFields(editingSlug);
+        const leaving = Boolean(editingSlug && editingSlug !== slug);
+        const dirty = Boolean(leaving && changeLabels(baselineBySlug.get(editingSlug) || {}, collectForm(editingSlug)).length);
+        if (leaving && dirty) {
+          const currentName = houseDisplayName((DEFAULTS.find((item) => item.slug === editingSlug) || {}).address);
+          const discarded = await askDiscard(currentName);
+          if (!discarded) return;
+          restoreHouseFields(editingSlug);
           setHouseEditing(editingSlug, false);
+        } else if (leaving) {
+          setHouseEditing(editingSlug, false);
+        } else if (editingSlug === slug) {
+          return;
         }
         editingSlug = slug;
         setHouseEditing(slug, true);

@@ -2,10 +2,9 @@
 /**
  * Firestore security-rules tests. Never prints document data or allowlist ids.
  *
- * The committed rules leave approvedCodesUid() empty, so every codes read
- * and write fails closed. A second emulator project loads a copy of those
- * rules with the slot set to a test uid and checks that only that uid is
- * allowed.
+ * Committed rules keep Ang's uid and leave approvedCodesUid() empty, so the
+ * Joe slot matches nobody. A second emulator project loads a copy with that
+ * slot set to a test uid.
  *
  * Requires Java and the Firestore emulator:
  *   npm install
@@ -17,21 +16,28 @@
 import { readFileSync } from "node:fs";
 import { after, before, test } from "node:test";
 import { assertFails, assertSucceeds, initializeTestEnvironment } from "@firebase/rules-unit-testing";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, limit, query, setDoc } from "firebase/firestore";
 
 const RULES_PATH = new URL("./firestore.rules", import.meta.url);
 const rules = readFileSync(RULES_PATH, "utf8");
 const TEST_UID = "test-codes-uid";
 const OTHER_UID = "other-uid";
-const SLOT = /function approvedCodesUid\(\) \{\n      return '';\n    \}/;
+const JOE_SLOT = /function approvedCodesUid\(\) \{\n      return '';\n    \}/;
+const ANG_SLOT = /function angCodesUid\(\) \{\n      return '([^']+)';\n    \}/;
 
-if (!SLOT.test(rules)) {
+const angMatch = rules.match(ANG_SLOT);
+if (!angMatch) throw new Error("angCodesUid() missing from rules");
+const ANG_UID = angMatch[1];
+if (!JOE_SLOT.test(rules)) {
   throw new Error("committed rules must leave approvedCodesUid() empty");
 }
 
-const filledRules = rules.replace(SLOT, `function approvedCodesUid() {\n      return '${TEST_UID}';\n    }`);
+const filledRules = rules.replace(JOE_SLOT, `function approvedCodesUid() {\n      return '${TEST_UID}';\n    }`);
 if (filledRules === rules || !filledRules.includes(`return '${TEST_UID}'`)) {
   throw new Error("could not inject the test uid into a rules copy");
+}
+if (!filledRules.includes(ANG_UID)) {
+  throw new Error("filled rules copy dropped the existing codes uid");
 }
 
 let emptyEnv;
@@ -57,27 +63,48 @@ function readDoc(context, path) {
   return getDoc(doc(context.firestore(), path));
 }
 
-test("empty slot denies signed-out reads of notes/codes and property_codes", async () => {
+function listVersions(context) {
+  const versions = collection(context.firestore(), "property_codes/example_house/code_versions");
+  return getDocs(query(versions, limit(1)));
+}
+
+const VERSION_PATH = "property_codes/example_house/code_versions/v1";
+
+async function assertCodesDenied(context) {
+  await assertFails(readDoc(context, "notes/codes"));
+  await assertFails(readDoc(context, "property_codes/example_house"));
+  await assertFails(readDoc(context, VERSION_PATH));
+  await assertFails(listVersions(context));
+}
+
+async function assertCodesAllowed(context) {
+  await assertSucceeds(readDoc(context, "notes/codes"));
+  await assertSucceeds(readDoc(context, "property_codes/example_house"));
+  await assertSucceeds(readDoc(context, VERSION_PATH));
+  await assertSucceeds(listVersions(context));
+}
+
+test("signed-out reads of codes and code_versions are denied", async () => {
   const db = emptyEnv.unauthenticatedContext();
-  await assertFails(readDoc(db, "notes/codes"));
-  await assertFails(readDoc(db, "property_codes/example_house"));
+  await assertCodesDenied(db);
 });
 
-test("empty slot denies every signed-in uid", async () => {
-  for (const uid of [TEST_UID, OTHER_UID]) {
-    const db = emptyEnv.authenticatedContext(uid);
-    await assertFails(readDoc(db, "notes/codes"));
-    await assertFails(readDoc(db, "property_codes/example_house"));
-    await assertFails(setDoc(doc(db.firestore(), "property_codes/example_house"), { front_door: "x" }));
-    await assertFails(setDoc(doc(db.firestore(), "notes/codes"), { text: "n" }));
-    await assertFails(setDoc(doc(db.firestore(), "property_codes/example_house/code_versions/v1"), {
-      fields: { front_door: "x" },
-      contentHash: "abc",
-      createdAt: "t",
-      expireAt: "e",
-      source: "page",
-    }));
-  }
+test("empty Joe slot matches nobody", async () => {
+  const db = emptyEnv.authenticatedContext(TEST_UID);
+  await assertCodesDenied(db);
+  await assertFails(setDoc(doc(db.firestore(), "property_codes/example_house"), { front_door: "x" }));
+  await assertFails(setDoc(doc(db.firestore(), "notes/codes"), { text: "n" }));
+});
+
+test("other uid cannot read codes or code_versions", async () => {
+  const db = emptyEnv.authenticatedContext(OTHER_UID);
+  await assertCodesDenied(db);
+});
+
+test("existing codes uid can read codes and code_versions while Joe's slot is empty", async () => {
+  const db = emptyEnv.authenticatedContext(ANG_UID);
+  await assertCodesAllowed(db);
+  await assertSucceeds(setDoc(doc(db.firestore(), "property_codes/example_house"), { front_door: "x" }));
 });
 
 test("signed-out read of other notes documents stays allowed", async () => {
@@ -85,13 +112,12 @@ test("signed-out read of other notes documents stays allowed", async () => {
   await assertSucceeds(readDoc(db, "notes/dashboard"));
 });
 
-test("configured test uid can read and write codes; any other uid cannot", async () => {
-  const ok = filledEnv.authenticatedContext(TEST_UID);
-  await assertSucceeds(readDoc(ok, "notes/codes"));
-  await assertSucceeds(readDoc(ok, "property_codes/example_house"));
-  await assertSucceeds(setDoc(doc(ok.firestore(), "property_codes/example_house"), { front_door: "x" }));
-  await assertSucceeds(setDoc(doc(ok.firestore(), "notes/codes"), { text: "n" }));
-  await assertSucceeds(setDoc(doc(ok.firestore(), "property_codes/example_house/code_versions/v1"), {
+test("filled Joe slot is allowed and any other uid stays denied", async () => {
+  const joe = filledEnv.authenticatedContext(TEST_UID);
+  await assertCodesAllowed(joe);
+  await assertSucceeds(setDoc(doc(joe.firestore(), "property_codes/example_house"), { front_door: "x" }));
+  await assertSucceeds(setDoc(doc(joe.firestore(), "notes/codes"), { text: "n" }));
+  await assertSucceeds(setDoc(doc(joe.firestore(), VERSION_PATH), {
     fields: { front_door: "x" },
     contentHash: "abc",
     createdAt: "t",
@@ -99,13 +125,14 @@ test("configured test uid can read and write codes; any other uid cannot", async
     source: "page",
   }));
 
+  const ang = filledEnv.authenticatedContext(ANG_UID);
+  await assertCodesAllowed(ang);
+
   const signedOut = filledEnv.unauthenticatedContext();
-  await assertFails(readDoc(signedOut, "notes/codes"));
-  await assertFails(readDoc(signedOut, "property_codes/example_house"));
+  await assertCodesDenied(signedOut);
 
   const other = filledEnv.authenticatedContext(OTHER_UID);
-  await assertFails(readDoc(other, "notes/codes"));
-  await assertFails(readDoc(other, "property_codes/example_house"));
+  await assertCodesDenied(other);
   await assertFails(setDoc(doc(other.firestore(), "property_codes/example_house"), { front_door: "y" }));
   await assertFails(setDoc(doc(other.firestore(), "notes/codes"), { text: "m" }));
 });

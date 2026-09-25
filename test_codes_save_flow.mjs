@@ -15,7 +15,7 @@ if (start < 0 || end < 0 || end <= start) {
   throw new Error("Could not extract save-flow helpers");
 }
 const api = new Function(
-  `${html.slice(start, end)}\nreturn { LOCK_NOTE, SAVE_FAILURE, houseDisplayName, changeLabels, saveConfirmLine, formatSavedTime, sameUpdatedAt, conflictMessage, nextEditingSlug };`
+  `${html.slice(start, end)}\nreturn { LOCK_NOTE, SAVE_FAILURE, houseDisplayName, changeLabels, saveConfirmLine, formatSavedTime, sameUpdatedAt, conflictMessage, nextEditingSlug, discardPromptCopy, buildDiscardPrompt };`
 )();
 
 assert.equal(api.LOCK_NOTE, "this updates the record only. it doesn't change the lock.");
@@ -62,6 +62,72 @@ assert.equal(api.nextEditingSlug("ridge_oak_10235", "pioneer_1404", true, () => 
 assert.equal(api.nextEditingSlug("ridge_oak_10235", "pioneer_1404", true, () => true), "pioneer_1404");
 assert.equal(api.nextEditingSlug("ridge_oak_10235", "ridge_oak_10235", true, () => true), "ridge_oak_10235");
 
+assert.equal(api.discardPromptCopy("ridge oak"), "ridge oak has unsaved changes. discard them?");
+
+class PromptNode {
+  constructor(tag, owner) {
+    this.tagName = String(tag).toUpperCase();
+    this.owner = owner;
+    this.children = [];
+    this.textContent = "";
+    this.className = "";
+    this.type = "";
+    this.listeners = {};
+    this.attrs = {};
+    this.parentNode = null;
+  }
+  setAttribute(name, value) {
+    this.attrs[name] = value;
+  }
+  appendChild(child) {
+    this.children.push(child);
+    child.parentNode = this;
+    return child;
+  }
+  addEventListener(type, fn) {
+    if (!this.listeners[type]) this.listeners[type] = [];
+    this.listeners[type].push(fn);
+  }
+  focus() {
+    this.owner.activeElement = this;
+  }
+  click() {
+    for (const fn of this.listeners.click || []) {
+      fn({ preventDefault() {}, stopPropagation() {} });
+    }
+  }
+  dispatchKey(key) {
+    const event = { key, defaultPrevented: false, preventDefault() { this.defaultPrevented = true; } };
+    for (const fn of this.listeners.keydown || []) fn(event);
+    return event;
+  }
+  remove() {
+    if (!this.parentNode) return;
+    this.parentNode.children = this.parentNode.children.filter((child) => child !== this);
+  }
+}
+
+const promptDoc = {
+  activeElement: null,
+  body: null,
+  createElement(tag) {
+    return new PromptNode(tag, this);
+  }
+};
+promptDoc.body = new PromptNode("body", promptDoc);
+const prompt = api.buildDiscardPrompt(promptDoc, "ridge oak");
+assert.equal(prompt.line.textContent, "ridge oak has unsaved changes. discard them?");
+assert.equal(prompt.keep.textContent, "keep editing");
+assert.equal(prompt.discard.textContent, "discard");
+assert.equal(promptDoc.activeElement, prompt.keep, "keep editing is focused");
+assert.notEqual(promptDoc.activeElement, prompt.discard);
+let entered = "";
+prompt.keep.addEventListener("click", () => { entered = "keep editing"; });
+prompt.discard.addEventListener("click", () => { entered = "discard"; });
+const enterEvent = prompt.keep.dispatchKey("Enter");
+assert.equal(enterEvent.defaultPrevented, true);
+assert.equal(entered, "keep editing");
+
 function sliceBetween(source, startMark, endMark) {
   const start = source.indexOf(startMark);
   const from = start + startMark.length;
@@ -82,9 +148,10 @@ assert.ok(failure.includes("conflictMessage("));
 assert.ok(commit.includes("source: 'page'"));
 assert.ok(commit.includes("updatedAt: serverTimestamp()"));
 
-const openEdit = sliceBetween(html, "function openHouseEdit", "function showSaveConfirm");
-assert.ok(openEdit.includes("nextEditingSlug"));
+const openEdit = sliceBetween(html, "async function openHouseEdit", "function showSaveConfirm");
+assert.ok(openEdit.includes("askDiscard"));
 assert.ok(openEdit.includes("restoreHouseFields"));
 assert.ok(openEdit.includes("setHouseEditing(editingSlug, false)"));
+assert.equal(openEdit.includes("window.confirm"), false);
 
 console.log("codes save flow ok");

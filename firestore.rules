@@ -1,15 +1,20 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // One approved Codes uid (Joe). Leave the return empty until Ang fills it.
-    // Empty matches nobody: property_codes, code_versions, and notes/codes fail closed.
+    // Ang keeps access via angCodesUid(). Joe's slot is approvedCodesUid().
+    // Leave Joe's return empty until Ang fills it. Empty matches nobody.
+    function angCodesUid() {
+      return '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2';
+    }
     function approvedCodesUid() {
       return '';
     }
     function isApprovedCodesUser() {
       return request.auth != null
-        && approvedCodesUid() != ''
-        && request.auth.uid == approvedCodesUid();
+        && (
+          request.auth.uid == angCodesUid()
+          || (approvedCodesUid() != '' && request.auth.uid == approvedCodesUid())
+        );
     }
     match /property_codes/{slug} {
       allow read, write: if isApprovedCodesUser();

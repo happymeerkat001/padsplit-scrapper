@@ -40,6 +40,9 @@ class SnapshotContractTests(unittest.TestCase):
             RULES,
             r"function approvedCodesUid\(\) \{\s*return '';\s*\}",
         )
+        self.assertIn("function angCodesUid()", RULES)
+        self.assertIn("request.auth.uid == angCodesUid()", RULES)
+        self.assertIn("approvedCodesUid() != ''", RULES)
         self.assertIn("allow get", block)
         self.assertIn("allow list", block)
         self.assertIn("allow create", block)
