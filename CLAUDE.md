@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Multi-scraper data collection system for:
 - **Padsplit** (`padsplit_scraper/`): rental property metrics (occupancy, earnings, flip rates) via GraphQL/REST APIs
 - **Thermostat** (`thermostat/`): HVAC data from mytotalconnectcomfort.com
-- Outputs versioned JSON to `padsplit_scraper/output/`, `thermostat/output/`, and `docs/data/` (`latest.json`, `stats.json`, `occupancy.json`)
+- Outputs versioned JSON to `padsplit_scraper/output/`, `thermostat/output/`, and `docs/data/` (`latest.json`, `occupancy.json`). Money/stats stay private (`output/stats.json`) and Firestore-gated on the Stats tab.
 
 ## Running Scrapers
 
@@ -43,8 +43,12 @@ python3 test_thermostat_schedule.py
 python3 test_obsidian_daily_digest.py
 python3 padsplit_scraper/test_reply_address_parser.py
 python3 test_field_mms.py
+python3 test_stats_gate.py
+python3 test_stats_firestore.py
 python3 test_seo_monthly.py
 python3 test_lock_codes.py
+python3 test_codes_history.py
+python3 test_codes_dashboard.py
 python3 test_lockout_reply.py
 python3 test_leak_reply.py
 ```
@@ -107,7 +111,7 @@ No build step or linter configuration; tests use direct Python execution.
 - `slack_task_digest.py` — scheduled DFW weather and task digest, posts to Discord
 - `padsplit_scraper/firestore_status_monitor.py` — Firestore integration
 - `obsidian_daily_digest.py` — daily note generation from scraped data
-- `docs/data/` — aggregated outputs: `latest.json`, `stats.json`, `occupancy.json`, `monthly_history.json`
+- `docs/data/` — public Pages outputs: `latest.json`, `occupancy.json`. Stats/earnings are Firestore-gated (`docs/stats.html`) and not published.
 
 **Error handling pattern**: scrapers use partial-success logic — if one property fails, continue and report via Discord rather than aborting entirely. `.env` is loaded from project root by all scripts.
 

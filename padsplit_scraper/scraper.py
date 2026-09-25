@@ -42,6 +42,7 @@ try:
         _stats_output_path,
         _write_json,
         prior_last_complete_success,
+        upload_stats_to_firestore,
     )
 except ModuleNotFoundError:  # Support the cron entry point: python3 padsplit_scraper/scraper.py
     from persist import (  # type: ignore
@@ -58,6 +59,7 @@ except ModuleNotFoundError:  # Support the cron entry point: python3 padsplit_sc
         _stats_output_path,
         _write_json,
         prior_last_complete_success,
+        upload_stats_to_firestore,
     )
 
 
@@ -1132,6 +1134,8 @@ def run(messages_only: bool = False, *, isolate_output: bool = False, policy=Non
                 preserved = dict(fallback_stats)
                 preserved["run_status"] = run_status
                 _write_json(_stats_output_path(), preserved)
+                history_payload = _load_json_if_exists(_monthly_history_path()) or {}
+                upload_stats_to_firestore(preserved, history_payload)
                 sys.stderr.write(f"# Degraded stats run; re-used prior stats from {_stats_output_path()}\n")
             else:
                 sys.stderr.write(f"# Degraded stats run; no prior stats fallback at {_stats_output_path()}\n")
@@ -1172,6 +1176,7 @@ def run(messages_only: bool = False, *, isolate_output: bool = False, policy=Non
         )
         _write_json(_stats_output_path(), stats_payload)
         _write_json(_monthly_history_path(), monthly_history_payload)
+        upload_stats_to_firestore(stats_payload, monthly_history_payload)
         sys.stderr.write(f"# Saved raw data to {out_path}\n")
         return _ok_outcome(run_status)
 

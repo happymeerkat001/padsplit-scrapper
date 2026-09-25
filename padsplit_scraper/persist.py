@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import os
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -57,8 +59,26 @@ def _timestamped_output_path(scraped_at: str) -> Path:
     return OUTPUT_DIR / f"{scraped_at.replace(':', '-')}.json"
 
 
+STATS_COLLECTION = "stats"
+STATS_LATEST_DOC = "latest"
+STATS_HISTORY_DOC = "monthly_history"
+
+
 def _monthly_history_path() -> Path:
+    return OUTPUT_DIR / "monthly_history.json"
+
+
+def _legacy_docs_monthly_history_path() -> Path:
     return DOCS_DATA_DIR / "monthly_history.json"
+
+
+def seed_private_monthly_history() -> None:
+    dest = _monthly_history_path()
+    if dest.exists():
+        return
+    legacy = _load_json_if_exists(_legacy_docs_monthly_history_path())
+    if legacy:
+        _write_json(dest, legacy)
 
 
 def _write_json(path: Path, payload: Dict[str, Any]) -> None:
@@ -208,6 +228,7 @@ def _build_monthly_history_payload(
     scraped_at: str,
 ) -> Dict[str, Any]:
     existing_months_map: Dict[str, Dict[str, Any]] = {}
+    seed_private_monthly_history()
     monthly_prev = _load_json_if_exists(_monthly_history_path()) or {}
     monthly_prev_list = monthly_prev.get("months", []) if isinstance(monthly_prev, dict) else []
     for item in monthly_prev_list:
@@ -271,3 +292,47 @@ def _build_stats_payload(
         "kpis": kpis,
         "run_status": run_status,
     }
+
+
+def _firestore_client_or_none() -> Any:
+    try:
+        import firebase_admin
+        from firebase_admin import credentials, firestore
+    except ImportError:
+        return None
+    service_account_json = os.getenv("FIREBASE_SERVICE_ACCOUNT_JSON")
+    google_credentials = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+    if not firebase_admin._apps:
+        if service_account_json:
+            firebase_admin.initialize_app(credentials.Certificate(json.loads(service_account_json)))
+        elif google_credentials:
+            firebase_admin.initialize_app(credentials.Certificate(google_credentials))
+        else:
+            return None
+    return firestore.client()
+
+
+def upload_stats_to_firestore(
+    stats_payload: Dict[str, Any],
+    monthly_history_payload: Dict[str, Any],
+    *,
+    client: Any = None,
+) -> bool:
+    """Upsert owner-only stats docs. Never raises."""
+    try:
+        db = client if client is not None else _firestore_client_or_none()
+        if db is None:
+            sys.stderr.write("# Stats Firestore upload skipped (no credentials)\n")
+            return False
+        updated_at = str(stats_payload.get("scraped_at") or monthly_history_payload.get("updated_at") or "")
+        history_updated = str(monthly_history_payload.get("updated_at") or updated_at)
+        db.collection(STATS_COLLECTION).document(STATS_LATEST_DOC).set(
+            {"json": json.dumps(stats_payload), "updated_at": updated_at}
+        )
+        db.collection(STATS_COLLECTION).document(STATS_HISTORY_DOC).set(
+            {"json": json.dumps(monthly_history_payload), "updated_at": history_updated}
+        )
+        return True
+    except Exception as exc:
+        sys.stderr.write(f"# Stats Firestore upload failed: {exc}\n")
+        return False

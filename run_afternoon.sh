@@ -36,9 +36,8 @@ commit_and_push() {
   git -C "$WORKSPACE" add \
     padsplit_scraper/output/latest.json \
     padsplit_scraper/output/stats.json \
-    docs/data/latest.json \
-    docs/data/monthly_history.json \
-    docs/data/stats.json 2>/dev/null || true
+    padsplit_scraper/output/monthly_history.json \
+    docs/data/latest.json 2>/dev/null || true
 
   if git -C "$WORKSPACE" diff --cached --quiet; then
     echo "[$(date)] Nothing to commit"
@@ -66,6 +65,7 @@ set -e
 
 run_phase "PadSplit scraper (messages only)" "$VENV" "$WORKSPACE/padsplit_scraper/scraper.py" --messages-only
 run_phase "Sifely lock codes" "$VENV" "$WORKSPACE/padsplit_scraper/lock_codes.py"
+run_phase "Codes history catch-up" "$VENV" "$WORKSPACE/padsplit_scraper/codes_history.py"
 run_phase "PadSplit lockout replies" "$VENV" "$WORKSPACE/padsplit_scraper/lockout_reply.py"
 run_phase "PadSplit leak replies" "$VENV" "$WORKSPACE/padsplit_scraper/leak_reply.py"
 

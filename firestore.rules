@@ -3,6 +3,15 @@ service cloud.firestore {
   match /databases/{database}/documents {
     match /property_codes/{slug} {
       allow read, write: if request.auth.uid == '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2';
+      match /code_versions/{id} {
+        allow get: if request.auth.uid == '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2';
+        allow list: if request.auth.uid == '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2'
+          && request.query.limit != null
+          && request.query.limit <= 50;
+        allow create: if request.auth.uid == '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2'
+          && request.resource.data.keys().hasOnly(['fields', 'contentHash', 'createdAt', 'expireAt', 'source']);
+        allow update, delete: if false;
+      }
     }
     match /notes/{document} {
       allow read: if true;
@@ -23,6 +32,9 @@ service cloud.firestore {
     match /templates/{document} {
       allow read: if true;
       allow write: if request.auth.uid == '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2';
+    }
+    match /stats/{document} {
+      allow read, write: if request.auth.uid == 'TXSU0LOpmDWNBbbv0x3uHHBnZb12';
     }
     match /{document=**} {
       allow read, write: if false;

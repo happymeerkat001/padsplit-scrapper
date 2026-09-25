@@ -95,6 +95,42 @@
       background: var(--success);
       color: #05220f;
     }
+    .history-btn {
+      border: 1px solid rgba(148,163,184,0.4);
+      border-radius: 8px;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 600;
+      padding: 0.4rem 0.75rem;
+      cursor: pointer;
+    }
+    .history-btn:hover { color: var(--accent); border-color: var(--accent); }
+    .codes-intro {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .codes-intro .muted { margin: 0; }
+    #page-history-panel { margin-top: 0.85rem; }
+    .history-older { margin-top: 0.35rem; }
+    .history-panel {
+      margin-bottom: 0.85rem;
+      padding: 0.75rem;
+      border: 1px solid rgba(148,163,184,0.2);
+      border-radius: 8px;
+    }
+    .history-row, .history-restore, .history-cancel {
+      border: none;
+      background: none;
+      color: var(--accent);
+      cursor: pointer;
+      padding: 0.25rem 0;
+      display: block;
+      text-align: left;
+    }
+    .history-preview { margin-top: 0.5rem; color: var(--muted); font-size: 0.88rem; white-space: pre-wrap; }
+    .history-actions { display: flex; gap: 0.75rem; margin-top: 0.5rem; }
     .property-body {
       padding: 0.85rem 1rem 1rem;
     }
@@ -248,7 +284,11 @@
     </header>
 
     <div class="card">
-      <div class="muted">Values in parentheses indicate known conflicting entries and can be edited.</div>
+      <div class="codes-intro">
+        <button type="button" id="page-history-btn" class="history-btn">History</button>
+        <div class="muted">Values in parentheses indicate known conflicting entries and can be edited.</div>
+      </div>
+      <div id="page-history-panel" class="history-panel hidden"></div>
       <div id="codes-list"></div>
     </div>
 
@@ -267,7 +307,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import { getFirestore, collection, getDocs, setDoc, doc, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, getDoc, setDoc, doc, serverTimestamp, onSnapshot, query, orderBy, limit, startAfter, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCSWOHI6QLqugy_Fao2p4bBehg02_fu3No",
@@ -667,10 +707,35 @@
       return fallback;
     }
 
+    let currentHasLiveDoc = false;
+
     function resolveSavedOrDefault(savedValues, key, fallback = '') {
+      if (currentHasLiveDoc) {
+        return Object.prototype.hasOwnProperty.call(savedValues, key)
+          ? savedValues[key]
+          : '';
+      }
       return Object.prototype.hasOwnProperty.call(savedValues, key)
         ? savedValues[key]
         : fallback;
+    }
+
+    const HISTORY_RESERVED = ['updatedAt', 'contentHash', 'source', 'expireAt', 'createdAt', 'fields'];
+
+    function canonicalizeCodeFields(data) {
+      const out = {};
+      Object.keys(data || {}).sort().forEach((key) => {
+        if (HISTORY_RESERVED.includes(key)) return;
+        const value = data[key];
+        out[key] = value == null ? '' : String(value);
+      });
+      return out;
+    }
+
+    async function hashCodeFields(data) {
+      const blob = JSON.stringify(canonicalizeCodeFields(data));
+      const bytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(blob));
+      return [...new Uint8Array(bytes)].map((b) => b.toString(16).padStart(2, '0')).join('');
     }
 
     function updateDateOverdueState(input) {
@@ -872,9 +937,11 @@
       return wrapTable(table);
     }
 
-    function renderProperty(property, savedValues = {}) {
+    function renderProperty(property, savedValues = {}, hasLiveDoc = false) {
+      currentHasLiveDoc = Boolean(hasLiveDoc);
       const details = document.createElement('details');
       details.open = true;
+      details.dataset.house = property.slug;
       const summary = document.createElement('summary');
       summary.innerHTML = `
         <div class="flex-between">
@@ -928,37 +995,276 @@
       body.appendChild(renderLabelValueTable(property, HOUSE_NOTES_SECTION, savedValues));
 
       details.appendChild(body);
+      currentHasLiveDoc = false;
       return details;
     }
 
     async function initCodes() {
-      const snapshot = await getDocs(collection(db, 'property_codes'));
-      const docsBySlug = new Map();
-      snapshot.forEach((d) => docsBySlug.set(d.id, d.data()));
+      const CODES_UID = '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2';
+      const isCodesUser = () => auth.currentUser && auth.currentUser.uid === CODES_UID;
 
-      list.innerHTML = '';
-      DEFAULTS.forEach((property) => {
-        const node = renderProperty(property, docsBySlug.get(property.slug) || {});
-        list.appendChild(node);
-      });
+      const liveRef = (slug) => doc(db, 'property_codes', slug);
+      const versionsCol = (slug) => collection(db, 'property_codes', slug, 'code_versions');
 
-      list.querySelectorAll('.save-btn').forEach((btn) => {
+      async function writeSnapshot(slug, live, source) {
+        const fields = canonicalizeCodeFields(live);
+        await setDoc(doc(versionsCol(slug)), {
+          fields,
+          contentHash: await hashCodeFields(live),
+          createdAt: serverTimestamp(),
+          expireAt: Timestamp.fromMillis(Date.now() + 90 * 24 * 60 * 60 * 1000),
+          source
+        });
+      }
+
+      async function latestVersionHash(slug) {
+        const snap = await getDocs(query(versionsCol(slug), orderBy('createdAt', 'desc'), limit(1)));
+        if (snap.empty) return '';
+        return snap.docs[0].data().contentHash || '';
+      }
+
+      function collectForm(slug) {
+        const payload = {};
+        list.querySelectorAll(`input[data-prop="${slug}"], textarea[data-prop="${slug}"]`).forEach((input) => {
+          payload[input.dataset.field] = input.value.trim();
+        });
+        return payload;
+      }
+
+      async function refreshHouse(slug) {
+        const property = DEFAULTS.find((item) => item.slug === slug);
+        if (!property) return;
+        const snap = await getDoc(liveRef(slug));
+        const hasLive = snap.exists();
+        const node = renderProperty(property, hasLive ? snap.data() : {}, hasLive);
+        const old = list.querySelector(`details[data-house="${slug}"]`);
+        if (old) old.replaceWith(node);
+        else list.appendChild(node);
+        bindHouse(node, slug, property.address);
+      }
+
+      function formatWhen(value) {
+        if (!value) return 'unknown time';
+        if (typeof value.toDate === 'function') return value.toDate().toLocaleString();
+        return String(value);
+      }
+
+      function historyOpts(panel) {
+        return panel.id === 'page-history-panel'
+          ? { onHouses: () => renderHousePicker(panel) }
+          : {};
+      }
+
+      function appendHousesBack(panel, onHouses) {
+        const back = document.createElement('button');
+        back.type = 'button';
+        back.className = 'history-cancel';
+        back.textContent = 'Houses';
+        back.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onHouses();
+        });
+        panel.appendChild(back);
+      }
+
+      function renderHousePicker(panel) {
+        panel.innerHTML = '';
+        DEFAULTS.forEach((property) => {
+          const row = document.createElement('button');
+          row.type = 'button';
+          row.className = 'history-row';
+          row.textContent = property.address;
+          row.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            try {
+              await loadHistory(panel, property.slug, property.address, historyOpts(panel));
+            } catch (err) {
+              console.error(err);
+              panel.textContent = 'Could not load history.';
+            }
+          });
+          panel.appendChild(row);
+        });
+      }
+
+      async function loadHistory(panel, slug, address, opts = {}) {
+        const cursor = opts.cursor || null;
+        const onHouses = opts.onHouses || null;
+        if (!cursor) panel.innerHTML = '';
+        if (!isCodesUser() || slug === 'spanish_moss') {
+          panel.textContent = 'History is unavailable.';
+          return;
+        }
+        const q = cursor
+          ? query(versionsCol(slug), orderBy('createdAt', 'desc'), startAfter(cursor), limit(50))
+          : query(versionsCol(slug), orderBy('createdAt', 'desc'), limit(50));
+        const snap = await getDocs(q);
+        if (!cursor && snap.empty) {
+          panel.innerHTML = '';
+          const note = document.createElement('div');
+          note.className = 'muted';
+          note.textContent = 'No previous codes yet. Snapshots start after a Save or the daily Mac catch-up.';
+          panel.appendChild(note);
+          if (onHouses) appendHousesBack(panel, onHouses);
+          return;
+        }
+        if (!cursor && onHouses) appendHousesBack(panel, onHouses);
+        snap.docs.forEach((item) => {
+          const row = document.createElement('button');
+          row.type = 'button';
+          row.className = 'history-row';
+          row.textContent = formatWhen(item.data().createdAt);
+          row.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            showVersion(panel, slug, address, item.id, item.data());
+          });
+          panel.appendChild(row);
+        });
+        const oldOlder = panel.querySelector('.history-older');
+        if (oldOlder) oldOlder.remove();
+        if (snap.docs.length === 50) {
+          const older = document.createElement('button');
+          older.type = 'button';
+          older.className = 'history-row history-older';
+          older.textContent = 'Older';
+          older.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            loadHistory(panel, slug, address, { cursor: snap.docs[snap.docs.length - 1], onHouses });
+          });
+          panel.appendChild(older);
+        }
+      }
+
+      function showVersion(panel, slug, address, versionId, data) {
+        const fields = data.fields || {};
+        const when = formatWhen(data.createdAt);
+        const preview = document.createElement('div');
+        preview.className = 'history-preview';
+        preview.textContent = Object.keys(fields).sort().map((key) => `${key}: ${fields[key]}`).join('\n');
+        const actions = document.createElement('div');
+        actions.className = 'history-actions';
+        const restoreBtn = document.createElement('button');
+        restoreBtn.type = 'button';
+        restoreBtn.className = 'history-restore';
+        restoreBtn.textContent = 'Restore';
+        restoreBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          restoreLiveCodes(slug, address, versionId, when, panel);
+        });
+        const cancel = document.createElement('button');
+        cancel.type = 'button';
+        cancel.className = 'history-cancel';
+        cancel.textContent = 'Back';
+        cancel.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          loadHistory(panel, slug, address, historyOpts(panel));
+        });
+        panel.innerHTML = '';
+        panel.appendChild(preview);
+        actions.appendChild(restoreBtn);
+        actions.appendChild(cancel);
+        panel.appendChild(actions);
+      }
+
+      async function restoreLiveCodes(slug, address, versionId, when, panel) {
+        const confirmCopy = `Restore ${address} from ${when}? This deletes live keys that are not in that snapshot. Unsaved edits for this house are lost.`;
+        if (!window.confirm(confirmCopy)) return;
+        if (!isCodesUser()) return;
+        try {
+          const before = await getDoc(liveRef(slug));
+          const live = before.exists() ? before.data() : {};
+          const beforeHash = await hashCodeFields(live);
+          await writeSnapshot(slug, live, 'page');
+          const version = await getDoc(doc(db, 'property_codes', slug, 'code_versions', versionId));
+          if (!version.exists()) {
+            panel.textContent = 'That snapshot is gone.';
+            return;
+          }
+          const still = await getDoc(liveRef(slug));
+          const stillHash = await hashCodeFields(still.exists() ? still.data() : {});
+          if (stillHash !== beforeHash) {
+            panel.textContent = 'Live codes changed. Restore cancelled.';
+            return;
+          }
+          const saveBtn = list.querySelector(`button[data-save="${slug}"]`);
+          if (saveBtn) saveBtn.disabled = true;
+          await setDoc(liveRef(slug), {
+            ...canonicalizeCodeFields(version.data().fields || {}),
+            updatedAt: serverTimestamp()
+          });
+          await refreshHouse(slug);
+        } catch (err) {
+          console.error('Failed to restore codes', err);
+          panel.textContent = 'Restore failed. Live codes were not changed.';
+        }
+      }
+
+      function bindHouse(node, slug, address) {
+        const summaryRow = node.querySelector('.flex-between');
+        if (summaryRow && !summaryRow.querySelector('.history-btn')) {
+          const prev = document.createElement('button');
+          prev.type = 'button';
+          prev.className = 'history-btn';
+          prev.dataset.history = slug;
+          prev.textContent = 'Previous';
+          const saveBtn = summaryRow.querySelector('.save-btn');
+          if (saveBtn) summaryRow.insertBefore(prev, saveBtn);
+          else summaryRow.appendChild(prev);
+          const panel = document.createElement('div');
+          panel.className = 'history-panel hidden';
+          panel.dataset.historyPanel = slug;
+          const body = node.querySelector('.property-body');
+          if (body) body.prepend(panel);
+          prev.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            panel.classList.toggle('hidden');
+            if (!panel.classList.contains('hidden')) {
+              try {
+                await loadHistory(panel, slug, address, historyOpts(panel));
+              } catch (err) {
+                console.error(err);
+                panel.textContent = 'Could not load history.';
+              }
+            }
+          });
+        }
+
+        const btn = node.querySelector('.save-btn');
+        if (!btn || btn.dataset.bound === '1') return;
+        btn.dataset.bound = '1';
         btn.addEventListener('click', async (e) => {
           e.preventDefault();
           e.stopPropagation();
-          const slug = btn.dataset.save;
-          const inputs = list.querySelectorAll(`input[data-prop="${slug}"], textarea[data-prop="${slug}"]`);
-          const payload = {};
-          inputs.forEach((input) => {
-            payload[input.dataset.field] = input.value.trim();
-          });
+          if (!isCodesUser()) return;
+          const payload = collectForm(slug);
           btn.disabled = true;
           const oldText = btn.textContent;
           try {
-            await setDoc(doc(db, 'property_codes', slug), {
+            await setDoc(liveRef(slug), {
               ...payload,
               updatedAt: serverTimestamp()
             }, { merge: true });
+            const after = await getDoc(liveRef(slug));
+            const live = after.exists() ? after.data() : payload;
+            const digest = await hashCodeFields(live);
+            const latest = await latestVersionHash(slug);
+            if (digest !== latest) {
+              try {
+                await writeSnapshot(slug, live, 'page');
+              } catch (snapErr) {
+                console.error('Failed to snapshot codes', snapErr);
+                btn.textContent = 'Error';
+                setTimeout(() => { btn.textContent = oldText; }, 1500);
+                return;
+              }
+            }
             btn.textContent = 'Saved ✓';
             btn.classList.add('saved');
             setTimeout(() => {
@@ -975,7 +1281,32 @@
             setTimeout(() => { btn.disabled = false; }, 200);
           }
         });
+      }
+
+      const snapshot = await getDocs(collection(db, 'property_codes'));
+      const docsBySlug = new Map();
+      snapshot.forEach((d) => docsBySlug.set(d.id, d.data()));
+
+      list.innerHTML = '';
+      DEFAULTS.forEach((property) => {
+        const hasLive = docsBySlug.has(property.slug);
+        const node = renderProperty(property, docsBySlug.get(property.slug) || {}, hasLive);
+        list.appendChild(node);
+        bindHouse(node, property.slug, property.address);
       });
+
+      const pageHistoryBtn = document.getElementById('page-history-btn');
+      const pageHistoryPanel = document.getElementById('page-history-panel');
+      if (pageHistoryBtn && pageHistoryPanel && pageHistoryBtn.dataset.bound !== '1') {
+        pageHistoryBtn.dataset.bound = '1';
+        pageHistoryBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          pageHistoryPanel.classList.toggle('hidden');
+          if (!pageHistoryPanel.classList.contains('hidden')) {
+            renderHousePicker(pageHistoryPanel);
+          }
+        });
+      }
     }
 
     onAuthStateChanged(auth, (user) => {

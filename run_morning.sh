@@ -38,12 +38,11 @@ commit_and_push() {
     padsplit_scraper/output/drafts.json \
     padsplit_scraper/output/drafted_messages.json \
     padsplit_scraper/output/stats.json \
+    padsplit_scraper/output/monthly_history.json \
     padsplit_scraper/output/occupancy.json \
     thermostat/output/latest.json \
     docs/data/latest.json \
-    docs/data/stats.json \
     docs/data/occupancy.json \
-    docs/data/monthly_history.json \
     docs/thermostat/latest.json 2>/dev/null || true
 
   if git -C "$WORKSPACE" diff --cached --quiet; then
@@ -73,6 +72,7 @@ set -e
 run_phase "thermostat scraper" "$VENV" "$WORKSPACE/thermostat/scraper.py"
 run_phase "PadSplit scraper (messages + tasks)" "$VENV" "$WORKSPACE/padsplit_scraper/scraper.py"
 run_phase "Sifely lock codes" "$VENV" "$WORKSPACE/padsplit_scraper/lock_codes.py"
+run_phase "Codes history catch-up" "$VENV" "$WORKSPACE/padsplit_scraper/codes_history.py"
 run_phase "PadSplit lockout replies" "$VENV" "$WORKSPACE/padsplit_scraper/lockout_reply.py"
 run_phase "PadSplit leak replies" "$VENV" "$WORKSPACE/padsplit_scraper/leak_reply.py"
 run_phase "PadSplit draft replies" "$VENV" "$WORKSPACE/message_drafter.py"
