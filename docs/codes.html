@@ -633,7 +633,14 @@
     const gateError = document.getElementById('gate-error');
     const list = document.getElementById('codes-list');
     const codesStatus = document.getElementById('codes-status');
-    const CODES_UID = '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2';
+    function approvedCodesUid() {
+      // Same empty slot as firestore.rules approvedCodesUid(). Ang fills Joe's uid in both.
+      return '';
+    }
+    function isApprovedCodesUser(user) {
+      const uid = approvedCodesUid();
+      return !!(user && uid && user.uid === uid);
+    }
     let loadGeneration = 0;
 
     const codesIntro = document.querySelector('.codes-intro');
@@ -1053,7 +1060,7 @@
     }
 
     async function initCodes(generation) {
-      const isCodesUser = () => auth.currentUser && auth.currentUser.uid === CODES_UID;
+      const isCodesUser = () => isApprovedCodesUser(auth.currentUser);
 
       const liveRef = (slug) => doc(db, 'property_codes', slug);
       const versionsCol = (slug) => collection(db, 'property_codes', slug, 'code_versions');
@@ -1409,7 +1416,7 @@
         showSignedOut();
         return;
       }
-      if (user.uid !== CODES_UID) {
+      if (!isApprovedCodesUser(user)) {
         showNotApproved();
         return;
       }

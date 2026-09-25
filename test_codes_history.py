@@ -16,7 +16,6 @@ MORNING = (ROOT / "run_morning.sh").read_text()
 AFTERNOON = (ROOT / "run_afternoon.sh").read_text()
 WORKFLOW = (ROOT / ".github" / "workflows" / "scrape.yml").read_text()
 
-CODES_UID = "8jOJNgLoxpfyseZ0RY1PDZ1DXbi2"
 STATS_UID = "TXSU0LOpmDWNBbbv0x3uHHBnZb12"
 FAKE_DOOR = "FAKE_FRONT"
 FAKE_EXTRA = "FAKE_EXTRA"
@@ -34,8 +33,13 @@ def _versions_block() -> str:
 class SnapshotContractTests(unittest.TestCase):
     def test_rules_block_is_codes_uid_create_and_bounded_list(self) -> None:
         block = _versions_block()
-        self.assertIn(CODES_UID, block)
+        self.assertIn("isApprovedCodesUser()", block)
+        self.assertNotIn("request.auth.uid ==", block)
         self.assertNotIn(STATS_UID, block)
+        self.assertRegex(
+            RULES,
+            r"function approvedCodesUid\(\) \{\s*return '';\s*\}",
+        )
         self.assertIn("allow get", block)
         self.assertIn("allow list", block)
         self.assertIn("allow create", block)

@@ -267,7 +267,8 @@ class CodesDashboardStructureTests(unittest.TestCase):
         self.assertIn("startAfter", self.html)
         self.assertIn("history-older", self.html)
         self.assertIn("async function restoreLiveCodes", self.html)
-        self.assertIn("8jOJNgLoxpfyseZ0RY1PDZ1DXbi2", self.html)
+        self.assertIn("function approvedCodesUid()", self.html)
+        self.assertIn("isApprovedCodesUser", self.html)
         self.assertIn("hashCodeFields", self.html)
         self.assertIn("SHA-256", self.html)
         self.assertIn("deletes live keys", self.html)
@@ -382,7 +383,12 @@ class CodesDashboardStructureTests(unittest.TestCase):
 
     def test_codes_page_has_no_client_value_fallback(self):
         self.assertIn("if (!currentHasLiveDoc) return '';", self.html)
-        self.assertIn("user.uid !== CODES_UID", self.html)
+        self.assertIn("function approvedCodesUid()", self.html)
+        self.assertIn("return '';", self.html)
+        self.assertIn("function isApprovedCodesUser(user)", self.html)
+        self.assertIn("return !!(user && uid && user.uid === uid);", self.html)
+        self.assertIn("if (!isApprovedCodesUser(user))", self.html)
+        self.assertNotIn("CODES_UID", self.html)
         resolver = self.html.split("function resolveSavedOrDefault", 1)[1].split("function ", 1)[0]
         self.assertNotIn("field.value", resolver)
         self.assertNotIn("return fallback", resolver)
