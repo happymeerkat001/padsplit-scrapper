@@ -7,10 +7,16 @@ SIFELY_API_KEY value (sk- key, no Bearer). Base URL cus-openapi.sifely.com.
 Default off until Mac ``LOCK_CODES_ENABLE=1`` (and action hooks). GitHub
 Actions / CI must not rotate locks or post Discord.
 
+Only Ridge Oak and Pebble Shores have Sifely locks. Every other house,
+including Spanish Moss, is a no-op for this automation (no rotate, no
+PadSplit send, no Discord ask).
+
 New move-in: set that room lock to the last four digits of the tenant
 phone, message the tenant on PadSplit (digits allowed there only), update
 Firestore ``property_codes`` for codes.html, then post a digit-free notice
-to Discord #ai-automations.
+to Discord #ai-automations. A Sifely error does not mark the event done.
+A rotate that already succeeded is not repeated when the codes-page write
+or member notify still needs a retry.
 
 Move-out / member terminated: ALWAYS set the vacated room lock to the
 vacant default and update the codes page (do not wait for Ang on the
@@ -35,6 +41,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import hmac
 import json
 import os
 import re
@@ -176,6 +183,9 @@ HOUSE_LOCK_PROFILES: Dict[str, Dict[str, Any]] = {
     },
 }
 
+# Automation scope. Other profiles stay so address matching can reject them.
+SIFELY_HOUSE_SLUGS = frozenset({"ridge_oak_10235", "pebbleshores_3414"})
+
 # PadSplit Ops bot posts here. Outbound content must contain no digits.
 # #new-tenants is inbound-only for the API-down Sifely-share fallback.
 DISCORD_API_BASE = "https://discord.com/api/v10"
@@ -238,8 +248,12 @@ DISCORD_ROTATED = "Spanish Moss lock was rotated."
 
 _DIGIT_RUN = re.compile(r"\d+")
 _CODE_TOKEN = re.compile(r"\b(?:passcode|code|pin|keyboard\s*pwd)\b\s*[:#-]?\s*(\S+)", re.I)
+_PASSCODE_DIGITS = re.compile(r"^\d{4,8}$")
 _SK_KEY = re.compile(r"sk-[A-Za-z0-9]+")
 _SECRET_HEADER = re.compile(r"(?i)(authorization\s*:\s*)\S+")
+_SIFELY_OK_CODES = {None, 0, "0", 200, "200"}
+_HASH_PREFIX_V2 = "v2:"
+_TEST_SHARE_PLACEHOLDER = "REDACTED"
 _ROOM_IN_LABEL = re.compile(
     r"(?i)(?:(?:room|rm)\s*[:#-]?\s*(\d{1,2})|\br(\d{1,2})\b)"
 )
@@ -355,8 +369,40 @@ def redact_for_log(text: str) -> str:
     return cleaned
 
 
+def is_sifely_house(slug: str) -> bool:
+    """True only for Ridge Oak and Pebble Shores. Everything else is a no-op."""
+    return slug in SIFELY_HOUSE_SLUGS
+
+
 def hash_passcode(code: str) -> str:
-    return hashlib.sha256((code or "").encode("utf-8")).hexdigest()
+    """Keyed fingerprint. Never store the passcode itself.
+
+    HMAC-SHA256 with SIFELY_API_KEY when present so a stolen state file
+    cannot be reversed by enumerating short PINs. Unkeyed SHA-256 is only
+    used when the key is missing. Prefixes let detect_human_change ignore
+    algorithm migrations.
+    """
+    material = (code or "").encode("utf-8")
+    key = (os.getenv("SIFELY_API_KEY") or "").encode("utf-8")
+    if key:
+        digest = hmac.new(key, material, hashlib.sha256).hexdigest()
+        return f"{_HASH_PREFIX_V2}{digest}"
+    return f"v1:{hashlib.sha256(material).hexdigest()}"
+
+
+def _hash_scheme(digest: str) -> str:
+    text = str(digest or "")
+    if ":" in text:
+        return text.split(":", 1)[0]
+    return "legacy"
+
+
+def is_supported_passcode_token(token: str) -> bool:
+    """Accept Sifely 4-8 digit PINs, or the test placeholder REDACTED."""
+    value = (token or "").strip()
+    if value == _TEST_SHARE_PLACEHOLDER:
+        return True
+    return bool(_PASSCODE_DIGITS.fullmatch(value))
 
 
 def generate_passcode() -> str:
@@ -391,8 +437,9 @@ def is_spanish_moss_back_lock(lock: Dict[str, Any]) -> bool:
 
 
 def vacancy_allows_rotate(room: Dict[str, Any]) -> bool:
-    """Vacant alone is not enough. Require an empty/turned photo."""
-    if not is_spanish_moss_address(room.get("address")):
+    """Vacant alone is not enough. Ridge Oak and Pebble Shores only."""
+    slug = match_house_slug(str(room.get("address") or ""))
+    if not slug or not is_sifely_house(slug):
         return False
     if room.get("vacant") is not True:
         return False
@@ -464,7 +511,7 @@ def parse_sifely_share_code(text: str) -> Optional[str]:
     if not match:
         return None
     token = match.group(1).strip().strip(".,;)")
-    if not token:
+    if not is_supported_passcode_token(token):
         return None
     return token
 
@@ -701,6 +748,8 @@ def load_state(path: Path = STATE_PATH) -> Dict[str, Any]:
     ):
         if not isinstance(payload.get(list_key), list):
             payload[list_key] = []
+    if not isinstance(payload.get("rotated_locks"), dict):
+        payload["rotated_locks"] = {}
     return payload
 
 
@@ -720,6 +769,7 @@ def _empty_state() -> Dict[str, Any]:
         "processed_events": [],
         "pending_ang_asks": [],
         "seen_occupancies": [],
+        "rotated_locks": {},
     }
 
 
@@ -743,8 +793,11 @@ def detect_human_change(
         return False
     for pwd_id, digest in current_hashes.items():
         prior = previous_hashes.get(pwd_id)
-        if prior and prior != digest and digest != last_auto_rotate_hash:
-            return True
+        if not prior or prior == digest or digest == last_auto_rotate_hash:
+            continue
+        if _hash_scheme(prior) != _hash_scheme(digest):
+            continue
+        return True
     return False
 
 
@@ -757,7 +810,15 @@ def sifely_headers(api_key: str) -> Dict[str, str]:
 
 
 def _unwrap_sifely(payload: Any) -> Any:
-    if isinstance(payload, dict) and "data" in payload and payload.get("code") in (None, 200, "200"):
+    """HTTP 200 with a non-success application code is a hard failure.
+
+    Returning the error body would let a rejected rotate look like success.
+    """
+    if not isinstance(payload, dict):
+        return payload
+    if "code" in payload and payload.get("code") not in _SIFELY_OK_CODES:
+        raise SifelyUnavailable("Sifely application error")
+    if "data" in payload and payload.get("code") in _SIFELY_OK_CODES:
         return payload.get("data")
     return payload
 
@@ -928,7 +989,7 @@ def classify_sifely_lock(lock: Dict[str, Any]) -> Optional[LockMatch]:
     name = str(lock.get("lockName") or "")
     label = f"{alias} {name}".strip()
     slug = match_house_slug(label)
-    if not slug:
+    if not slug or not is_sifely_house(slug):
         return None
     lock_id = str(lock.get("lockId") or "")
     if not lock_id:
@@ -967,6 +1028,8 @@ def find_lock(
     role: str,
     room: str = "",
 ) -> Optional[LockMatch]:
+    if not is_sifely_house(slug):
+        return None
     matches: List[LockMatch] = []
     for item in inventory:
         if item.slug != slug:
@@ -1383,7 +1446,7 @@ def collect_move_in_events(
             continue
         slug, label = _event_house(thread)
         room = _thread_room(thread)
-        if not slug or not room:
+        if not slug or not room or not is_sifely_house(slug):
             continue
         key = move_in_event_key(thread)
         if key in seen:
@@ -1421,7 +1484,7 @@ def collect_move_out_events(
         room_id = (event.house_slug, str(event.room))
         if event.key in skip or event.key in seen_keys or room_id in seen_rooms:
             return
-        if not event.house_slug or not event.room:
+        if not event.house_slug or not event.room or not is_sifely_house(event.house_slug):
             return
         events.append(event)
         seen_keys.add(event.key)
@@ -1521,6 +1584,47 @@ def _mark_list(state: Dict[str, Any], field: str, value: str) -> None:
     if value and value not in items:
         items.append(value)
     state[field] = items[-200:]
+
+
+def _rotated_lock_ids(state: Dict[str, Any], key: str) -> set[str]:
+    raw = (state.get("rotated_locks") or {}).get(key) or []
+    if not isinstance(raw, list):
+        return set()
+    return {str(item) for item in raw if item}
+
+
+def _remember_rotated_lock(state: Dict[str, Any], key: str, lock_id: str) -> None:
+    if not key or not lock_id:
+        return
+    bucket = state.setdefault("rotated_locks", {})
+    if not isinstance(bucket, dict):
+        bucket = {}
+        state["rotated_locks"] = bucket
+    ids = [str(item) for item in (bucket.get(key) or []) if item]
+    if str(lock_id) not in ids:
+        ids.append(str(lock_id))
+    bucket[key] = ids[-20:]
+
+
+def _forget_rotated_locks(state: Dict[str, Any], key: str) -> None:
+    bucket = state.get("rotated_locks")
+    if isinstance(bucket, dict):
+        bucket.pop(key, None)
+
+
+def _in_memory_passcode(passcodes: Sequence[Dict[str, Any]], keyboard_pwd_id: Any) -> Optional[str]:
+    """Return the live keyboardPwd for a retry. Do not log the value."""
+    wanted = str(keyboard_pwd_id or "")
+    if not wanted:
+        return None
+    for item in passcodes:
+        pwd_id = str(item.get("keyboardPwdId") or item.get("id") or "")
+        if pwd_id != wanted:
+            continue
+        code = item.get("keyboardPwd")
+        if isinstance(code, str) and is_supported_passcode_token(code):
+            return code
+    return None
 
 
 def _pending_keys(state: Dict[str, Any]) -> List[str]:
@@ -1709,6 +1813,7 @@ def run(
         new_code_fn=new_code_fn,
         messages=messages,
         notify_one=member_one,
+        passcodes_for=_passcodes_for,
     )
 
     if api_key and api_available:
@@ -1768,6 +1873,7 @@ def _process_pending_asks(
     new_code_fn: Callable[[], str],
     messages: Sequence[Dict[str, Any]],
     notify_one: Optional[Callable[[str, str], int]],
+    passcodes_for: Callable[[str], List[Dict[str, Any]]],
 ) -> None:
     pending = [row for row in (state.get("pending_ang_asks") or []) if isinstance(row, dict)]
     if not pending:
@@ -1784,6 +1890,10 @@ def _process_pending_asks(
 
     remaining: List[Dict[str, Any]] = []
     for ask in pending:
+        house_slug = str(ask.get("house_slug") or "")
+        if not is_sifely_house(house_slug):
+            continue
+        event_key = str(ask.get("event_key") or "")
         if not ask.get("room_reset"):
             if _reset_vacated_room(
                 ask,
@@ -1796,13 +1906,13 @@ def _process_pending_asks(
                 rotate_lock=rotate_lock,
                 write_fields=write_fields,
                 state=state,
+                already_rotated=_rotated_lock_ids(state, event_key),
             ):
                 ask["room_reset"] = True
         decision = parse_ang_reply(rows, str(ask.get("discord_message_id") or ""))
         if decision is None:
             remaining.append(ask)
             continue
-        house_slug = str(ask.get("house_slug") or "")
         house_label = str(ask.get("house_label") or "")
         room = str(ask.get("room") or "")
         if decision != "yes":
@@ -1811,49 +1921,127 @@ def _process_pending_asks(
                 poster(text)
             result.discord_posts.append(text)
             result.events.append("ang_no")
-            _mark_list(state, "processed_events", str(ask.get("event_key") or ""))
+            _mark_list(state, "processed_events", event_key)
+            _forget_rotated_locks(state, event_key)
             continue
         if not ready:
             _need_you_once(state, now, "need_you_firebase", poster, result, dry_run=dry_run)
             remaining.append(ask)
             continue
-        fields: Dict[str, Any] = {}
-        door_codes: Dict[str, str] = {}
-        used_ids: set[str] = set()
-        shared_rotated = False
-        for role in ("front", "back"):
-            match = find_lock(inventory, house_slug, role)
-            if match is None or match.lock_id in used_ids:
-                continue
-            shared_code = new_code_fn()
-            if not rotate_lock(match, shared_code):
-                continue
-            used_ids.add(match.lock_id)
-            field_name = codes_field_for(house_slug, match.role, room)
-            if field_name:
-                fields[field_name] = shared_code
-            door_codes[match.role] = shared_code
-            shared_rotated = True
-        if fields:
-            _write_or_skip(write_fields, house_slug, fields, result)
-        if shared_rotated:
-            result.padsplit_notified += _blast_house_door_codes(
-                messages,
-                house_slug,
-                house_label,
-                door_codes,
-                now,
-                dry_run=dry_run,
-                notify_one=notify_one,
-                exclude_chat_ids=(str(ask.get("chat_id") or ""),),
-            )
-        text = discord_ang_yes_text(house_label, room, shared_rotated=shared_rotated)
+        door_status = _rotate_shared_doors(
+            ask,
+            inventory=inventory,
+            state=state,
+            result=result,
+            rotate_lock=rotate_lock,
+            write_fields=write_fields,
+            new_code_fn=new_code_fn,
+            passcodes_for=passcodes_for,
+            messages=messages,
+            now=now,
+            dry_run=dry_run,
+            notify_one=notify_one,
+        )
+        if door_status is False:
+            remaining.append(ask)
+            _log("shared-door rotate or delivery incomplete; will retry without a second rotate")
+            continue
+        text = discord_ang_yes_text(house_label, room, shared_rotated=door_status is True)
         if not dry_run:
             poster(text)
         result.discord_posts.append(text)
         result.events.append("ang_yes")
-        _mark_list(state, "processed_events", str(ask.get("event_key") or ""))
+        _mark_list(state, "processed_events", event_key)
+        _forget_rotated_locks(state, event_key)
     state["pending_ang_asks"] = remaining
+
+
+def _rotate_shared_doors(
+    ask: Dict[str, Any],
+    *,
+    inventory: Sequence[LockMatch],
+    state: Dict[str, Any],
+    result: RunResult,
+    rotate_lock: Callable[[LockMatch, str], bool],
+    write_fields: Callable[[str, Dict[str, Any]], bool],
+    new_code_fn: Callable[[], str],
+    passcodes_for: Callable[[str], List[Dict[str, Any]]],
+    messages: Sequence[Dict[str, Any]],
+    now: datetime,
+    dry_run: bool,
+    notify_one: Optional[Callable[[str, str], int]],
+) -> Optional[bool]:
+    """Finish an Ang-yes door change.
+
+    True means at least one shared door was rotated and delivery finished.
+    None means this house has no matched front/back lock, so nothing changed.
+    False means retry later. Locks already rotated are not rotated again.
+    """
+    event_key = str(ask.get("event_key") or "")
+    house_slug = str(ask.get("house_slug") or "")
+    house_label = str(ask.get("house_label") or "")
+    already = _rotated_lock_ids(state, event_key)
+    fields: Dict[str, Any] = {}
+    door_codes: Dict[str, str] = {}
+    used_ids: set[str] = set()
+    failed = False
+    considered = 0
+    for role in ("front", "back"):
+        match = find_lock(inventory, house_slug, role)
+        if match is None or match.lock_id in used_ids:
+            continue
+        considered += 1
+        used_ids.add(match.lock_id)
+        if match.lock_id in already:
+            rows = passcodes_for(match.lock_id)
+            shared_code = _in_memory_passcode(rows, resolve_keyboard_pwd_id(rows))
+            if not shared_code:
+                failed = True
+                continue
+        else:
+            shared_code = new_code_fn()
+            if not rotate_lock(match, shared_code):
+                failed = True
+                continue
+            _remember_rotated_lock(state, event_key, match.lock_id)
+        field_name = codes_field_for(house_slug, match.role, str(ask.get("room") or ""))
+        if field_name:
+            fields[field_name] = shared_code
+        door_codes[match.role] = shared_code
+    if considered == 0:
+        return None
+    if failed or len(door_codes) < considered:
+        return False
+    if fields and not _write_or_skip(write_fields, house_slug, fields, result):
+        return False
+    notified = {str(item) for item in (ask.get("notified_chat_ids") or []) if item}
+    pending_members = []
+    for thread in house_member_threads(
+        messages,
+        house_slug,
+        now,
+        exclude_chat_ids=(str(ask.get("chat_id") or ""),),
+    ):
+        chat_id = str(thread.get("id") or "")
+        if not chat_id or chat_id in notified:
+            continue
+        pending_members.append(thread)
+    if pending_members:
+        body = member_shared_door_message(house_label, door_codes)
+        for thread in pending_members:
+            chat_id = str(thread.get("id") or "")
+            sent_n = 0
+            if notify_one is not None:
+                sent_n = int(notify_one(chat_id, body))
+            elif not dry_run:
+                sent_n = _notify_one_member(chat_id, body)
+            result.padsplit_notified += sent_n
+            if not sent_n:
+                ask["notified_chat_ids"] = sorted(notified)
+                return False
+            notified.add(chat_id)
+        ask["notified_chat_ids"] = sorted(notified)
+    return True
 
 
 def _reset_vacated_room(
@@ -1868,21 +2056,33 @@ def _reset_vacated_room(
     rotate_lock: Callable[[LockMatch, str], bool],
     write_fields: Callable[[str, Dict[str, Any]], bool],
     state: Dict[str, Any],
+    already_rotated: Optional[set[str]] = None,
+    event_key: str = "",
 ) -> bool:
     """Set vacated room to vacant default and update codes. Do not wait for Ang."""
     if isinstance(event_or_ask, LockEvent):
         house_slug = event_or_ask.house_slug
         room = event_or_ask.room
+        event_key = event_key or event_or_ask.key
     else:
         house_slug = str(event_or_ask.get("house_slug") or "")
         room = str(event_or_ask.get("room") or "")
+        event_key = event_key or str(event_or_ask.get("event_key") or "")
+    if not is_sifely_house(house_slug):
+        return False
     if not ready:
         _need_you_once(state, now, "need_you_firebase", poster, result, dry_run=dry_run)
         return False
     match = find_lock(inventory, house_slug, "room", room)
-    if match is None or not rotate_lock(match, VACANT_ROOM_DEFAULT):
+    if match is None:
         _need_you_once(state, now, "need_you_lock", poster, result, dry_run=dry_run)
         return False
+    known = already_rotated if already_rotated is not None else _rotated_lock_ids(state, event_key)
+    if match.lock_id not in known:
+        if not rotate_lock(match, VACANT_ROOM_DEFAULT):
+            _need_you_once(state, now, "need_you_lock", poster, result, dry_run=dry_run)
+            return False
+        _remember_rotated_lock(state, event_key, match.lock_id)
     field_name = codes_field_for(house_slug, "room", room)
     if field_name and not _write_or_skip(write_fields, house_slug, {field_name: VACANT_ROOM_DEFAULT}, result):
         _need_you_once(state, now, "need_you_firebase", poster, result, dry_run=dry_run)
@@ -1960,12 +2160,18 @@ def _process_move_ins(
             _need_you_once(state, now, "need_you_phone", poster, result, dry_run=dry_run)
             continue
         match = find_lock(inventory, event.house_slug, "room", event.room)
-        if match is None or not rotate_lock(match, last4):
+        if match is None:
             _need_you_once(state, now, "need_you_lock", poster, result, dry_run=dry_run)
             continue
+        already = _rotated_lock_ids(state, event.key)
+        if match.lock_id not in already and not rotate_lock(match, last4):
+            _need_you_once(state, now, "need_you_lock", poster, result, dry_run=dry_run)
+            continue
+        _remember_rotated_lock(state, event.key, match.lock_id)
         field_name = codes_field_for(event.house_slug, "room", event.room)
         if not _write_or_skip(write_fields, event.house_slug, {field_name: last4} if field_name else {}, result):
             _need_you_once(state, now, "need_you_firebase", poster, result, dry_run=dry_run)
+            _log("move-in codes page incomplete; will retry without rotating again")
             continue
         body = member_move_in_message(event.house_label, event.room, last4)
         sent = 0
@@ -1975,6 +2181,9 @@ def _process_move_ins(
             sent = int(notify_all(last4))
         elif event.chat_id and not dry_run:
             sent = _notify_one_member(event.chat_id, body)
+        if event.chat_id and sent < 1:
+            _log("move-in member notify incomplete; will retry without rotating again")
+            continue
         result.padsplit_notified += sent
         text = discord_move_in_text(event.house_label, event.room, event.member)
         if not dry_run:
@@ -1984,6 +2193,7 @@ def _process_move_ins(
         _mark_list(state, "processed_move_ins", event.key)
         if event.occupancy_id:
             _mark_list(state, "seen_occupancies", event.occupancy_id)
+        _forget_rotated_locks(state, event.key)
 
 
 def _process_move_outs(
@@ -2017,7 +2227,7 @@ def _process_move_outs(
     for room in pending_rooms:
         slug = match_house_slug(str(room.get("address") or ""))
         room_number = str(room.get("room_number") or "")
-        if not slug or (slug, room_number) in asked_rooms:
+        if not slug or not is_sifely_house(slug) or (slug, room_number) in asked_rooms:
             continue
         key = "vacancy|" + vacancy_key(room)
         if key in set(state.get("processed_events") or []) or key in set(_pending_keys(state)):
@@ -2045,6 +2255,7 @@ def _process_move_outs(
             rotate_lock=rotate_lock,
             write_fields=write_fields,
             state=state,
+            event_key=event.key,
         )
         if room_ok:
             result.events.append("room_reset")
@@ -2087,14 +2298,17 @@ def _first_new_share(
         except requests.RequestException as exc:
             _log(f"#new-tenants fetch failed: {exc}")
             return None, None
+    newest_code: Optional[str] = None
+    newest_id: Optional[str] = None
     for message in rows or []:
         message_id = str(message.get("id") or "")
         if not message_id or message_id in seen:
             continue
         code = parse_sifely_share_code(str(message.get("content") or ""))
         if code:
-            return code, message_id
-    return None, None
+            newest_code = code
+            newest_id = message_id
+    return newest_code, newest_id
 
 
 def _notify_one_member(chat_id: str, text: str) -> int:
