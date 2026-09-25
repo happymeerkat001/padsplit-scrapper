@@ -69,6 +69,13 @@ jobs:
           cp padsplit_scraper/output/latest.json docs/data/latest.json
           cp padsplit_scraper/output/occupancy.json docs/data/occupancy.json || echo "occupancy.json not found, skipping"
 
+      - name: Reject unsanitized public snapshots
+        run: |
+          python padsplit_scraper/check_published_snapshot.py docs/data/latest.json
+          if [ -f docs/data/occupancy.json ]; then
+            python padsplit_scraper/check_published_snapshot.py docs/data/occupancy.json
+          fi
+
       - name: Diagnose token permissions
         run: |
           echo "=== Token write check ==="

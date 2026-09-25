@@ -30,6 +30,11 @@ try:
 except ModuleNotFoundError:  # Support execution through padsplit_scraper/scraper.py.
     from kpis import _extract_earnings_rows, _to_num, compute_monthly_kpis
 
+try:
+    from padsplit_scraper.publish_sanitize import sanitize_published_snapshot
+except ModuleNotFoundError:  # Support execution through padsplit_scraper/scraper.py.
+    from publish_sanitize import sanitize_published_snapshot
+
 OUTPUT_DIR = Path(__file__).resolve().parent / "output"
 DOCS_DATA_DIR = Path(__file__).resolve().parent.parent / "docs" / "data"
 
@@ -205,12 +210,19 @@ def _persist_latest_payload(
     run_status: Optional[Dict[str, Any]] = None,
     write_timestamped: bool = False,
 ) -> Path:
+    """Write the rolling snapshot CI copies to ``docs/data``.
+
+    The file is sanitized first (no ``room_code``, redacted free text) so the
+    copy committed from ``scrape.yml`` cannot contain door, lockbox, or wifi
+    secrets. The in-memory ``payload`` is left unchanged.
+    """
     latest_payload = _attach_run_status(payload, run_status) if run_status else payload
+    published = sanitize_published_snapshot(latest_payload)
     latest_path = _latest_output_path()
-    _write_json(latest_path, latest_payload)
+    _write_json(latest_path, published)
     out_path = _timestamped_output_path(scraped_at)
     if write_timestamped:
-        _write_json(out_path, latest_payload)
+        _write_json(out_path, published)
         return out_path
     return out_path
 
@@ -284,7 +296,13 @@ def _build_stats_payload(
     kpis: Dict[str, Any],
     run_status: Dict[str, Any],
 ) -> Dict[str, Any]:
-    return {
+    """Private stats payload. Ticket details are redacted before this is written.
+
+    ``stats.json`` is not copied to Pages, but morning/afternoon git-add it, so
+    the same free-text redactor runs here. ``room_code`` is not part of this
+    payload. The caller's ``kpis`` object is not modified.
+    """
+    payload = {
         "scraped_at": scraped_at,
         "rooms": rooms,
         "properties": properties,
@@ -292,6 +310,14 @@ def _build_stats_payload(
         "kpis": kpis,
         "run_status": run_status,
     }
+    return sanitize_published_snapshot(payload)
+
+
+def _persist_stats_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
+    """Rewrite stats with free-text redaction. Used for degraded fallback reuse."""
+    sanitized = sanitize_published_snapshot(payload)
+    _write_json(_stats_output_path(), sanitized)
+    return sanitized
 
 
 def _firestore_client_or_none() -> Any:

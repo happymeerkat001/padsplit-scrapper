@@ -39,6 +39,7 @@ try:
         _monthly_history_path,
         _persist_latest_payload,
         _persist_occupancy_payload,
+        _persist_stats_payload,
         _stats_output_path,
         _write_json,
         prior_last_complete_success,
@@ -56,6 +57,7 @@ except ModuleNotFoundError:  # Support the cron entry point: python3 padsplit_sc
         _monthly_history_path,
         _persist_latest_payload,
         _persist_occupancy_payload,
+        _persist_stats_payload,
         _stats_output_path,
         _write_json,
         prior_last_complete_success,
@@ -1046,7 +1048,7 @@ def run(messages_only: bool = False, *, isolate_output: bool = False, policy=Non
                 ),
             )
             _persist_latest_payload(payload, scraped_at=scraped_at, run_status=run_status, write_timestamped=True)
-            sys.stderr.write(f"# Saved raw data to {out_path}\n")
+            sys.stderr.write(f"# Saved snapshot to {out_path}\n")
             return _ok_outcome(run_status)
 
         fetched_tasks = _run_phase("Fetching tasks...", "tasks", lambda: fetch_tasks(session, creds))
@@ -1133,7 +1135,7 @@ def run(messages_only: bool = False, *, isolate_output: bool = False, policy=Non
                 # Do not copy previous run_status — it is stale for this run.
                 preserved = dict(fallback_stats)
                 preserved["run_status"] = run_status
-                _write_json(_stats_output_path(), preserved)
+                preserved = _persist_stats_payload(preserved)
                 history_payload = _load_json_if_exists(_monthly_history_path()) or {}
                 upload_stats_to_firestore(preserved, history_payload)
                 sys.stderr.write(f"# Degraded stats run; re-used prior stats from {_stats_output_path()}\n")
@@ -1141,7 +1143,7 @@ def run(messages_only: bool = False, *, isolate_output: bool = False, policy=Non
                 sys.stderr.write(f"# Degraded stats run; no prior stats fallback at {_stats_output_path()}\n")
 
             sys.stderr.write(f"{exc}\n")
-            sys.stderr.write(f"# Saved raw data to {out_path}\n")
+            sys.stderr.write(f"# Saved snapshot to {out_path}\n")
             return _degraded_outcome(run_status)
 
         run_status = _this_run_health(
@@ -1177,7 +1179,7 @@ def run(messages_only: bool = False, *, isolate_output: bool = False, policy=Non
         _write_json(_stats_output_path(), stats_payload)
         _write_json(_monthly_history_path(), monthly_history_payload)
         upload_stats_to_firestore(stats_payload, monthly_history_payload)
-        sys.stderr.write(f"# Saved raw data to {out_path}\n")
+        sys.stderr.write(f"# Saved snapshot to {out_path}\n")
         return _ok_outcome(run_status)
 
 
