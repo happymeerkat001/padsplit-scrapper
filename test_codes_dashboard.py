@@ -372,6 +372,13 @@ class CodesDashboardStructureTests(unittest.TestCase):
         self.assertIn("clearPropertyList", failed)
         self.assertNotIn("renderAllHouses", failed)
         self.assertNotIn("localStorage", failed)
+        self.assertEqual(self.html.count("onSnapshot(NOTES_DOC"), 1)
+        start_notes = self.html.split("function startNotes()", 1)[1].split("function ", 1)[0]
+        self.assertIn("onSnapshot(NOTES_DOC", start_notes)
+        cleared = self.html.split("function clearPropertyList()", 1)[1].split("function ", 1)[0]
+        self.assertIn("stopNotes()", cleared)
+        init_codes = self.html.split("async function initCodes", 1)[1].split("showSignedOut();", 1)[0]
+        self.assertIn("startNotes()", init_codes)
 
     def test_codes_page_has_no_client_value_fallback(self):
         self.assertIn("if (!currentHasLiveDoc) return '';", self.html)

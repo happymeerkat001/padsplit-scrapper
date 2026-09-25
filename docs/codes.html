@@ -651,6 +651,7 @@
     function clearPropertyList() {
       list.innerHTML = '';
       setApprovedChrome(false);
+      stopNotes();
       const pageHistoryPanel = document.getElementById('page-history-panel');
       if (pageHistoryPanel) pageHistoryPanel.classList.add('hidden');
     }
@@ -1350,6 +1351,8 @@
 
       const pageHistoryBtn = document.getElementById('page-history-btn');
       const pageHistoryPanel = document.getElementById('page-history-panel');
+      startNotes();
+
       if (pageHistoryBtn && pageHistoryPanel && pageHistoryBtn.dataset.bound !== '1') {
         pageHistoryBtn.dataset.bound = '1';
         pageHistoryBtn.addEventListener('click', (e) => {
@@ -1361,6 +1364,42 @@
         });
       }
     }
+
+    // ── Notes ────────────────────────────────────────────────────────────────
+    // Subscribe only after an allowlisted load. Signed-out reads of notes/codes are denied.
+    let notesUnsub = null;
+    const NOTES_DOC = doc(db, 'notes', 'codes');
+    const notesTA = document.getElementById('notes-textarea');
+    const notesSave = document.getElementById('notes-save-btn');
+    const notesCopy = document.getElementById('notes-copy-btn');
+    function stopNotes() {
+      if (notesUnsub) {
+        notesUnsub();
+        notesUnsub = null;
+      }
+      if (notesTA) notesTA.value = '';
+    }
+    function startNotes() {
+      if (notesUnsub || !notesTA) return;
+      notesUnsub = onSnapshot(NOTES_DOC, (snap) => {
+        if (snap.exists() && document.activeElement !== notesTA)
+          notesTA.value = snap.data().text || '';
+      }, () => {
+        if (notesTA) notesTA.value = '';
+      });
+    }
+    notesSave.addEventListener('click', async () => {
+      notesSave.textContent = 'Saving…'; notesSave.disabled = true;
+      try { await setDoc(NOTES_DOC, { text: notesTA.value }, { merge: true }); notesSave.textContent = 'Saved!'; }
+      catch { notesSave.textContent = 'Error'; }
+      setTimeout(() => { notesSave.textContent = 'Save'; notesSave.disabled = false; }, 1500);
+    });
+    notesCopy.addEventListener('click', () => {
+      navigator.clipboard.writeText(notesTA.value).then(() => {
+        notesCopy.classList.add('copied');
+        setTimeout(() => notesCopy.classList.remove('copied'), 1500);
+      });
+    });
 
     showSignedOut();
 
@@ -1386,28 +1425,6 @@
       });
     });
     document.getElementById('signout-btn').addEventListener('click', () => signOut(auth));
-
-    // ── Notes ────────────────────────────────────────────────────────────────
-    const NOTES_DOC = doc(db, 'notes', 'codes');
-    const notesTA = document.getElementById('notes-textarea');
-    const notesSave = document.getElementById('notes-save-btn');
-    const notesCopy = document.getElementById('notes-copy-btn');
-    onSnapshot(NOTES_DOC, snap => {
-      if (snap.exists() && document.activeElement !== notesTA)
-        notesTA.value = snap.data().text || '';
-    });
-    notesSave.addEventListener('click', async () => {
-      notesSave.textContent = 'Saving…'; notesSave.disabled = true;
-      try { await setDoc(NOTES_DOC, { text: notesTA.value }, { merge: true }); notesSave.textContent = 'Saved!'; }
-      catch { notesSave.textContent = 'Error'; }
-      setTimeout(() => { notesSave.textContent = 'Save'; notesSave.disabled = false; }, 1500);
-    });
-    notesCopy.addEventListener('click', () => {
-      navigator.clipboard.writeText(notesTA.value).then(() => {
-        notesCopy.classList.add('copied');
-        setTimeout(() => notesCopy.classList.remove('copied'), 1500);
-      });
-    });
   </script>
 </body>
 </html>
