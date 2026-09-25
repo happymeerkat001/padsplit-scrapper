@@ -277,5 +277,18 @@ assert.ok(!noRoomsFields.has("lockbox_1"));
 const otherSpecial = inputs.find((el) => el.dataset.field === "other_special");
 assert.equal(otherSpecial.tagName, "TEXTAREA");
 
+assert.ok(inputs.every((el) => el.readOnly === true), "fields are read-only until edit");
+const buttons = [];
+walk(tree, (el) => {
+  if (el.tagName === "BUTTON") buttons.push(el);
+});
+const editBtn = buttons.find((el) => el.className.split(/\s+/).includes("edit-btn"));
+const saveBtn = buttons.find((el) => el.className.split(/\s+/).includes("save-btn"));
+assert.equal(editBtn.textContent, "edit fixture house");
+assert.ok(saveBtn.className.split(/\s+/).includes("hidden"), "save stays hidden until edit");
+assert.equal(saveBtn.textContent, "save");
+assert.ok(texts.includes("this updates the record only. it doesn't change the lock."));
+assert.ok(texts.includes("cancel"));
+
 console.log("codes dashboard renderer structure ok");
 console.log(`inputs=${inputs.length} no_rooms_inputs=${noRoomsInputs.length}`);

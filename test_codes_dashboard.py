@@ -275,11 +275,12 @@ class CodesDashboardStructureTests(unittest.TestCase):
         self.assertIn("Unsaved edits for this house are lost", self.html)
         self.assertIn("window.confirm", self.html)
         self.assertIn("slug === 'spanish_moss'", self.html)
-        restore_fn = self.html.split("async function restoreLiveCodes", 1)[1].split("function bindHouse", 1)[0]
+        restore_fn = self.html.split("async function restoreLiveCodes", 1)[1].split("function houseNode", 1)[0]
         self.assertIn("setDoc(liveRef(slug)", restore_fn)
         self.assertNotIn("{ merge: true }", restore_fn)
-        save_fn = self.html.split("btn.addEventListener('click', async (e) => {", 1)[1]
+        save_fn = self.html.split("async function commitHouseSave", 1)[1].split("function bindHouse", 1)[0]
         self.assertIn("{ merge: true }", save_fn)
+        self.assertIn("serverTimestamp()", save_fn)
 
     def test_occupancy_json_has_no_codes_or_filter_sizes(self):
         occupancy = OCCUPANCY_PATH.read_text(encoding="utf-8")
@@ -407,6 +408,33 @@ class CodesDashboardStructureTests(unittest.TestCase):
             "caches.open",
         ):
             self.assertNotIn(banned, self.html, msg=banned)
+
+    def test_save_flow_is_edit_confirm_and_conflict(self):
+        self.assertIn("input.readOnly = true", self.html)
+        self.assertEqual(self.html.count("let editingSlug"), 1)
+        self.assertIn("edit ${houseDisplayName(property.address)}", self.html)
+        self.assertIn("this updates the record only. it doesn't change the lock.", self.html)
+        self.assertIn("didn't save, nothing changed. try again.", self.html)
+        self.assertIn("changed since you opened it. refresh first.", self.html)
+        self.assertIn("runTransaction(db", self.html)
+        self.assertIn("clear ${key}", self.html)
+        self.assertIn("save ${count} ${noun} to ${houseName}? ${labels.join(', ')}", self.html)
+        self.assertIn("function nextEditingSlug", self.html)
+        self.assertIn("discard unsaved changes to ${currentName}?", self.html)
+        edit = self.html.split("function openHouseEdit", 1)[1].split("function showSaveConfirm", 1)[0]
+        self.assertIn("nextEditingSlug", edit)
+        self.assertIn("restoreHouseFields", edit)
+        self.assertIn("setHouseEditing(editingSlug, false)", edit)
+        commit = self.html.split("async function commitHouseSave", 1)[1].split("function bindHouse", 1)[0]
+        self.assertLess(commit.index("codes-conflict"), commit.index("transaction.set"))
+        self.assertIn("updatedAt: serverTimestamp()", commit)
+        self.assertIn("source: 'page'", commit)
+        failure = commit.split("} catch (err)", 1)[1]
+        self.assertIn("SAVE_FAILURE", failure)
+        self.assertIn("conflictMessage(", failure)
+        self.assertNotIn(".value", failure)
+        self.assertNotIn("refreshHouse", failure)
+        self.assertNotIn("restoreHouseFields", failure)
 
 
 if __name__ == "__main__":

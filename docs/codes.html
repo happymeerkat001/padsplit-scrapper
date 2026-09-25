@@ -95,6 +95,48 @@
       background: var(--success);
       color: #05220f;
     }
+    .save-actions {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.35rem;
+      align-self: flex-start;
+    }
+    .edit-btn, .confirm-cancel {
+      border: 1px solid rgba(148,163,184,0.4);
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text);
+      font-weight: 600;
+      padding: 0.4rem 0.75rem;
+      cursor: pointer;
+    }
+    .confirm-save {
+      border: none;
+      border-radius: 8px;
+      background: var(--accent);
+      color: #0b1222;
+      font-weight: 700;
+      padding: 0.4rem 0.75rem;
+      cursor: pointer;
+    }
+    .save-confirm {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.35rem;
+    }
+    .save-confirm.hidden { display: none; }
+    .lock-note, .save-status, .save-confirm-line {
+      margin: 0;
+      max-width: 18rem;
+      text-align: right;
+      font-size: 0.75rem;
+      line-height: 1.35;
+      color: var(--muted);
+      font-weight: 400;
+    }
+    .code-input[readonly], .code-textarea[readonly] { cursor: default; }
     .history-btn {
       border: 1px solid rgba(148,163,184,0.4);
       border-radius: 8px;
@@ -308,7 +350,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import { getFirestore, collection, getDocs, getDocsFromServer, getDoc, setDoc, doc, serverTimestamp, onSnapshot, query, orderBy, limit, startAfter, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, getDocsFromServer, getDoc, setDoc, doc, serverTimestamp, onSnapshot, query, orderBy, limit, startAfter, Timestamp, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCSWOHI6QLqugy_Fao2p4bBehg02_fu3No",
@@ -798,6 +840,7 @@
       input.dataset.prop = property.slug;
       input.dataset.field = fieldKey;
       input.value = value;
+      input.readOnly = true;
       if (options.placeholder) input.placeholder = options.placeholder;
       if (isTextarea) input.rows = options.rows || 3;
       updateDateOverdueState(input);
@@ -985,12 +1028,52 @@
       details.open = true;
       details.dataset.house = property.slug;
       const summary = document.createElement('summary');
-      summary.innerHTML = `
-        <div class="flex-between">
-          <div class="property-title">${property.address}</div>
-          <button type="button" class="save-btn" data-save="${property.slug}" disabled>Save</button>
-        </div>
-      `;
+      const row = document.createElement('div');
+      row.className = 'flex-between';
+      const title = document.createElement('div');
+      title.className = 'property-title';
+      title.textContent = property.address;
+      row.appendChild(title);
+      const actions = document.createElement('div');
+      actions.className = 'save-actions';
+      const editBtn = document.createElement('button');
+      editBtn.type = 'button';
+      editBtn.className = 'edit-btn';
+      editBtn.dataset.edit = property.slug;
+      editBtn.textContent = `edit ${houseDisplayName(property.address)}`;
+      const saveBtn = document.createElement('button');
+      saveBtn.type = 'button';
+      saveBtn.className = 'save-btn hidden';
+      saveBtn.dataset.save = property.slug;
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'save';
+      const lockNote = document.createElement('p');
+      lockNote.className = 'lock-note hidden';
+      lockNote.textContent = LOCK_NOTE;
+      const confirmBox = document.createElement('div');
+      confirmBox.className = 'save-confirm hidden';
+      const confirmLine = document.createElement('p');
+      confirmLine.className = 'save-confirm-line';
+      const confirmSave = document.createElement('button');
+      confirmSave.type = 'button';
+      confirmSave.className = 'confirm-save';
+      confirmSave.textContent = 'save';
+      const confirmCancel = document.createElement('button');
+      confirmCancel.type = 'button';
+      confirmCancel.className = 'confirm-cancel';
+      confirmCancel.textContent = 'cancel';
+      confirmBox.appendChild(confirmLine);
+      confirmBox.appendChild(confirmSave);
+      confirmBox.appendChild(confirmCancel);
+      const status = document.createElement('p');
+      status.className = 'save-status';
+      actions.appendChild(editBtn);
+      actions.appendChild(saveBtn);
+      actions.appendChild(lockNote);
+      actions.appendChild(confirmBox);
+      actions.appendChild(status);
+      row.appendChild(actions);
+      summary.appendChild(row);
       details.appendChild(summary);
 
       const body = document.createElement('div');
@@ -1047,6 +1130,7 @@
       DEFAULTS.forEach((property) => {
         const live = loaded && docsBySlug.has(property.slug);
         const saved = live ? (docsBySlug.get(property.slug) || {}) : {};
+        rememberHouseLoad(property.slug, saved);
         const node = renderProperty(property, saved, live);
         if (loaded && !live) {
           const note = document.createElement('div');
@@ -1058,6 +1142,75 @@
         list.appendChild(node);
       });
     }
+
+    const LOCK_NOTE = "this updates the record only. it doesn't change the lock.";
+    const SAVE_FAILURE = "didn't save, nothing changed. try again.";
+    let editingSlug = null;
+    const baselineBySlug = new Map();
+    const loadedUpdatedAtBySlug = new Map();
+
+    function houseDisplayName(address) {
+      return String(address || '').replace(/^\d+\s+/, '').trim().toLowerCase();
+    }
+
+    function changeLabels(baseline, current) {
+      const labels = [];
+      Object.keys(current || {}).forEach((key) => {
+        const before = baseline && baseline[key] != null ? String(baseline[key]).trim() : '';
+        const after = current[key] == null ? '' : String(current[key]).trim();
+        if (before === after) return;
+        labels.push(after === '' ? `clear ${key}` : key);
+      });
+      return labels;
+    }
+
+    function saveConfirmLine(houseName, labels) {
+      const count = labels.length;
+      const noun = count === 1 ? 'change' : 'changes';
+      return `save ${count} ${noun} to ${houseName}? ${labels.join(', ')}`;
+    }
+
+    function formatSavedTime(date) {
+      const when = date instanceof Date ? date : new Date();
+      let hour = when.getHours();
+      const minute = String(when.getMinutes()).padStart(2, '0');
+      const suffix = hour >= 12 ? 'pm' : 'am';
+      hour %= 12;
+      if (hour === 0) hour = 12;
+      return `saved ${hour}:${minute}${suffix}`;
+    }
+
+    function updatedAtToken(value) {
+      if (value == null || value === '') return '';
+      if (typeof value.toMillis === 'function') return `ms:${value.toMillis()}`;
+      if (typeof value === 'object' && typeof value.seconds === 'number') {
+        const nanos = typeof value.nanoseconds === 'number' ? value.nanoseconds : 0;
+        return `ts:${value.seconds}.${nanos}`;
+      }
+      if (typeof value === 'string' || typeof value === 'number') return `v:${value}`;
+      return `o:${String(value)}`;
+    }
+
+    function sameUpdatedAt(loaded, current) {
+      return updatedAtToken(loaded) === updatedAtToken(current);
+    }
+
+    function conflictMessage(houseName) {
+      return `${houseName} changed since you opened it. refresh first.`;
+    }
+
+    function nextEditingSlug(currentSlug, nextSlug, dirty, confirmFn) {
+      if (!nextSlug || currentSlug === nextSlug) return currentSlug;
+      if (currentSlug && dirty && !confirmFn()) return currentSlug;
+      return nextSlug;
+    }
+
+    function rememberHouseLoad(slug, data) {
+      const saved = data && typeof data === 'object' ? data : {};
+      baselineBySlug.set(slug, canonicalizeCodeFields(saved));
+      loadedUpdatedAtBySlug.set(slug, saved.updatedAt == null ? null : saved.updatedAt);
+    }
+    // end save-flow helpers
 
     async function initCodes(generation) {
       const isCodesUser = () => isApprovedCodesUser(auth.currentUser);
@@ -1076,12 +1229,6 @@
         });
       }
 
-      async function latestVersionHash(slug) {
-        const snap = await getDocs(query(versionsCol(slug), orderBy('createdAt', 'desc'), limit(1)));
-        if (snap.empty) return '';
-        return snap.docs[0].data().contentHash || '';
-      }
-
       function collectForm(slug) {
         const payload = {};
         list.querySelectorAll(`input[data-prop="${slug}"], textarea[data-prop="${slug}"]`).forEach((input) => {
@@ -1095,10 +1242,13 @@
         if (!property) return;
         const snap = await getDoc(liveRef(slug));
         const hasLive = snap.exists();
-        const node = renderProperty(property, hasLive ? snap.data() : {}, hasLive);
+        const data = hasLive ? snap.data() : {};
+        rememberHouseLoad(slug, data);
+        const node = renderProperty(property, data, hasLive);
         const old = list.querySelector(`details[data-house="${slug}"]`);
         if (old) old.replaceWith(node);
         else list.appendChild(node);
+        if (editingSlug === slug) editingSlug = null;
         bindHouse(node, slug, property.address);
       }
 
@@ -1264,6 +1414,154 @@
         }
       }
 
+      function houseNode(slug) {
+        return list.querySelector(`details[data-house="${slug}"]`);
+      }
+
+      function fieldsOf(slug) {
+        return [...list.querySelectorAll(`input[data-prop="${slug}"], textarea[data-prop="${slug}"]`)];
+      }
+
+      function setSaveStatus(slug, message) {
+        const node = houseNode(slug);
+        const status = node && node.querySelector('.save-status');
+        if (status) status.textContent = message || '';
+      }
+
+      function setHouseEditing(slug, on) {
+        const node = houseNode(slug);
+        if (!node) return;
+        fieldsOf(slug).forEach((input) => {
+          input.readOnly = !on;
+        });
+        const editBtn = node.querySelector('.edit-btn');
+        const saveBtn = node.querySelector('.save-btn');
+        const note = node.querySelector('.lock-note');
+        const confirm = node.querySelector('.save-confirm');
+        if (editBtn) editBtn.classList.toggle('hidden', on);
+        if (saveBtn) {
+          saveBtn.classList.toggle('hidden', !on);
+          saveBtn.disabled = !on || !isCodesUser();
+        }
+        if (note) note.classList.toggle('hidden', !on);
+        if (confirm) confirm.classList.add('hidden');
+        const status = node.querySelector('.save-status');
+        if (status) status.textContent = '';
+      }
+
+      function restoreHouseFields(slug) {
+        const base = baselineBySlug.get(slug) || {};
+        fieldsOf(slug).forEach((input) => {
+          const key = input.dataset.field;
+          input.value = base[key] == null ? '' : String(base[key]);
+          updateDateOverdueState(input);
+        });
+      }
+
+      function openHouseEdit(slug) {
+        if (!isCodesUser()) return;
+        const dirty = Boolean(editingSlug && editingSlug !== slug && changeLabels(baselineBySlug.get(editingSlug) || {}, collectForm(editingSlug)).length);
+        const currentName = houseDisplayName((DEFAULTS.find((item) => item.slug === editingSlug) || {}).address);
+        const next = nextEditingSlug(editingSlug, slug, dirty, () => window.confirm(`discard unsaved changes to ${currentName}?`));
+        if (next !== slug) return;
+        if (editingSlug && editingSlug !== slug) {
+          if (dirty) restoreHouseFields(editingSlug);
+          setHouseEditing(editingSlug, false);
+        }
+        editingSlug = slug;
+        setHouseEditing(slug, true);
+      }
+
+      function showSaveConfirm(slug, address) {
+        if (!isCodesUser() || editingSlug !== slug) return;
+        const node = houseNode(slug);
+        if (!node) return;
+        const labels = changeLabels(baselineBySlug.get(slug) || {}, collectForm(slug));
+        const box = node.querySelector('.save-confirm');
+        const line = node.querySelector('.save-confirm-line');
+        if (!labels.length) {
+          if (box) box.classList.add('hidden');
+          return;
+        }
+        if (line) line.textContent = saveConfirmLine(houseDisplayName(address), labels);
+        if (box) box.classList.remove('hidden');
+      }
+
+      let saveInFlight = null;
+
+      async function commitHouseSave(slug, address) {
+        if (!isCodesUser() || editingSlug !== slug || saveInFlight) return;
+        const node = houseNode(slug);
+        if (!node) return;
+        const payload = collectForm(slug);
+        const labels = changeLabels(baselineBySlug.get(slug) || {}, payload);
+        const box = node.querySelector('.save-confirm');
+        const line = node.querySelector('.save-confirm-line');
+        if (!labels.length) {
+          if (box) box.classList.add('hidden');
+          return;
+        }
+        const expected = saveConfirmLine(houseDisplayName(address), labels);
+        if (!line || line.textContent !== expected) {
+          if (line) line.textContent = expected;
+          if (box) box.classList.remove('hidden');
+          return;
+        }
+        saveInFlight = slug;
+        const saveBtn = node.querySelector('.save-btn');
+        if (saveBtn) saveBtn.disabled = true;
+        if (box) box.classList.add('hidden');
+        try {
+          await runTransaction(db, async (transaction) => {
+            const snap = await transaction.get(liveRef(slug));
+            const serverAt = snap.exists() ? snap.data().updatedAt : null;
+            if (!sameUpdatedAt(loadedUpdatedAtBySlug.get(slug), serverAt)) {
+              const conflict = new Error('codes-conflict');
+              conflict.code = 'codes-conflict';
+              throw conflict;
+            }
+            const merged = Object.assign({}, snap.exists() ? snap.data() : {}, payload);
+            const digest = await hashCodeFields(merged);
+            const previousHash = snap.exists() ? (snap.data().contentHash || '') : '';
+            transaction.set(liveRef(slug), {
+              ...payload,
+              contentHash: digest,
+              updatedAt: serverTimestamp()
+            }, { merge: true });
+            if (digest !== previousHash) {
+              transaction.set(doc(versionsCol(slug)), {
+                fields: canonicalizeCodeFields(merged),
+                contentHash: digest,
+                createdAt: serverTimestamp(),
+                expireAt: Timestamp.fromMillis(Date.now() + 90 * 24 * 60 * 60 * 1000),
+                source: 'page'
+              });
+            }
+          });
+          try {
+            const after = await getDoc(liveRef(slug));
+            rememberHouseLoad(slug, after.exists() ? after.data() : payload);
+          } catch (readErr) {
+            console.error('saved codes read-back failed', readErr && readErr.code);
+            const prior = baselineBySlug.get(slug) || {};
+            baselineBySlug.set(slug, { ...prior, ...payload });
+          }
+          editingSlug = null;
+          setHouseEditing(slug, false);
+          setSaveStatus(slug, formatSavedTime(new Date()));
+        } catch (err) {
+          console.error('Failed to save codes', err && err.code);
+          if (err && (err.code === 'codes-conflict' || err.message === 'codes-conflict')) {
+            setSaveStatus(slug, conflictMessage(houseDisplayName(address)));
+          } else {
+            setSaveStatus(slug, SAVE_FAILURE);
+          }
+        } finally {
+          saveInFlight = null;
+          if (saveBtn && editingSlug === slug) saveBtn.disabled = false;
+        }
+      }
+
       function bindHouse(node, slug, address) {
         const summaryRow = node.querySelector('.flex-between');
         if (summaryRow && !summaryRow.querySelector('.history-btn')) {
@@ -1272,8 +1570,8 @@
           prev.className = 'history-btn';
           prev.dataset.history = slug;
           prev.textContent = 'Previous';
-          const saveBtn = summaryRow.querySelector('.save-btn');
-          if (saveBtn) summaryRow.insertBefore(prev, saveBtn);
+          const actions = summaryRow.querySelector('.save-actions');
+          if (actions) summaryRow.insertBefore(prev, actions);
           else summaryRow.appendChild(prev);
           const panel = document.createElement('div');
           panel.className = 'history-panel hidden';
@@ -1295,53 +1593,46 @@
           });
         }
 
-        const btn = node.querySelector('.save-btn');
-        if (!btn || btn.dataset.bound === '1') return;
-        btn.dataset.bound = '1';
-        if (!isCodesUser()) return;
-        btn.disabled = false;
-        btn.addEventListener('click', async (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          if (!isCodesUser()) return;
-          const payload = collectForm(slug);
-          btn.disabled = true;
-          const oldText = btn.textContent;
-          try {
-            await setDoc(liveRef(slug), {
-              ...payload,
-              updatedAt: serverTimestamp()
-            }, { merge: true });
-            const after = await getDoc(liveRef(slug));
-            const live = after.exists() ? after.data() : payload;
-            const digest = await hashCodeFields(live);
-            const latest = await latestVersionHash(slug);
-            if (digest !== latest) {
-              try {
-                await writeSnapshot(slug, live, 'page');
-              } catch (snapErr) {
-                console.error('Failed to snapshot codes', snapErr);
-                btn.textContent = 'Error';
-                setTimeout(() => { btn.textContent = oldText; }, 1500);
-                return;
-              }
-            }
-            btn.textContent = 'Saved ✓';
-            btn.classList.add('saved');
-            setTimeout(() => {
-              btn.textContent = 'Save';
-              btn.classList.remove('saved');
-            }, 1500);
-          } catch (err) {
-            console.error('Failed to save codes', err);
-            btn.textContent = 'Error';
-            setTimeout(() => {
-              btn.textContent = oldText;
-            }, 1500);
-          } finally {
-            setTimeout(() => { btn.disabled = false; }, 200);
-          }
-        });
+        const editBtn = node.querySelector('.edit-btn');
+        if (editBtn && editBtn.dataset.bound !== '1') {
+          editBtn.dataset.bound = '1';
+          editBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            openHouseEdit(slug);
+          });
+        }
+
+        const saveBtn = node.querySelector('.save-btn');
+        if (saveBtn && saveBtn.dataset.bound !== '1') {
+          saveBtn.dataset.bound = '1';
+          saveBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            showSaveConfirm(slug, address);
+          });
+        }
+
+        const confirmSave = node.querySelector('.confirm-save');
+        if (confirmSave && confirmSave.dataset.bound !== '1') {
+          confirmSave.dataset.bound = '1';
+          confirmSave.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            commitHouseSave(slug, address);
+          });
+        }
+
+        const confirmCancel = node.querySelector('.confirm-cancel');
+        if (confirmCancel && confirmCancel.dataset.bound !== '1') {
+          confirmCancel.dataset.bound = '1';
+          confirmCancel.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const box = node.querySelector('.save-confirm');
+            if (box) box.classList.add('hidden');
+          });
+        }
       }
 
       const snapshot = await getDocsFromServer(collection(db, 'property_codes'));
@@ -1350,6 +1641,7 @@
       snapshot.forEach((d) => docsBySlug.set(d.id, d.data()));
 
       setApprovedChrome(true);
+      editingSlug = null;
       renderAllHouses(docsBySlug);
       DEFAULTS.forEach((property) => {
         const node = list.querySelector(`details[data-house="${property.slug}"]`);
