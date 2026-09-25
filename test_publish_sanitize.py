@@ -11,6 +11,7 @@ from unittest.mock import patch
 
 import padsplit_scraper.persist as persist
 from padsplit_scraper.publish_sanitize import (
+    REDACTION,
     find_violations,
     format_violation_report,
     redact_sensitive_text,
@@ -88,12 +89,12 @@ class RedactTextTests(unittest.TestCase):
     def test_redacts_door_lockbox_and_wifi_phrases(self) -> None:
         door = redact_sensitive_text(f"Front door code {DOOR_DIGITS} when you arrive")
         self.assertNotIn(DOOR_DIGITS, door)
-        self.assertIn("[redacted]", door)
+        self.assertIn(REDACTION, door)
         self.assertIn("when you arrive", door)
 
         lockbox = redact_sensitive_text(f"Use lockbox {LOCKBOX_DIGITS} by the meter")
         self.assertNotIn(LOCKBOX_DIGITS, lockbox)
-        self.assertIn("[redacted]", lockbox)
+        self.assertIn(REDACTION, lockbox)
 
         wifi = redact_sensitive_text(f"wifi password {WIFI_TOKEN}")
         self.assertNotIn(WIFI_TOKEN, wifi)
@@ -101,12 +102,13 @@ class RedactTextTests(unittest.TestCase):
 
         placeholder = redact_sensitive_text(f"password {PLACEHOLDER}")
         self.assertNotIn(PLACEHOLDER, placeholder)
-        self.assertEqual(placeholder, "[redacted]")
+        self.assertEqual(REDACTION, "[code hidden, see ops page]")
+        self.assertEqual(placeholder, REDACTION)
 
     def test_redacts_token_before_keyword_and_smashed_code(self) -> None:
         leading = redact_sensitive_text(f"{DOOR_DIGITS} is the door code")
         self.assertNotIn(DOOR_DIGITS, leading)
-        self.assertIn("[redacted]", leading)
+        self.assertIn(REDACTION, leading)
         smashed = redact_sensitive_text(f"code{DOOR_DIGITS}")
         self.assertNotIn(DOOR_DIGITS, smashed)
 
@@ -136,13 +138,13 @@ class RedactTextTests(unittest.TestCase):
     def test_added_keywords_redact_without_hitting_keyboard_or_monkey(self) -> None:
         combo = redact_sensitive_text(f"the combo is {BARE_DIGITS}")
         self.assertNotIn(BARE_DIGITS, combo)
-        self.assertIn("[redacted]", combo)
+        self.assertIn(REDACTION, combo)
         keyed = redact_sensitive_text(f"key: {BARE_DIGITS}")
         self.assertNotIn(BARE_DIGITS, keyed)
-        self.assertIn("[redacted]", keyed)
+        self.assertIn(REDACTION, keyed)
         short = redact_sensitive_text("pw xyz")
         self.assertNotIn("xyz", short)
-        self.assertIn("[redacted]", short)
+        self.assertIn(REDACTION, short)
         self.assertEqual(redact_sensitive_text("a monkey at the keyboard"), "a monkey at the keyboard")
         self.assertEqual(redact_sensitive_text("the lock is stuck"), "the lock is stuck")
         self.assertEqual(redact_sensitive_text("the network is down"), "the network is down")
@@ -156,12 +158,45 @@ class RedactTextTests(unittest.TestCase):
             "Rent is $850. Call (214) 555-0100.",
             bare_numbers=True,
         )
-        self.assertNotIn("[redacted]", kept)
+        self.assertNotIn(REDACTION, kept)
         self.assertIn("2024", kept)
         self.assertIn("2026-09-01T00:00:00.123456Z", kept)
         self.assertIn("10:30", kept)
         self.assertIn("$850", kept)
         self.assertIn("555-0100", kept)
+
+    def test_street_address_keeps_leading_number_unless_keyword_wins(self) -> None:
+        plain = "Meet at 1234 main st tomorrow"
+        directional = "Meet at 1234 N Oak Hollow Dr. tomorrow"
+        five = "Parcel for 12345 Example Ave"
+        upper = "Meet at 1234 MAIN ST tomorrow"
+        for sample in (plain, directional, five, upper):
+            self.assertEqual(redact_sensitive_text(sample, bare_numbers=True), sample)
+            self.assertEqual(find_violations({"note": sample}), [])
+        coded = redact_sensitive_text("door code 1234", bare_numbers=True)
+        self.assertNotIn("1234", coded)
+        self.assertEqual(coded, REDACTION)
+        coded_street = redact_sensitive_text("door code 1234 main st", bare_numbers=True)
+        self.assertNotIn("1234", coded_street)
+        self.assertIn("main st", coded_street)
+        self.assertIn(REDACTION, coded_street)
+        six = redact_sensitive_text("use 900001 main st", bare_numbers=True)
+        self.assertNotIn("900001", six)
+        self.assertIn("main st", six)
+        station = redact_sensitive_text("use 1234 at the station", bare_numbers=True)
+        self.assertNotIn("1234", station)
+        away = redact_sensitive_text("use 1234 away from here", bare_numbers=True)
+        self.assertNotIn("1234", away)
+        too_far = redact_sensitive_text("use 1234 N Oak Hollow Extra Dr", bare_numbers=True)
+        self.assertNotIn("1234", too_far)
+
+    def test_placeholder_is_not_a_violation_and_stays_idempotent(self) -> None:
+        self.assertEqual(find_violations({"text": REDACTION}), [])
+        self.assertEqual(find_violations({"note": f"later {REDACTION}"}), [])
+        kept = f"{REDACTION} at 1234 main st"
+        self.assertEqual(find_violations({"text": kept}), [])
+        self.assertEqual(redact_sensitive_text(kept, bare_numbers=True), kept)
+        self.assertEqual(redact_sensitive_text(REDACTION), REDACTION)
 
 
 class SnapshotSanitizeTests(unittest.TestCase):

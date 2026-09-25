@@ -40,12 +40,12 @@ A secret token is:
 
 The keyword and token must sit within 48 characters (32 for letter-only
 password tokens). The whole span covering both, including the short glue
-between them, is replaced with ``[redacted]``. Prose with a keyword and no
-nearby token is left alone, so "the door is broken" and "Room 4 needs paint"
-stay. One- and two-digit room labels stay. Dates (``YYYY-MM-DD``,
-``MM/DD/YYYY``, month names, "in 2024"), ISO timestamps (including fractional
-seconds), colon times (``10:30``), ``$`` prices, phone numbers, and
-``http(s)`` URLs are not tokens.
+between them, is replaced with ``[code hidden, see ops page]``. Prose with a
+keyword and no nearby token is left alone, so "the door is broken" and
+"Room 4 needs paint" stay. One- and two-digit room labels stay. Dates
+(``YYYY-MM-DD``, ``MM/DD/YYYY``, month names, "in 2024"), ISO timestamps
+(including fractional seconds), colon times (``10:30``), ``$`` prices, phone
+numbers, and ``http(s)`` URLs are not tokens.
 
 Message body fields (``text``, ``body``) and any other non-allowlisted string
 also lose a standalone 4–8 digit run that is not one of those protected
@@ -53,10 +53,24 @@ forms (``use 424242 to get in``). The cleaner still limits keyword redaction
 to the free-text field list above. Bare-number redaction follows the checker's
 allowlist so a sanitized snapshot can pass the full-string scan.
 
+A 4–5 digit run that begins a street address is not a bare number. It stays
+when a street suffix appears within the next 1–4 words (case-insensitive,
+optional period): st, street, ave, avenue, rd, road, dr, drive, ln, lane,
+blvd, boulevard, ct, court, way, pl, place, pkwy, parkway, cir, circle, trl,
+trail, hwy, highway, loop. ``1234 main st`` and ``1234 N Oak Hollow Dr.``
+keep the number. A 6–8 digit run before a suffix is still removed. The
+keyword rule still wins, so ``door code 1234`` and ``door code 1234 main st``
+are redacted.
+
+The replacement text itself is masked before either scan. The word ``code``
+inside ``[code hidden, see ops page]`` is not a keyword, and a second pass
+does not flag or rewrite the placeholder.
+
 Edge cases, accepted on purpose:
 
-* A zip code or 4–8 digit house number inside message text is redacted.
-  The same digits in ``street1``, ``street2``, ``zip``, or ``address`` stay.
+* A zip or other 4–8 digit run in message text that is not a street number
+  is redacted. The same digits in ``street1``, ``street2``, ``zip``, or
+  ``address`` stay because those keys are allowlisted.
 * A 4-digit year with date wording (``in 2024``, ``2026-09-01``) stays. A
   bare year with no date wording in message text can be redacted; it is
   indistinguishable from a 4-digit code.
@@ -64,7 +78,7 @@ Edge cases, accepted on purpose:
 * ``(214) 555-0100``, ``214-555-0100``, and ``+1 214 555 0100`` stay,
   including the last four digits.
 * A 3+ digit run next to "room" is treated as a code, so a street number in
-  that window can be redacted.
+  that window can be redacted even when a suffix follows.
 
 Bare-number allowlist (key name, unless noted as a path). Keyword+token
 rules still apply on these strings. The list is only ids, timestamps, counts,
@@ -94,7 +108,7 @@ from typing import Any, Iterable, List, Sequence, Tuple
 
 TEXT_FIELDS = frozenset({"text", "body", "details", "description", "comment"})
 MESSAGE_BODY_FIELDS = frozenset({"text", "body"})
-REDACTION = "[redacted]"
+REDACTION = "[code hidden, see ops page]"
 DIGIT_WINDOW = 48
 PASSWORD_WINDOW = 32
 
@@ -174,6 +188,41 @@ _PHONE_RE = re.compile(
 _URL_RE = re.compile(r"https?://[^\s<>\"']+")
 _DIGIT_RE = re.compile(r"(?<!\d)\d{3,16}(?!\d)")
 _BARE_DIGIT_RE = re.compile(r"(?<!\d)\d{4,8}(?!\d)")
+# Longer suffixes first so "street" wins over "st" and "drive" wins over "dr".
+_STREET_SUFFIX_PARTS = (
+    "boulevard",
+    "parkway",
+    "highway",
+    "street",
+    "avenue",
+    "circle",
+    "trail",
+    "court",
+    "place",
+    "drive",
+    "pkwy",
+    "blvd",
+    "lane",
+    "road",
+    "loop",
+    "hwy",
+    "trl",
+    "cir",
+    "ave",
+    "way",
+    "st",
+    "rd",
+    "dr",
+    "ln",
+    "ct",
+    "pl",
+)
+_STREET_WORD = r"[A-Za-z][A-Za-z0-9'-]*\.?"
+_STREET_ADDRESS_RE = re.compile(
+    r"(?i)(?<!\d)(?P<number>\d{4,5})(?!\d)"
+    r"(?:\s+%s){0,3}\s+(?:%s)\b\.?"
+    % (_STREET_WORD, "|".join(_STREET_SUFFIX_PARTS))
+)
 _MIXED_TOKEN_RE = re.compile(
     r"(?<![A-Za-z0-9])(?=[A-Za-z0-9]*[A-Za-z])(?=[A-Za-z0-9]*\d)"
     r"[A-Za-z0-9][A-Za-z0-9@#$!%*_.\-]{3,31}(?![A-Za-z0-9])"
@@ -322,12 +371,12 @@ class Violation:
 
 
 def redact_sensitive_text(text: str, *, bare_numbers: bool = False, keywords: bool = True) -> str:
-    """Replace keyword-plus-token phrases with ``[redacted]``.
+    """Replace keyword-plus-token phrases with ``[code hidden, see ops page]``.
 
     When ``bare_numbers`` is true, also replace a standalone 4–8 digit run
-    that is not a date, time, price, phone number, or URL. ``keywords``
-    stays on for the free-text field list and off when a structural field
-    only needs bare-number handling.
+    that is not a date, time, price, phone number, URL, or 4–5 digit street
+    number. ``keywords`` stays on for the free-text field list and off when
+    a structural field only needs bare-number handling.
     """
     if not isinstance(text, str) or not text:
         return text
@@ -462,26 +511,42 @@ def _protected_spans(text: str) -> List[Span]:
     )
 
 
+def _mask_redactions(text: str) -> str:
+    """Hide the placeholder so its word ``code`` is not a keyword."""
+    if REDACTION not in text:
+        return text
+    return text.replace(REDACTION, " " * len(REDACTION))
+
+
+def _street_number_spans(text: str) -> List[Span]:
+    """4–5 digit runs that begin a street address. Keyword rules ignore these."""
+    return [(match.start("number"), match.end("number")) for match in _STREET_ADDRESS_RE.finditer(text)]
+
+
 def _bare_number_spans(text: str) -> List[Span]:
-    protected = _protected_spans(text)
+    masked = _mask_redactions(text)
+    protected = _protected_spans(masked)
+    street = _street_number_spans(masked)
     return [
         (match.start(), match.end())
-        for match in _BARE_DIGIT_RE.finditer(text)
+        for match in _BARE_DIGIT_RE.finditer(masked)
         if not _overlaps(match.start(), match.end(), protected)
+        and not _overlaps(match.start(), match.end(), street)
     ]
 
 
 def _sensitive_spans(text: str) -> List[Span]:
-    protected = _protected_spans(text)
-    keywords = [match for match in _KEYWORD_RE.finditer(text)]
+    masked = _mask_redactions(text)
+    protected = _protected_spans(masked)
+    keywords = [match for match in _KEYWORD_RE.finditer(masked)]
     tokens: List[_Token] = []
-    for match in _DIGIT_RE.finditer(text):
+    for match in _DIGIT_RE.finditer(masked):
         if not _overlaps(match.start(), match.end(), protected):
             tokens.append(_Token(match.start(), match.end(), False, DIGIT_WINDOW))
-    for match in _MIXED_TOKEN_RE.finditer(text):
+    for match in _MIXED_TOKEN_RE.finditer(masked):
         if not _overlaps(match.start(), match.end(), protected):
             tokens.append(_Token(match.start(), match.end(), False, DIGIT_WINDOW))
-    for match in list(_LETTER_TOKEN_RE.finditer(text)) + list(_CAMEL_TOKEN_RE.finditer(text)):
+    for match in list(_LETTER_TOKEN_RE.finditer(masked)) + list(_CAMEL_TOKEN_RE.finditer(masked)):
         word = match.group()
         if word.lower() in _PROSE_WORDS or _KEYWORD_RE.fullmatch(word):
             continue
@@ -489,10 +554,10 @@ def _sensitive_spans(text: str) -> List[Span]:
             tokens.append(_Token(match.start(), match.end(), True, PASSWORD_WINDOW))
 
     spans: List[Span] = []
-    for match in _SMASHED_RE.finditer(text):
+    for match in _SMASHED_RE.finditer(masked):
         if not _overlaps(match.start(), match.end(), protected):
             spans.append((match.start(), match.end()))
-    for match in _PW_TOKEN_RE.finditer(text):
+    for match in _PW_TOKEN_RE.finditer(masked):
         token = re.search(r"[A-Za-z][A-Za-z0-9_\-]{2,31}$", match.group())
         if token and token.group().lower() in _PROSE_WORDS:
             continue
