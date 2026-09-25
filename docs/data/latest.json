@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-09-25T07:54:54Z",
+  "scraped_at": "2026-09-25T13:53:40Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6Mzc5OTMw",
@@ -44,21 +44,43 @@
       },
       "isCancelled": false,
       "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE3NzAyNjk=",
-        "created": "2026-09-25T06:02:33.903570",
-        "text": "The code 9999 isn't working ",
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE3NzA2OTU=",
+        "created": "2026-09-25T09:59:44.663380",
+        "text": null,
         "deleted": null,
         "extra": null,
-        "messageType": "TEXT",
+        "messageType": "TICKET_UPDATE",
         "sender": {
-          "pk": 1144806,
-          "firstName": "Kenneth",
-          "lastName": "Johnson",
-          "displayName": null
+          "pk": 339595,
+          "firstName": "Tinghui",
+          "lastName": "Li",
+          "displayName": ""
         },
         "attachments": [],
         "paymentExtensionStatus": null,
-        "ticketStatus": null,
+        "ticketStatus": {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMTc2Nzk4",
+          "created": "2026-09-25T09:59:44.671692",
+          "status": "SUBMITTED",
+          "canRate": false,
+          "ticket": {
+            "id": "480138",
+            "author": {
+              "firstName": "Kenneth",
+              "lastName": "Johnson",
+              "id": "1144806",
+              "displayName": null
+            },
+            "details": "Im locked out, don't know my code for my door. Can you message me the door lock code for room 6",
+            "location": "DOORLOCK",
+            "status": "SUBMITTED",
+            "rating": null,
+            "comment": null,
+            "category": "UNCLASSIFIED",
+            "onHoldReason": null,
+            "withdrawReason": null
+          }
+        },
         "bookingStatus": null
       },
       "member": {
@@ -67,6 +89,54 @@
         "isUnread": true
       },
       "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE3NzA2OTU=",
+          "text": null,
+          "created": "2026-09-25T09:59:44.663380",
+          "messageType": "TICKET_UPDATE",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
+            "pk": 339595,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Tinghui",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "",
+            "padmateProfileId": 278216
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMTc2Nzk4",
+            "created": "2026-09-25T09:59:44.671692",
+            "status": "SUBMITTED",
+            "canRate": false,
+            "ticket": {
+              "id": "480138",
+              "author": {
+                "firstName": "Kenneth",
+                "lastName": "Johnson",
+                "id": "1144806",
+                "displayName": null
+              },
+              "details": "Im locked out, don't know my code for my door. Can you message me the door lock code for room 6",
+              "location": "DOORLOCK",
+              "status": "SUBMITTED",
+              "rating": null,
+              "comment": null,
+              "category": "UNCLASSIFIED",
+              "onHoldReason": null,
+              "withdrawReason": null
+            }
+          },
+          "bookingStatus": null
+        },
         {
           "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE3NzAyNjk=",
           "text": "The code 9999 isn't working ",
@@ -279,32 +349,6 @@
           "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE3NjQ4NDY=",
           "text": "Today?",
           "created": "2026-09-24T22:11:52.456773",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjExNDQ4MDY=",
-            "pk": 1144806,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_1144806_35a5dfd3-d36e-4acd-9ecd-7a9db695d736.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1144806_35a5dfd3-d36e-4acd-9ecd-7a9db695d736.jpg",
-            "firstName": "Kenneth",
-            "lastName": "Johnson",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 1081772
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE3NjQ4NDE=",
-          "text": "Has maintenance been there?",
-          "created": "2026-09-24T22:11:39.225347",
           "messageType": "TEXT",
           "deleted": null,
           "isBroadcast": false,
@@ -1699,7 +1743,7 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-09-25T07:35:22.526928",
+        "seenAt": "2026-09-25T13:24:22.847155",
         "isPinned": false,
         "isUnread": false
       },
@@ -11648,6 +11692,48 @@
   "tasks": {
     "Requests": [
       {
+        "id": 480138,
+        "status": "submitted",
+        "comment": null,
+        "category": "unclassified",
+        "media": [],
+        "created": "2026-09-25T09:59:44.624593",
+        "modified": "2026-09-25T09:59:44.624593",
+        "room_name": "A-6",
+        "room_number": 6,
+        "room_status": 1,
+        "room_code": "9999",
+        "location": "Doorlock",
+        "details": "Im locked out, don't know my code for my door. Can you message me the door lock code for room 6",
+        "property_id": 5735,
+        "property_address": {
+          "id": 7379,
+          "street1": "3414 Pebbleshores Drive",
+          "street2": "",
+          "city": "Dallas",
+          "state": "TX",
+          "zip": "75241",
+          "city_slug": "dallas-tx"
+        },
+        "reported_by": {
+          "id": 1144806,
+          "name": "Kenneth Johnson",
+          "role_id": 0,
+          "picture": "img/profiles/user_1144806_35a5dfd3-d36e-4acd-9ecd-7a9db695d736.jpg"
+        },
+        "assigned_to": null,
+        "on_hold_reason": null,
+        "update_status_at": "2026-09-25T09:59:44.626482",
+        "rating": null,
+        "extra_data": {},
+        "has_reused_code": true,
+        "moveout_photos_count": 0,
+        "days_to_complete": null,
+        "is_on_payment_plan": false,
+        "payment_plan_end_date": null,
+        "payment_plan_reason_note": null
+      },
+      {
         "id": 479213,
         "status": "submitted",
         "comment": null,
@@ -12213,13 +12299,13 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-09-25T07:54:54Z",
-    "started_at": "2026-09-25T07:54:45Z",
-    "finished_at": "2026-09-25T07:55:03Z",
+    "run_scraped_at": "2026-09-25T13:53:40Z",
+    "started_at": "2026-09-25T13:53:25Z",
+    "finished_at": "2026-09-25T13:53:50Z",
     "host": "runnervmtr4k5",
     "counts": {
       "messages": 51,
-      "tasks": 12,
+      "tasks": 13,
       "rooms": 62,
       "properties": 9,
       "earnings_properties": 0
@@ -12230,7 +12316,7 @@
     "sources": {
       "messages": {
         "state": "ok",
-        "scraped_at": "2026-09-25T07:54:54Z"
+        "scraped_at": "2026-09-25T13:53:40Z"
       },
       "stats": {
         "state": "degraded",
