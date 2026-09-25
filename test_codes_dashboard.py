@@ -8,7 +8,12 @@ from pathlib import Path
 
 
 HTML_PATH = Path(__file__).resolve().parent / "docs" / "codes.html"
+DOCS_DIR = HTML_PATH.parent
 OCCUPANCY_PATH = Path(__file__).resolve().parent / "docs" / "data" / "occupancy.json"
+DIGIT_RUN_RE = re.compile(r"\d{4,}")
+VALUE_STRING_RE = re.compile(
+    r"""\bvalue\s*:\s*(?P<q>["'])(?P<body>(?:\\.|(?!(?P=q)).)*)(?P=q)"""
+)
 
 HOUSE_SLUGS = [
     "leana_6623",
@@ -296,28 +301,61 @@ class CodesDashboardStructureTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, msg="renderer structure test failed")
         self.assertIn("codes dashboard renderer structure ok", result.stdout)
 
-    def test_existing_default_values_unchanged(self):
-        main_html = None
-        for ref in ("origin/main", "main"):
-            result = subprocess.run(
-                ["git", "show", f"{ref}:docs/codes.html"],
-                capture_output=True,
-                text=True,
-            )
-            if result.returncode == 0:
-                main_html = result.stdout
-                break
-        if main_html is None:
-            self.skipTest("main codes.html not available for comparison")
-        main_houses = _house_blocks(main_html)
-        for slug, main_block in main_houses.items():
-            if slug not in self.houses:
+    def test_codes_config_has_no_values_or_digit_runs(self):
+        values = re.findall(r'value:\s*"([^"]*)"', self.defaults)
+        self.assertGreater(len(values), 0)
+        for index, value in enumerate(values):
+            self.assertEqual(value, "", msg=f"DEFAULTS value[{index}] must be empty")
+            self.assertIsNone(DIGIT_RUN_RE.search(value), msg=f"DEFAULTS value[{index}] has a digit run")
+        kept = []
+        for line in self.defaults.splitlines():
+            if re.search(r"\b(?:slug|address)\s*:", line):
                 continue
-            current = _key_values(self.houses[slug])
-            previous = _key_values(main_block)
-            for key, old_value in previous.items():
-                self.assertIn(key, current, msg=f"{slug} dropped key {key}")
-                self.assertEqual(current[key], old_value, msg=f"{slug} changed default for {key}")
+            kept.append(line)
+        self.assertIsNone(
+            DIGIT_RUN_RE.search("\n".join(kept)),
+            msg="digit run of 4+ in the codes config outside slug/address lines",
+        )
+
+    def test_docs_pages_have_no_nonempty_value_strings(self):
+        files = [
+            path
+            for path in DOCS_DIR.rglob("*")
+            if path.suffix in {".html", ".js"} and path.is_file()
+        ]
+        self.assertTrue(any(path.name == "codes.html" for path in files))
+        for path in files:
+            text = path.read_text(encoding="utf-8")
+            for match in VALUE_STRING_RE.finditer(text):
+                body = match.group("body")
+                if body == "" and not DIGIT_RUN_RE.search(body):
+                    continue
+                rel = path.relative_to(DOCS_DIR.parent)
+                self.fail(f"{rel} has a DEFAULTS value string at offset {match.start()}")
+
+    def test_codes_page_has_no_client_value_fallback(self):
+        self.assertIn("sign in to load codes", self.html)
+        self.assertIn("couldn't load codes", self.html)
+        self.assertIn("if (!currentHasLiveDoc) return '';", self.html)
+        self.assertIn("user.uid !== CODES_UID", self.html)
+        resolver = self.html.split("function resolveSavedOrDefault", 1)[1].split("function ", 1)[0]
+        self.assertNotIn("field.value", resolver)
+        self.assertNotIn("return fallback", resolver)
+        self.assertNotIn("return _fallback", resolver)
+        defaults_fn = self.html.split("function defaultFieldValue", 1)[1].split("let currentHasLiveDoc", 1)[0]
+        self.assertNotIn("field.value", defaults_fn)
+        self.assertNotIn("return fallback", defaults_fn)
+        self.assertNotIn("return _fallback", defaults_fn)
+        for banned in (
+            "localStorage",
+            "sessionStorage",
+            "indexedDB",
+            "enableIndexedDbPersistence",
+            "persistentLocalCache",
+            "serviceWorker",
+            "caches.open",
+        ):
+            self.assertNotIn(banned, self.html, msg=banned)
 
 
 if __name__ == "__main__":

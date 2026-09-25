@@ -12,7 +12,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)));
 const html = readFileSync(join(root, "docs/codes.html"), "utf8");
 
 const start = html.indexOf("    const OVERDUE_DAYS = {");
-const end = html.indexOf("    async function initCodes()");
+const end = html.indexOf("    async function initCodes");
 if (start < 0 || end < 0 || end <= start) {
   throw new Error("Could not extract codes dashboard renderer");
 }
@@ -103,7 +103,7 @@ function walk(el, visit) {
   el.children.forEach((child) => walk(child, visit));
 }
 
-const tree = api.renderProperty(dummy, {});
+const tree = api.renderProperty(dummy, { lockbox_1: "MAPPED" }, true);
 const inputs = [];
 const texts = [];
 walk(tree, (el) => {
@@ -148,9 +148,46 @@ walk(liveTree, (el) => {
   if (el.tagName === "INPUT" || el.tagName === "TEXTAREA") liveInputs.push(el);
 });
 const liveLockbox = liveInputs.find((el) => el.dataset.field === "lockbox_1");
-assert.equal(liveLockbox.value, "", "live doc missing key is empty, not DEFAULTS");
+assert.equal(liveLockbox.value, "", "live doc missing key is empty, not structure");
 const liveFront = liveInputs.find((el) => el.dataset.field === "front_door");
 assert.equal(liveFront.value, "X");
+
+const poisoned = {
+  slug: "fixture_house",
+  address: "Fixture House",
+  sections: [
+    {
+      label: "Door Codes",
+      fields: [{ key: "front_door", label: "Front", value: "DO_NOT_SHOW" }]
+    },
+    {
+      label: "Rooms",
+      fields: [{ key: "r1", label: "R1", value: "DO_NOT_SHOW" }]
+    },
+    {
+      label: "Lockboxes",
+      fields: [{ key: "lockbox_1", label: "1", value: "DO_NOT_SHOW" }]
+    }
+  ]
+};
+const coldTree = api.renderProperty(poisoned, { front_door: "FROM_DOC", lockbox_1: "FROM_DOC" }, false);
+const coldInputs = [];
+walk(coldTree, (el) => {
+  if (el.tagName === "INPUT" || el.tagName === "TEXTAREA") coldInputs.push(el);
+});
+assert.ok(coldInputs.length > 0);
+for (const el of coldInputs) {
+  assert.equal(el.value, "", "signed-out or missing live doc stays empty");
+}
+const poisonedLive = api.renderProperty(poisoned, { front_door: "FROM_DOC" }, true);
+const poisonedInputs = [];
+walk(poisonedLive, (el) => {
+  if (el.tagName === "INPUT" || el.tagName === "TEXTAREA") poisonedInputs.push(el);
+});
+assert.equal(poisonedInputs.find((el) => el.dataset.field === "front_door").value, "FROM_DOC");
+assert.equal(poisonedInputs.find((el) => el.dataset.field === "lockbox_1").value, "");
+assert.equal(poisonedInputs.find((el) => el.dataset.field === "r1").value, "");
+assert.ok(poisonedInputs.every((el) => el.value !== "DO_NOT_SHOW"));
 
 const room1 = inputs.find((el) => el.dataset.field === "r1");
 assert.notEqual(room1, lockbox1);
