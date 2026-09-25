@@ -685,7 +685,7 @@ class RunFlowTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             state_path = Path(tmp) / "state.json"
             ask = {
-                "event_key": "move_out|occ|spanish_moss|2|2026-09-02",
+                "event_key": "move_out|occ-chat-departed|spanish_moss|2|2026-09-02",
                 "house_slug": "spanish_moss",
                 "house_label": "Spanish Moss",
                 "room": "2",
@@ -717,10 +717,10 @@ class RunFlowTests(unittest.TestCase):
         self.assertEqual(changed[0][1], PLACEHOLDER)
         self.assertNotIn("r2", records[0][1])
         self.assertEqual(records[0][1]["front_door"], PLACEHOLDER)
-        self.assertEqual(records[0][1]["back_door"], PLACEHOLDER)
-        self.assertEqual([row[0] for row in padsplit], ["chat-staying"])
+        self.assertEqual(records[1][1]["back_door"], PLACEHOLDER)
+        self.assertEqual([row[0] for row in padsplit], ["chat-staying", "chat-staying"])
         self.assertIn(PLACEHOLDER, padsplit[0][1])
-        self.assertEqual(result.padsplit_notified, 1)
+        self.assertEqual(result.padsplit_notified, 2)
         self.assertEqual(posts, [lock_codes.discord_ang_yes_text("Spanish Moss", "2", shared_rotated=True)])
         self.assertFalse(any(lock_codes.has_digit_characters(item) for item in posts))
         self.assertEqual(saved["pending_ang_asks"], [])
@@ -740,7 +740,7 @@ class RunFlowTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             state_path = Path(tmp) / "state.json"
             ask = {
-                "event_key": "move_out|occ|spanish_moss|2|2026-09-02",
+                "event_key": "move_out|occ-chat-departed|spanish_moss|2|2026-09-02",
                 "house_slug": "spanish_moss",
                 "house_label": "Spanish Moss",
                 "room": "2",

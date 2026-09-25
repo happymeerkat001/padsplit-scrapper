@@ -689,23 +689,72 @@ def load_state(path: Path = STATE_PATH) -> Dict[str, Any]:
         raise RuntimeError("Lock-code state unreadable; manual reconciliation required") from exc
     if not isinstance(payload, dict):
         raise RuntimeError("Lock-code state invalid; manual reconciliation required")
+    def invalid():
+        raise RuntimeError("Lock-code state malformed; manual reconciliation required")
+
     empty = _empty_state()
     for key, default in empty.items():
-        payload.setdefault(key, default if not isinstance(default, (dict, list)) else type(default)())
-    if not isinstance(payload.get("passcode_hashes"), dict):
-        payload["passcode_hashes"] = {}
-    for list_key in (
-        "rotated_vacancy_keys",
-        "processed_discord_ids",
-        "processed_move_ins",
-        "processed_events",
-        "pending_ang_asks",
-        "seen_occupancies",
-    ):
-        if not isinstance(payload.get(list_key), list):
-            payload[list_key] = []
-    if not isinstance(payload.get("operation_stages"), dict):
-        payload["operation_stages"] = {}
+        if key not in payload:
+            payload[key] = type(default)() if isinstance(default, (dict, list)) else default
+        elif not isinstance(payload[key], type(default)):
+            invalid()
+    for key in ("rotated_vacancy_keys", "processed_discord_ids", "processed_move_ins",
+                "processed_events", "seen_occupancies"):
+        if any(not isinstance(item, str) or not item for item in payload[key]):
+            invalid()
+    if any(not isinstance(value, str) for value in payload["passcode_hashes"].values()):
+        invalid()
+    for ask in payload["pending_ang_asks"]:
+        if not isinstance(ask, dict):
+            invalid()
+        if any(not isinstance(ask.get(key), str) or not ask[key]
+               for key in ("event_key", "house_slug", "room")):
+            invalid()
+        for key in ("room_reset",):
+            if key in ask and not isinstance(ask[key], bool):
+                invalid()
+        for key in ("discord_message_id", "chat_id", "room_reset_approved_by"):
+            if key in ask and not isinstance(ask[key], str):
+                invalid()
+        if "door_decision" in ask and ask["door_decision"] not in ("yes", "no"):
+            invalid()
+
+    def validate_delivery(container):
+        if not isinstance(container, dict):
+            invalid()
+        notifications = container.get("notifications", {})
+        if not isinstance(notifications, dict):
+            invalid()
+        for delivery in notifications.values():
+            if not isinstance(delivery, dict):
+                invalid()
+            for key in ("started", "done"):
+                if key in delivery and not isinstance(delivery[key], bool):
+                    invalid()
+
+    for event_key, stage in payload["operation_stages"].items():
+        if not isinstance(event_key, str) or not event_key or not isinstance(stage, dict):
+            invalid()
+        locks, writes = stage.get("locks", {}), stage.get("writes", [])
+        if not isinstance(locks, dict) or not isinstance(writes, list) or any(not isinstance(x, str) for x in writes):
+            invalid()
+        for lock in locks.values():
+            if not isinstance(lock, dict):
+                invalid()
+            for key in ("started", "done"):
+                if key in lock and not isinstance(lock[key], bool):
+                    invalid()
+            if lock.get("started") or lock.get("done"):
+                if any(not isinstance(lock.get(key), str) or not lock[key] for key in ("hash", "pwd_id")):
+                    invalid()
+            if lock.get("done") and not lock.get("started"):
+                invalid()
+        validate_delivery(stage)
+        doors = stage.get("door_deliveries", {})
+        if not isinstance(doors, dict):
+            invalid()
+        for door in doors.values():
+            validate_delivery(door)
     return payload
 
 
@@ -1571,13 +1620,6 @@ def _handled_rooms(state: Dict[str, Any]) -> set[tuple[str, str]]:
         room = str(row.get("room") or "")
         if slug and room:
             rooms.add((slug, room))
-    for raw in state.get("processed_events") or []:
-        parts = str(raw).split("|")
-        if len(parts) >= 4 and parts[0] in {"move_out", "terminated", "vacancy"}:
-            slug = parts[2]
-            room = parts[3]
-            if slug and room:
-                rooms.add((slug, room))
     return rooms
 
 
@@ -1965,34 +2007,50 @@ def _process_pending_asks(
                     targets.append(match)
             if not mapping_ok or not targets:
                 continue
-            fields, codes = {}, {}
-            all_rotated = True
+            all_complete = True
+            completed_doors = 0
             for match in targets:
                 lock_stage = stages.get("locks", {}).get(match.lock_id, {})
                 code = recover_code(match, event_key) if lock_stage.get("started") else new_code_fn()
                 if not code or not rotate_lock(match, code, event_key):
-                    all_rotated = False
+                    all_complete = False
                     break
-                fields[codes_field_for(slug, match.role, room)] = code
-                codes[match.role] = code
-            if not all_rotated:
-                continue
-            if not _write_or_skip(write_fields, slug, fields, result, event_key):
-                continue
-            notified = True
-            for thread in house_member_threads(messages, slug, now,
-                    exclude_chat_ids=(str(ask.get("chat_id") or ""),)):
-                chat_id = str(thread.get("id") or "")
-                if not chat_id:
-                    notified = False
-                    continue
-                was_done = stages.get("notifications", {}).get(chat_id, {}).get("done")
-                ok = _notify_once(stages, chat_id, member_shared_door_message(label, codes),
-                                  notify_one, dry_run, checkpoint)
-                if ok and not was_done:
-                    result.padsplit_notified += 1
-                notified = notified and ok
-            if not notified:
+                fields = {codes_field_for(slug, match.role, room): code}
+                if not _write_or_skip(write_fields, slug, fields, result, event_key):
+                    all_complete = False
+                    break
+                # Publish and deliver each successful door before touching the
+                # next one. A later failure must not conceal an already changed door.
+                deliveries = stages.setdefault("door_deliveries", {}).setdefault(match.lock_id, {})
+                notified = True
+                for thread in house_member_threads(messages, slug, now,
+                        exclude_chat_ids=(str(ask.get("chat_id") or ""),)):
+                    chat_id = str(thread.get("id") or "")
+                    if not chat_id:
+                        notified = False
+                        continue
+                    was_done = deliveries.get("notifications", {}).get(chat_id, {}).get("done")
+                    ok = _notify_once(deliveries, chat_id,
+                                      member_shared_door_message(label, {match.role: code}),
+                                      notify_one, dry_run, checkpoint)
+                    if ok and not was_done:
+                        result.padsplit_notified += 1
+                    notified = notified and ok
+                if not notified:
+                    all_complete = False
+                    break
+                completed_doors += 1
+            if not all_complete:
+                if completed_doors and not stages.get("partial_alert_sent"):
+                    text = assert_discord_outbound_safe(
+                        f"PadSplit Ops: {label} {discord_room_word(room)}. "
+                        "A shared door update completed and was published; another remains pending. "
+                        "Do not repeat completed changes. Reconcile the pending door. No digits posted.")
+                    if not dry_run:
+                        poster(text)
+                    result.discord_posts.append(text)
+                    stages["partial_alert_sent"] = True
+                    checkpoint()
                 continue
         text = (discord_ang_yes_text(label, room, shared_rotated=True) if decision == "yes"
                 else discord_ang_no_text(label, room))

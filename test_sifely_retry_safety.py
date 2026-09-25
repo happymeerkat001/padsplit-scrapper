@@ -139,7 +139,7 @@ class RetrySafetyTests(unittest.TestCase):
         replies = [self.reply("owner-fixture", "yes")]
         self.run_flow(host_messages=members, fetch_discord=lambda: replies,
                       generate_code=lambda: PLACEHOLDER, update_records=lambda *args: False)
-        self.assertEqual(self.changed, ["FRONT", "BACK"])
+        self.assertEqual(self.changed, ["FRONT"])
         self.assertEqual(self.state()["processed_events"], [])
         self.assertEqual(self.sent, [])
         def partial(chat_id, body):
@@ -150,9 +150,9 @@ class RetrySafetyTests(unittest.TestCase):
         self.assertEqual(self.sent, ["staying-a"])
         self.assertEqual(len(self.state()["pending_ang_asks"]), 1)
         self.run_flow(host_messages=members, fetch_discord=lambda: [])
-        self.assertEqual(self.sent, ["staying-a", "staying-b"])
+        self.assertEqual(self.sent, ["staying-a", "staying-b", "staying-a", "staying-b"])
         self.assertEqual(self.changed, ["FRONT", "BACK"])
-        self.assertEqual(len(self.writes), 1)
+        self.assertEqual(len(self.writes), 2)
         self.assertEqual(self.state()["pending_ang_asks"], [])
 
     def test_missing_shared_lock_keeps_approval_pending_without_partial_rotation(self):
@@ -201,6 +201,67 @@ class RetrySafetyTests(unittest.TestCase):
             self.run_flow(host_messages=[member], fetch_phone=None)
         lookup.assert_called_once_with(member)
         self.assertEqual(self.changed, ["ROOM"])
+
+    def test_successful_first_door_published_when_second_rotation_is_uncertain(self):
+        self.pending(room_reset=True)
+        member = moss_member_thread(chat_id="staying", room=3, move_in="2026-08-01")
+        attempts = []
+        def partial_change(**kwargs):
+            attempts.append(kwargs["lock_id"])
+            if kwargs["lock_id"] == "BACK":
+                raise lc.SifelyUnavailable("timeout")
+            self.change(**kwargs)
+        kwargs = dict(host_messages=[member], fetch_discord=lambda: [self.reply("owner-fixture", "yes")],
+                      change_fn=partial_change, generate_code=lambda: "TEST-ONLY-NEW")
+        first = self.run_flow(**kwargs)
+        self.assertEqual(attempts, ["FRONT", "BACK"])
+        self.assertEqual(self.writes, [("spanish_moss", {"front_door"})])
+        self.assertEqual(self.sent, ["staying"])
+        self.assertTrue(any("another remains pending" in text for text in first.discord_posts))
+        self.assertEqual(len(self.state()["pending_ang_asks"]), 1)
+        self.run_flow(**kwargs)
+        self.assertEqual(attempts, ["FRONT", "BACK"])
+        self.assertEqual(len(self.writes), 1)
+        self.assertEqual(self.sent, ["staying"])
+        self.codes["BACK"][0]["keyboardPwd"] = "TEST-ONLY-NEW"
+        self.run_flow(**kwargs)
+        self.assertEqual(attempts, ["FRONT", "BACK"])
+        self.assertEqual(self.writes[-1], ("spanish_moss", {"back_door"}))
+        self.assertEqual(self.sent, ["staying", "staying"])
+        self.assertEqual(self.state()["pending_ang_asks"], [])
+
+    def test_malformed_parseable_journals_fail_closed_without_mutation(self):
+        cases = [
+            {"operation_stages": []}, {"processed_move_ins": {}},
+            {"processed_events": [None]}, {"pending_ang_asks": ["broken"]},
+            {"passcode_hashes": []}, {"operation_stages": {"event": []}},
+            {"operation_stages": {"event": {"locks": []}}},
+            {"operation_stages": {"event": {"locks": {"lock": {"done": "true"}}}}},
+            {"operation_stages": {"event": {"locks": {"lock": {"done": True}}}}},
+            {"operation_stages": {"event": {"notifications": []}}},
+            {"operation_stages": {"event": {"door_deliveries": {"lock": []}}}},
+            {"operation_stages": {"event": {"writes": "not-a-list"}}},
+        ]
+        for malformed in cases:
+            with self.subTest(malformed=malformed):
+                lc.save_state({**lc._empty_state(), **malformed}, self.path)
+                with self.assertRaisesRegex(RuntimeError, "reconciliation"):
+                    self.run_flow(host_messages=[moss_member_thread(phone="5550101212")])
+        self.assertEqual(self.changed, [])
+        self.assertEqual(self.writes, [])
+        self.assertEqual(self.sent, [])
+
+    def test_later_tenancy_move_out_in_same_room_is_not_suppressed(self):
+        previous = moss_member_thread(chat_id="previous", room=2, move_in="2026-08-01", move_out="2026-09-02")
+        later = moss_member_thread(chat_id="later", room=2, move_in="2026-08-01", move_out="2026-09-02")
+        previous_key = lc.move_out_event_key(previous, kind="move_out")
+        later_key = lc.move_out_event_key(later, kind="move_out")
+        lc.save_state({**lc._empty_state(), "processed_events": [previous_key]}, self.path)
+        self.run_flow(host_messages=[previous, later])
+        self.assertEqual([ask["event_key"] for ask in self.state()["pending_ang_asks"]], [later_key])
+        self.assertEqual(self.changed, [])
+        self.run_flow(host_messages=[previous, later])
+        self.assertEqual(len(self.state()["pending_ang_asks"]), 1)
 
 
 if __name__ == "__main__":
