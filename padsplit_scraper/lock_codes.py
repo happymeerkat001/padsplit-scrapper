@@ -12,14 +12,13 @@ phone, message the tenant on PadSplit (digits allowed there only), update
 Firestore ``property_codes`` for codes.html, then post a digit-free notice
 to Discord #ai-automations.
 
-Move-out / member terminated: ALWAYS set the vacated room lock to the
-vacant default and update the codes page (do not wait for Ang on the
-room). ALWAYS ask Ang on #ai-automations whether to change front/back
-door keycodes for that house (doors only; Discord is house/room/member,
-never digits). After Ang yes: rotate front/back, update the codes page,
-and PadSplit-blast remaining tenants at that house with the new door
-codes (digits allowed on PadSplit only). After Ang no: leave front/back
-alone; the room is already the vacant default.
+Move-out / member terminated: ask for scoped approval; do not reset from a
+scheduled date, cancellation or payment signal. Ang or Joe must directly
+reply "confirm vacant room reset" to the event's house/room request.
+Shared front/back rotation separately requires Ang's direct yes reply.
+Confirmed stage checkpoints prevent repeating completed physical changes,
+Firestore writes and member notifications. Ambiguous interrupted effects
+remain pending for readback/reconciliation, never blind retries.
 
 Firebase service-account missing is fail-closed Need-you / skip.
 
@@ -34,6 +33,8 @@ on this module. Do not break that path.
 from __future__ import annotations
 
 import argparse
+import fcntl
+import functools
 import hashlib
 import json
 import os
@@ -569,12 +570,14 @@ def discord_move_in_text(house_label: str, room: Any, member: str) -> str:
 
 
 def discord_ask_ang_text(house_label: str, room: Any, member: str, *, kind: str = "move_out") -> str:
-    why = "was terminated" if kind == "terminated" else "moved out"
+    why = "has a termination signal" if kind == "terminated" else "has a move-out signal"
     text = (
         f"PadSplit Ops asking Ang: {discord_member_label(member)} {why} at "
         f"{house_label or 'a house'}, {discord_room_word(room)}. "
-        "Change front and back door keycodes for that house? "
-        "Reply yes or no in this channel."
+        "Ang or Joe: after confirming the room is vacant, directly reply "
+        "confirm vacant room reset to authorize that room only. "
+        "Ang: separately reply yes or no to this message for shared front and back doors. "
+        "Dates, cancellation and payment signals do not authorize a reset."
     )
     return assert_discord_outbound_safe(text)
 
@@ -682,10 +685,10 @@ def load_state(path: Path = STATE_PATH) -> Dict[str, Any]:
         return _empty_state()
     try:
         payload = json.loads(path.read_text())
-    except (OSError, ValueError):
-        return _empty_state()
+    except (OSError, ValueError) as exc:
+        raise RuntimeError("Lock-code state unreadable; manual reconciliation required") from exc
     if not isinstance(payload, dict):
-        return _empty_state()
+        raise RuntimeError("Lock-code state invalid; manual reconciliation required")
     empty = _empty_state()
     for key, default in empty.items():
         payload.setdefault(key, default if not isinstance(default, (dict, list)) else type(default)())
@@ -701,12 +704,16 @@ def load_state(path: Path = STATE_PATH) -> Dict[str, Any]:
     ):
         if not isinstance(payload.get(list_key), list):
             payload[list_key] = []
+    if not isinstance(payload.get("operation_stages"), dict):
+        payload["operation_stages"] = {}
     return payload
 
 
 def save_state(state: Dict[str, Any], path: Path = STATE_PATH) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(state, indent=2) + "\n")
+    temporary = path.with_suffix(path.suffix + ".tmp")
+    temporary.write_text(json.dumps(state, indent=2) + "\n")
+    temporary.replace(path)
 
 
 def _empty_state() -> Dict[str, Any]:
@@ -720,6 +727,7 @@ def _empty_state() -> Dict[str, Any]:
         "processed_events": [],
         "pending_ang_asks": [],
         "seen_occupancies": [],
+        "operation_stages": {},
     }
 
 
@@ -882,7 +890,11 @@ def resolve_lock(locks: Sequence[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
 def resolve_keyboard_pwd_id(passcodes: Sequence[Dict[str, Any]]) -> Optional[str]:
     configured = (os.getenv("SIFELY_KEYBOARD_PWD_ID") or "").strip()
     if configured:
-        return configured
+        matches = [item for item in passcodes if str(item.get("keyboardPwdId") or item.get("id") or "") == configured]
+        if len(matches) != 1:
+            return None
+        name = str(matches[0].get("keyboardPwdName") or "").lower()
+        return None if any(token in name for token in ("admin", "master", "owner")) else configured
     candidates: List[str] = []
     for item in passcodes:
         pwd_id = str(item.get("keyboardPwdId") or item.get("id") or "")
@@ -894,9 +906,6 @@ def resolve_keyboard_pwd_id(passcodes: Sequence[Dict[str, Any]]) -> Optional[str
         candidates.append(pwd_id)
     if len(candidates) == 1:
         return candidates[0]
-    if len(passcodes) == 1:
-        only = passcodes[0]
-        return str(only.get("keyboardPwdId") or only.get("id") or "") or None
     return None
 
 
@@ -1310,6 +1319,9 @@ def _current_occupant(thread: Dict[str, Any], now: datetime) -> bool:
         return False
     move_out = _date_only(occupancy.get("moveOutDate"))
     today = now.astimezone(CT).date()
+    move_in = _date_only(occupancy.get("moveInDate"))
+    if move_in is not None and move_in > today:
+        return False
     if move_out is not None and move_out < today:
         return False
     if thread.get("isCancelled") is True:
@@ -1373,8 +1385,10 @@ def collect_move_in_events(
     messages: Sequence[Dict[str, Any]],
     now: datetime,
     processed: Iterable[str],
+    pending: Iterable[str] = (),
 ) -> List[LockEvent]:
     seen = set(processed)
+    pending_keys = set(pending)
     events: List[LockEvent] = []
     for thread in messages:
         if not isinstance(thread, dict):
@@ -1382,7 +1396,7 @@ def collect_move_in_events(
         if not _current_occupant(thread, now):
             continue
         occupancy = thread.get("occupancy") if isinstance(thread.get("occupancy"), dict) else {}
-        if not _is_recent_date(occupancy.get("moveInDate"), now):
+        if not _is_recent_date(occupancy.get("moveInDate"), now) and move_in_event_key(thread) not in pending_keys:
             continue
         slug, label = _event_house(thread)
         room = _thread_room(thread)
@@ -1576,6 +1590,24 @@ def _need_you_once(
     result.discord_posts.append(safe)
 
 
+def _serialized_run(function):
+    @functools.wraps(function)
+    def guarded(*args, **kwargs):
+        state_path = Path(kwargs.get("state_path", STATE_PATH))
+        state_path.parent.mkdir(parents=True, exist_ok=True)
+        with state_path.with_suffix(state_path.suffix + ".lock").open("a") as handle:
+            try:
+                fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError:
+                return RunResult(action="busy", reason="another lock-code run owns this state")
+            try:
+                return function(*args, **kwargs)
+            finally:
+                fcntl.flock(handle, fcntl.LOCK_UN)
+    return guarded
+
+
+@_serialized_run
 def run(
     *,
     now: Optional[datetime] = None,
@@ -1673,29 +1705,75 @@ def run(
             return []
         return list_passcodes(api_key, lock_id, session=sifely_session)
 
-    def _rotate_lock(match: LockMatch, new_code: str) -> bool:
+    def checkpoint() -> None:
+        if not dry_run:
+            save_state(state, state_path)
+
+    def operation(key: str) -> Dict[str, Any]:
+        return state.setdefault("operation_stages", {}).setdefault(key, {})
+
+    def _rotate_lock(match: LockMatch, new_code: str, event_key: str) -> bool:
         if dry_run:
             return True
         if changer is None:
             return False
-        pwd_id = resolve_keyboard_pwd_id(_passcodes_for(match.lock_id))
+        stage = operation(event_key).setdefault("locks", {}).setdefault(match.lock_id, {})
+        wanted_hash = hash_passcode(new_code)
+        if stage.get("done"):
+            return stage.get("hash") == wanted_hash
+        rows = _passcodes_for(match.lock_id)
+        pwd_id = resolve_keyboard_pwd_id(rows)
+        if stage.get("started"):
+            # A previous attempt may have succeeded before the process stopped.
+            # Read back; never repeat an ambiguous physical action.
+            matches = [row for row in rows if str(row.get("keyboardPwdId") or row.get("id") or "") == stage.get("pwd_id")]
+            if len(matches) == 1 and hash_passcode(str(matches[0].get("keyboardPwd") or "")) == stage.get("hash") == wanted_hash:
+                stage["done"] = True
+                checkpoint()
+                return True
+            _log("Need you: interrupted lock operation requires readback reconciliation")
+            return False
         if not pwd_id:
             _log("Need you: could not resolve keyboard passcode id")
             return False
+        stage.update(started=True, pwd_id=pwd_id, hash=wanted_hash)
+        checkpoint()
         try:
             changer(lock_id=match.lock_id, keyboard_pwd_id=pwd_id, new_code=new_code)
         except SifelyUnavailable as exc:
             _log(f"rotate failed: {exc}")
             return False
+        stage["done"] = True
+        checkpoint()
         return True
 
-    def _write_fields(slug: str, fields: Dict[str, Any]) -> bool:
+    def _recover_code(match: LockMatch, event_key: str) -> Optional[str]:
+        stage = operation(event_key).get("locks", {}).get(match.lock_id, {})
+        if not stage.get("started"):
+            return None
+        rows = _passcodes_for(match.lock_id)
+        matches = [row for row in rows if str(row.get("keyboardPwdId") or row.get("id") or "") == stage.get("pwd_id")]
+        if len(matches) == 1:
+            code = str(matches[0].get("keyboardPwd") or "")
+            if code and hash_passcode(code) == stage.get("hash"):
+                return code
+        return None
+
+    def _write_fields(slug: str, fields: Dict[str, Any], event_key: str) -> bool:
         clean = {key: value for key, value in fields.items() if key and value}
         if not clean:
             return False
+        fingerprint = hash_passcode(json.dumps(clean, sort_keys=True))
+        writes = operation(event_key).setdefault("writes", [])
+        if fingerprint in writes:
+            return True
         if digest_fn is not None and slug == PROPERTY_SLUG and LOCK_FIELD in clean:
             digest_fn(str(clean[LOCK_FIELD]))
-        return bool(records_fn(slug, clean))
+        ok = bool(records_fn(slug, clean))
+        if ok:
+            writes.append(fingerprint)
+            checkpoint()
+        return ok
 
     _ = inbound_messages
     _process_pending_asks(
@@ -1712,6 +1790,8 @@ def run(
         new_code_fn=new_code_fn,
         messages=messages,
         notify_one=member_one,
+        checkpoint=checkpoint,
+        recover_code=_recover_code,
     )
 
     if api_key and api_available:
@@ -1729,6 +1809,7 @@ def run(
             write_fields=_write_fields,
             notify_one=member_one,
             notify_all=member_all,
+            checkpoint=checkpoint,
         )
         _process_move_outs(
             messages=messages,
@@ -1743,6 +1824,7 @@ def run(
             poster=poster,
             rotate_lock=_rotate_lock,
             write_fields=_write_fields,
+            checkpoint=checkpoint,
         )
 
     if result.events:
@@ -1756,23 +1838,56 @@ def run(
     return result
 
 
+def _notify_once(stages, chat_id, body, notify_one, dry_run, checkpoint) -> bool:
+    """Keep completed deliveries; uncertain interrupted sends require reconciliation."""
+    delivery = stages.setdefault("notifications", {}).setdefault(chat_id, {})
+    if delivery.get("done"):
+        return True
+    if delivery.get("started"):
+        _log("Need you: interrupted member notification requires reconciliation")
+        return False
+    if dry_run:
+        return True
+    delivery["started"] = True
+    checkpoint()
+    try:
+        sent = int(notify_one(chat_id, body) if notify_one is not None else _notify_one_member(chat_id, body))
+    except Exception:
+        _log("Need you: member delivery outcome uncertain; reconciliation required")
+        return False
+    delivery["done"] = sent > 0
+    delivery["started"] = False
+    checkpoint()
+    return sent > 0
+
+
+def parse_room_reset_approval(messages, ask_message_id) -> Optional[str]:
+    """An exact action, scoped by direct reply, from verified Ang or Joe only."""
+    owners = {(os.getenv(name) or "").strip() for name in
+              ("LOCK_CODES_APPROVER_USER_ID", "LOCK_CODES_JOE_USER_ID")}
+    owners.discard("")
+    if not ask_message_id or not owners:
+        return None
+    for message in messages or []:
+        author = message.get("author") or {}
+        ref = message.get("message_reference") or {}
+        if not isinstance(author, dict) or not isinstance(ref, dict):
+            continue
+        if str(author.get("id") or "") not in owners or author.get("bot") or message.get("webhook_id"):
+            continue
+        if str(ref.get("message_id") or "") != ask_message_id:
+            continue
+        if str(message.get("content") or "").strip().lower() == "confirm vacant room reset":
+            return str(author["id"])
+    return None
+
+
 def _process_pending_asks(
-    *,
-    state: Dict[str, Any],
-    result: RunResult,
-    inventory: Sequence[LockMatch],
-    ready: bool,
-    now: datetime,
-    dry_run: bool,
-    poster: Callable[[str], Any],
-    fetch_discord: Optional[Callable[[], List[Dict[str, Any]]]],
-    rotate_lock: Callable[[LockMatch, str], bool],
-    write_fields: Callable[[str, Dict[str, Any]], bool],
-    new_code_fn: Callable[[], str],
-    messages: Sequence[Dict[str, Any]],
-    notify_one: Optional[Callable[[str, str], int]],
+    *, state, result, inventory, ready, now, dry_run, poster, fetch_discord,
+    rotate_lock, write_fields, new_code_fn, messages, notify_one, checkpoint,
+    recover_code,
 ) -> None:
-    pending = [row for row in (state.get("pending_ang_asks") or []) if isinstance(row, dict)]
+    pending = state.get("pending_ang_asks") or []
     if not pending:
         return
     token = (os.getenv("DISCORD_BOT_TOKEN") or "").strip()
@@ -1780,83 +1895,100 @@ def _process_pending_asks(
     if rows is None and token and not dry_run:
         try:
             rows = fetch_channel_messages(automations_channel_id(), token)
-        except requests.RequestException as exc:
-            _log(f"#ai-automations fetch failed: {exc}")
+        except requests.RequestException:
             rows = []
     rows = rows or []
-
-    remaining: List[Dict[str, Any]] = []
-    for ask in pending:
+    for ask in list(pending):
+        event_key = str(ask.get("event_key") or "")
+        stages = state.setdefault("operation_stages", {}).setdefault(event_key, {})
+        ask_id = str(ask.get("discord_message_id") or "")
+        if not ask.get("room_reset_approved_by"):
+            author = parse_room_reset_approval(rows, ask_id)
+            if author:
+                ask["room_reset_approved_by"] = author
+                checkpoint()
+        if not ask.get("door_decision"):
+            decision = parse_ang_reply(rows, ask_id)
+            if decision:
+                ask["door_decision"] = decision
+                checkpoint()
         if not ask.get("room_reset"):
-            if _reset_vacated_room(
-                ask,
-                inventory=inventory,
-                ready=ready,
-                now=now,
-                dry_run=dry_run,
-                poster=poster,
-                result=result,
-                rotate_lock=rotate_lock,
-                write_fields=write_fields,
-                state=state,
-            ):
-                ask["room_reset"] = True
-        decision = parse_ang_reply(rows, str(ask.get("discord_message_id") or ""))
-        if decision is None:
-            remaining.append(ask)
-            continue
-        house_slug = str(ask.get("house_slug") or "")
-        house_label = str(ask.get("house_label") or "")
-        room = str(ask.get("room") or "")
-        if decision != "yes":
-            text = discord_ang_no_text(house_label, room)
-            if not dry_run:
-                poster(text)
-            result.discord_posts.append(text)
-            result.events.append("ang_no")
-            _mark_list(state, "processed_events", str(ask.get("event_key") or ""))
-            continue
-        if not ready:
-            _need_you_once(state, now, "need_you_firebase", poster, result, dry_run=dry_run)
-            remaining.append(ask)
-            continue
-        fields: Dict[str, Any] = {}
-        door_codes: Dict[str, str] = {}
-        used_ids: set[str] = set()
-        shared_rotated = False
-        for role in ("front", "back"):
-            match = find_lock(inventory, house_slug, role)
-            if match is None or match.lock_id in used_ids:
+            if not ask.get("room_reset_approved_by"):
                 continue
-            shared_code = new_code_fn()
-            if not rotate_lock(match, shared_code):
-                continue
-            used_ids.add(match.lock_id)
-            field_name = codes_field_for(house_slug, match.role, room)
-            if field_name:
-                fields[field_name] = shared_code
-            door_codes[match.role] = shared_code
-            shared_rotated = True
-        if fields:
-            _write_or_skip(write_fields, house_slug, fields, result)
-        if shared_rotated:
-            result.padsplit_notified += _blast_house_door_codes(
-                messages,
-                house_slug,
-                house_label,
-                door_codes,
-                now,
-                dry_run=dry_run,
-                notify_one=notify_one,
-                exclude_chat_ids=(str(ask.get("chat_id") or ""),),
+            # A later tenancy invalidates the old vacancy action even if its
+            # earlier confirmation is still in the queue.
+            occupied_again = any(
+                _thread_room(thread) == str(ask.get("room") or "")
+                for thread in house_member_threads(messages, str(ask.get("house_slug") or ""), now,
+                    exclude_chat_ids=(str(ask.get("chat_id") or ""),))
             )
-        text = discord_ang_yes_text(house_label, room, shared_rotated=shared_rotated)
+            if occupied_again:
+                continue
+            if not _reset_vacated_room(ask, inventory=inventory, ready=ready, now=now,
+                    dry_run=dry_run, poster=poster, result=result, rotate_lock=rotate_lock,
+                    write_fields=write_fields, state=state):
+                continue
+            ask["room_reset"] = True
+            checkpoint()
+        decision = ask.get("door_decision")
+        if decision is None:
+            continue
+        slug, label, room = (str(ask.get(key) or "") for key in ("house_slug", "house_label", "room"))
+        if decision == "yes":
+            if not ready:
+                continue
+            profile = HOUSE_LOCK_PROFILES.get(slug) or {}
+            targets = []
+            mapping_ok = True
+            for role in ("front", "back"):
+                if not profile.get("has_" + role):
+                    continue
+                match = find_lock(inventory, slug, role)
+                if match is None:
+                    mapping_ok = False
+                    break
+                if match.lock_id not in {m.lock_id for m in targets}:
+                    targets.append(match)
+            if not mapping_ok or not targets:
+                continue
+            fields, codes = {}, {}
+            all_rotated = True
+            for match in targets:
+                lock_stage = stages.get("locks", {}).get(match.lock_id, {})
+                code = recover_code(match, event_key) if lock_stage.get("started") else new_code_fn()
+                if not code or not rotate_lock(match, code, event_key):
+                    all_rotated = False
+                    break
+                fields[codes_field_for(slug, match.role, room)] = code
+                codes[match.role] = code
+            if not all_rotated:
+                continue
+            if not _write_or_skip(write_fields, slug, fields, result, event_key):
+                continue
+            notified = True
+            for thread in house_member_threads(messages, slug, now,
+                    exclude_chat_ids=(str(ask.get("chat_id") or ""),)):
+                chat_id = str(thread.get("id") or "")
+                if not chat_id:
+                    notified = False
+                    continue
+                was_done = stages.get("notifications", {}).get(chat_id, {}).get("done")
+                ok = _notify_once(stages, chat_id, member_shared_door_message(label, codes),
+                                  notify_one, dry_run, checkpoint)
+                if ok and not was_done:
+                    result.padsplit_notified += 1
+                notified = notified and ok
+            if not notified:
+                continue
+        text = (discord_ang_yes_text(label, room, shared_rotated=True) if decision == "yes"
+                else discord_ang_no_text(label, room))
         if not dry_run:
             poster(text)
         result.discord_posts.append(text)
-        result.events.append("ang_yes")
-        _mark_list(state, "processed_events", str(ask.get("event_key") or ""))
-    state["pending_ang_asks"] = remaining
+        result.events.append("ang_" + decision)
+        _mark_list(state, "processed_events", event_key)
+        pending.remove(ask)
+        checkpoint()
 
 
 def _reset_vacated_room(
@@ -1868,26 +2000,28 @@ def _reset_vacated_room(
     dry_run: bool,
     poster: Callable[[str], Any],
     result: RunResult,
-    rotate_lock: Callable[[LockMatch, str], bool],
-    write_fields: Callable[[str, Dict[str, Any]], bool],
+    rotate_lock: Callable[[LockMatch, str, str], bool],
+    write_fields: Callable[[str, Dict[str, Any], str], bool],
     state: Dict[str, Any],
 ) -> bool:
-    """Set vacated room to vacant default and update codes. Do not wait for Ang."""
+    """Execute an explicitly approved vacant-room reset and record completed stages."""
     if isinstance(event_or_ask, LockEvent):
         house_slug = event_or_ask.house_slug
         room = event_or_ask.room
+        event_key = event_or_ask.key
     else:
         house_slug = str(event_or_ask.get("house_slug") or "")
         room = str(event_or_ask.get("room") or "")
+        event_key = str(event_or_ask.get("event_key") or "")
     if not ready:
         _need_you_once(state, now, "need_you_firebase", poster, result, dry_run=dry_run)
         return False
     match = find_lock(inventory, house_slug, "room", room)
-    if match is None or not rotate_lock(match, VACANT_ROOM_DEFAULT):
+    if match is None or not rotate_lock(match, VACANT_ROOM_DEFAULT, event_key):
         _need_you_once(state, now, "need_you_lock", poster, result, dry_run=dry_run)
         return False
     field_name = codes_field_for(house_slug, "room", room)
-    if field_name and not _write_or_skip(write_fields, house_slug, {field_name: VACANT_ROOM_DEFAULT}, result):
+    if field_name and not _write_or_skip(write_fields, house_slug, {field_name: VACANT_ROOM_DEFAULT}, result, event_key):
         _need_you_once(state, now, "need_you_firebase", poster, result, dry_run=dry_run)
         return False
     return True
@@ -1921,12 +2055,13 @@ def _blast_house_door_codes(
 
 
 def _write_or_skip(
-    write_fields: Callable[[str, Dict[str, Any]], bool],
+    write_fields: Callable[[str, Dict[str, Any], str], bool],
     slug: str,
     fields: Dict[str, Any],
     result: RunResult,
+    event_key: str,
 ) -> bool:
-    ok = write_fields(slug, fields)
+    ok = write_fields(slug, fields, event_key)
     if ok:
         result.digest_updated = True
     return ok
@@ -1943,12 +2078,13 @@ def _process_move_ins(
     dry_run: bool,
     poster: Callable[[str], Any],
     fetch_phone: Optional[Callable[[Dict[str, Any]], str]],
-    rotate_lock: Callable[[LockMatch, str], bool],
-    write_fields: Callable[[str, Dict[str, Any]], bool],
+    rotate_lock: Callable[[LockMatch, str, str], bool],
+    write_fields: Callable[[str, Dict[str, Any], str], bool],
     notify_one: Optional[Callable[[str, str], int]],
     notify_all: Optional[Callable[[str], int]],
+    checkpoint: Callable[[], None],
 ) -> None:
-    events = collect_move_in_events(messages, now, state.get("processed_move_ins") or [])
+    events = collect_move_in_events(messages, now, state.get("processed_move_ins") or [], state.get("operation_stages") or {})
     if not events:
         return
     if not ready:
@@ -1963,22 +2099,25 @@ def _process_move_ins(
             _need_you_once(state, now, "need_you_phone", poster, result, dry_run=dry_run)
             continue
         match = find_lock(inventory, event.house_slug, "room", event.room)
-        if match is None or not rotate_lock(match, last4):
+        if match is None or not rotate_lock(match, last4, event.key):
             _need_you_once(state, now, "need_you_lock", poster, result, dry_run=dry_run)
             continue
         field_name = codes_field_for(event.house_slug, "room", event.room)
-        if not _write_or_skip(write_fields, event.house_slug, {field_name: last4} if field_name else {}, result):
+        if not _write_or_skip(write_fields, event.house_slug, {field_name: last4} if field_name else {}, result, event.key):
             _need_you_once(state, now, "need_you_firebase", poster, result, dry_run=dry_run)
             continue
         body = member_move_in_message(event.house_label, event.room, last4)
-        sent = 0
-        if notify_one is not None and event.chat_id:
-            sent = int(notify_one(event.chat_id, body))
-        elif notify_all is not None:
-            sent = int(notify_all(last4))
-        elif event.chat_id and not dry_run:
-            sent = _notify_one_member(event.chat_id, body)
-        result.padsplit_notified += sent
+        stages = state.setdefault("operation_stages", {}).setdefault(event.key, {})
+        if not event.chat_id:
+            continue
+        notifier = notify_one
+        if notifier is None and notify_all is not None:
+            notifier = lambda chat_id, body: notify_all(last4)
+        was_done = stages.get("notifications", {}).get(event.chat_id, {}).get("done")
+        if not _notify_once(stages, event.chat_id, body, notifier, dry_run, checkpoint):
+            continue
+        if not was_done:
+            result.padsplit_notified += 1
         text = discord_move_in_text(event.house_label, event.room, event.member)
         if not dry_run:
             poster(text)
@@ -2001,8 +2140,9 @@ def _process_move_outs(
     now: datetime,
     dry_run: bool,
     poster: Callable[[str], Any],
-    rotate_lock: Callable[[LockMatch, str], bool],
-    write_fields: Callable[[str, Dict[str, Any]], bool],
+    rotate_lock: Callable[[LockMatch, str, str], bool],
+    write_fields: Callable[[str, Dict[str, Any], str], bool],
+    checkpoint: Callable[[], None],
 ) -> None:
     asked_rooms = _handled_rooms(state)
     events = [
@@ -2037,20 +2177,6 @@ def _process_move_outs(
         )
         asked_rooms.add((slug, room_number))
     for event in events:
-        room_ok = _reset_vacated_room(
-            event,
-            inventory=inventory,
-            ready=ready,
-            now=now,
-            dry_run=dry_run,
-            poster=poster,
-            result=result,
-            rotate_lock=rotate_lock,
-            write_fields=write_fields,
-            state=state,
-        )
-        if room_ok:
-            result.events.append("room_reset")
         text = discord_ask_ang_text(event.house_label, event.room, event.member, kind=event.kind)
         posted = None if dry_run else poster(text)
         result.discord_posts.append(text)
@@ -2063,7 +2189,7 @@ def _process_move_outs(
             "member": discord_member_label(event.member),
             "kind": event.kind,
             "chat_id": event.chat_id,
-            "room_reset": room_ok,
+            "room_reset": False,
             "discord_message_id": "",
             "asked_at": now.astimezone(timezone.utc).isoformat(),
         }
@@ -2071,7 +2197,8 @@ def _process_move_outs(
             ask["discord_message_id"] = str(posted["id"])
         pending = [row for row in (state.get("pending_ang_asks") or []) if isinstance(row, dict)]
         pending.append(ask)
-        state["pending_ang_asks"] = pending[-100:]
+        state["pending_ang_asks"] = pending
+        checkpoint()
 
 
 def _first_new_share(
@@ -2110,8 +2237,8 @@ def _notify_one_member(chat_id: str, text: str) -> int:
             send_host_message(session, creds, chat_id, text)
         return 1
     except Exception as exc:
-        _log(f"PadSplit host send failed; continuing: {exc}")
-        return 0
+        # Do not convert an unknown send result into a retryable failure.
+        raise RuntimeError("PadSplit member delivery outcome uncertain") from exc
 
 
 def _notify_current_members(

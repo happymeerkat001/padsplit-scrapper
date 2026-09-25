@@ -344,7 +344,7 @@ class ShareAndRedactionTests(unittest.TestCase):
             self.assertNotIn(lock_codes.VACANT_ROOM_DEFAULT, text)
         ask = lock_codes.discord_ask_ang_text("Spanish Moss", "2", "Member Example")
         self.assertIn("front and back door", ask)
-        self.assertNotIn("vacant", ask)
+        self.assertIn("confirm vacant room reset", ask)
         self.assertNotIn("room lock", ask)
 
     def test_discord_outbound_rejects_digits(self) -> None:
@@ -593,7 +593,7 @@ class RunFlowTests(unittest.TestCase):
         self.assertEqual(result.action, "noop")
         self.assertEqual(posts, [])
 
-    def test_move_out_resets_room_immediately_and_asks_ang_about_doors(self) -> None:
+    def test_move_out_waits_for_explicit_room_confirmation(self) -> None:
         posts: list[str] = []
         changed: list[tuple[str, str]] = []
         records: list[dict] = []
@@ -621,18 +621,18 @@ class RunFlowTests(unittest.TestCase):
                 )
                 saved = lock_codes.load_state(state_path)
         self.assertEqual(result.action, "ask_ang")
-        self.assertEqual(changed, [("ROOM2", lock_codes.VACANT_ROOM_DEFAULT)])
-        self.assertEqual(records[0]["r2"], lock_codes.VACANT_ROOM_DEFAULT)
+        self.assertEqual(changed, [])
+        self.assertEqual(records, [])
         self.assertEqual(
             posts,
             [lock_codes.discord_ask_ang_text("Spanish Moss", "2", "Member Example")],
         )
-        self.assertNotIn("vacant", posts[0])
+        self.assertIn("confirm vacant room reset", posts[0])
         self.assertFalse(any(lock_codes.has_digit_characters(item) for item in posts))
         self.assertEqual(saved["pending_ang_asks"][0]["discord_message_id"], "ask-1")
-        self.assertTrue(saved["pending_ang_asks"][0]["room_reset"])
+        self.assertFalse(saved["pending_ang_asks"][0]["room_reset"])
 
-    def test_terminated_resets_room_and_asks_ang_about_doors(self) -> None:
+    def test_terminated_waits_for_explicit_room_confirmation(self) -> None:
         posts: list[str] = []
         changed: list[tuple[str, str]] = []
         with tempfile.TemporaryDirectory() as tmp:
@@ -658,10 +658,10 @@ class RunFlowTests(unittest.TestCase):
                     state_path=state_path,
                 )
         self.assertEqual(result.action, "ask_ang")
-        self.assertEqual(changed, [("ROOM2", lock_codes.VACANT_ROOM_DEFAULT)])
-        self.assertIn("terminated", posts[0])
+        self.assertEqual(changed, [])
+        self.assertIn("termination signal", posts[0])
         self.assertIn("front and back door", posts[0])
-        self.assertNotIn("vacant", posts[0])
+        self.assertIn("confirm vacant room reset", posts[0])
         self.assertFalse(lock_codes.has_digit_characters(posts[0]))
 
     def test_ang_yes_rotates_shared_doors_and_blasts_housemates(self) -> None:
