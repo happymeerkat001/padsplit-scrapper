@@ -4,7 +4,9 @@
 Every string value is scanned. Keyword-plus-token hits fail regardless of
 the key. Standalone 4-8 digit runs fail unless the key or path is on the
 bare-number allowlist in ``publish_sanitize``, or the run is a 4-5 digit
-street number followed within 1-4 words by a street suffix. The placeholder
+street number whose suffix is the next word or follows one or two name
+words. ``st`` and ``ct`` count only with a period before whitespace or the
+end, or at end of line. The placeholder
 ``[code hidden, see ops page]`` is not a hit. Prints counts and JSON paths
 only. Never prints field values.
 

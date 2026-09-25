@@ -54,13 +54,30 @@ to the free-text field list above. Bare-number redaction follows the checker's
 allowlist so a sanitized snapshot can pass the full-string scan.
 
 A 4–5 digit run that begins a street address is not a bare number. It stays
-when a street suffix appears within the next 1–4 words (case-insensitive,
+only when a street suffix is the next word, or the next word after one or
+two name words. ``way`` is not a suffix. Other suffixes (case-insensitive,
 optional period): st, street, ave, avenue, rd, road, dr, drive, ln, lane,
-blvd, boulevard, ct, court, way, pl, place, pkwy, parkway, cir, circle, trl,
-trail, hwy, highway, loop. ``1234 main st`` and ``1234 N Oak Hollow Dr.``
-keep the number. A 6–8 digit run before a suffix is still removed. The
-keyword rule still wins, so ``door code 1234`` and ``door code 1234 main st``
-are redacted.
+blvd, boulevard, ct, court, pl, place, pkwy, parkway, cir, circle, trl,
+trail, hwy, highway, loop.
+
+``st`` and ``ct`` count only as abbreviations, not as the start of a longer
+word or an ellipsis. They match ``st.`` / ``ct.`` when the period is followed
+by whitespace or the end of the string, or ``st`` / ``ct`` at the end of a
+line (end of the string or just before a newline). ``1234 main st`` and
+``1234 main st. tomorrow`` stay. ``1234 main st tomorrow`` does not, because
+``st`` is mid-sentence with no period. ``st...`` does not either: the first
+period is followed by another period, not whitespace or the end, so an
+ellipsis is not treated as ``st.``. A comma after ``st`` does not count.
+
+A name word is not a function or direction-instruction word: a, an, the, on,
+in, to, at, of, by, for, from, with, into, onto, and, or, but, then, left,
+right, first, second, third, next, turn, go, straight, after, before, off,
+out, up, down, over, under, use, punch, enter. Compass letters N, S, E, and
+W (optional period) are name words. ``1234 main st`` and ``1234 N Oak Dr.``
+keep the number. ``use 1234 on the way in``, ``punch 1234 first st...``, and
+``use 1234 then left on elm dr`` do not. A 6–8 digit run before a suffix is
+still removed. The keyword rule still wins, so ``door code 1234`` and
+``door code 1234 main st`` are redacted.
 
 The replacement text itself is masked before either scan. The word ``code``
 inside ``[code hidden, see ops page]`` is not a keyword, and a second pass
@@ -189,6 +206,7 @@ _URL_RE = re.compile(r"https?://[^\s<>\"']+")
 _DIGIT_RE = re.compile(r"(?<!\d)\d{3,16}(?!\d)")
 _BARE_DIGIT_RE = re.compile(r"(?<!\d)\d{4,8}(?!\d)")
 # Longer suffixes first so "street" wins over "st" and "drive" wins over "dr".
+# "way" is omitted on purpose: "on the way" is not an address.
 _STREET_SUFFIX_PARTS = (
     "boulevard",
     "parkway",
@@ -209,19 +227,60 @@ _STREET_SUFFIX_PARTS = (
     "trl",
     "cir",
     "ave",
-    "way",
-    "st",
     "rd",
     "dr",
     "ln",
-    "ct",
     "pl",
 )
-_STREET_WORD = r"[A-Za-z][A-Za-z0-9'-]*\.?"
+# Not name words. Compass N/S/E/W are absent so they still count.
+_STREET_FUNCTION_WORDS = (
+    "first",
+    "second",
+    "third",
+    "straight",
+    "before",
+    "after",
+    "enter",
+    "punch",
+    "right",
+    "under",
+    "left",
+    "then",
+    "into",
+    "onto",
+    "from",
+    "with",
+    "over",
+    "down",
+    "next",
+    "turn",
+    "and",
+    "the",
+    "for",
+    "but",
+    "off",
+    "out",
+    "use",
+    "on",
+    "in",
+    "to",
+    "at",
+    "of",
+    "by",
+    "or",
+    "an",
+    "up",
+    "go",
+    "a",
+)
+# st/ct only: "st." / "ct." then whitespace or end, or the abbreviation at
+# end of line. A following period that continues ("st...") is not a match.
+_STREET_SHORT_SUFFIX = r"(?:st|ct)(?:\.(?=\s|$)|(?=\r?\n|$))"
+_STREET_NAME_WORD = r"(?!(?:%s)\b)[A-Za-z][A-Za-z0-9'-]*\.?" % "|".join(_STREET_FUNCTION_WORDS)
+_STREET_SUFFIX = r"(?:(?:%s)\b\.?|%s)" % ("|".join(_STREET_SUFFIX_PARTS), _STREET_SHORT_SUFFIX)
 _STREET_ADDRESS_RE = re.compile(
-    r"(?i)(?<!\d)(?P<number>\d{4,5})(?!\d)"
-    r"(?:\s+%s){0,3}\s+(?:%s)\b\.?"
-    % (_STREET_WORD, "|".join(_STREET_SUFFIX_PARTS))
+    r"(?i)(?<!\d)(?P<number>\d{4,5})(?!\d)(?:\s+%s){0,2}\s+%s"
+    % (_STREET_NAME_WORD, _STREET_SUFFIX)
 )
 _MIXED_TOKEN_RE = re.compile(
     r"(?<![A-Za-z0-9])(?=[A-Za-z0-9]*[A-Za-z])(?=[A-Za-z0-9]*\d)"
