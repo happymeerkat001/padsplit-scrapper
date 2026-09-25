@@ -916,8 +916,6 @@ def match_house_slug(text: str) -> Optional[str]:
         if any(alias in hay or compact_text(alias) in compact for alias in aliases):
             hits.append(slug)
     unique = list(dict.fromkeys(hits))
-    if moss and "spanish_moss" in unique:
-        return "spanish_moss"
     if len(unique) == 1:
         return unique[0]
     return None
@@ -1111,10 +1109,15 @@ def classify_ang_reply(text: str) -> Optional[str]:
 
 
 def parse_ang_reply(messages: Sequence[Dict[str, Any]], ask_message_id: str) -> Optional[str]:
+    """Accept only a direct human reply from the configured approval owner."""
     ask_id = str(ask_message_id or "")
-    if not ask_id:
+    owner_id = (os.getenv("LOCK_CODES_APPROVER_USER_ID") or "").strip()
+    if not ask_id or not owner_id:
         return None
     for message in messages or []:
+        author = message.get("author") if isinstance(message.get("author"), dict) else {}
+        if str(author.get("id") or "") != owner_id or author.get("bot") or message.get("webhook_id"):
+            continue
         ref = message.get("message_reference") if isinstance(message.get("message_reference"), dict) else {}
         if str(ref.get("message_id") or "") != ask_id:
             continue

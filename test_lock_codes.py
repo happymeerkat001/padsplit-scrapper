@@ -74,7 +74,8 @@ def _run_live(**kwargs):
     kwargs.setdefault("now", NOW)
     kwargs.setdefault("dry_run", False)
     with patch.object(lock_codes, "running_in_ci", return_value=False), \
-         patch.object(lock_codes, "live_actions_enabled", return_value=True):
+         patch.object(lock_codes, "live_actions_enabled", return_value=True), \
+         patch.dict(lock_codes.os.environ, {"LOCK_CODES_APPROVER_USER_ID": "owner-fixture"}):
         return lock_codes.run(**kwargs)
 
 
@@ -381,10 +382,24 @@ class PhoneAndAngReplyTests(unittest.TestCase):
         self.assertIsNone(lock_codes.classify_ang_reply("yes 0417"))
         self.assertIsNone(lock_codes.classify_ang_reply("not sure"))
         messages = [
-            {"id": "reply-1", "content": "yes", "message_reference": {"message_id": "ask-1"}},
+            {"id": "reply-1", "author": {"id": "owner-fixture"}, "content": "yes", "message_reference": {"message_id": "ask-1"}},
         ]
-        self.assertEqual(lock_codes.parse_ang_reply(messages, "ask-1"), "yes")
-        self.assertIsNone(lock_codes.parse_ang_reply(messages, "ask-other"))
+        with patch.dict(lock_codes.os.environ, {"LOCK_CODES_APPROVER_USER_ID": "owner-fixture"}):
+            self.assertEqual(lock_codes.parse_ang_reply(messages, "ask-1"), "yes")
+            self.assertIsNone(lock_codes.parse_ang_reply(messages, "ask-other"))
+
+    def test_approval_rejects_missing_owner_other_people_bots_and_webhooks(self) -> None:
+        reply = {"content": "yes", "message_reference": {"message_id": "ask-1"}}
+        with patch.dict(lock_codes.os.environ, {"LOCK_CODES_APPROVER_USER_ID": ""}):
+            self.assertIsNone(lock_codes.parse_ang_reply([reply], "ask-1"))
+        with patch.dict(lock_codes.os.environ, {"LOCK_CODES_APPROVER_USER_ID": "owner-fixture"}):
+            for extra in ({}, {"author": {"id": "other-person"}},
+                          {"author": {"id": "owner-fixture", "bot": True}},
+                          {"author": {"id": "owner-fixture"}, "webhook_id": "webhook"}):
+                self.assertIsNone(lock_codes.parse_ang_reply([{**reply, **extra}], "ask-1"))
+
+    def test_mixed_house_label_is_ambiguous(self) -> None:
+        self.assertIsNone(lock_codes.match_house_slug("Spanish Moss Parker room two"))
 
 
 class HumanChangeAndHashTests(unittest.TestCase):
@@ -663,7 +678,7 @@ class RunFlowTests(unittest.TestCase):
             "FRONT": [{"keyboardPwdId": "P2", "keyboardPwd": PLACEHOLDER, "keyboardPwdName": "tenant"}],
             "BACK": [{"keyboardPwdId": "P3", "keyboardPwd": PLACEHOLDER, "keyboardPwdName": "tenant"}],
         }
-        replies = [{"id": "r1", "content": "yes", "message_reference": {"message_id": "ask-1"}}]
+        replies = [{"id": "r1", "author": {"id": "owner-fixture"}, "content": "yes", "message_reference": {"message_id": "ask-1"}}]
         staying = moss_member_thread(chat_id="chat-staying", room=3, move_in="2026-08-01")
         departed = moss_member_thread(chat_id="chat-departed", room=2, move_in="2026-08-01", move_out="2026-09-02")
         with tempfile.TemporaryDirectory() as tmp:
@@ -720,7 +735,7 @@ class RunFlowTests(unittest.TestCase):
             {"lockId": "FRONT", "lockAlias": "Spanish Moss front", "lockName": "SM"},
             {"lockId": "BACK", "lockAlias": "Spanish Moss back", "lockName": "SM"},
         ]
-        replies = [{"id": "r1", "content": "no", "message_reference": {"message_id": "ask-1"}}]
+        replies = [{"id": "r1", "author": {"id": "owner-fixture"}, "content": "no", "message_reference": {"message_id": "ask-1"}}]
         with tempfile.TemporaryDirectory() as tmp:
             state_path = Path(tmp) / "state.json"
             ask = {

@@ -113,6 +113,12 @@ No build step or linter configuration; tests use direct Python execution.
 
 ## Environment
 
+Sifely shared-door approvals require `LOCK_CODES_APPROVER_USER_ID` to be the
+verified Discord user ID of Ang. Missing configuration, other authors, bots,
+and webhook messages fail closed. Approval must directly reply to the saved ask.
+Keep `LOCK_CODES_ENABLE` off until deployment review and property mapping checks
+are complete; offline test success alone does not authorize live rotation.
+
 Copy `.env.example` (if present) or create `.env` at project root with:
 
 ```
