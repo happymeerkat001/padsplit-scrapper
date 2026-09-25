@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """Fail if a published snapshot still has room codes or code-like phrases.
 
-Prints counts and JSON paths only. Never prints field values.
+Every string value is scanned. Keyword-plus-token hits fail regardless of
+the key. Standalone 4-8 digit runs fail unless the key or path is on the
+bare-number allowlist in ``publish_sanitize``. Prints counts and JSON paths
+only. Never prints field values.
 
     python3 padsplit_scraper/check_published_snapshot.py docs/data/latest.json
 

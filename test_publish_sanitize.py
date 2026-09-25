@@ -23,6 +23,7 @@ DOOR_DIGITS = "900001"
 LOCKBOX_DIGITS = "808080"
 WIFI_TOKEN = "WifiTokenEXAMPLE9"
 PLACEHOLDER = "CODE_PLACEHOLDER"
+BARE_DIGITS = "424242"
 
 
 def _phrase_text() -> dict:
@@ -132,6 +133,36 @@ class RedactTextTests(unittest.TestCase):
         text = "Room 12 needs paint"
         self.assertEqual(redact_sensitive_text(text), text)
 
+    def test_added_keywords_redact_without_hitting_keyboard_or_monkey(self) -> None:
+        combo = redact_sensitive_text(f"the combo is {BARE_DIGITS}")
+        self.assertNotIn(BARE_DIGITS, combo)
+        self.assertIn("[redacted]", combo)
+        keyed = redact_sensitive_text(f"key: {BARE_DIGITS}")
+        self.assertNotIn(BARE_DIGITS, keyed)
+        self.assertIn("[redacted]", keyed)
+        short = redact_sensitive_text("pw xyz")
+        self.assertNotIn("xyz", short)
+        self.assertIn("[redacted]", short)
+        self.assertEqual(redact_sensitive_text("a monkey at the keyboard"), "a monkey at the keyboard")
+        self.assertEqual(redact_sensitive_text("the lock is stuck"), "the lock is stuck")
+        self.assertEqual(redact_sensitive_text("the network is down"), "the network is down")
+
+    def test_bare_number_in_message_text_spares_dates_times_prices_and_phones(self) -> None:
+        cleaned = redact_sensitive_text(f"use {BARE_DIGITS} to get in", bare_numbers=True)
+        self.assertNotIn(BARE_DIGITS, cleaned)
+        self.assertIn("to get in", cleaned)
+        kept = redact_sensitive_text(
+            "Painted in 2024. Arrive 2026-09-01T00:00:00.123456Z at 10:30. "
+            "Rent is $850. Call (214) 555-0100.",
+            bare_numbers=True,
+        )
+        self.assertNotIn("[redacted]", kept)
+        self.assertIn("2024", kept)
+        self.assertIn("2026-09-01T00:00:00.123456Z", kept)
+        self.assertIn("10:30", kept)
+        self.assertIn("$850", kept)
+        self.assertIn("555-0100", kept)
+
 
 class SnapshotSanitizeTests(unittest.TestCase):
     def test_strips_room_code_keeps_has_reused_code_and_redacts_text(self) -> None:
@@ -163,6 +194,45 @@ class SnapshotSanitizeTests(unittest.TestCase):
         self.assertIn("room_code $.tasks.Requests[].room_code", report)
         for secret in (DOOR_DIGITS, LOCKBOX_DIGITS, WIFI_TOKEN, PLACEHOLDER):
             self.assertNotIn(secret, report)
+
+
+class CheckerWalkTests(unittest.TestCase):
+    def test_unknown_key_with_code_phrase_or_bare_number_fails(self) -> None:
+        code_hit = find_violations({"surprise_field": f"code {BARE_DIGITS}"})
+        self.assertTrue(any(item.kind == "sensitive_text" and item.path == "$.surprise_field" for item in code_hit))
+        bare_hit = find_violations({"surprise_field": f"use {BARE_DIGITS} to get in"})
+        self.assertTrue(any(item.kind == "bare_number" and item.path == "$.surprise_field" for item in bare_hit))
+        report = format_violation_report("fixture.json", code_hit + bare_hit)
+        self.assertNotIn(BARE_DIGITS, report)
+        self.assertIn("$.surprise_field", report)
+
+        structural = find_violations(
+            {
+                "id": BARE_DIGITS,
+                "zip": "42424",
+                "street1": f"{BARE_DIGITS} Example Lane",
+                "created": "2026-09-01T00:00:00.123456Z",
+                "picture": f"https://example.test/img/{BARE_DIGITS}.jpg",
+            }
+        )
+        self.assertEqual(structural, [])
+        keyword_on_address = find_violations({"street1": f"code {BARE_DIGITS}"})
+        self.assertTrue(any(item.kind == "sensitive_text" for item in keyword_on_address))
+
+        cleaned = sanitize_published_snapshot(
+            {
+                "messages": [
+                    {
+                        "lastMessage": {"text": f"use {BARE_DIGITS} to get in"},
+                        "recent_messages": [{"text": f"the combo is {BARE_DIGITS}. pw xyz"}],
+                    }
+                ],
+                "tasks": {"Requests": [{"details": "sink is leaking", "room_number": BARE_DIGITS}]},
+            }
+        )
+        self.assertEqual(find_violations(cleaned), [])
+        self.assertNotIn(BARE_DIGITS, json.dumps(cleaned["messages"]))
+        self.assertEqual(cleaned["tasks"]["Requests"][0]["room_number"], BARE_DIGITS)
 
 
 class PersistWritePathTests(unittest.TestCase):

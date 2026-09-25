@@ -17,28 +17,72 @@ Heuristic
 ``room_code`` keys are removed everywhere. ``has_reused_code`` is kept.
 
 Free-text fields (``text``, ``body``, ``details``, ``description``,
-``comment``) are scanned for access keywords:
+``comment``) are scanned for access keywords, matched on word boundaries:
 
     door, room, gate, lockbox, keypad, code, pin, wifi / wi-fi, ssid,
-    password, passcode
+    password, passcode, lock, key, combo, combination, access, entry,
+    unlock, pw, pwd, network
+
+``key`` does not match ``keyboard`` or ``monkey``. ``lock`` does not match
+``clock``, ``locked``, or ``lockbox`` (``lockbox`` is its own keyword).
 
 A secret token is:
 
 * a 3–16 digit run, or
 * a password-like token: 4–32 characters with both a letter and a digit, or
-  (only beside password / passcode / pin / wifi / ssid) a letter token of 8+
-  characters, or a short CamelCase / underscored / hyphenated token.
+  (only beside password / passcode / pin / wifi / ssid / pw / pwd) a letter
+  token of 8+ characters, or a short CamelCase / underscored / hyphenated
+  token, or
+* beside ``pw`` / ``pwd`` only, a following letter token of 3+ characters
+  (``pw xyz``). ``network``, ``lock``, ``key``, ``combo``, ``access``,
+  ``entry``, and ``unlock`` pair with digit runs and mixed letter-digit
+  tokens, not with ordinary words.
 
 The keyword and token must sit within 48 characters (32 for letter-only
 password tokens). The whole span covering both, including the short glue
 between them, is replaced with ``[redacted]``. Prose with a keyword and no
 nearby token is left alone, so "the door is broken" and "Room 4 needs paint"
 stay. One- and two-digit room labels stay. Dates (``YYYY-MM-DD``,
-``MM/DD/YYYY``, month names, "in 2024"), ``$`` prices, and phone numbers
-(``(214) 555-0100``, ``214-555-0100``, ``+1 214 555 0100``) are not tokens.
+``MM/DD/YYYY``, month names, "in 2024"), ISO timestamps (including fractional
+seconds), colon times (``10:30``), ``$`` prices, phone numbers, and
+``http(s)`` URLs are not tokens.
 
-A 3+ digit run next to "room" is treated as a code, so a street number in
-that window can be redacted. That is intentional over-redaction.
+Message body fields (``text``, ``body``) and any other non-allowlisted string
+also lose a standalone 4–8 digit run that is not one of those protected
+forms (``use 424242 to get in``). The cleaner still limits keyword redaction
+to the free-text field list above. Bare-number redaction follows the checker's
+allowlist so a sanitized snapshot can pass the full-string scan.
+
+Edge cases, accepted on purpose:
+
+* A zip code or 4–8 digit house number inside message text is redacted.
+  The same digits in ``street1``, ``street2``, ``zip``, or ``address`` stay.
+* A 4-digit year with date wording (``in 2024``, ``2026-09-01``) stays. A
+  bare year with no date wording in message text can be redacted; it is
+  indistinguishable from a 4-digit code.
+* ``10:30`` stays. ``1430`` with no colon can be redacted.
+* ``(214) 555-0100``, ``214-555-0100``, and ``+1 214 555 0100`` stay,
+  including the last four digits.
+* A 3+ digit run next to "room" is treated as a code, so a street number in
+  that window can be redacted.
+
+Bare-number allowlist (key name, unless noted as a path). Keyword+token
+rules still apply on these strings. The list is only ids, timestamps, counts,
+room numbers, prices, phones, address parts, and url/media fields:
+
+    id, pk, property_id, occupancy_id, user_id, role_id, psproperty_id,
+    created, modified, scraped_at, seenAt, update_status_at, started_at,
+    finished_at, run_scraped_at, moveInDate, moveOutDate, move_out_date,
+    room_number, roomNumber, room_status, moveout_photos_count,
+    days_to_complete, days_in_current_status,
+    base_price, last_room_price, new_price, recommended_price,
+    metro_area_average_price, zip, street1, street2, full_street, address,
+    phone, phone_number, mobile,
+    picture, preferredPicture, url, cover, filename
+    paths ending in attachments[].location or media[].location
+
+Ticket ``location`` is not allowlisted. Attachment and media locations are
+file paths whose ids are not door codes.
 """
 
 from __future__ import annotations
@@ -49,30 +93,87 @@ from dataclasses import dataclass
 from typing import Any, Iterable, List, Sequence, Tuple
 
 TEXT_FIELDS = frozenset({"text", "body", "details", "description", "comment"})
+MESSAGE_BODY_FIELDS = frozenset({"text", "body"})
 REDACTION = "[redacted]"
 DIGIT_WINDOW = 48
 PASSWORD_WINDOW = 32
 
-_KEYWORD_RE = re.compile(
-    r"(?i)\b(?:lockboxes|lockbox|keypads|keypad|passcodes|passcode|passwords|password|"
-    r"wi-fi|wifi|ssids|ssid|doors|door|gates|gate|rooms|room|codes|code|pins|pin)\b"
+# Longer forms first so "lockbox" wins over "lock" and "pwd" wins over "pw".
+_KEYWORD_PARTS = (
+    "lockboxes",
+    "lockbox",
+    "keypads",
+    "keypad",
+    "passcodes",
+    "passcode",
+    "passwords",
+    "password",
+    "combinations",
+    "combination",
+    "combos",
+    "combo",
+    "wi-fi",
+    "wifi",
+    "ssids",
+    "ssid",
+    "networks",
+    "network",
+    "doors",
+    "door",
+    "gates",
+    "gate",
+    "rooms",
+    "room",
+    "codes",
+    "code",
+    "pins",
+    "pin",
+    "unlocks",
+    "unlock",
+    "locks",
+    "lock",
+    "entries",
+    "entry",
+    "access",
+    "keys",
+    "key",
+    "pwds",
+    "pwd",
+    "pw",
 )
-_PASSWORD_KEYWORD_RE = re.compile(
-    r"(?i)\b(?:passcodes|passcode|passwords|password|wi-fi|wifi|ssids|ssid|pins|pin)\b"
+_PASSWORD_PARTS = (
+    "passcodes",
+    "passcode",
+    "passwords",
+    "password",
+    "wi-fi",
+    "wifi",
+    "ssids",
+    "ssid",
+    "pins",
+    "pin",
+    "pwds",
+    "pwd",
+    "pw",
 )
+_KEYWORD_RE = re.compile(r"(?i)\b(?:%s)\b" % "|".join(_KEYWORD_PARTS))
+_PASSWORD_KEYWORD_RE = re.compile(r"(?i)\b(?:%s)\b" % "|".join(_PASSWORD_PARTS))
 _DATE_RE = re.compile(
     r"(?i)(?<!\d)(?:"
-    r"\d{4}-\d{2}-\d{2}(?:[T ]\d{2}:\d{2}(?::\d{2})?(?:Z|[+-]\d{2}:?\d{2})?)?"
+    r"\d{4}-\d{2}-\d{2}(?:[T ]\d{2}:\d{2}(?::\d{2}(?:\.\d{1,9})?)?(?:Z|[+-]\d{2}:?\d{2})?)?"
     r"|\d{1,2}/\d{1,2}/\d{2,4}"
     r"|(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?\s+\d{1,2},?\s+\d{4}"
     r"|(?:in|since|year|during|from|until|before|after|on)\s+(?:19|20)\d{2}"
     r")(?!\d)"
 )
+_TIME_RE = re.compile(r"(?<!\d)\d{1,2}:\d{2}(?::\d{2}(?:\.\d{1,9})?)?(?!\d)")
 _PRICE_RE = re.compile(r"\$\s?\d{1,3}(?:,\d{3})*(?:\.\d{2})?|\$\s?\d+(?:\.\d{2})?")
 _PHONE_RE = re.compile(
     r"(?<!\d)(?:\+?1[\s.\-]?)?(?:\(\d{3}\)|\d{3})[\s.\-]\d{3}[\s.\-]\d{4}(?!\d)"
 )
+_URL_RE = re.compile(r"https?://[^\s<>\"']+")
 _DIGIT_RE = re.compile(r"(?<!\d)\d{3,16}(?!\d)")
+_BARE_DIGIT_RE = re.compile(r"(?<!\d)\d{4,8}(?!\d)")
 _MIXED_TOKEN_RE = re.compile(
     r"(?<![A-Za-z0-9])(?=[A-Za-z0-9]*[A-Za-z])(?=[A-Za-z0-9]*\d)"
     r"[A-Za-z0-9][A-Za-z0-9@#$!%*_.\-]{3,31}(?![A-Za-z0-9])"
@@ -81,10 +182,61 @@ _LETTER_TOKEN_RE = re.compile(r"(?<![A-Za-z0-9])[A-Za-z][A-Za-z0-9_\-]{7,31}(?![
 _CAMEL_TOKEN_RE = re.compile(
     r"(?<![A-Za-z0-9])[A-Za-z][a-z0-9]*[A-Z][A-Za-z0-9_\-]{1,28}(?![A-Za-z0-9])"
 )
-_SMASHED_RE = re.compile(
-    r"(?i)\b(?:lockboxes|lockbox|keypads|keypad|passcodes|passcode|passwords|password|"
-    r"wi-fi|wifi|ssids|ssid|doors|door|gates|gate|rooms|room|codes|code|pins|pin)"
-    r"[\s:=\-#]*\d{3,16}\b"
+_SMASHED_RE = re.compile(r"(?i)\b(?:%s)[\s:=\-#]*\d{3,16}\b" % "|".join(_KEYWORD_PARTS))
+_PW_TOKEN_RE = re.compile(
+    r"(?i)\b(?:pwds|pwd|pw)\b[\s:=\-#]*[A-Za-z][A-Za-z0-9_\-]{2,31}"
+)
+
+# Bare 4–8 digit runs are legitimate in these keys. Keyword+token still applies.
+BARE_NUMBER_KEY_ALLOWLIST = frozenset(
+    {
+        "id",
+        "pk",
+        "property_id",
+        "occupancy_id",
+        "user_id",
+        "role_id",
+        "psproperty_id",
+        "created",
+        "modified",
+        "scraped_at",
+        "seenAt",
+        "update_status_at",
+        "started_at",
+        "finished_at",
+        "run_scraped_at",
+        "moveInDate",
+        "moveOutDate",
+        "move_out_date",
+        "room_number",
+        "roomNumber",
+        "room_status",
+        "moveout_photos_count",
+        "days_to_complete",
+        "days_in_current_status",
+        "base_price",
+        "last_room_price",
+        "new_price",
+        "recommended_price",
+        "metro_area_average_price",
+        "zip",
+        "street1",
+        "street2",
+        "full_street",
+        "address",
+        "phone",
+        "phone_number",
+        "mobile",
+        "picture",
+        "preferredPicture",
+        "url",
+        "cover",
+        "filename",
+    }
+)
+_BARE_NUMBER_PATH_ALLOWLIST = (
+    re.compile(r"attachments\[\]\.location$"),
+    re.compile(r"media\[\]\.location$"),
 )
 _PROSE_WORDS = frozenset(
     {
@@ -169,11 +321,19 @@ class Violation:
     path: str
 
 
-def redact_sensitive_text(text: str) -> str:
-    """Replace keyword-plus-token phrases with ``[redacted]``."""
+def redact_sensitive_text(text: str, *, bare_numbers: bool = False, keywords: bool = True) -> str:
+    """Replace keyword-plus-token phrases with ``[redacted]``.
+
+    When ``bare_numbers`` is true, also replace a standalone 4–8 digit run
+    that is not a date, time, price, phone number, or URL. ``keywords``
+    stays on for the free-text field list and off when a structural field
+    only needs bare-number handling.
+    """
     if not isinstance(text, str) or not text:
         return text
-    spans = _sensitive_spans(text)
+    spans: List[Span] = list(_sensitive_spans(text)) if keywords else []
+    if bare_numbers:
+        spans = _merged(spans + _bare_number_spans(text), text)
     if not spans:
         return text
     pieces: List[str] = []
@@ -184,6 +344,14 @@ def redact_sensitive_text(text: str) -> str:
         cursor = end
     pieces.append(text[cursor:])
     return "".join(pieces)
+
+
+def bare_number_allowed(key: str, path: str) -> bool:
+    """True when a 4–8 digit run in this field is structural, not a code."""
+    if key in BARE_NUMBER_KEY_ALLOWLIST:
+        return True
+    collapsed = _collapse_indexes(path)
+    return any(pattern.search(collapsed) for pattern in _BARE_NUMBER_PATH_ALLOWLIST)
 
 
 def sanitize_published_snapshot(payload: Any) -> Any:
@@ -217,27 +385,48 @@ def format_violation_report(label: str, violations: Sequence[Violation]) -> str:
     """Counts and paths only. Safe to print for a real snapshot."""
     room = sum(1 for item in violations if item.kind == "room_code")
     sensitive = sum(1 for item in violations if item.kind == "sensitive_text")
+    bare = sum(1 for item in violations if item.kind == "bare_number")
     lines = [
         f"path: {label}",
         f"room_code_keys: {room}",
         f"sensitive_texts: {sensitive}",
+        f"bare_numbers: {bare}",
     ]
     for kind, path, count in collapsed_counts(violations):
         lines.append(f"{kind} {path} {count}")
     return "\n".join(lines) + "\n"
 
 
-def _sanitize_inplace(node: Any) -> None:
+def _sanitize_inplace(node: Any, path: str = "$") -> None:
     if isinstance(node, dict):
         node.pop("room_code", None)
         for key, value in list(node.items()):
-            if key in TEXT_FIELDS and isinstance(value, str):
-                node[key] = redact_sensitive_text(value)
+            child = f"{path}.{key}"
+            if isinstance(value, str):
+                node[key] = _redact_field(key, child, value)
             else:
-                _sanitize_inplace(value)
+                _sanitize_inplace(value, child)
     elif isinstance(node, list):
-        for item in node:
-            _sanitize_inplace(item)
+        for index, item in enumerate(node):
+            _sanitize_inplace(item, f"{path}[{index}]")
+
+
+def _redact_field(key: str, path: str, value: str) -> str:
+    """Keyword redaction stays on the free-text field list.
+
+    Bare 4–8 digit runs are removed from every string the checker would
+    flag, which is every string whose key or path is not allowlisted.
+    Message bodies are in that set (``text``, ``body``).
+    """
+    keywords = key in TEXT_FIELDS
+    bare = not bare_number_allowed(key, path)
+    if not keywords and not bare:
+        return value
+    if keywords:
+        return redact_sensitive_text(value, bare_numbers=bare, keywords=True)
+    if bare and _bare_number_spans(value):
+        return redact_sensitive_text(value, bare_numbers=True, keywords=False)
+    return value
 
 
 def _collect_violations(node: Any, path: str, found: List[Violation]) -> None:
@@ -246,19 +435,44 @@ def _collect_violations(node: Any, path: str, found: List[Violation]) -> None:
             child = f"{path}.{key}"
             if key == "room_code":
                 found.append(Violation("room_code", child))
-            if key in TEXT_FIELDS and isinstance(value, str) and _sensitive_spans(value):
-                found.append(Violation("sensitive_text", child))
-            _collect_violations(value, child, found)
+            if isinstance(value, str):
+                _collect_string_violations(key, child, value, found)
+            else:
+                _collect_violations(value, child, found)
     elif isinstance(node, list):
         for index, item in enumerate(node):
             _collect_violations(item, f"{path}[{index}]", found)
+    elif isinstance(node, str):
+        _collect_string_violations("", path, node, found)
+
+
+def _collect_string_violations(key: str, path: str, value: str, found: List[Violation]) -> None:
+    """Keyword+token on every string. Bare numbers except the allowlist."""
+    if _sensitive_spans(value):
+        found.append(Violation("sensitive_text", path))
+    if not bare_number_allowed(key, path) and _bare_number_spans(value):
+        found.append(Violation("bare_number", path))
+
+
+def _protected_spans(text: str) -> List[Span]:
+    patterns = (_DATE_RE, _TIME_RE, _PRICE_RE, _PHONE_RE, _URL_RE)
+    return _merged(
+        [(match.start(), match.end()) for pattern in patterns for match in pattern.finditer(text)],
+        text,
+    )
+
+
+def _bare_number_spans(text: str) -> List[Span]:
+    protected = _protected_spans(text)
+    return [
+        (match.start(), match.end())
+        for match in _BARE_DIGIT_RE.finditer(text)
+        if not _overlaps(match.start(), match.end(), protected)
+    ]
 
 
 def _sensitive_spans(text: str) -> List[Span]:
-    protected = _merged(
-        [(match.start(), match.end()) for pattern in (_DATE_RE, _PRICE_RE, _PHONE_RE) for match in pattern.finditer(text)],
-        text,
-    )
+    protected = _protected_spans(text)
     keywords = [match for match in _KEYWORD_RE.finditer(text)]
     tokens: List[_Token] = []
     for match in _DIGIT_RE.finditer(text):
@@ -278,6 +492,13 @@ def _sensitive_spans(text: str) -> List[Span]:
     for match in _SMASHED_RE.finditer(text):
         if not _overlaps(match.start(), match.end(), protected):
             spans.append((match.start(), match.end()))
+    for match in _PW_TOKEN_RE.finditer(text):
+        token = re.search(r"[A-Za-z][A-Za-z0-9_\-]{2,31}$", match.group())
+        if token and token.group().lower() in _PROSE_WORDS:
+            continue
+        if token and token.group().lower() in {"the", "and", "for", "you", "your", "this", "that", "with", "from"}:
+            continue
+        spans.append((match.start(), match.end()))
     for keyword in keywords:
         keyword_is_password = bool(_PASSWORD_KEYWORD_RE.fullmatch(keyword.group()))
         for token in tokens:
