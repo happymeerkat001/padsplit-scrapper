@@ -1131,7 +1131,11 @@
           return;
         }
 
-        appendSectionLabel(body, section.label);
+        const pioneerKeysHint = property.slug === 'pioneer_1404'
+          && section.fields.some((field) => field.key === 'keys_1')
+          ? "record only. automatic lockout replies don't use these yet."
+          : '';
+        appendSectionLabel(body, section.label, pioneerKeysHint);
         body.appendChild(renderLabelValueTable(property, section, savedValues));
       });
       if (!extrasRendered) {

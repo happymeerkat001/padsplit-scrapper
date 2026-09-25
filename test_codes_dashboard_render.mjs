@@ -290,5 +290,48 @@ assert.equal(saveBtn.textContent, "save");
 assert.ok(texts.includes("this updates the record only. it doesn't change the lock."));
 assert.ok(texts.includes("cancel"));
 
+const PIONEER_KEYS_HINT = "record only. automatic lockout replies don't use these yet.";
+const pioneer = {
+  slug: "pioneer_1404",
+  address: "1404 Pioneer Lane",
+  sections: [
+    {
+      label: "Door Codes",
+      fields: [{ key: "front_door", label: "Front", value: "" }]
+    },
+    {
+      label: "Other",
+      fields: [
+        { key: "keys_1", label: "Keys 1", value: "" },
+        { key: "keys_7", label: "Keys 7", value: "" }
+      ]
+    }
+  ]
+};
+const otherHouseWithKeys = {
+  slug: "fixture_house",
+  address: "Fixture House",
+  sections: [
+    {
+      label: "Other",
+      fields: [
+        { key: "keys_1", label: "Keys 1", value: "" },
+        { key: "keys_7", label: "Keys 7", value: "" }
+      ]
+    }
+  ]
+};
+function hintTexts(node) {
+  const found = [];
+  walk(node, (el) => {
+    if (el.textContent === PIONEER_KEYS_HINT) found.push(el.textContent);
+  });
+  return found;
+}
+assert.deepEqual(hintTexts(api.renderProperty(pioneer, {}, true)), [PIONEER_KEYS_HINT]);
+assert.deepEqual(hintTexts(api.renderProperty(otherHouseWithKeys, {}, true)), []);
+assert.deepEqual(hintTexts(tree), []);
+assert.deepEqual(hintTexts(noRoomsTree), []);
+
 console.log("codes dashboard renderer structure ok");
 console.log(`inputs=${inputs.length} no_rooms_inputs=${noRoomsInputs.length}`);
