@@ -19,10 +19,13 @@ A rotate that already succeeded is not repeated when the codes-page write
 or member notify still needs a retry.
 
 Move-out / member terminated: ALWAYS set the vacated room lock to the
-vacant default and update the codes page (do not wait for Ang on the
-room). ALWAYS ask Ang on #ai-automations whether to change front/back
+vacant default from ``VACANT_ROOM_DEFAULT`` (no in-code default; missing
+env skips the write) and update the codes page (do not wait for Ang on
+the room). ALWAYS ask Ang on #ai-automations whether to change front/back
 door keycodes for that house (doors only; Discord is house/room/member,
-never digits). After Ang yes: rotate front/back, update the codes page,
+never digits). Only a reply whose Discord author id equals
+``ANG_DISCORD_USER_ID`` can approve. If that env var is unset, no reply
+is an approval. After Ang yes: rotate front/back, update the codes page,
 and PadSplit-blast remaining tenants at that house with the new door
 codes (digits allowed on PadSplit only). After Ang no: leave front/back
 alone; the room is already the vacant default.
@@ -94,8 +97,6 @@ PROPERTY_LABEL = "Spanish Moss"
 PROPERTY_SLUG = "spanish_moss"
 LOCK_FIELD = "back_door"
 CODES_COLLECTION = "property_codes"
-# Vacant-room default after move-out. Never put this on Discord or in logs.
-VACANT_ROOM_DEFAULT = "0417"
 RECENT_EVENT_DAYS = 3
 
 # Digit-free Discord labels only. Street numbers stay out of Discord.
@@ -242,6 +243,10 @@ NEED_YOU_MISSING_PHONE = (
 NEED_YOU_MISSING_LOCK = (
     "Need you: no Sifely lock matched that house or room. "
     "Skipping rotate."
+)
+NEED_YOU_MISSING_VACANT_DEFAULT = (
+    "Need you: missing VACANT_ROOM_DEFAULT. "
+    "Room reset was skipped."
 )
 DISCORD_HUMAN_CHANGE = "Spanish Moss code changed."
 DISCORD_ROTATED = "Spanish Moss lock was rotated."
@@ -542,6 +547,21 @@ def need_you_missing_phone_text() -> str:
 
 def need_you_missing_lock_text() -> str:
     return NEED_YOU_MISSING_LOCK
+
+
+def need_you_missing_vacant_default_text() -> str:
+    return NEED_YOU_MISSING_VACANT_DEFAULT
+
+
+def vacant_room_default() -> Optional[str]:
+    """Room code after move-out. No in-code default. Never log the value."""
+    value = (os.getenv("VACANT_ROOM_DEFAULT") or "").strip()
+    return value or None
+
+
+def ang_discord_user_id() -> str:
+    """Discord user id allowed to approve shared-door changes. No default."""
+    return (os.getenv("ANG_DISCORD_USER_ID") or "").strip()
 
 
 def discord_room_word(room: Any) -> str:
@@ -1162,7 +1182,7 @@ def fetch_channel_messages(channel_id: str, token: str, *, limit: int = 50) -> L
 
 
 def classify_ang_reply(text: str) -> Optional[str]:
-    """Return yes/no from a digit-free Ang reply. Digit-bearing replies are ignored."""
+    """Return yes/no from a digit-free reply body. Digit-bearing replies are ignored."""
     content = (text or "").strip()
     if not content or has_digit_characters(content):
         return None
@@ -1173,13 +1193,31 @@ def classify_ang_reply(text: str) -> Optional[str]:
     return None
 
 
+def _discord_author_id(message: Dict[str, Any]) -> str:
+    author = message.get("author") if isinstance(message.get("author"), dict) else {}
+    return str(author.get("id") or message.get("author_id") or "").strip()
+
+
 def parse_ang_reply(messages: Sequence[Dict[str, Any]], ask_message_id: str) -> Optional[str]:
+    """Approve only a reply authored by ANG_DISCORD_USER_ID.
+
+    Unset or blank env is fail-closed: no reply is an approval, and a warning
+    is logged. The author id is never treated as a lock code.
+    """
     ask_id = str(ask_message_id or "")
     if not ask_id:
         return None
+    ang_id = ang_discord_user_id()
+    if not ang_id:
+        _log("ANG_DISCORD_USER_ID is unset; ignoring Discord replies, no door approval")
+        return None
     for message in messages or []:
+        if not isinstance(message, dict):
+            continue
         ref = message.get("message_reference") if isinstance(message.get("message_reference"), dict) else {}
         if str(ref.get("message_id") or "") != ask_id:
+            continue
+        if _discord_author_id(message) != ang_id:
             continue
         decision = classify_ang_reply(str(message.get("content") or ""))
         if decision:
@@ -1572,6 +1610,8 @@ def _discord_text_for(kind: Optional[str]) -> Optional[str]:
         return need_you_missing_phone_text()
     if kind == "need_you_lock":
         return need_you_missing_lock_text()
+    if kind == "need_you_vacant_default":
+        return need_you_missing_vacant_default_text()
     if kind == "human":
         return discord_human_change_text()
     if kind == "rotated":
@@ -2070,6 +2110,11 @@ def _reset_vacated_room(
         event_key = event_key or str(event_or_ask.get("event_key") or "")
     if not is_sifely_house(house_slug):
         return False
+    default_code = vacant_room_default()
+    if not default_code:
+        _log("VACANT_ROOM_DEFAULT is unset; skipping room reset")
+        _need_you_once(state, now, "need_you_vacant_default", poster, result, dry_run=dry_run)
+        return False
     if not ready:
         _need_you_once(state, now, "need_you_firebase", poster, result, dry_run=dry_run)
         return False
@@ -2079,12 +2124,12 @@ def _reset_vacated_room(
         return False
     known = already_rotated if already_rotated is not None else _rotated_lock_ids(state, event_key)
     if match.lock_id not in known:
-        if not rotate_lock(match, VACANT_ROOM_DEFAULT):
+        if not rotate_lock(match, default_code):
             _need_you_once(state, now, "need_you_lock", poster, result, dry_run=dry_run)
             return False
         _remember_rotated_lock(state, event_key, match.lock_id)
     field_name = codes_field_for(house_slug, "room", room)
-    if field_name and not _write_or_skip(write_fields, house_slug, {field_name: VACANT_ROOM_DEFAULT}, result):
+    if field_name and not _write_or_skip(write_fields, house_slug, {field_name: default_code}, result):
         _need_you_once(state, now, "need_you_firebase", poster, result, dry_run=dry_run)
         return False
     return True

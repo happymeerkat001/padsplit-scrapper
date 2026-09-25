@@ -20,19 +20,28 @@ python3 test_runtime.py
 4. A second run does not rotate or message again.
 5. Missing phone, missing Firebase service account, or no unique room lock is Need-you and does not invent a code.
 
+## Environment names
+
+Set these in the Mac `.env` only. No values belong in git.
+
+- `ANG_DISCORD_USER_ID` — Discord user id whose replies may approve or decline shared-door changes. No default. Unset or blank means every reply is ignored and a warning is logged.
+- `VACANT_ROOM_DEFAULT` — room code written on move-out or terminate. No default. Unset or blank skips the room reset and posts a missing-config notice. Never guess a code.
+
 ## Move-out or terminate resets the room only
 
 1. Recent move-out date, or a terminated/cancelled booking, at Ridge Oak or Pebble Shores.
-2. Expect that room lock set to the vacant-room default and the codes page updated in the same run.
+2. With `VACANT_ROOM_DEFAULT` set, expect that room lock set to that value and the codes page updated in the same run. If the variable is missing, expect no rotate and no codes-page write.
 3. Expect an Ang ask about front/back doors only. The ask names house, spelled room, and member. It does not include the default or any digits.
 4. Shared door locks are not changed in this step.
 
 ## Shared doors change only after explicit Ang approval
 
-1. With a pending ask, an Ang reply of yes on `#ai-automations` (digit-free) rotates front and back, or the single shared Pebble Shores door, updates those codes-page fields, and PadSplit-messages remaining current housemates. The departed member is not included.
-2. An Ang reply of no leaves front and back unchanged and does not message housemates.
-3. No reply leaves the ask pending. Doors stay as they are.
-4. A pending ask for any other house is dropped and does not call Sifely.
+1. With a pending ask, a digit-free yes whose Discord `author.id` equals `ANG_DISCORD_USER_ID` rotates front and back, or the single shared Pebble Shores door, updates those codes-page fields, and PadSplit-messages remaining current housemates. The departed member is not included.
+2. A yes or ok from anyone else, including Joe or a bot, is ignored. Doors stay unchanged.
+3. If `ANG_DISCORD_USER_ID` is unset, even a yes from Ang is not an approval. A warning is logged and the ask stays pending.
+4. An Ang reply of no leaves front and back unchanged and does not message housemates.
+5. No reply leaves the ask pending. Doors stay as they are.
+6. A pending ask for any other house is dropped and does not call Sifely.
 
 ## Fail closed when the Sifely API errors
 

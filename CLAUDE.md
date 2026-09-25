@@ -139,6 +139,8 @@ DISCORD_AUTOMATIONS_CHANNEL_ID= # optional #ai-automations; lockout drafts + lea
 LOCKOUT_REPLY_ENABLE=          # default off; Mac .env sets 1 to auto-SEND lockout door then lockbox
 LEAK_REPLY_ENABLE=             # default off; Mac .env sets 1 to auto-SEND water-leak shut-off pack + WATER_KEY_ORDER
 LOCK_CODES_ENABLE=             # default off; Mac .env sets 1 after merge to rotate Sifely codes (never set from CI/cloud)
+ANG_DISCORD_USER_ID=           # Discord snowflake; only this user can approve shared-door changes. Unset = no approval
+VACANT_ROOM_DEFAULT=           # room code after move-out. No default. Unset = skip the room reset
 SIFELY_API_KEY=          # raw sk- key, no Bearer; missing = Need-you no-op
 SIFELY_LOCK_ID=          # optional Spanish Moss back-door lock id
 SIFELY_KEYBOARD_PWD_ID=  # optional tenant passcode id

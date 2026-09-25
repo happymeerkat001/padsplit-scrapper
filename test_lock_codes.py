@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import io
+import os
 import tempfile
 import unittest
 from contextlib import redirect_stderr
@@ -14,6 +15,25 @@ from padsplit_scraper import lock_codes
 CT = ZoneInfo("America/Chicago")
 NOW = datetime(2026, 9, 3, 12, 0, tzinfo=CT)
 PLACEHOLDER = "REDACTED"
+ANG_USER_ID = "ang-discord-user"
+JOE_USER_ID = "joe-discord-user"
+BOT_USER_ID = "bot-discord-user"
+VACANT_PLACEHOLDER = "9999"
+
+
+def discord_reply(
+    content: str,
+    *,
+    author_id: str = ANG_USER_ID,
+    ask_id: str = "ask-1",
+    message_id: str = "reply-1",
+) -> dict:
+    return {
+        "id": message_id,
+        "content": content,
+        "author": {"id": author_id},
+        "message_reference": {"message_id": ask_id},
+    }
 
 
 def moss_room(*, vacant: bool, photos: int = 0, turned: bool = False, room: int = 1) -> dict:
@@ -383,6 +403,7 @@ class ShareAndRedactionTests(unittest.TestCase):
             lock_codes.need_you_missing_firebase_text(),
             lock_codes.need_you_missing_phone_text(),
             lock_codes.need_you_missing_lock_text(),
+            lock_codes.need_you_missing_vacant_default_text(),
             lock_codes.discord_move_in_text("Spanish Moss", "2", "Member Example"),
             lock_codes.discord_ask_ang_text("Spanish Moss", "2", "Member Example"),
             lock_codes.discord_ang_yes_text("Spanish Moss", "2", shared_rotated=True),
@@ -390,7 +411,7 @@ class ShareAndRedactionTests(unittest.TestCase):
         ):
             self.assertFalse(lock_codes.has_digit_characters(text), msg=text)
             self.assertEqual(lock_codes.assert_discord_outbound_safe(text), text)
-            self.assertNotIn(lock_codes.VACANT_ROOM_DEFAULT, text)
+            self.assertNotIn(VACANT_PLACEHOLDER, text)
         ask = lock_codes.discord_ask_ang_text("Spanish Moss", "2", "Member Example")
         self.assertIn("front and back door", ask)
         self.assertNotIn("vacant", ask)
@@ -428,13 +449,34 @@ class PhoneAndAngReplyTests(unittest.TestCase):
     def test_ang_reply_yes_no_ignores_digits(self) -> None:
         self.assertEqual(lock_codes.classify_ang_reply("yes"), "yes")
         self.assertEqual(lock_codes.classify_ang_reply("No"), "no")
-        self.assertIsNone(lock_codes.classify_ang_reply("yes 0417"))
+        self.assertIsNone(lock_codes.classify_ang_reply("yes 9999"))
         self.assertIsNone(lock_codes.classify_ang_reply("not sure"))
-        messages = [
-            {"id": "reply-1", "content": "yes", "message_reference": {"message_id": "ask-1"}},
-        ]
-        self.assertEqual(lock_codes.parse_ang_reply(messages, "ask-1"), "yes")
+
+    def test_ang_yes_approves(self) -> None:
+        messages = [discord_reply("yes")]
+        with patch.dict(os.environ, {"ANG_DISCORD_USER_ID": ANG_USER_ID}, clear=False):
+            self.assertEqual(lock_codes.parse_ang_reply(messages, "ask-1"), "yes")
+            self.assertEqual(lock_codes.parse_ang_reply([discord_reply("no")], "ask-1"), "no")
         self.assertIsNone(lock_codes.parse_ang_reply(messages, "ask-other"))
+
+    def test_non_ang_yes_is_ignored(self) -> None:
+        messages = [
+            discord_reply("yes", author_id=JOE_USER_ID, message_id="joe"),
+            discord_reply("ok", author_id=BOT_USER_ID, message_id="bot"),
+        ]
+        with patch.dict(os.environ, {"ANG_DISCORD_USER_ID": ANG_USER_ID}, clear=False):
+            self.assertIsNone(lock_codes.parse_ang_reply(messages, "ask-1"))
+
+    def test_missing_ang_discord_user_id_means_no_approval(self) -> None:
+        messages = [discord_reply("yes")]
+        logs = io.StringIO()
+        with patch.dict(os.environ):
+            os.environ.pop("ANG_DISCORD_USER_ID", None)
+            with redirect_stderr(logs):
+                decision = lock_codes.parse_ang_reply(messages, "ask-1")
+        self.assertIsNone(decision)
+        self.assertIn("ANG_DISCORD_USER_ID is unset", logs.getvalue())
+        self.assertNotIn(ANG_USER_ID, logs.getvalue())
 
 
 class HumanChangeAndHashTests(unittest.TestCase):
@@ -647,7 +689,8 @@ class RunFlowTests(unittest.TestCase):
         }
         with tempfile.TemporaryDirectory() as tmp:
             state_path = Path(tmp) / "state.json"
-            with patch.object(lock_codes, "sifely_api_key", return_value="sk-REDACTED"):
+            with patch.dict(os.environ, {"VACANT_ROOM_DEFAULT": VACANT_PLACEHOLDER}, clear=False), \
+                 patch.object(lock_codes, "sifely_api_key", return_value="sk-REDACTED"):
                 result = _run_live(
                     occupancy_rooms=[],
                     host_messages=[ridge_member_thread(move_in="2026-08-01", move_out="2026-09-02")],
@@ -661,8 +704,8 @@ class RunFlowTests(unittest.TestCase):
                 )
                 saved = lock_codes.load_state(state_path)
         self.assertEqual(result.action, "ask_ang")
-        self.assertEqual(changed, [("ROOM2", lock_codes.VACANT_ROOM_DEFAULT)])
-        self.assertEqual(records[0]["r2"], lock_codes.VACANT_ROOM_DEFAULT)
+        self.assertEqual(changed, [("ROOM2", VACANT_PLACEHOLDER)])
+        self.assertEqual(records[0]["r2"], VACANT_PLACEHOLDER)
         self.assertEqual(
             posts,
             [lock_codes.discord_ask_ang_text("Ridge Oak", "2", "Member Example")],
@@ -677,7 +720,8 @@ class RunFlowTests(unittest.TestCase):
         changed: list[tuple[str, str]] = []
         with tempfile.TemporaryDirectory() as tmp:
             state_path = Path(tmp) / "state.json"
-            with patch.object(lock_codes, "sifely_api_key", return_value="sk-REDACTED"):
+            with patch.dict(os.environ, {"VACANT_ROOM_DEFAULT": VACANT_PLACEHOLDER}, clear=False), \
+                 patch.object(lock_codes, "sifely_api_key", return_value="sk-REDACTED"):
                 result = _run_live(
                     occupancy_rooms=[],
                     host_messages=[
@@ -698,11 +742,42 @@ class RunFlowTests(unittest.TestCase):
                     state_path=state_path,
                 )
         self.assertEqual(result.action, "ask_ang")
-        self.assertEqual(changed, [("ROOM2", lock_codes.VACANT_ROOM_DEFAULT)])
+        self.assertEqual(changed, [("ROOM2", VACANT_PLACEHOLDER)])
         self.assertIn("terminated", posts[0])
         self.assertIn("front and back door", posts[0])
         self.assertNotIn("vacant", posts[0])
         self.assertFalse(lock_codes.has_digit_characters(posts[0]))
+
+    def test_missing_vacant_default_skips_room_reset(self) -> None:
+        posts: list[str] = []
+        changed: list[str] = []
+        records: list[dict] = []
+        with tempfile.TemporaryDirectory() as tmp:
+            state_path = Path(tmp) / "state.json"
+            with patch.dict(os.environ):
+                os.environ.pop("VACANT_ROOM_DEFAULT", None)
+                with patch.object(lock_codes, "sifely_api_key", return_value="sk-REDACTED"):
+                    result = _run_live(
+                        occupancy_rooms=[],
+                        host_messages=[ridge_member_thread(move_in="2026-08-01", move_out="2026-09-02")],
+                        locks=[{"lockId": "ROOM2", "lockAlias": "Ridge Oak room 2", "lockName": "RO"}],
+                        passcodes_by_lock={
+                            "ROOM2": [{"keyboardPwdId": "P1", "keyboardPwd": PLACEHOLDER, "keyboardPwdName": "tenant"}],
+                        },
+                        change_fn=lambda **k: changed.append(k["new_code"]),
+                        update_records=lambda slug, fields: records.append(fields) or True,
+                        post_discord=posts.append,
+                        firebase_ready=True,
+                        state_path=state_path,
+                    )
+                    saved = lock_codes.load_state(state_path)
+        self.assertEqual(changed, [])
+        self.assertEqual(records, [])
+        self.assertIn(lock_codes.need_you_missing_vacant_default_text(), posts)
+        self.assertFalse(saved["pending_ang_asks"][0]["room_reset"])
+        self.assertNotIn("move_in", result.events)
+        for text in posts:
+            self.assertFalse(lock_codes.has_digit_characters(text))
 
     def test_ang_yes_rotates_shared_doors_and_blasts_housemates(self) -> None:
         posts: list[str] = []
@@ -718,7 +793,7 @@ class RunFlowTests(unittest.TestCase):
             "FRONT": [{"keyboardPwdId": "P2", "keyboardPwd": PLACEHOLDER, "keyboardPwdName": "tenant"}],
             "BACK": [{"keyboardPwdId": "P3", "keyboardPwd": PLACEHOLDER, "keyboardPwdName": "tenant"}],
         }
-        replies = [{"id": "r1", "content": "yes", "message_reference": {"message_id": "ask-1"}}]
+        replies = [discord_reply("yes", message_id="r1")]
         staying = ridge_member_thread(chat_id="chat-staying", room=3, move_in="2026-08-01")
         departed = ridge_member_thread(chat_id="chat-departed", room=2, move_in="2026-08-01", move_out="2026-09-02")
         with tempfile.TemporaryDirectory() as tmp:
@@ -735,7 +810,8 @@ class RunFlowTests(unittest.TestCase):
                 "discord_message_id": "ask-1",
             }
             lock_codes.save_state({**lock_codes._empty_state(), "pending_ang_asks": [ask]}, state_path)
-            with patch.object(lock_codes, "sifely_api_key", return_value="sk-REDACTED"):
+            with patch.dict(os.environ, {"ANG_DISCORD_USER_ID": ANG_USER_ID}, clear=False), \
+                 patch.object(lock_codes, "sifely_api_key", return_value="sk-REDACTED"):
                 result = _run_live(
                     occupancy_rooms=[],
                     host_messages=[staying, departed],
@@ -775,7 +851,7 @@ class RunFlowTests(unittest.TestCase):
             {"lockId": "FRONT", "lockAlias": "Ridge Oak front", "lockName": "SM"},
             {"lockId": "BACK", "lockAlias": "Ridge Oak back", "lockName": "SM"},
         ]
-        replies = [{"id": "r1", "content": "no", "message_reference": {"message_id": "ask-1"}}]
+        replies = [discord_reply("no", message_id="r1")]
         with tempfile.TemporaryDirectory() as tmp:
             state_path = Path(tmp) / "state.json"
             ask = {
@@ -790,7 +866,8 @@ class RunFlowTests(unittest.TestCase):
                 "discord_message_id": "ask-1",
             }
             lock_codes.save_state({**lock_codes._empty_state(), "pending_ang_asks": [ask]}, state_path)
-            with patch.object(lock_codes, "sifely_api_key", return_value="sk-REDACTED"):
+            with patch.dict(os.environ, {"ANG_DISCORD_USER_ID": ANG_USER_ID}, clear=False), \
+                 patch.object(lock_codes, "sifely_api_key", return_value="sk-REDACTED"):
                 result = _run_live(
                     occupancy_rooms=[],
                     host_messages=[ridge_member_thread(chat_id="chat-staying", room=3, move_in="2026-08-01")],
@@ -1037,7 +1114,7 @@ class RunFlowTests(unittest.TestCase):
             "FRONT": [{"keyboardPwdId": "P2", "keyboardPwd": PLACEHOLDER, "keyboardPwdName": "tenant"}],
             "BACK": [{"keyboardPwdId": "P3", "keyboardPwd": PLACEHOLDER, "keyboardPwdName": "tenant"}],
         }
-        replies = [{"id": "r1", "content": "yes", "message_reference": {"message_id": "ask-1"}}]
+        replies = [discord_reply("yes", message_id="r1")]
         ask = {
             "event_key": "move_out|occ|ridge_oak_10235|2|2026-09-02",
             "house_slug": "ridge_oak_10235",
@@ -1053,7 +1130,8 @@ class RunFlowTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             state_path = Path(tmp) / "state.json"
             lock_codes.save_state({**lock_codes._empty_state(), "pending_ang_asks": [ask]}, state_path)
-            with patch.object(lock_codes, "sifely_api_key", return_value="sk-REDACTED"):
+            with patch.dict(os.environ, {"ANG_DISCORD_USER_ID": ANG_USER_ID}, clear=False), \
+                 patch.object(lock_codes, "sifely_api_key", return_value="sk-REDACTED"):
                 first = _run_live(
                     occupancy_rooms=[],
                     host_messages=[staying],
@@ -1096,9 +1174,10 @@ class RunFlowTests(unittest.TestCase):
         ]
         with tempfile.TemporaryDirectory() as tmp:
             state_path = Path(tmp) / "state.json"
-            with patch.object(lock_codes, "sifely_api_key", return_value="sk-REDACTED"), \
+            with patch.dict(os.environ, {"VACANT_ROOM_DEFAULT": VACANT_PLACEHOLDER}, clear=False), \
+                 patch.object(lock_codes, "sifely_api_key", return_value="sk-REDACTED"), \
                  redirect_stderr(logs):
-                lock_codes._log(f"should mask {lock_codes.VACANT_ROOM_DEFAULT} and 1212")
+                lock_codes._log(f"should mask {VACANT_PLACEHOLDER} and 1212")
                 _run_live(
                     occupancy_rooms=[],
                     host_messages=[ridge_member_thread(phone="5550101212")],
@@ -1129,13 +1208,13 @@ class RunFlowTests(unittest.TestCase):
         logged = logs.getvalue()
         self.assertIn("1212", "".join(padsplit))
         self.assertNotIn("1212", logged)
-        self.assertNotIn(lock_codes.VACANT_ROOM_DEFAULT, logged)
+        self.assertNotIn(VACANT_PLACEHOLDER, logged)
         self.assertIn("REDACTED", logged)
         self.assertTrue(posts)
         for text in posts:
             self.assertFalse(lock_codes.has_digit_characters(text))
             self.assertNotIn("1212", text)
-            self.assertNotIn(lock_codes.VACANT_ROOM_DEFAULT, text)
+            self.assertNotIn(VACANT_PLACEHOLDER, text)
 
     def test_new_tenants_and_automations_are_the_discord_channel_constants(self) -> None:
         self.assertEqual(lock_codes.DISCORD_NEW_TENANTS_CHANNEL_ID, "1542260130614354055")
