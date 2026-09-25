@@ -191,6 +191,17 @@ class RetrySafetyTests(unittest.TestCase):
             self.assertEqual(result.action, "busy")
         self.assertEqual(self.changed, [])
 
+    def test_conditional_yes_cannot_authorize_doors(self):
+        self.assertIsNone(lc.classify_ang_reply("yes but wait until tomorrow"))
+        self.assertIsNone(lc.classify_ang_reply("yes no do not do it"))
+
+    def test_missing_cached_phone_uses_read_only_lookup_before_rotation(self):
+        member = moss_member_thread()
+        with patch.object(lc, "_fetch_phone_for_thread", return_value="5550101212") as lookup:
+            self.run_flow(host_messages=[member], fetch_phone=None)
+        lookup.assert_called_once_with(member)
+        self.assertEqual(self.changed, ["ROOM"])
+
 
 if __name__ == "__main__":
     unittest.main()

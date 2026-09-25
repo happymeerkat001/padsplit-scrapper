@@ -1110,9 +1110,9 @@ def classify_ang_reply(text: str) -> Optional[str]:
     content = (text or "").strip()
     if not content or has_digit_characters(content):
         return None
-    if _ANG_YES.search(content):
+    if re.fullmatch(r"(?i)(yes|yeah|yep|approve|approved|do it|ok|okay|y)[.!]?", content):
         return "yes"
-    if _ANG_NO.search(content):
+    if re.fullmatch(r"(?i)(nope|do not|don't|dont|negative|skip|no|n)[.!]?", content):
         return "no"
     return None
 
@@ -1243,6 +1243,20 @@ def fetch_occupancy_phone(
         if isinstance(value, str) and value.strip():
             return value.strip()
     return ""
+
+
+def _fetch_phone_for_thread(thread: Dict[str, Any]) -> str:
+    occupancy_id = _thread_occupancy_id(thread)
+    if not occupancy_id:
+        return ""
+    try:
+        creds = load_credentials()
+        with create_session() as session:
+            login(session, creds["email"], creds["password"], force=False)
+            return fetch_occupancy_phone(session, creds, occupancy_id)
+    except Exception:
+        _log("Need you: tenant phone lookup unavailable")
+        return ""
 
 
 def _log(message: str) -> None:
@@ -1804,7 +1818,7 @@ def run(
             now=current,
             dry_run=dry_run,
             poster=poster,
-            fetch_phone=fetch_phone,
+            fetch_phone=fetch_phone or (None if dry_run else _fetch_phone_for_thread),
             rotate_lock=_rotate_lock,
             write_fields=_write_fields,
             notify_one=member_one,

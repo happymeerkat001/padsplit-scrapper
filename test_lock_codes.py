@@ -73,6 +73,7 @@ def moss_member_thread(
 def _run_live(**kwargs):
     kwargs.setdefault("now", NOW)
     kwargs.setdefault("dry_run", False)
+    kwargs.setdefault("fetch_phone", lambda thread: "")
     with patch.object(lock_codes, "running_in_ci", return_value=False), \
          patch.object(lock_codes, "live_actions_enabled", return_value=True), \
          patch.dict(lock_codes.os.environ, {"LOCK_CODES_APPROVER_USER_ID": "owner-fixture"}):
