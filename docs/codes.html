@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PadSplit Codes</title>
+  <title>ops</title>
   <style>
     :root {
       --bg: #0f172a;
@@ -207,7 +207,7 @@
     }
     #gate-wrap {
       max-width: 430px;
-      margin: 0 auto 1rem;
+      margin: 12vh auto 0;
     }
     #app-wrap { max-width: 1200px; margin: 0 auto; }
     .gate-title { margin-top: 0; margin-bottom: 0.35rem; }
@@ -272,7 +272,7 @@
     <div id="gate-error" class="error hidden" style="margin-top:0.6rem">Incorrect email or password.</div>
   </div>
 
-  <div id="app-wrap">
+  <div id="app-wrap" class="hidden">
     <header>
       <h1>Property Codes</h1>
       <div class="header-meta">
@@ -284,16 +284,16 @@
     </header>
 
     <div class="card">
-      <div class="codes-intro">
+      <div class="codes-intro hidden">
         <button type="button" id="page-history-btn" class="history-btn">History</button>
         <div class="muted">Values in parentheses indicate known conflicting entries and can be edited.</div>
       </div>
       <div id="page-history-panel" class="history-panel hidden"></div>
-      <div id="codes-status" class="muted">sign in to load codes</div>
+      <div id="codes-status" class="muted"></div>
       <div id="codes-list"></div>
     </div>
 
-    <section class="notes-section">
+    <section class="notes-section hidden">
       <h2>Notes</h2>
       <div class="notes-card">
         <textarea class="notes-textarea" id="notes-textarea" placeholder="Add shared notes…"></textarea>
@@ -308,7 +308,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import { getFirestore, collection, getDocs, getDoc, setDoc, doc, serverTimestamp, onSnapshot, query, orderBy, limit, startAfter, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, getDocsFromServer, getDoc, setDoc, doc, serverTimestamp, onSnapshot, query, orderBy, limit, startAfter, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCSWOHI6QLqugy_Fao2p4bBehg02_fu3No",
@@ -636,19 +636,57 @@
     const CODES_UID = '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2';
     let loadGeneration = 0;
 
+    const codesIntro = document.querySelector('.codes-intro');
+    const notesSection = document.querySelector('.notes-section');
+
     function setCodesStatus(message) {
       codesStatus.textContent = message || '';
     }
 
-    function showApp() {
-      gateWrap.classList.add('hidden');
-      appWrap.classList.remove('hidden');
+    function setApprovedChrome(visible) {
+      if (codesIntro) codesIntro.classList.toggle('hidden', !visible);
+      if (notesSection) notesSection.classList.toggle('hidden', !visible);
     }
 
-    function showGate() {
+    function clearPropertyList() {
+      list.innerHTML = '';
+      setApprovedChrome(false);
+      const pageHistoryPanel = document.getElementById('page-history-panel');
+      if (pageHistoryPanel) pageHistoryPanel.classList.add('hidden');
+    }
+
+    function showSignedOut() {
       gateWrap.classList.remove('hidden');
-      appWrap.classList.remove('hidden');
+      appWrap.classList.add('hidden');
+      clearPropertyList();
+      setCodesStatus('');
       gateInput.focus();
+    }
+
+    function showLoading() {
+      gateWrap.classList.add('hidden');
+      appWrap.classList.remove('hidden');
+      clearPropertyList();
+      setCodesStatus('loading codes…');
+    }
+
+    function showNotApproved() {
+      gateWrap.classList.add('hidden');
+      appWrap.classList.remove('hidden');
+      clearPropertyList();
+      setCodesStatus("your account isn't approved for codes yet. ask ang.");
+    }
+
+    function showLoadError() {
+      gateWrap.classList.add('hidden');
+      appWrap.classList.remove('hidden');
+      clearPropertyList();
+      setCodesStatus("couldn't load codes. refresh, or use the lockout ladder.");
+    }
+
+    function isPermissionDenied(err) {
+      const code = err && err.code ? String(err.code) : '';
+      return code === 'permission-denied' || code.endsWith('/permission-denied');
     }
 
     gateForm.addEventListener('submit', async (e) => {
@@ -1005,9 +1043,9 @@
         if (loaded && !live) {
           const note = document.createElement('div');
           note.className = 'section-hint';
-          note.textContent = 'No codes stored for this house.';
+          note.textContent = `no codes saved for ${property.address} yet.`;
           const body = node.querySelector('.property-body');
-          if (body) body.appendChild(note);
+          if (body) body.prepend(note);
         }
         list.appendChild(node);
       });
@@ -1298,11 +1336,12 @@
         });
       }
 
-      const snapshot = await getDocs(collection(db, 'property_codes'));
+      const snapshot = await getDocsFromServer(collection(db, 'property_codes'));
       if (generation !== loadGeneration) return;
       const docsBySlug = new Map();
       snapshot.forEach((d) => docsBySlug.set(d.id, d.data()));
 
+      setApprovedChrome(true);
       renderAllHouses(docsBySlug);
       DEFAULTS.forEach((property) => {
         const node = list.querySelector(`details[data-house="${property.slug}"]`);
@@ -1323,32 +1362,27 @@
       }
     }
 
-    renderAllHouses(null);
-    setCodesStatus('sign in to load codes');
+    showSignedOut();
 
     onAuthStateChanged(auth, (user) => {
       const generation = ++loadGeneration;
       if (!user) {
-        showGate();
-        renderAllHouses(null);
-        setCodesStatus('sign in to load codes');
+        showSignedOut();
         return;
       }
-      showApp();
       if (user.uid !== CODES_UID) {
-        renderAllHouses(null);
-        setCodesStatus("couldn't load codes");
+        showNotApproved();
         return;
       }
-      setCodesStatus('');
+      showLoading();
       initCodes(generation).then(() => {
         if (generation !== loadGeneration) return;
         setCodesStatus('');
       }).catch((err) => {
         if (generation !== loadGeneration) return;
         console.error('codes load failed', err && err.code);
-        renderAllHouses(null);
-        setCodesStatus("couldn't load codes");
+        if (isPermissionDenied(err)) showNotApproved();
+        else showLoadError();
       });
     });
     document.getElementById('signout-btn').addEventListener('click', () => signOut(auth));

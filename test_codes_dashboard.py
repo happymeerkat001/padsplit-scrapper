@@ -333,9 +333,47 @@ class CodesDashboardStructureTests(unittest.TestCase):
                 rel = path.relative_to(DOCS_DIR.parent)
                 self.fail(f"{rel} has a DEFAULTS value string at offset {match.start()}")
 
+    def test_codes_page_state_copy(self):
+        self.assertIn("<title>ops</title>", self.html)
+        self.assertNotIn("PadSplit Codes", self.html)
+        head = self.html.split("</head>", 1)[0]
+        self.assertIsNone(
+            re.search(
+                r'<meta[^>]+(?:name="description"|property="og:|name="twitter:)',
+                head,
+                re.I,
+            )
+        )
+        self.assertIn('id="app-wrap" class="hidden"', self.html)
+        self.assertIn("loading codes…", self.html)
+        self.assertIn("your account isn't approved for codes yet. ask ang.", self.html)
+        self.assertIn("no codes saved for ${property.address} yet.", self.html)
+        self.assertIn("couldn't load codes. refresh, or use the lockout ladder.", self.html)
+        self.assertNotIn("sign in to load codes", self.html)
+        self.assertNotIn("No codes stored for this house.", self.html)
+        self.assertNotIn("renderAllHouses(null)", self.html)
+        self.assertIn("getDocsFromServer", self.html)
+        self.assertNotIn("copy-all", self.html.lower())
+        self.assertNotIn("copy all", self.html.lower())
+        self.assertNotRegex(self.html, r"(?i)\bexport\b")
+        signed_out = self.html.split("function showSignedOut", 1)[1].split("function showLoading", 1)[0]
+        self.assertNotIn("renderAllHouses", signed_out)
+        self.assertIn("clearPropertyList", signed_out)
+        loading = self.html.split("function showLoading", 1)[1].split("function showNotApproved", 1)[0]
+        self.assertIn("loading codes…", loading)
+        self.assertIn("clearPropertyList", loading)
+        self.assertNotIn("renderAllHouses", loading)
+        denied = self.html.split("function showNotApproved", 1)[1].split("function showLoadError", 1)[0]
+        self.assertIn("your account isn't approved for codes yet. ask ang.", denied)
+        self.assertIn("clearPropertyList", denied)
+        self.assertNotIn("renderAllHouses", denied)
+        failed = self.html.split("function showLoadError", 1)[1].split("function isPermissionDenied", 1)[0]
+        self.assertIn("couldn't load codes. refresh, or use the lockout ladder.", failed)
+        self.assertIn("clearPropertyList", failed)
+        self.assertNotIn("renderAllHouses", failed)
+        self.assertNotIn("localStorage", failed)
+
     def test_codes_page_has_no_client_value_fallback(self):
-        self.assertIn("sign in to load codes", self.html)
-        self.assertIn("couldn't load codes", self.html)
         self.assertIn("if (!currentHasLiveDoc) return '';", self.html)
         self.assertIn("user.uid !== CODES_UID", self.html)
         resolver = self.html.split("function resolveSavedOrDefault", 1)[1].split("function ", 1)[0]
