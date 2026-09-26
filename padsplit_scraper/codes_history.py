@@ -7,7 +7,10 @@ import json
 import os
 import sys
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from typing import Any, Dict, Optional
+
+from dotenv import load_dotenv
 
 try:
     from padsplit_scraper import persist
@@ -16,6 +19,9 @@ except ModuleNotFoundError:  # python3 padsplit_scraper/codes_history.py
     import persist  # type: ignore
     import runtime  # type: ignore
 
+
+ROOT_DIR = Path(__file__).resolve().parent.parent
+ENV_PATH = ROOT_DIR / ".env"
 
 CODES_COLLECTION = "property_codes"
 VERSIONS_COLLECTION = "code_versions"
@@ -69,6 +75,10 @@ def _latest_row(rows: list[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
 
 def _log(message: str) -> None:
     sys.stderr.write(f"[codes-history] {message}\n")
+
+
+def load_environment() -> None:
+    load_dotenv(ENV_PATH, override=False)
 
 
 def catch_up(
@@ -145,6 +155,7 @@ def catch_up(
 
 
 def main() -> int:
+    load_environment()
     result = catch_up()
     return 0 if result["action"] in {"ok", "skip_ci", "skip_no_client"} else 1
 

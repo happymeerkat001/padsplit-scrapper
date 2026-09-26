@@ -2,12 +2,33 @@ import json
 import os
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, Set
+from typing import Any, Dict, Set
 
-import firebase_admin
-from firebase_admin import credentials, firestore
+from dotenv import load_dotenv
 
-from scraper import create_session, load_credentials, login, update_task_status
+try:
+    from padsplit_scraper import persist
+    from padsplit_scraper.scraper import (
+        create_session,
+        load_credentials,
+        login,
+        update_task_status,
+    )
+except ModuleNotFoundError:  # python3 padsplit_scraper/firestore_status_monitor.py
+    import persist  # type: ignore
+    from scraper import (  # type: ignore
+        create_session,
+        load_credentials,
+        login,
+        update_task_status,
+    )
+
+
+ROOT_DIR = Path(__file__).resolve().parent.parent
+ENV_PATH = ROOT_DIR / ".env"
+_MISSING_CREDENTIALS = (
+    "Missing FIREBASE_SERVICE_ACCOUNT_JSON or GOOGLE_APPLICATION_CREDENTIALS"
+)
 
 
 def _load_json(path: Path, default):
@@ -56,21 +77,24 @@ def _build_task_map(payload: Dict) -> Dict[str, Dict]:
     return task_map
 
 
-def _init_firestore_client() -> firestore.Client:
-    service_account_json = os.getenv("FIREBASE_SERVICE_ACCOUNT_JSON")
-    if not service_account_json:
-        raise RuntimeError("Missing FIREBASE_SERVICE_ACCOUNT_JSON")
+def load_environment() -> None:
+    load_dotenv(ENV_PATH, override=False)
 
-    service_account_info = json.loads(service_account_json)
-    cred = credentials.Certificate(service_account_info)
 
-    if not firebase_admin._apps:
-        firebase_admin.initialize_app(cred)
-
-    return firestore.client()
+def _init_firestore_client() -> Any:
+    """Use the shared Firestore credential helper (JSON text, then key-file path)."""
+    client = persist._firestore_client_or_none()
+    if client is not None:
+        return client
+    if os.getenv("FIREBASE_SERVICE_ACCOUNT_JSON") or os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
+        raise RuntimeError(
+            "Firestore client unavailable; firebase-admin is missing or credentials could not be loaded"
+        )
+    raise RuntimeError(_MISSING_CREDENTIALS)
 
 
 def main() -> None:
+    load_environment()
     base_dir = Path(__file__).resolve().parent
     processed_path = base_dir / "docs" / "data" / "processed_firestore_docs.json"
 
