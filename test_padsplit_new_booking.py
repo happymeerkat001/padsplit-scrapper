@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import os
 import tempfile
 import unittest
 from datetime import datetime, timezone
@@ -421,12 +422,30 @@ class NewBookingFirstMessageTests(unittest.TestCase):
         gid = base64.b64encode(b"OccupancyType:99").decode()
         self.assertEqual(new_booking.occupancy_pk_from_gid(gid), 99)
 
-    def test_scraper_hook_is_called_after_messages(self) -> None:
+    def _run_messages_only_scraper(self, *, enable_action_hooks: bool):
+        """Run the messages-only scraper with action-hook env isolated to this test.
+
+        Production stays off unless PADSPLIT_ENABLE_ACTION_HOOKS is set. CI and
+        collection-only also force hooks off, so this clears those gates and
+        sets the flag only when the caller asks to exercise the hook path.
+        """
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             output_dir = root / "output"
             docs_data_dir = root / "docs" / "data"
+            env = {
+                "CI": "",
+                "GITHUB_ACTIONS": "",
+                "PADSPLIT_COLLECTION_ONLY": "",
+                "PADSPLIT_SEND_LOCKOUT": "0",
+                "LOCKOUT_REPLY_ENABLE": "0",
+                "PADSPLIT_SEND_LEAK": "0",
+                "LEAK_REPLY_ENABLE": "0",
+            }
+            if enable_action_hooks:
+                env["PADSPLIT_ENABLE_ACTION_HOOKS"] = "1"
             with (
+                patch.dict(os.environ, env, clear=False),
                 patch("padsplit_scraper.persist.OUTPUT_DIR", output_dir),
                 patch("padsplit_scraper.persist.DOCS_DATA_DIR", docs_data_dir),
                 patch("padsplit_scraper.scraper.load_credentials", return_value={"email": "user", "password": "pw"}),
@@ -442,12 +461,22 @@ class NewBookingFirstMessageTests(unittest.TestCase):
                 patch("padsplit_scraper.scraper.compute_kpis", return_value={"score": 1, "rooms_over_30d": 0}),
                 patch("padsplit_scraper.new_booking.run_for_scraper") as run_mock,
             ):
+                if not enable_action_hooks:
+                    os.environ.pop("PADSPLIT_ENABLE_ACTION_HOOKS", None)
                 session_cm.return_value.__enter__.return_value = object()
                 session_cm.return_value.__exit__.return_value = False
                 import padsplit_scraper.scraper as scraper
 
                 self.assertEqual(scraper.main(["--messages-only"]), 0)
-                run_mock.assert_called_once()
+                return run_mock
+
+    def test_scraper_hook_is_called_after_messages(self) -> None:
+        run_mock = self._run_messages_only_scraper(enable_action_hooks=True)
+        run_mock.assert_called_once()
+
+    def test_scraper_hook_is_not_called_when_action_hooks_unset(self) -> None:
+        run_mock = self._run_messages_only_scraper(enable_action_hooks=False)
+        run_mock.assert_not_called()
 
 
 if __name__ == "__main__":
