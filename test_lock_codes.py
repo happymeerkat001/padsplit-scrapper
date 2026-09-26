@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
+import io
+import os
 import tempfile
 import unittest
+from contextlib import redirect_stderr
 from datetime import datetime
 from pathlib import Path
 from unittest.mock import patch
@@ -12,6 +15,25 @@ from padsplit_scraper import lock_codes
 CT = ZoneInfo("America/Chicago")
 NOW = datetime(2026, 9, 3, 12, 0, tzinfo=CT)
 PLACEHOLDER = "REDACTED"
+ANG_USER_ID = "ang-discord-user"
+JOE_USER_ID = "joe-discord-user"
+BOT_USER_ID = "bot-discord-user"
+VACANT_PLACEHOLDER = "9999"
+
+
+def discord_reply(
+    content: str,
+    *,
+    author_id: str = ANG_USER_ID,
+    ask_id: str = "ask-1",
+    message_id: str = "reply-1",
+) -> dict:
+    return {
+        "id": message_id,
+        "content": content,
+        "author": {"id": author_id},
+        "message_reference": {"message_id": ask_id},
+    }
 
 
 def moss_room(*, vacant: bool, photos: int = 0, turned: bool = False, room: int = 1) -> dict:
@@ -38,17 +60,70 @@ def green_hill_room(*, vacant: bool = True, photos: int = 2) -> dict:
     }
 
 
-def moss_member_thread() -> dict:
+def ridge_room(*, vacant: bool, photos: int = 0, turned: bool = False, room: int = 1) -> dict:
     return {
-        "id": "chat-spanish-moss",
+        "property_id": "RO",
+        "address": "10235 Ridge Oak Drive",
+        "room_number": room,
+        "vacant": vacant,
+        "turned": turned,
+        "move_out_photos": photos,
+        "listed_move_out": "2026-09-01",
+    }
+
+
+def ridge_member_thread(**kwargs) -> dict:
+    chat_id = kwargs.pop("chat_id", "chat-ridge")
+    thread = moss_member_thread(chat_id=chat_id, **kwargs)
+    thread["property"]["address"]["street1"] = "10235 Ridge Oak Drive"
+    return thread
+
+
+def pebble_member_thread(**kwargs) -> dict:
+    chat_id = kwargs.pop("chat_id", "chat-pebble")
+    thread = moss_member_thread(chat_id=chat_id, **kwargs)
+    thread["property"]["address"]["street1"] = "3414 Pebble Shores Drive"
+    return thread
+
+
+def moss_member_thread(
+    *,
+    chat_id: str = "chat-spanish-moss",
+    room: int = 2,
+    move_in: str = "2026-09-02",
+    move_out: str | None = None,
+    phone: str = "",
+    cancelled: bool = False,
+    booking_status: str | None = None,
+) -> dict:
+    user = {"firstName": "Member", "lastName": "Example"}
+    if phone:
+        user["phone"] = phone
+    last: dict = {
+        "created": "2026-09-03T12:00:00+00:00",
+        "bookingStatus": {"status": booking_status} if booking_status else None,
+    }
+    return {
+        "id": chat_id,
+        "isCancelled": cancelled,
         "occupancy": {
-            "moveInDate": "2026-08-01",
-            "moveOutDate": None,
-            "user": {"firstName": "Member", "lastName": "Example"},
-            "room": {"roomNumber": 2},
+            "id": f"occ-{chat_id}",
+            "moveInDate": move_in,
+            "moveOutDate": move_out,
+            "user": user,
+            "room": {"roomNumber": room},
         },
         "property": {"address": {"street1": "Spanish Moss"}},
+        "lastMessage": last,
     }
+
+
+def _run_live(**kwargs):
+    kwargs.setdefault("now", NOW)
+    kwargs.setdefault("dry_run", False)
+    with patch.object(lock_codes, "running_in_ci", return_value=False), \
+         patch.object(lock_codes, "live_actions_enabled", return_value=True):
+        return lock_codes.run(**kwargs)
 
 
 class DecideTests(unittest.TestCase):
@@ -84,6 +159,20 @@ class DecideTests(unittest.TestCase):
         self.assertIn("SIFELY_API_KEY", lock_codes.need_you_missing_key_text())
         self.assertFalse(lock_codes.has_digit_characters(lock_codes.need_you_missing_key_text()))
 
+    def test_missing_firebase_is_need_you(self) -> None:
+        plan = lock_codes.decide(
+            in_ci=False,
+            api_key_present=True,
+            api_available=True,
+            human_change=False,
+            pending_vacancy=False,
+            inbound_share=False,
+            firebase_ready=False,
+        )
+        self.assertEqual(plan.action, "need_you")
+        self.assertEqual(plan.discord_kind, "need_you_firebase")
+        self.assertFalse(lock_codes.has_digit_characters(lock_codes.need_you_missing_firebase_text()))
+
     def test_human_change_is_discord_only(self) -> None:
         plan = lock_codes.decide(
             in_ci=False,
@@ -101,7 +190,7 @@ class DecideTests(unittest.TestCase):
         self.assertEqual(lock_codes.discord_human_change_text(), "Spanish Moss code changed.")
         self.assertFalse(lock_codes.has_digit_characters(lock_codes.discord_human_change_text()))
 
-    def test_vacant_plus_empty_photo_auto_rotates(self) -> None:
+    def test_vacant_plus_empty_photo_asks_ang(self) -> None:
         plan = lock_codes.decide(
             in_ci=False,
             api_key_present=True,
@@ -110,11 +199,11 @@ class DecideTests(unittest.TestCase):
             pending_vacancy=True,
             inbound_share=False,
         )
-        self.assertEqual(plan.action, "auto_rotate")
-        self.assertTrue(plan.update_digest)
-        self.assertTrue(plan.notify_padsplit)
-        self.assertTrue(plan.rotate_via_api)
-        self.assertEqual(plan.discord_kind, "rotated")
+        self.assertEqual(plan.action, "ask_ang")
+        self.assertFalse(plan.update_digest)
+        self.assertFalse(plan.notify_padsplit)
+        self.assertFalse(plan.rotate_via_api)
+        self.assertEqual(plan.discord_kind, "ask_ang")
         self.assertFalse(lock_codes.has_digit_characters(lock_codes.discord_rotated_text()))
 
     def test_api_down_inbound_share_updates_digest_and_padsplit(self) -> None:
@@ -195,10 +284,11 @@ class ScopeAndVacancyTests(unittest.TestCase):
         self.assertFalse(lock_codes.vacancy_allows_rotate(moss_room(vacant=True, photos=0)))
 
     def test_vacant_plus_photo_does_rotate(self) -> None:
-        self.assertTrue(lock_codes.vacancy_allows_rotate(moss_room(vacant=True, photos=1)))
-        self.assertTrue(lock_codes.vacancy_allows_rotate(moss_room(vacant=True, turned=True)))
+        self.assertTrue(lock_codes.vacancy_allows_rotate(ridge_room(vacant=True, photos=1)))
+        self.assertTrue(lock_codes.vacancy_allows_rotate(ridge_room(vacant=True, turned=True)))
+        self.assertFalse(lock_codes.vacancy_allows_rotate(moss_room(vacant=True, photos=2, turned=True)))
 
-    def test_green_hill_is_out_of_v1(self) -> None:
+    def test_green_hill_is_not_spanish_moss(self) -> None:
         self.assertFalse(lock_codes.vacancy_allows_rotate(green_hill_room()))
         self.assertFalse(lock_codes.is_spanish_moss_address("Green Hill Drive"))
         self.assertFalse(
@@ -213,9 +303,75 @@ class ScopeAndVacancyTests(unittest.TestCase):
         self.assertEqual(pending, [])
 
     def test_already_rotated_vacancy_is_not_pending(self) -> None:
-        room = moss_room(vacant=True, photos=2)
+        room = ridge_room(vacant=True, photos=2)
+        self.assertEqual(lock_codes.pending_auto_rotate_rooms([room], []), [room])
         pending = lock_codes.pending_auto_rotate_rooms([room], [lock_codes.vacancy_key(room)])
         self.assertEqual(pending, [])
+
+    def test_spanishmoss_compact_alias_matches(self) -> None:
+        self.assertTrue(lock_codes.is_spanish_moss_address("Spanishmoss"))
+        self.assertTrue(lock_codes.is_spanish_moss_address("Spanish Moss"))
+        self.assertEqual(lock_codes.match_house_slug("Spanishmoss back door"), "spanish_moss")
+        self.assertEqual(lock_codes.match_house_slug("spanish moss room two"), "spanish_moss")
+
+
+class HouseAndLockMatchTests(unittest.TestCase):
+    def test_classifies_front_back_room_and_shared(self) -> None:
+        front = lock_codes.classify_sifely_lock(
+            {"lockId": "F", "lockAlias": "Ridge Oak front door", "lockName": "RO"}
+        )
+        back = lock_codes.classify_sifely_lock(
+            {"lockId": "B", "lockAlias": "Ridge Oak back", "lockName": "RO"}
+        )
+        room = lock_codes.classify_sifely_lock(
+            {"lockId": "R", "lockAlias": "Ridge Oak R2", "lockName": "room"}
+        )
+        shared = lock_codes.classify_sifely_lock(
+            {"lockId": "S", "lockAlias": "Pebbleshores front/back", "lockName": "PB"}
+        )
+        self.assertEqual((front.slug, front.role), ("ridge_oak_10235", "front"))
+        self.assertEqual((back.slug, back.role), ("ridge_oak_10235", "back"))
+        self.assertEqual((room.slug, room.role, room.room), ("ridge_oak_10235", "room", "2"))
+        self.assertEqual((shared.slug, shared.role), ("pebbleshores_3414", "shared"))
+
+    def test_other_houses_are_not_sifely_locks(self) -> None:
+        self.assertIsNone(
+            lock_codes.classify_sifely_lock(
+                {"lockId": "L", "lockAlias": "Leana front door", "lockName": "L"}
+            )
+        )
+        self.assertIsNone(
+            lock_codes.classify_sifely_lock(
+                {"lockId": "B", "lockAlias": "Spanishmoss back", "lockName": "SM"}
+            )
+        )
+        self.assertIsNone(
+            lock_codes.classify_sifely_lock(
+                {"lockId": "G", "lockAlias": "Green Hill front", "lockName": "GH"}
+            )
+        )
+        self.assertIsNone(lock_codes.match_house_slug("Green Hill and Spanish Moss"))
+        self.assertEqual(lock_codes.match_house_slug("Green Hill front"), "greenhill_3406")
+        self.assertFalse(lock_codes.is_sifely_house("greenhill_3406"))
+        self.assertFalse(lock_codes.is_sifely_house("spanish_moss"))
+        self.assertTrue(lock_codes.is_sifely_house("ridge_oak_10235"))
+        self.assertTrue(lock_codes.is_sifely_house("pebbleshores_3414"))
+
+    def test_find_lock_prefers_unique_room(self) -> None:
+        inventory = lock_codes.inventory_locks(
+            [
+                {"lockId": "R1", "lockAlias": "Ridge Oak room 1", "lockName": ""},
+                {"lockId": "R2", "lockAlias": "Ridge Oak room 2", "lockName": ""},
+                {"lockId": "B", "lockAlias": "Ridge Oak back", "lockName": ""},
+                {"lockId": "SM", "lockAlias": "Spanish Moss room 2", "lockName": ""},
+            ]
+        )
+        match = lock_codes.find_lock(inventory, "ridge_oak_10235", "room", "2")
+        self.assertIsNotNone(match)
+        self.assertEqual(match.lock_id, "R2")
+        self.assertIsNone(lock_codes.find_lock(inventory, "spanish_moss", "room", "2"))
+        self.assertEqual(lock_codes.codes_field_for("ridge_oak_10235", "room", "2"), "r2")
+        self.assertEqual(lock_codes.codes_field_for("pebbleshores_3414", "shared"), "front_back")
 
 
 class ShareAndRedactionTests(unittest.TestCase):
@@ -223,6 +379,10 @@ class ShareAndRedactionTests(unittest.TestCase):
         text = "Sifely share: Spanish Moss back door\nPasscode: REDACTED"
         self.assertEqual(lock_codes.parse_sifely_share_code(text), PLACEHOLDER)
         self.assertIsNone(lock_codes.parse_sifely_share_code("Sifely share Green Hill\nPasscode: REDACTED"))
+        self.assertIsNone(lock_codes.parse_sifely_share_code("Spanish Moss code changed."))
+        self.assertIsNone(
+            lock_codes.parse_sifely_share_code("Sifely share: Spanish Moss back door\nPasscode: changed.")
+        )
 
     def test_redact_for_log_strips_keys_and_digit_runs(self) -> None:
         cleaned = lock_codes.redact_for_log("Authorization: sk-REDACTED body 12345678")
@@ -240,9 +400,22 @@ class ShareAndRedactionTests(unittest.TestCase):
             lock_codes.discord_human_change_text(),
             lock_codes.discord_rotated_text(),
             lock_codes.need_you_missing_key_text(),
+            lock_codes.need_you_missing_firebase_text(),
+            lock_codes.need_you_missing_phone_text(),
+            lock_codes.need_you_missing_lock_text(),
+            lock_codes.need_you_missing_vacant_default_text(),
+            lock_codes.discord_move_in_text("Spanish Moss", "2", "Member Example"),
+            lock_codes.discord_ask_ang_text("Spanish Moss", "2", "Member Example"),
+            lock_codes.discord_ang_yes_text("Spanish Moss", "2", shared_rotated=True),
+            lock_codes.discord_ang_no_text("Spanish Moss", "2"),
         ):
-            self.assertFalse(lock_codes.has_digit_characters(text))
+            self.assertFalse(lock_codes.has_digit_characters(text), msg=text)
             self.assertEqual(lock_codes.assert_discord_outbound_safe(text), text)
+            self.assertNotIn(VACANT_PLACEHOLDER, text)
+        ask = lock_codes.discord_ask_ang_text("Spanish Moss", "2", "Member Example")
+        self.assertIn("front and back door", ask)
+        self.assertNotIn("vacant", ask)
+        self.assertNotIn("room lock", ask)
 
     def test_discord_outbound_rejects_digits(self) -> None:
         with self.assertRaisesRegex(RuntimeError, "digits"):
@@ -253,6 +426,57 @@ class ShareAndRedactionTests(unittest.TestCase):
         self.assertIn(PLACEHOLDER, text)
         self.assertIn("Spanish Moss", text)
         self.assertNotIn(lock_codes.DISCORD_NEW_TENANTS_CHANNEL_ID, text)
+        move_in = lock_codes.member_move_in_message("Spanish Moss", "2", PLACEHOLDER)
+        self.assertIn(PLACEHOLDER, move_in)
+        self.assertIn("room 2", move_in)
+        doors = lock_codes.member_shared_door_message(
+            "Spanish Moss",
+            {"front": PLACEHOLDER, "back": PLACEHOLDER},
+        )
+        self.assertIn(PLACEHOLDER, doors)
+        self.assertIn("Front door", doors)
+        self.assertNotIn(lock_codes.DISCORD_AUTOMATIONS_CHANNEL_ID, doors)
+
+
+class PhoneAndAngReplyTests(unittest.TestCase):
+    def test_phone_last4_strips_country_code_without_logging(self) -> None:
+        # In-memory fixture only. The value is not a live tenant PIN.
+        self.assertEqual(lock_codes.phone_last4("+1 (555) 010-1212"), "1212")
+        self.assertEqual(lock_codes.phone_last4("5550101212"), "1212")
+        self.assertIsNone(lock_codes.phone_last4("12"))
+        self.assertIsNone(lock_codes.phone_last4(""))
+
+    def test_ang_reply_yes_no_ignores_digits(self) -> None:
+        self.assertEqual(lock_codes.classify_ang_reply("yes"), "yes")
+        self.assertEqual(lock_codes.classify_ang_reply("No"), "no")
+        self.assertIsNone(lock_codes.classify_ang_reply("yes 9999"))
+        self.assertIsNone(lock_codes.classify_ang_reply("not sure"))
+
+    def test_ang_yes_approves(self) -> None:
+        messages = [discord_reply("yes")]
+        with patch.dict(os.environ, {"ANG_DISCORD_USER_ID": ANG_USER_ID}, clear=False):
+            self.assertEqual(lock_codes.parse_ang_reply(messages, "ask-1"), "yes")
+            self.assertEqual(lock_codes.parse_ang_reply([discord_reply("no")], "ask-1"), "no")
+        self.assertIsNone(lock_codes.parse_ang_reply(messages, "ask-other"))
+
+    def test_non_ang_yes_is_ignored(self) -> None:
+        messages = [
+            discord_reply("yes", author_id=JOE_USER_ID, message_id="joe"),
+            discord_reply("ok", author_id=BOT_USER_ID, message_id="bot"),
+        ]
+        with patch.dict(os.environ, {"ANG_DISCORD_USER_ID": ANG_USER_ID}, clear=False):
+            self.assertIsNone(lock_codes.parse_ang_reply(messages, "ask-1"))
+
+    def test_missing_ang_discord_user_id_means_no_approval(self) -> None:
+        messages = [discord_reply("yes")]
+        logs = io.StringIO()
+        with patch.dict(os.environ):
+            os.environ.pop("ANG_DISCORD_USER_ID", None)
+            with redirect_stderr(logs):
+                decision = lock_codes.parse_ang_reply(messages, "ask-1")
+        self.assertIsNone(decision)
+        self.assertIn("ANG_DISCORD_USER_ID is unset", logs.getvalue())
+        self.assertNotIn(ANG_USER_ID, logs.getvalue())
 
 
 class HumanChangeAndHashTests(unittest.TestCase):
@@ -267,6 +491,11 @@ class HumanChangeAndHashTests(unittest.TestCase):
         current = {"PWDID": digest}
         self.assertFalse(lock_codes.detect_human_change(current, previous, last_auto_rotate_hash=digest))
 
+    def test_hash_scheme_migration_is_not_a_human_edit(self) -> None:
+        previous = {"PWDID": "v1:abc"}
+        current = {"PWDID": "v2:def"}
+        self.assertFalse(lock_codes.detect_human_change(current, previous, last_auto_rotate_hash=""))
+
     def test_passcode_list_hashes_without_keeping_plaintext_in_result_keys(self) -> None:
         hashes = lock_codes.passcode_hashes_from_list(
             [{"keyboardPwdId": "PWDID", "keyboardPwd": PLACEHOLDER}]
@@ -275,7 +504,18 @@ class HumanChangeAndHashTests(unittest.TestCase):
         self.assertNotIn(PLACEHOLDER, hashes)
 
 
-class RunFlowTests(unittest.TestCase):
+class DefaultOffAndCiTests(unittest.TestCase):
+    def test_live_actions_default_off(self) -> None:
+        env = {"CI": "", "GITHUB_ACTIONS": "", "LOCK_CODES_ENABLE": ""}
+        self.assertFalse(lock_codes.runtime.send_enabled("lock_codes", env))
+        env_on = {
+            "CI": "",
+            "GITHUB_ACTIONS": "",
+            "PADSPLIT_ENABLE_ACTION_HOOKS": "1",
+            "LOCK_CODES_ENABLE": "1",
+        }
+        self.assertTrue(lock_codes.runtime.send_enabled("lock_codes", env_on))
+
     def test_ci_run_is_skip_and_does_not_touch_sifely(self) -> None:
         posts: list[str] = []
         with patch.dict("os.environ", {"CI": "true", "SIFELY_API_KEY": "sk-REDACTED"}, clear=False):
@@ -291,130 +531,699 @@ class RunFlowTests(unittest.TestCase):
         self.assertEqual(result.action, "skip_ci")
         self.assertEqual(posts, [])
 
+    def test_disabled_run_does_not_rotate(self) -> None:
+        posts: list[str] = []
+        with patch.object(lock_codes, "running_in_ci", return_value=False), \
+             patch.object(lock_codes, "live_actions_enabled", return_value=False):
+            result = lock_codes.run(
+                now=NOW,
+                dry_run=False,
+                occupancy_rooms=[],
+                host_messages=[moss_member_thread()],
+                post_discord=posts.append,
+            )
+        self.assertEqual(result.action, "disabled")
+        self.assertEqual(posts, [])
+
+
+class RunFlowTests(unittest.TestCase):
     def test_missing_key_posts_need_you_and_does_not_invent_a_key(self) -> None:
         posts: list[str] = []
         env = {"SIFELY_API_KEY": ""}
         with patch.dict("os.environ", env, clear=False):
             with patch.object(lock_codes, "sifely_api_key", return_value=""):
-                with patch.object(lock_codes, "running_in_ci", return_value=False):
-                    result = lock_codes.run(
-                        now=NOW,
-                        dry_run=True,
-                        occupancy_rooms=[moss_room(vacant=True, photos=2)],
-                        post_discord=posts.append,
-                    )
+                result = _run_live(
+                    dry_run=True,
+                    occupancy_rooms=[moss_room(vacant=True, photos=2)],
+                    post_discord=posts.append,
+                )
         self.assertEqual(result.action, "need_you")
         self.assertEqual(result.discord_posts, [lock_codes.need_you_missing_key_text()])
         self.assertFalse(lock_codes.has_digit_characters("".join(result.discord_posts)))
 
-    def test_human_change_does_not_write_digest_or_padsplit(self) -> None:
-        digest: list[str] = []
-        padsplit: list[str] = []
+    def test_missing_firebase_fail_closed_skips_move_in_rotate(self) -> None:
         posts: list[str] = []
-        lock = {"lockId": "LOCKID", "lockAlias": "Spanish Moss back", "lockName": "SM"}
-        passcodes = [{"keyboardPwdId": "PWDID", "keyboardPwd": PLACEHOLDER, "keyboardPwdName": "tenant"}]
-        with tempfile.TemporaryDirectory() as tmp:
-            state_path = Path(tmp) / "state.json"
-            with patch.object(lock_codes, "running_in_ci", return_value=False), \
-                 patch.object(lock_codes, "sifely_api_key", return_value="sk-REDACTED"), \
-                 patch.object(lock_codes, "list_locks", return_value=[lock]), \
-                 patch.object(lock_codes, "list_passcodes", return_value=passcodes), \
-                 patch.object(lock_codes, "load_state", return_value={
-                     "passcode_hashes": {"PWDID": lock_codes.hash_passcode("OLDREDACTED")},
-                     "rotated_vacancy_keys": [],
-                     "processed_discord_ids": [],
-                     "last_auto_rotate_hash": "",
-                     "need_you_sent_on": "",
-                 }):
-                result = lock_codes.run(
-                    now=NOW,
-                    dry_run=False,
-                    occupancy_rooms=[moss_room(vacant=True, photos=2)],
-                    host_messages=[moss_member_thread()],
-                    post_discord=posts.append,
-                    update_digest=lambda code: digest.append(code) or True,
-                    notify_members=lambda code: padsplit.append(code) or 1,
-                    state_path=state_path,
-                )
-        self.assertEqual(result.action, "announce_human")
-        self.assertEqual(posts, ["Spanish Moss code changed."])
-        self.assertEqual(digest, [])
-        self.assertEqual(padsplit, [])
-
-    def test_auto_rotate_updates_digest_padsplit_and_digitless_discord(self) -> None:
-        digest: list[str] = []
-        padsplit: list[str] = []
-        posts: list[str] = []
-        lock = {"lockId": "LOCKID", "lockAlias": "Spanish Moss back", "lockName": "SM"}
-        passcodes = [{"keyboardPwdId": "PWDID", "keyboardPwd": "OLDREDACTED", "keyboardPwdName": "tenant"}]
-        changed = []
-        with tempfile.TemporaryDirectory() as tmp:
-            state_path = Path(tmp) / "state.json"
-            with patch.object(lock_codes, "running_in_ci", return_value=False), \
-                 patch.object(lock_codes, "sifely_api_key", return_value="sk-REDACTED"), \
-                 patch.object(lock_codes, "list_locks", return_value=[lock]), \
-                 patch.object(lock_codes, "list_passcodes", return_value=passcodes), \
-                 patch.object(lock_codes, "change_passcode", side_effect=lambda *a, **k: changed.append("ok")), \
-                 patch.object(lock_codes, "load_state", return_value=lock_codes._empty_state()):
-                result = lock_codes.run(
-                    now=NOW,
-                    dry_run=False,
-                    occupancy_rooms=[moss_room(vacant=True, photos=2)],
-                    host_messages=[moss_member_thread()],
-                    post_discord=posts.append,
-                    update_digest=lambda code: digest.append(code) or True,
-                    notify_members=lambda code: padsplit.append(code) or 1,
-                    generate_code=lambda: PLACEHOLDER,
-                    state_path=state_path,
-                )
-        self.assertEqual(result.action, "auto_rotate")
-        self.assertEqual(digest, [PLACEHOLDER])
-        self.assertEqual(padsplit, [PLACEHOLDER])
-        self.assertEqual(posts, ["Spanish Moss lock was rotated."])
-        self.assertFalse(any(lock_codes.has_digit_characters(item) for item in posts))
-        self.assertEqual(changed, ["ok"])
-
-    def test_fallback_share_does_not_post_digits_to_discord(self) -> None:
-        digest: list[str] = []
-        padsplit: list[str] = []
-        posts: list[str] = []
-        inbound = [
-            {
-                "id": "msg-share",
-                "content": "Sifely share Spanish Moss back door Passcode: REDACTED",
-            }
+        changed: list[str] = []
+        locks = [
+            {"lockId": "ROOM2", "lockAlias": "Ridge Oak room 2", "lockName": "SM"},
         ]
-        with patch.object(lock_codes, "running_in_ci", return_value=False), \
-             patch.object(lock_codes, "sifely_api_key", return_value="sk-REDACTED"), \
-             patch.object(lock_codes, "list_locks", side_effect=lock_codes.SifelyUnavailable("down")), \
-             patch.object(lock_codes, "load_state", return_value=lock_codes._empty_state()):
-            result = lock_codes.run(
-                now=NOW,
+        passcodes = {"ROOM2": [{"keyboardPwdId": "PWDID", "keyboardPwd": PLACEHOLDER, "keyboardPwdName": "tenant"}]}
+        with tempfile.TemporaryDirectory() as tmp:
+            state_path = Path(tmp) / "state.json"
+            with patch.object(lock_codes, "sifely_api_key", return_value="sk-REDACTED"):
+                result = _run_live(
+                    occupancy_rooms=[],
+                    host_messages=[ridge_member_thread(phone="5550101212")],
+                    locks=locks,
+                    passcodes_by_lock=passcodes,
+                    change_fn=lambda **k: changed.append(k["new_code"]),
+                    post_discord=posts.append,
+                    update_records=lambda slug, fields: False,
+                    notify_member=lambda chat_id, text: 1,
+                    firebase_ready=False,
+                    state_path=state_path,
+                )
+        self.assertEqual(changed, [])
+        self.assertEqual(posts, [lock_codes.need_you_missing_firebase_text()])
+        self.assertFalse(any(lock_codes.has_digit_characters(item) for item in posts))
+        self.assertEqual(result.padsplit_notified, 0)
+
+    def test_move_in_sets_last4_messages_member_updates_records_digitless_discord(self) -> None:
+        digest: list[tuple[str, dict]] = []
+        padsplit: list[tuple[str, str]] = []
+        posts: list[str] = []
+        changed: list[str] = []
+        locks = [
+            {"lockId": "ROOM2", "lockAlias": "Ridge Oak room 2", "lockName": "SM"},
+            {"lockId": "BACK", "lockAlias": "Ridge Oak back", "lockName": "SM"},
+        ]
+        passcodes = {
+            "ROOM2": [{"keyboardPwdId": "PWDID", "keyboardPwd": PLACEHOLDER, "keyboardPwdName": "tenant"}],
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            state_path = Path(tmp) / "state.json"
+            with patch.object(lock_codes, "sifely_api_key", return_value="sk-REDACTED"):
+                result = _run_live(
+                    occupancy_rooms=[],
+                    host_messages=[ridge_member_thread(phone="5550101212")],
+                    locks=locks,
+                    passcodes_by_lock=passcodes,
+                    change_fn=lambda **k: changed.append("ok"),
+                    post_discord=posts.append,
+                    update_records=lambda slug, fields: digest.append((slug, fields)) or True,
+                    notify_member=lambda chat_id, text: padsplit.append((chat_id, text)) or 1,
+                    firebase_ready=True,
+                    state_path=state_path,
+                )
+        self.assertEqual(result.action, "move_in")
+        self.assertEqual(changed, ["ok"])
+        self.assertEqual(digest[0][0], "ridge_oak_10235")
+        self.assertEqual(digest[0][1]["r2"], "1212")
+        self.assertEqual(padsplit[0][0], "chat-ridge")
+        self.assertIn("1212", padsplit[0][1])
+        self.assertEqual(posts, [lock_codes.discord_move_in_text("Ridge Oak", "2", "Member Example")])
+        self.assertFalse(any(lock_codes.has_digit_characters(item) for item in posts))
+        self.assertTrue(result.digest_updated)
+        self.assertEqual(result.padsplit_notified, 1)
+
+    def test_move_in_is_deduped_after_first_run(self) -> None:
+        posts: list[str] = []
+        locks = [{"lockId": "ROOM2", "lockAlias": "Ridge Oak room 2", "lockName": "SM"}]
+        passcodes = {"ROOM2": [{"keyboardPwdId": "PWDID", "keyboardPwd": PLACEHOLDER, "keyboardPwdName": "tenant"}]}
+        with tempfile.TemporaryDirectory() as tmp:
+            state_path = Path(tmp) / "state.json"
+            with patch.object(lock_codes, "sifely_api_key", return_value="sk-REDACTED"):
+                first = _run_live(
+                    occupancy_rooms=[],
+                    host_messages=[ridge_member_thread(phone="5550101212")],
+                    locks=locks,
+                    passcodes_by_lock=passcodes,
+                    change_fn=lambda **k: None,
+                    post_discord=posts.append,
+                    update_records=lambda slug, fields: True,
+                    notify_member=lambda chat_id, text: 1,
+                    firebase_ready=True,
+                    state_path=state_path,
+                )
+                second = _run_live(
+                    occupancy_rooms=[],
+                    host_messages=[ridge_member_thread(phone="5550101212")],
+                    locks=locks,
+                    passcodes_by_lock=passcodes,
+                    change_fn=lambda **k: None,
+                    post_discord=posts.append,
+                    update_records=lambda slug, fields: True,
+                    notify_member=lambda chat_id, text: 1,
+                    firebase_ready=True,
+                    state_path=state_path,
+                )
+        self.assertEqual(first.action, "move_in")
+        self.assertEqual(second.action, "noop")
+        self.assertEqual(len(posts), 1)
+
+    def test_old_move_in_is_not_backfilled(self) -> None:
+        posts: list[str] = []
+        with patch.object(lock_codes, "sifely_api_key", return_value="sk-REDACTED"):
+            result = _run_live(
                 dry_run=True,
-                occupancy_rooms=[moss_room(vacant=True, photos=2)],
-                inbound_messages=inbound,
+                occupancy_rooms=[],
+                host_messages=[ridge_member_thread(move_in="2026-08-01", phone="5550101212")],
+                locks=[{"lockId": "ROOM2", "lockAlias": "Ridge Oak room 2", "lockName": "SM"}],
                 post_discord=posts.append,
-                update_digest=lambda code: digest.append(code) or True,
-                notify_members=lambda code: padsplit.append(code) or 1,
+                firebase_ready=True,
             )
-        self.assertEqual(result.action, "fallback_share")
-        self.assertEqual(digest, [PLACEHOLDER])
-        self.assertEqual(padsplit, [PLACEHOLDER])
+        self.assertEqual(result.action, "noop")
         self.assertEqual(posts, [])
 
-    def test_new_tenants_is_the_only_discord_channel_constant_for_digits(self) -> None:
+    def test_move_out_resets_room_immediately_and_asks_ang_about_doors(self) -> None:
+        posts: list[str] = []
+        changed: list[tuple[str, str]] = []
+        records: list[dict] = []
+        locks = [
+            {"lockId": "ROOM2", "lockAlias": "Ridge Oak room 2", "lockName": "SM"},
+            {"lockId": "FRONT", "lockAlias": "Ridge Oak front", "lockName": "SM"},
+            {"lockId": "BACK", "lockAlias": "Ridge Oak back", "lockName": "SM"},
+        ]
+        passcodes = {
+            "ROOM2": [{"keyboardPwdId": "P1", "keyboardPwd": PLACEHOLDER, "keyboardPwdName": "tenant"}],
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            state_path = Path(tmp) / "state.json"
+            with patch.dict(os.environ, {"VACANT_ROOM_DEFAULT": VACANT_PLACEHOLDER}, clear=False), \
+                 patch.object(lock_codes, "sifely_api_key", return_value="sk-REDACTED"):
+                result = _run_live(
+                    occupancy_rooms=[],
+                    host_messages=[ridge_member_thread(move_in="2026-08-01", move_out="2026-09-02")],
+                    locks=locks,
+                    passcodes_by_lock=passcodes,
+                    change_fn=lambda **k: changed.append((k["lock_id"], k["new_code"])),
+                    update_records=lambda slug, fields: records.append(fields) or True,
+                    post_discord=lambda text: posts.append(text) or {"id": "ask-1"},
+                    firebase_ready=True,
+                    state_path=state_path,
+                )
+                saved = lock_codes.load_state(state_path)
+        self.assertEqual(result.action, "ask_ang")
+        self.assertEqual(changed, [("ROOM2", VACANT_PLACEHOLDER)])
+        self.assertEqual(records[0]["r2"], VACANT_PLACEHOLDER)
+        self.assertEqual(
+            posts,
+            [lock_codes.discord_ask_ang_text("Ridge Oak", "2", "Member Example")],
+        )
+        self.assertNotIn("vacant", posts[0])
+        self.assertFalse(any(lock_codes.has_digit_characters(item) for item in posts))
+        self.assertEqual(saved["pending_ang_asks"][0]["discord_message_id"], "ask-1")
+        self.assertTrue(saved["pending_ang_asks"][0]["room_reset"])
+
+    def test_terminated_resets_room_and_asks_ang_about_doors(self) -> None:
+        posts: list[str] = []
+        changed: list[tuple[str, str]] = []
+        with tempfile.TemporaryDirectory() as tmp:
+            state_path = Path(tmp) / "state.json"
+            with patch.dict(os.environ, {"VACANT_ROOM_DEFAULT": VACANT_PLACEHOLDER}, clear=False), \
+                 patch.object(lock_codes, "sifely_api_key", return_value="sk-REDACTED"):
+                result = _run_live(
+                    occupancy_rooms=[],
+                    host_messages=[
+                        ridge_member_thread(
+                            move_in="2026-08-01",
+                            cancelled=True,
+                            booking_status="TERMINATED",
+                        )
+                    ],
+                    locks=[{"lockId": "ROOM2", "lockAlias": "Ridge Oak room 2", "lockName": "SM"}],
+                    passcodes_by_lock={
+                        "ROOM2": [{"keyboardPwdId": "P1", "keyboardPwd": PLACEHOLDER, "keyboardPwdName": "tenant"}],
+                    },
+                    change_fn=lambda **k: changed.append((k["lock_id"], k["new_code"])),
+                    update_records=lambda slug, fields: True,
+                    post_discord=lambda text: posts.append(text) or {"id": "ask-term"},
+                    firebase_ready=True,
+                    state_path=state_path,
+                )
+        self.assertEqual(result.action, "ask_ang")
+        self.assertEqual(changed, [("ROOM2", VACANT_PLACEHOLDER)])
+        self.assertIn("terminated", posts[0])
+        self.assertIn("front and back door", posts[0])
+        self.assertNotIn("vacant", posts[0])
+        self.assertFalse(lock_codes.has_digit_characters(posts[0]))
+
+    def test_missing_vacant_default_skips_room_reset(self) -> None:
+        posts: list[str] = []
+        changed: list[str] = []
+        records: list[dict] = []
+        with tempfile.TemporaryDirectory() as tmp:
+            state_path = Path(tmp) / "state.json"
+            with patch.dict(os.environ):
+                os.environ.pop("VACANT_ROOM_DEFAULT", None)
+                with patch.object(lock_codes, "sifely_api_key", return_value="sk-REDACTED"):
+                    result = _run_live(
+                        occupancy_rooms=[],
+                        host_messages=[ridge_member_thread(move_in="2026-08-01", move_out="2026-09-02")],
+                        locks=[{"lockId": "ROOM2", "lockAlias": "Ridge Oak room 2", "lockName": "RO"}],
+                        passcodes_by_lock={
+                            "ROOM2": [{"keyboardPwdId": "P1", "keyboardPwd": PLACEHOLDER, "keyboardPwdName": "tenant"}],
+                        },
+                        change_fn=lambda **k: changed.append(k["new_code"]),
+                        update_records=lambda slug, fields: records.append(fields) or True,
+                        post_discord=posts.append,
+                        firebase_ready=True,
+                        state_path=state_path,
+                    )
+                    saved = lock_codes.load_state(state_path)
+        self.assertEqual(changed, [])
+        self.assertEqual(records, [])
+        self.assertIn(lock_codes.need_you_missing_vacant_default_text(), posts)
+        self.assertFalse(saved["pending_ang_asks"][0]["room_reset"])
+        self.assertNotIn("move_in", result.events)
+        for text in posts:
+            self.assertFalse(lock_codes.has_digit_characters(text))
+
+    def test_ang_yes_rotates_shared_doors_and_blasts_housemates(self) -> None:
+        posts: list[str] = []
+        changed: list[tuple[str, str]] = []
+        records: list[tuple[str, dict]] = []
+        padsplit: list[tuple[str, str]] = []
+        locks = [
+            {"lockId": "ROOM2", "lockAlias": "Ridge Oak room 2", "lockName": "SM"},
+            {"lockId": "FRONT", "lockAlias": "Ridge Oak front", "lockName": "SM"},
+            {"lockId": "BACK", "lockAlias": "Ridge Oak back", "lockName": "SM"},
+        ]
+        passcodes = {
+            "FRONT": [{"keyboardPwdId": "P2", "keyboardPwd": PLACEHOLDER, "keyboardPwdName": "tenant"}],
+            "BACK": [{"keyboardPwdId": "P3", "keyboardPwd": PLACEHOLDER, "keyboardPwdName": "tenant"}],
+        }
+        replies = [discord_reply("yes", message_id="r1")]
+        staying = ridge_member_thread(chat_id="chat-staying", room=3, move_in="2026-08-01")
+        departed = ridge_member_thread(chat_id="chat-departed", room=2, move_in="2026-08-01", move_out="2026-09-02")
+        with tempfile.TemporaryDirectory() as tmp:
+            state_path = Path(tmp) / "state.json"
+            ask = {
+                "event_key": "move_out|occ|ridge_oak_10235|2|2026-09-02",
+                "house_slug": "ridge_oak_10235",
+                "house_label": "Ridge Oak",
+                "room": "2",
+                "member": "Member Example",
+                "kind": "move_out",
+                "chat_id": "chat-departed",
+                "room_reset": True,
+                "discord_message_id": "ask-1",
+            }
+            lock_codes.save_state({**lock_codes._empty_state(), "pending_ang_asks": [ask]}, state_path)
+            with patch.dict(os.environ, {"ANG_DISCORD_USER_ID": ANG_USER_ID}, clear=False), \
+                 patch.object(lock_codes, "sifely_api_key", return_value="sk-REDACTED"):
+                result = _run_live(
+                    occupancy_rooms=[],
+                    host_messages=[staying, departed],
+                    locks=locks,
+                    passcodes_by_lock=passcodes,
+                    change_fn=lambda **k: changed.append((k["lock_id"], k["new_code"])),
+                    post_discord=posts.append,
+                    update_records=lambda slug, fields: records.append((slug, fields)) or True,
+                    notify_member=lambda chat_id, text: padsplit.append((chat_id, text)) or 1,
+                    fetch_discord=lambda: replies,
+                    generate_code=lambda: PLACEHOLDER,
+                    firebase_ready=True,
+                    state_path=state_path,
+                )
+                saved = lock_codes.load_state(state_path)
+        self.assertEqual(result.action, "ang_yes")
+        self.assertEqual([item[0] for item in changed], ["FRONT", "BACK"])
+        self.assertEqual(changed[0][1], PLACEHOLDER)
+        self.assertNotIn("r2", records[0][1])
+        self.assertEqual(records[0][1]["front_door"], PLACEHOLDER)
+        self.assertEqual(records[0][1]["back_door"], PLACEHOLDER)
+        self.assertEqual([row[0] for row in padsplit], ["chat-staying"])
+        self.assertIn(PLACEHOLDER, padsplit[0][1])
+        self.assertEqual(result.padsplit_notified, 1)
+        self.assertEqual(posts, [lock_codes.discord_ang_yes_text("Ridge Oak", "2", shared_rotated=True)])
+        self.assertFalse(any(lock_codes.has_digit_characters(item) for item in posts))
+        self.assertEqual(saved["pending_ang_asks"], [])
+        self.assertTrue(saved["processed_events"])
+
+    def test_ang_no_leaves_shared_doors_alone(self) -> None:
+        posts: list[str] = []
+        changed: list[tuple[str, str]] = []
+        records: list[dict] = []
+        padsplit: list[tuple[str, str]] = []
+        locks = [
+            {"lockId": "ROOM2", "lockAlias": "Ridge Oak room 2", "lockName": "SM"},
+            {"lockId": "FRONT", "lockAlias": "Ridge Oak front", "lockName": "SM"},
+            {"lockId": "BACK", "lockAlias": "Ridge Oak back", "lockName": "SM"},
+        ]
+        replies = [discord_reply("no", message_id="r1")]
+        with tempfile.TemporaryDirectory() as tmp:
+            state_path = Path(tmp) / "state.json"
+            ask = {
+                "event_key": "move_out|occ|ridge_oak_10235|2|2026-09-02",
+                "house_slug": "ridge_oak_10235",
+                "house_label": "Ridge Oak",
+                "room": "2",
+                "member": "Member Example",
+                "kind": "move_out",
+                "chat_id": "chat-departed",
+                "room_reset": True,
+                "discord_message_id": "ask-1",
+            }
+            lock_codes.save_state({**lock_codes._empty_state(), "pending_ang_asks": [ask]}, state_path)
+            with patch.dict(os.environ, {"ANG_DISCORD_USER_ID": ANG_USER_ID}, clear=False), \
+                 patch.object(lock_codes, "sifely_api_key", return_value="sk-REDACTED"):
+                result = _run_live(
+                    occupancy_rooms=[],
+                    host_messages=[ridge_member_thread(chat_id="chat-staying", room=3, move_in="2026-08-01")],
+                    locks=locks,
+                    change_fn=lambda **k: changed.append((k["lock_id"], k["new_code"])),
+                    post_discord=posts.append,
+                    update_records=lambda slug, fields: records.append(fields) or True,
+                    notify_member=lambda chat_id, text: padsplit.append((chat_id, text)) or 1,
+                    fetch_discord=lambda: replies,
+                    generate_code=lambda: PLACEHOLDER,
+                    firebase_ready=True,
+                    state_path=state_path,
+                )
+        self.assertEqual(result.action, "ang_no")
+        self.assertEqual(changed, [])
+        self.assertEqual(records, [])
+        self.assertEqual(padsplit, [])
+        self.assertEqual(posts, [lock_codes.discord_ang_no_text("Ridge Oak", "2")])
+        self.assertFalse(any(lock_codes.has_digit_characters(item) for item in posts))
+
+    def test_fallback_share_does_not_post_digits_to_discord(self) -> None:
+        plan = lock_codes.decide(
+            in_ci=False,
+            api_key_present=True,
+            api_available=False,
+            human_change=False,
+            pending_vacancy=True,
+            inbound_share=True,
+        )
+        self.assertEqual(plan.action, "fallback_share")
+        self.assertTrue(plan.use_inbound_share)
+        self.assertIsNone(plan.discord_kind)
+
+    def test_other_houses_are_a_noop(self) -> None:
+        changed: list[str] = []
+        posts: list[str] = []
+        parker = moss_member_thread(chat_id="chat-parker", phone="5550101212")
+        parker["property"]["address"]["street1"] = "4351 Parker Road"
+        with tempfile.TemporaryDirectory() as tmp:
+            state_path = Path(tmp) / "state.json"
+            with patch.object(lock_codes, "sifely_api_key", return_value="sk-REDACTED"):
+                result = _run_live(
+                    occupancy_rooms=[moss_room(vacant=True, photos=2)],
+                    host_messages=[
+                        moss_member_thread(phone="5550101212"),
+                        parker,
+                        moss_member_thread(move_in="2026-08-01", move_out="2026-09-02"),
+                    ],
+                    locks=[
+                        {"lockId": "SM", "lockAlias": "Spanish Moss room 2", "lockName": "SM"},
+                        {"lockId": "PK", "lockAlias": "Parker room 2", "lockName": "PK"},
+                    ],
+                    change_fn=lambda **k: changed.append(k["lock_id"]),
+                    post_discord=posts.append,
+                    update_records=lambda slug, fields: True,
+                    notify_member=lambda chat_id, text: 1,
+                    firebase_ready=True,
+                    state_path=state_path,
+                )
+        self.assertEqual(changed, [])
+        self.assertEqual(posts, [])
+        self.assertEqual(result.padsplit_notified, 0)
+        self.assertNotIn("move_in", result.events)
+
+    def test_pebble_shores_move_in_sets_last4(self) -> None:
+        changed: list[str] = []
+        records: list[tuple[str, dict]] = []
+        with tempfile.TemporaryDirectory() as tmp:
+            state_path = Path(tmp) / "state.json"
+            with patch.object(lock_codes, "sifely_api_key", return_value="sk-REDACTED"):
+                result = _run_live(
+                    occupancy_rooms=[],
+                    host_messages=[pebble_member_thread(phone="5550101999", room=4)],
+                    locks=[{"lockId": "R4", "lockAlias": "Pebble Shores room 4", "lockName": "PB"}],
+                    passcodes_by_lock={
+                        "R4": [{"keyboardPwdId": "P", "keyboardPwd": PLACEHOLDER, "keyboardPwdName": "tenant"}],
+                    },
+                    change_fn=lambda **k: changed.append(k["new_code"]),
+                    update_records=lambda slug, fields: records.append((slug, fields)) or True,
+                    notify_member=lambda chat_id, text: 1,
+                    firebase_ready=True,
+                    state_path=state_path,
+                )
+        self.assertEqual(result.action, "move_in")
+        self.assertEqual(changed, ["1999"])
+        self.assertEqual(records[0][0], "pebbleshores_3414")
+        self.assertEqual(records[0][1]["r4"], "1999")
+
+    def test_sifely_application_error_is_fail_closed(self) -> None:
+        class Session:
+            def request(self, *args, **kwargs):
+                class Resp:
+                    status_code = 200
+
+                    def json(self):
+                        return {"code": 1, "msg": "rejected", "data": {"list": []}}
+
+                return Resp()
+
+        with self.assertRaises(lock_codes.SifelyUnavailable):
+            lock_codes.list_locks("sk-REDACTED", session=Session())
+        changed: list[str] = []
+        with tempfile.TemporaryDirectory() as tmp:
+            state_path = Path(tmp) / "state.json"
+            with patch.object(lock_codes, "sifely_api_key", return_value="sk-REDACTED"), \
+                 patch.object(lock_codes, "list_locks", side_effect=lock_codes.SifelyUnavailable("down")):
+                result = _run_live(
+                    occupancy_rooms=[],
+                    host_messages=[ridge_member_thread(phone="5550101212")],
+                    change_fn=lambda **k: changed.append("rotated"),
+                    update_records=lambda slug, fields: True,
+                    notify_member=lambda chat_id, text: 1,
+                    firebase_ready=True,
+                    state_path=state_path,
+                )
+                saved = lock_codes.load_state(state_path)
+        self.assertEqual(changed, [])
+        self.assertEqual(saved["processed_move_ins"], [])
+        self.assertNotIn("move_in", result.events)
+
+    def test_sifely_rotate_error_retries_then_succeeds(self) -> None:
+        calls = {"n": 0}
+
+        def change(**_kwargs):
+            calls["n"] += 1
+            if calls["n"] == 1:
+                raise lock_codes.SifelyUnavailable("rejected")
+
+        locks = [{"lockId": "ROOM2", "lockAlias": "Ridge Oak room 2", "lockName": "RO"}]
+        passcodes = {"ROOM2": [{"keyboardPwdId": "PWDID", "keyboardPwd": PLACEHOLDER, "keyboardPwdName": "tenant"}]}
+        with tempfile.TemporaryDirectory() as tmp:
+            state_path = Path(tmp) / "state.json"
+            common = dict(
+                occupancy_rooms=[],
+                host_messages=[ridge_member_thread(phone="5550101212")],
+                locks=locks,
+                passcodes_by_lock=passcodes,
+                change_fn=change,
+                update_records=lambda slug, fields: True,
+                notify_member=lambda chat_id, text: 1,
+                firebase_ready=True,
+                state_path=state_path,
+            )
+            with patch.object(lock_codes, "sifely_api_key", return_value="sk-REDACTED"):
+                first = _run_live(**common)
+                second = _run_live(**common)
+        self.assertNotIn("move_in", first.events)
+        self.assertEqual(second.action, "move_in")
+        self.assertEqual(calls["n"], 2)
+
+    def test_failed_write_or_notify_does_not_rotate_again(self) -> None:
+        changes: list[str] = []
+        writes = {"n": 0}
+        notifies = {"n": 0}
+
+        def write(_slug, _fields):
+            writes["n"] += 1
+            return writes["n"] > 1
+
+        def notify(_chat_id, _text):
+            notifies["n"] += 1
+            return 1
+
+        locks = [{"lockId": "ROOM2", "lockAlias": "Ridge Oak room 2", "lockName": "RO"}]
+        passcodes = {"ROOM2": [{"keyboardPwdId": "PWDID", "keyboardPwd": PLACEHOLDER, "keyboardPwdName": "tenant"}]}
+        with tempfile.TemporaryDirectory() as tmp:
+            state_path = Path(tmp) / "state.json"
+            with patch.object(lock_codes, "sifely_api_key", return_value="sk-REDACTED"):
+                first = _run_live(
+                    occupancy_rooms=[],
+                    host_messages=[ridge_member_thread(phone="5550101212")],
+                    locks=locks,
+                    passcodes_by_lock=passcodes,
+                    change_fn=lambda **k: changes.append(k["lock_id"]),
+                    update_records=write,
+                    notify_member=notify,
+                    firebase_ready=True,
+                    state_path=state_path,
+                )
+                second = _run_live(
+                    occupancy_rooms=[],
+                    host_messages=[ridge_member_thread(phone="5550101212")],
+                    locks=locks,
+                    passcodes_by_lock=passcodes,
+                    change_fn=lambda **k: changes.append(k["lock_id"]),
+                    update_records=write,
+                    notify_member=notify,
+                    firebase_ready=True,
+                    state_path=state_path,
+                )
+        self.assertNotIn("move_in", first.events)
+        self.assertEqual(second.action, "move_in")
+        self.assertEqual(changes, ["ROOM2"])
+        self.assertEqual(notifies["n"], 1)
+
+        changes.clear()
+        notifies["n"] = 0
+
+        def notify_flaky(_chat_id, _text):
+            notifies["n"] += 1
+            return 0 if notifies["n"] == 1 else 1
+
+        with tempfile.TemporaryDirectory() as tmp:
+            state_path = Path(tmp) / "state.json"
+            with patch.object(lock_codes, "sifely_api_key", return_value="sk-REDACTED"):
+                _run_live(
+                    occupancy_rooms=[],
+                    host_messages=[ridge_member_thread(phone="5550101212")],
+                    locks=locks,
+                    passcodes_by_lock=passcodes,
+                    change_fn=lambda **k: changes.append(k["lock_id"]),
+                    update_records=lambda slug, fields: True,
+                    notify_member=notify_flaky,
+                    firebase_ready=True,
+                    state_path=state_path,
+                )
+                done = _run_live(
+                    occupancy_rooms=[],
+                    host_messages=[ridge_member_thread(phone="5550101212")],
+                    locks=locks,
+                    passcodes_by_lock=passcodes,
+                    change_fn=lambda **k: changes.append(k["lock_id"]),
+                    update_records=lambda slug, fields: True,
+                    notify_member=notify_flaky,
+                    firebase_ready=True,
+                    state_path=state_path,
+                )
+        self.assertEqual(done.action, "move_in")
+        self.assertEqual(changes, ["ROOM2"])
+
+    def test_door_failure_retries_without_rotating_the_successful_lock(self) -> None:
+        calls: list[str] = []
+
+        def change(**kwargs):
+            calls.append(kwargs["lock_id"])
+            if kwargs["lock_id"] == "BACK" and calls.count("BACK") == 1:
+                raise lock_codes.SifelyUnavailable("back rejected")
+
+        locks = [
+            {"lockId": "FRONT", "lockAlias": "Ridge Oak front", "lockName": "RO"},
+            {"lockId": "BACK", "lockAlias": "Ridge Oak back", "lockName": "RO"},
+        ]
+        passcodes = {
+            "FRONT": [{"keyboardPwdId": "P2", "keyboardPwd": PLACEHOLDER, "keyboardPwdName": "tenant"}],
+            "BACK": [{"keyboardPwdId": "P3", "keyboardPwd": PLACEHOLDER, "keyboardPwdName": "tenant"}],
+        }
+        replies = [discord_reply("yes", message_id="r1")]
+        ask = {
+            "event_key": "move_out|occ|ridge_oak_10235|2|2026-09-02",
+            "house_slug": "ridge_oak_10235",
+            "house_label": "Ridge Oak",
+            "room": "2",
+            "member": "Member Example",
+            "kind": "move_out",
+            "chat_id": "chat-departed",
+            "room_reset": True,
+            "discord_message_id": "ask-1",
+        }
+        staying = ridge_member_thread(chat_id="chat-staying", room=3, move_in="2026-08-01")
+        with tempfile.TemporaryDirectory() as tmp:
+            state_path = Path(tmp) / "state.json"
+            lock_codes.save_state({**lock_codes._empty_state(), "pending_ang_asks": [ask]}, state_path)
+            with patch.dict(os.environ, {"ANG_DISCORD_USER_ID": ANG_USER_ID}, clear=False), \
+                 patch.object(lock_codes, "sifely_api_key", return_value="sk-REDACTED"):
+                first = _run_live(
+                    occupancy_rooms=[],
+                    host_messages=[staying],
+                    locks=locks,
+                    passcodes_by_lock=passcodes,
+                    change_fn=change,
+                    update_records=lambda slug, fields: True,
+                    notify_member=lambda chat_id, text: 1,
+                    fetch_discord=lambda: replies,
+                    generate_code=lambda: PLACEHOLDER,
+                    firebase_ready=True,
+                    state_path=state_path,
+                )
+                saved = lock_codes.load_state(state_path)
+                second = _run_live(
+                    occupancy_rooms=[],
+                    host_messages=[staying],
+                    locks=locks,
+                    passcodes_by_lock=passcodes,
+                    change_fn=change,
+                    update_records=lambda slug, fields: True,
+                    notify_member=lambda chat_id, text: 1,
+                    fetch_discord=lambda: replies,
+                    generate_code=lambda: PLACEHOLDER,
+                    firebase_ready=True,
+                    state_path=state_path,
+                )
+        self.assertNotIn("ang_yes", first.events)
+        self.assertTrue(saved["pending_ang_asks"])
+        self.assertEqual(second.action, "ang_yes")
+        self.assertEqual(calls, ["FRONT", "BACK", "BACK"])
+
+    def test_lock_code_digits_never_appear_in_discord_or_logs(self) -> None:
+        posts: list[str] = []
+        padsplit: list[str] = []
+        logs = io.StringIO()
+        locks = [
+            {"lockId": "ROOM2", "lockAlias": "Ridge Oak room 2", "lockName": "RO"},
+            {"lockId": "FRONT", "lockAlias": "Ridge Oak front", "lockName": "RO"},
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            state_path = Path(tmp) / "state.json"
+            with patch.dict(os.environ, {"VACANT_ROOM_DEFAULT": VACANT_PLACEHOLDER}, clear=False), \
+                 patch.object(lock_codes, "sifely_api_key", return_value="sk-REDACTED"), \
+                 redirect_stderr(logs):
+                lock_codes._log(f"should mask {VACANT_PLACEHOLDER} and 1212")
+                _run_live(
+                    occupancy_rooms=[],
+                    host_messages=[ridge_member_thread(phone="5550101212")],
+                    locks=locks,
+                    passcodes_by_lock={
+                        "ROOM2": [{"keyboardPwdId": "P", "keyboardPwd": PLACEHOLDER, "keyboardPwdName": "tenant"}],
+                    },
+                    change_fn=lambda **k: None,
+                    post_discord=posts.append,
+                    update_records=lambda slug, fields: True,
+                    notify_member=lambda chat_id, text: padsplit.append(text) or 1,
+                    firebase_ready=True,
+                    state_path=state_path,
+                )
+                _run_live(
+                    occupancy_rooms=[],
+                    host_messages=[ridge_member_thread(move_in="2026-08-01", move_out="2026-09-02")],
+                    locks=locks,
+                    passcodes_by_lock={
+                        "ROOM2": [{"keyboardPwdId": "P", "keyboardPwd": PLACEHOLDER, "keyboardPwdName": "tenant"}],
+                    },
+                    change_fn=lambda **k: None,
+                    post_discord=posts.append,
+                    update_records=lambda slug, fields: True,
+                    firebase_ready=True,
+                    state_path=state_path,
+                )
+        logged = logs.getvalue()
+        self.assertIn("1212", "".join(padsplit))
+        self.assertNotIn("1212", logged)
+        self.assertNotIn(VACANT_PLACEHOLDER, logged)
+        self.assertIn("REDACTED", logged)
+        self.assertTrue(posts)
+        for text in posts:
+            self.assertFalse(lock_codes.has_digit_characters(text))
+            self.assertNotIn("1212", text)
+            self.assertNotIn(VACANT_PLACEHOLDER, text)
+
+    def test_new_tenants_and_automations_are_the_discord_channel_constants(self) -> None:
         self.assertEqual(lock_codes.DISCORD_NEW_TENANTS_CHANNEL_ID, "1542260130614354055")
-        source = Path_read()
+        self.assertEqual(lock_codes.DISCORD_AUTOMATIONS_CHANNEL_ID, "1543396445799845908")
+        source = Path(lock_codes.__file__).read_text()
         self.assertNotIn("1540475874955231343", source)
         self.assertNotIn("ai-tasks-temp", source)
         self.assertNotIn("to-buy", source)
         self.assertNotIn("field_mms", source)
-
-
-def Path_read() -> str:
-    from pathlib import Path
-
-    return Path(lock_codes.__file__).read_text()
 
 
 if __name__ == "__main__":
