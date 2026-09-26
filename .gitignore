@@ -21,6 +21,9 @@ venv/
 __pycache__/
 *.pyc
 
+# Firebase rules-unit-testing install
+node_modules/
+
 # Runtime logs
 logs/
 
@@ -29,3 +32,6 @@ logs/
 
 *.log
 padsplit_scraper/output/latest.json
+
+# One-time property_codes seed input. Never commit.
+property_codes.local.json

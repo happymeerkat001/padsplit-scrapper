@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PadSplit Codes</title>
+  <title>ops</title>
   <style>
     :root {
       --bg: #0f172a;
@@ -95,6 +95,74 @@
       background: var(--success);
       color: #05220f;
     }
+    .save-actions {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.35rem;
+      align-self: flex-start;
+    }
+    .edit-btn, .confirm-cancel {
+      border: 1px solid rgba(148,163,184,0.4);
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text);
+      font-weight: 600;
+      padding: 0.4rem 0.75rem;
+      cursor: pointer;
+    }
+    .confirm-save {
+      border: none;
+      border-radius: 8px;
+      background: var(--accent);
+      color: #0b1222;
+      font-weight: 700;
+      padding: 0.4rem 0.75rem;
+      cursor: pointer;
+    }
+    .save-confirm {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.35rem;
+    }
+    .save-confirm.hidden { display: none; }
+    .discard-prompt {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(15, 23, 42, 0.72);
+      padding: 1rem;
+    }
+    .discard-prompt p {
+      margin: 0 0 0.75rem;
+      max-width: 22rem;
+      text-align: center;
+    }
+    .discard-prompt-actions {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    .discard-prompt-card {
+      background: var(--card);
+      border: 1px solid rgba(148,163,184,0.25);
+      border-radius: 10px;
+      padding: 1rem;
+    }
+    .lock-note, .save-status, .save-confirm-line {
+      margin: 0;
+      max-width: 18rem;
+      text-align: right;
+      font-size: 0.75rem;
+      line-height: 1.35;
+      color: var(--muted);
+      font-weight: 400;
+    }
+    .code-input[readonly], .code-textarea[readonly] { cursor: default; }
     .history-btn {
       border: 1px solid rgba(148,163,184,0.4);
       border-radius: 8px;
@@ -261,7 +329,7 @@
   </style>
 </head>
 <body>
-  <div id="gate-wrap" class="card hidden">
+  <div id="gate-wrap" class="card">
     <h2 class="gate-title">Codes Access</h2>
     <div class="muted">Enter password to view and edit property codes.</div>
     <form id="gate-form" class="gate-form">
@@ -284,15 +352,16 @@
     </header>
 
     <div class="card">
-      <div class="codes-intro">
+      <div class="codes-intro hidden">
         <button type="button" id="page-history-btn" class="history-btn">History</button>
         <div class="muted">Values in parentheses indicate known conflicting entries and can be edited.</div>
       </div>
       <div id="page-history-panel" class="history-panel hidden"></div>
+      <div id="codes-status" class="muted"></div>
       <div id="codes-list"></div>
     </div>
 
-    <section class="notes-section">
+    <section class="notes-section hidden">
       <h2>Notes</h2>
       <div class="notes-card">
         <textarea class="notes-textarea" id="notes-textarea" placeholder="Add shared notes…"></textarea>
@@ -307,7 +376,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import { getFirestore, collection, getDocs, getDoc, setDoc, doc, serverTimestamp, onSnapshot, query, orderBy, limit, startAfter, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, getDocsFromServer, getDoc, setDoc, doc, serverTimestamp, onSnapshot, query, orderBy, limit, startAfter, Timestamp, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCSWOHI6QLqugy_Fao2p4bBehg02_fu3No",
@@ -327,20 +396,20 @@
         address: "6623 Leana",
         sections: [
           { label: "Door Codes", fields: [
-            { key: "front_door", label: "Front Door", value: "3478" },
-            { key: "admin", label: "Admin", value: "662366" },
-            { key: "thermo", label: "Thermo", value: "3477" }
+            { key: "front_door", label: "Front Door", value: "" },
+            { key: "admin", label: "Admin", value: "" },
+            { key: "thermo", label: "Thermo", value: "" }
           ]},
           { label: "WiFi", fields: [
-            { key: "wifi_primary", label: "Spectrum", value: "SpectrumSetup-C1 / Unionerrand354" },
-            { key: "wifi_tmobile", label: "T-Mobile", value: "TMOBILE-14a / g4eaa7cugt5" }
+            { key: "wifi_primary", label: "Spectrum", value: "" },
+            { key: "wifi_tmobile", label: "T-Mobile", value: "" }
           ]},
           { label: "Rooms", fields: [
-            { key: "r1", label: "R1", value: "2721" },
-            { key: "r2", label: "R2", value: "5410" },
-            { key: "r3", label: "R3", value: "1069" },
-            { key: "r4", label: "R4", value: "3414" },
-            { key: "r5", label: "R5", value: "7520" }
+            { key: "r1", label: "R1", value: "" },
+            { key: "r2", label: "R2", value: "" },
+            { key: "r3", label: "R3", value: "" },
+            { key: "r4", label: "R4", value: "" },
+            { key: "r5", label: "R5", value: "" }
           ]},
           { label: "Contact", fields: [
             { key: "responsible_tenant", label: "Responsible Tenant", value: "", placeholder: "Name, Phone" },
@@ -356,20 +425,20 @@
         address: "2516 Sylvia",
         sections: [
           { label: "Door Codes", fields: [
-            { key: "front_door", label: "Front Door", value: "4306" },
-            { key: "thermo", label: "Thermo", value: "3476" }
+            { key: "front_door", label: "Front Door", value: "" },
+            { key: "thermo", label: "Thermo", value: "" }
           ]},
           { label: "WiFi", fields: [
-            { key: "wifi_primary", label: "WiFi", value: "TomLi / hduep3tkr77o (or hduep3tkrr77?)" },
-            { key: "wifi_tmobile", label: "T-Mobile", value: "TMOBILE-3FF9" }
+            { key: "wifi_primary", label: "WiFi", value: "" },
+            { key: "wifi_tmobile", label: "T-Mobile", value: "" }
           ]},
           { label: "Rooms", fields: [
-            { key: "r1", label: "R1", value: "7653" },
-            { key: "r2", label: "R2", value: "6512" },
-            { key: "r3", label: "R3", value: "1069" },
-            { key: "r4", label: "R4", value: "1304" },
-            { key: "r5", label: "R5", value: "5410" },
-            { key: "r6", label: "R6", value: "2024" }
+            { key: "r1", label: "R1", value: "" },
+            { key: "r2", label: "R2", value: "" },
+            { key: "r3", label: "R3", value: "" },
+            { key: "r4", label: "R4", value: "" },
+            { key: "r5", label: "R5", value: "" },
+            { key: "r6", label: "R6", value: "" }
           ]},
           { label: "Contact", fields: [
             { key: "responsible_tenant", label: "Responsible Tenant", value: "", placeholder: "Name, Phone" },
@@ -385,24 +454,24 @@
         address: "10235 Ridge Oak",
         sections: [
           { label: "Door Codes", fields: [
-            { key: "front_door", label: "Front", value: "4301" },
-            { key: "back_door", label: "Back", value: "4302" },
-            { key: "front_master", label: "Front Master", value: "174530" },
-            { key: "back_master", label: "Back Master", value: "373430" },
-            { key: "room_master", label: "Room Master", value: "102351" },
-            { key: "thermo", label: "Thermo", value: "3477" }
+            { key: "front_door", label: "Front", value: "" },
+            { key: "back_door", label: "Back", value: "" },
+            { key: "front_master", label: "Front Master", value: "" },
+            { key: "back_master", label: "Back Master", value: "" },
+            { key: "room_master", label: "Room Master", value: "" },
+            { key: "thermo", label: "Thermo", value: "" }
           ]},
           { label: "WiFi", fields: [
-            { key: "wifi_primary", label: "Spectrum", value: "SpectrumSetup-BEE8 / simplestate018" },
-            { key: "tenant_login", label: "Tenant Login", value: "TomLi / Lemming6623" }
+            { key: "wifi_primary", label: "Spectrum", value: "" },
+            { key: "tenant_login", label: "Tenant Login", value: "" }
           ]},
           { label: "Rooms", fields: [
-            { key: "r1", label: "R1", value: "6510" },
-            { key: "r2", label: "R2", value: "1304" },
-            { key: "r3", label: "R3", value: "7653" },
-            { key: "r4", label: "R4", value: "5410" },
-            { key: "r5", label: "R5", value: "1069" },
-            { key: "r6", label: "R6", value: "3414" }
+            { key: "r1", label: "R1", value: "" },
+            { key: "r2", label: "R2", value: "" },
+            { key: "r3", label: "R3", value: "" },
+            { key: "r4", label: "R4", value: "" },
+            { key: "r5", label: "R5", value: "" },
+            { key: "r6", label: "R6", value: "" }
           ]},
           { label: "Contact", fields: [
             { key: "responsible_tenant", label: "Responsible Tenant", value: "", placeholder: "Name, Phone" },
@@ -418,22 +487,22 @@
         address: "3414 Pebbleshores",
         sections: [
           { label: "Door Codes", fields: [
-            { key: "front_back", label: "Front/Back Door", value: "0961 (or 8338?)" },
-            { key: "outside_master", label: "Outside Master", value: "341434" },
-            { key: "room_master", label: "Room Master", value: "34143414" },
-            { key: "thermo", label: "Thermo", value: "3743" }
+            { key: "front_back", label: "Front/Back Door", value: "" },
+            { key: "outside_master", label: "Outside Master", value: "" },
+            { key: "room_master", label: "Room Master", value: "" },
+            { key: "thermo", label: "Thermo", value: "" }
           ]},
           { label: "WiFi", fields: [
-            { key: "wifi_primary", label: "WiFi", value: "Tomli / Jilingma123" }
+            { key: "wifi_primary", label: "WiFi", value: "" }
           ]},
           { label: "Rooms", fields: [
-            { key: "r1", label: "R1", value: "7845 (or 5613?)" },
-            { key: "r2", label: "R2", value: "4590" },
-            { key: "r3", label: "R3", value: "3506" },
-            { key: "r4", label: "R4", value: "1314" },
-            { key: "r5", label: "R5", value: "2398" },
-            { key: "r6", label: "R6", value: "6510" },
-            { key: "r7", label: "R7", value: "7653" }
+            { key: "r1", label: "R1", value: "" },
+            { key: "r2", label: "R2", value: "" },
+            { key: "r3", label: "R3", value: "" },
+            { key: "r4", label: "R4", value: "" },
+            { key: "r5", label: "R5", value: "" },
+            { key: "r6", label: "R6", value: "" },
+            { key: "r7", label: "R7", value: "" }
           ]},
           { label: "Contact", fields: [
             { key: "responsible_tenant", label: "Responsible Tenant", value: "", placeholder: "Name, Phone" },
@@ -449,22 +518,22 @@
         address: "3406 Greenhill",
         sections: [
           { label: "Door Codes", fields: [
-            { key: "front_door", label: "Front", value: "6530" },
-            { key: "thermo", label: "Thermo", value: "3739" }
+            { key: "front_door", label: "Front", value: "" },
+            { key: "thermo", label: "Thermo", value: "" }
           ]},
           { label: "WiFi", fields: [
-            { key: "wifi_tmobile", label: "T-Mobile", value: "T-Mobile9B46 / cp4x2gk3chf" },
-            { key: "wifi_alt", label: "Alt", value: "Tom3406 / greenhill3406" },
-            { key: "tmobile_line", label: "T-Mobile Line", value: "2144039718" }
+            { key: "wifi_tmobile", label: "T-Mobile", value: "" },
+            { key: "wifi_alt", label: "Alt", value: "" },
+            { key: "tmobile_line", label: "T-Mobile Line", value: "" }
           ]},
           { label: "Rooms", fields: [
-            { key: "r1", label: "R1", value: "1604" },
-            { key: "r2", label: "R2", value: "2406" },
-            { key: "r3", label: "R3", value: "3604" },
-            { key: "r4", label: "R4", value: "4406" },
-            { key: "r5", label: "R5", value: "5604" },
-            { key: "r6", label: "R6", value: "5006" },
-            { key: "r7", label: "R7", value: "7503" }
+            { key: "r1", label: "R1", value: "" },
+            { key: "r2", label: "R2", value: "" },
+            { key: "r3", label: "R3", value: "" },
+            { key: "r4", label: "R4", value: "" },
+            { key: "r5", label: "R5", value: "" },
+            { key: "r6", label: "R6", value: "" },
+            { key: "r7", label: "R7", value: "" }
           ]},
           { label: "Contact", fields: [
             { key: "responsible_tenant", label: "Responsible Tenant", value: "", placeholder: "Name, Phone" },
@@ -480,31 +549,31 @@
         address: "4351 Parker Rd E, Haltom City",
         sections: [
           { label: "Door Codes", fields: [
-            { key: "front_door", label: "Front", value: "1670" },
-            { key: "back_door", label: "Back", value: "8464" }
+            { key: "front_door", label: "Front", value: "" },
+            { key: "back_door", label: "Back", value: "" }
           ]},
           { label: "WiFi", fields: [
-            { key: "wifi_primary", label: "Spectrum", value: "SpectrumSetup-35 / choicesystem718" }
+            { key: "wifi_primary", label: "Spectrum", value: "" }
           ]},
           { label: "Rooms", fields: [
-            { key: "r1", label: "R1", value: "1587" },
-            { key: "r2", label: "R2", value: "0411" },
-            { key: "r3", label: "R3", value: "9239" },
-            { key: "r4", label: "R4", value: "3454" },
-            { key: "r5", label: "R5", value: "2523" },
-            { key: "r6", label: "R6", value: "6584" },
-            { key: "r7", label: "R7", value: "9012" },
-            { key: "r8", label: "R8", value: "0629" }
+            { key: "r1", label: "R1", value: "" },
+            { key: "r2", label: "R2", value: "" },
+            { key: "r3", label: "R3", value: "" },
+            { key: "r4", label: "R4", value: "" },
+            { key: "r5", label: "R5", value: "" },
+            { key: "r6", label: "R6", value: "" },
+            { key: "r7", label: "R7", value: "" },
+            { key: "r8", label: "R8", value: "" }
           ]},
           { label: "Lockboxes", fields: [
-            { key: "lockbox_1", label: "1", value: "1244" },
-            { key: "lockbox_2", label: "2", value: "3344" },
-            { key: "lockbox_3", label: "3", value: "4011" },
-            { key: "lockbox_4", label: "4", value: "5312" },
-            { key: "lockbox_5", label: "5", value: "7233" },
-            { key: "lockbox_6", label: "6", value: "5168" },
-            { key: "lockbox_7", label: "7", value: "0228" },
-            { key: "lockbox_8", label: "8", value: "3211" }
+            { key: "lockbox_1", label: "1", value: "" },
+            { key: "lockbox_2", label: "2", value: "" },
+            { key: "lockbox_3", label: "3", value: "" },
+            { key: "lockbox_4", label: "4", value: "" },
+            { key: "lockbox_5", label: "5", value: "" },
+            { key: "lockbox_6", label: "6", value: "" },
+            { key: "lockbox_7", label: "7", value: "" },
+            { key: "lockbox_8", label: "8", value: "" }
           ]},
           { label: "Contact", fields: [
             { key: "responsible_tenant", label: "Responsible Tenant", value: "", placeholder: "Name, Phone" },
@@ -520,29 +589,29 @@
         address: "1404 Pioneer Lane",
         sections: [
           { label: "Door Codes", fields: [
-            { key: "front_door", label: "Front", value: "1371" },
-            { key: "back_door", label: "Back", value: "4194" }
+            { key: "front_door", label: "Front", value: "" },
+            { key: "back_door", label: "Back", value: "" }
           ]},
           { label: "WiFi", fields: [
-            { key: "wifi_primary", label: "Pioneer (Frontier)", value: "Pioneer (Frontier) / 9452413070" }
+            { key: "wifi_primary", label: "Pioneer (Frontier)", value: "" }
           ]},
           { label: "Rooms", fields: [
-            { key: "r1", label: "R1", value: "3450" },
-            { key: "r2", label: "R2", value: "9011" },
-            { key: "r3", label: "R3", value: "7712" },
-            { key: "r4", label: "R4", value: "0328 (or 1755?)" },
-            { key: "r5", label: "R5", value: "2846" },
-            { key: "r6", label: "R6", value: "8950" },
-            { key: "r7", label: "R7", value: "5252" }
+            { key: "r1", label: "R1", value: "" },
+            { key: "r2", label: "R2", value: "" },
+            { key: "r3", label: "R3", value: "" },
+            { key: "r4", label: "R4", value: "" },
+            { key: "r5", label: "R5", value: "" },
+            { key: "r6", label: "R6", value: "" },
+            { key: "r7", label: "R7", value: "" }
           ]},
           { label: "Other", fields: [
-            { key: "keys_1", label: "Keys 1", value: "1111" },
-            { key: "keys_2", label: "Keys 2", value: "2010" },
-            { key: "keys_3", label: "Keys 3", value: "3111" },
-            { key: "keys_4", label: "Keys 4", value: "0400" },
-            { key: "keys_5", label: "Keys 5", value: "5115" },
-            { key: "keys_6", label: "Keys 6", value: "6330" },
-            { key: "keys_7", label: "Keys 7", value: "7222" }
+            { key: "keys_1", label: "Keys 1", value: "" },
+            { key: "keys_2", label: "Keys 2", value: "" },
+            { key: "keys_3", label: "Keys 3", value: "" },
+            { key: "keys_4", label: "Keys 4", value: "" },
+            { key: "keys_5", label: "Keys 5", value: "" },
+            { key: "keys_6", label: "Keys 6", value: "" },
+            { key: "keys_7", label: "Keys 7", value: "" }
           ]},
           { label: "Contact", fields: [
             { key: "responsible_tenant", label: "Responsible Tenant", value: "", placeholder: "Name, Phone" },
@@ -558,30 +627,30 @@
         address: "5509 Burton Ave, Fort Worth",
         sections: [
           { label: "Door Codes", fields: [
-            { key: "front_door", label: "Front", value: "4125" },
-            { key: "thermo", label: "Thermo", value: "3746 (or 3477?)" },
-            { key: "spectrum_code", label: "Spectrum Code", value: "4639" }
+            { key: "front_door", label: "Front", value: "" },
+            { key: "thermo", label: "Thermo", value: "" },
+            { key: "spectrum_code", label: "Spectrum Code", value: "" }
           ]},
           { label: "WiFi", fields: [
-            { key: "wifi_primary", label: "Spectrum", value: "SpectrumSetup-354C / parkingworth923" }
+            { key: "wifi_primary", label: "Spectrum", value: "" }
           ]},
           { label: "Rooms", fields: [
-            { key: "r1", label: "R1", value: "232323" },
-            { key: "r2", label: "R2", value: "242424" },
-            { key: "r3", label: "R3", value: "141414" },
-            { key: "r4", label: "R4", value: "456090" },
-            { key: "r5", label: "R5", value: "504530" },
-            { key: "r6", label: "R6", value: "313131" },
-            { key: "r7", label: "R7", value: "121212" }
+            { key: "r1", label: "R1", value: "" },
+            { key: "r2", label: "R2", value: "" },
+            { key: "r3", label: "R3", value: "" },
+            { key: "r4", label: "R4", value: "" },
+            { key: "r5", label: "R5", value: "" },
+            { key: "r6", label: "R6", value: "" },
+            { key: "r7", label: "R7", value: "" }
           ]},
           { label: "Lockboxes", fields: [
-            { key: "lockbox_1", label: "1", value: "1100" },
-            { key: "lockbox_2", label: "2", value: "2110" },
-            { key: "lockbox_3", label: "3", value: "3000" },
-            { key: "lockbox_4", label: "4", value: "4321" },
-            { key: "lockbox_5", label: "5", value: "5220" },
-            { key: "lockbox_6", label: "6", value: "6111" },
-            { key: "lockbox_7", label: "7", value: "7222" }
+            { key: "lockbox_1", label: "1", value: "" },
+            { key: "lockbox_2", label: "2", value: "" },
+            { key: "lockbox_3", label: "3", value: "" },
+            { key: "lockbox_4", label: "4", value: "" },
+            { key: "lockbox_5", label: "5", value: "" },
+            { key: "lockbox_6", label: "6", value: "" },
+            { key: "lockbox_7", label: "7", value: "" }
           ]},
           { label: "Contact", fields: [
             { key: "responsible_tenant", label: "Responsible Tenant", value: "", placeholder: "Name, Phone" },
@@ -597,22 +666,22 @@
         address: "1025 Broken Crest, Desoto",
         sections: [
           { label: "Door Codes", fields: [
-            { key: "front_door", label: "Front", value: "225577 (format: 22-55-77?)" },
-            { key: "thermo", label: "Thermo", value: "3838" }
+            { key: "front_door", label: "Front", value: "" },
+            { key: "thermo", label: "Thermo", value: "" }
           ]},
           { label: "WiFi", fields: [
-            { key: "wifi_primary", label: "Spectrum", value: "SpectrumSetup-A402 / distinctbase477" }
+            { key: "wifi_primary", label: "Spectrum", value: "" }
           ]},
           { label: "Rooms", fields: [
-            { key: "r1", label: "R1", value: "9119 (lockbox)" },
-            { key: "r2", label: "R2", value: "0079 (lockbox)" },
-            { key: "r3", label: "R3", value: "7633 (lockbox)" },
-            { key: "r4", label: "R4", value: "1717" },
-            { key: "r5", label: "R5", value: "6964" },
-            { key: "r6", label: "R6", value: "5376" },
-            { key: "r7", label: "R7", value: "2573" },
-            { key: "r8", label: "R8", value: "6553" },
-            { key: "r9", label: "R9", value: "4554" }
+            { key: "r1", label: "R1", value: "" },
+            { key: "r2", label: "R2", value: "" },
+            { key: "r3", label: "R3", value: "" },
+            { key: "r4", label: "R4", value: "" },
+            { key: "r5", label: "R5", value: "" },
+            { key: "r6", label: "R6", value: "" },
+            { key: "r7", label: "R7", value: "" },
+            { key: "r8", label: "R8", value: "" },
+            { key: "r9", label: "R9", value: "" }
           ]},
           { label: "Contact", fields: [
             { key: "responsible_tenant", label: "Responsible Tenant", value: "", placeholder: "Name, Phone" },
@@ -631,20 +700,74 @@
     const gateInput = document.getElementById('gate-input');
     const gateError = document.getElementById('gate-error');
     const list = document.getElementById('codes-list');
+    const codesStatus = document.getElementById('codes-status');
+    function angCodesUid() {
+      return '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2';
+    }
+    function approvedCodesUid() {
+      // Joe's slot. Same empty return as firestore.rules approvedCodesUid(). Ang keeps angCodesUid().
+      return '';
+    }
+    function isApprovedCodesUser(user) {
+      if (!user || !user.uid) return false;
+      if (user.uid === angCodesUid()) return true;
+      const joe = approvedCodesUid();
+      return !!(joe && user.uid === joe);
+    }
+    let loadGeneration = 0;
 
-    function showApp() {
-      gateWrap.classList.add('hidden');
-      appWrap.classList.remove('hidden');
-      initCodes().catch((err) => {
-        console.error(err);
-        list.innerHTML = '<div class="error" style="margin-top:1rem">Failed to load codes from Firestore.</div>';
-      });
+    const codesIntro = document.querySelector('.codes-intro');
+    const notesSection = document.querySelector('.notes-section');
+
+    function setCodesStatus(message) {
+      codesStatus.textContent = message || '';
     }
 
-    function showGate() {
+    function setApprovedChrome(visible) {
+      if (codesIntro) codesIntro.classList.toggle('hidden', !visible);
+      if (notesSection) notesSection.classList.toggle('hidden', !visible);
+    }
+
+    function clearPropertyList() {
+      list.innerHTML = '';
+      setApprovedChrome(false);
+      stopNotes();
+      const pageHistoryPanel = document.getElementById('page-history-panel');
+      if (pageHistoryPanel) pageHistoryPanel.classList.add('hidden');
+    }
+
+    function showSignedOut() {
       gateWrap.classList.remove('hidden');
       appWrap.classList.add('hidden');
+      clearPropertyList();
+      setCodesStatus('');
       gateInput.focus();
+    }
+
+    function showLoading() {
+      gateWrap.classList.add('hidden');
+      appWrap.classList.remove('hidden');
+      clearPropertyList();
+      setCodesStatus('loading codes…');
+    }
+
+    function showNotApproved() {
+      gateWrap.classList.add('hidden');
+      appWrap.classList.remove('hidden');
+      clearPropertyList();
+      setCodesStatus("your account isn't approved for codes yet. ask ang.");
+    }
+
+    function showLoadError() {
+      gateWrap.classList.add('hidden');
+      appWrap.classList.remove('hidden');
+      clearPropertyList();
+      setCodesStatus("couldn't load codes. refresh, or use the lockout ladder.");
+    }
+
+    function isPermissionDenied(err) {
+      const code = err && err.code ? String(err.code) : '';
+      return code === 'permission-denied' || code.endsWith('/permission-denied');
     }
 
     gateForm.addEventListener('submit', async (e) => {
@@ -654,7 +777,7 @@
         await signInWithEmailAndPassword(auth, email, gateInput.value);
         gateError.classList.add('hidden');
       } catch (err) {
-        console.error(err);
+        console.error('sign-in failed', err && err.code);
         gateError.classList.remove('hidden');
         gateWrap.classList.remove('shake');
         void gateWrap.offsetWidth;
@@ -699,25 +822,17 @@
       };
     }
 
-    function defaultFieldValue(property, key, fallback = '') {
-      for (const section of property.sections) {
-        const field = (section.fields || []).find((item) => item.key === key);
-        if (field) return field.value;
-      }
-      return fallback;
+    function defaultFieldValue(_property, _key, _fallback = '') {
+      return '';
     }
 
     let currentHasLiveDoc = false;
 
-    function resolveSavedOrDefault(savedValues, key, fallback = '') {
-      if (currentHasLiveDoc) {
-        return Object.prototype.hasOwnProperty.call(savedValues, key)
-          ? savedValues[key]
-          : '';
-      }
-      return Object.prototype.hasOwnProperty.call(savedValues, key)
-        ? savedValues[key]
-        : fallback;
+    function resolveSavedOrDefault(savedValues, key, _fallback = '') {
+      if (!currentHasLiveDoc) return '';
+      if (!savedValues || !Object.prototype.hasOwnProperty.call(savedValues, key)) return '';
+      const value = savedValues[key];
+      return value == null ? '' : String(value);
     }
 
     const HISTORY_RESERVED = ['updatedAt', 'contentHash', 'source', 'expireAt', 'createdAt', 'fields'];
@@ -756,6 +871,7 @@
       input.dataset.prop = property.slug;
       input.dataset.field = fieldKey;
       input.value = value;
+      input.readOnly = true;
       if (options.placeholder) input.placeholder = options.placeholder;
       if (isTextarea) input.rows = options.rows || 3;
       updateDateOverdueState(input);
@@ -943,12 +1059,52 @@
       details.open = true;
       details.dataset.house = property.slug;
       const summary = document.createElement('summary');
-      summary.innerHTML = `
-        <div class="flex-between">
-          <div class="property-title">${property.address}</div>
-          <button type="button" class="save-btn" data-save="${property.slug}">Save</button>
-        </div>
-      `;
+      const row = document.createElement('div');
+      row.className = 'flex-between';
+      const title = document.createElement('div');
+      title.className = 'property-title';
+      title.textContent = property.address;
+      row.appendChild(title);
+      const actions = document.createElement('div');
+      actions.className = 'save-actions';
+      const editBtn = document.createElement('button');
+      editBtn.type = 'button';
+      editBtn.className = 'edit-btn';
+      editBtn.dataset.edit = property.slug;
+      editBtn.textContent = `edit ${houseDisplayName(property.address)}`;
+      const saveBtn = document.createElement('button');
+      saveBtn.type = 'button';
+      saveBtn.className = 'save-btn hidden';
+      saveBtn.dataset.save = property.slug;
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'save';
+      const lockNote = document.createElement('p');
+      lockNote.className = 'lock-note hidden';
+      lockNote.textContent = LOCK_NOTE;
+      const confirmBox = document.createElement('div');
+      confirmBox.className = 'save-confirm hidden';
+      const confirmLine = document.createElement('p');
+      confirmLine.className = 'save-confirm-line';
+      const confirmSave = document.createElement('button');
+      confirmSave.type = 'button';
+      confirmSave.className = 'confirm-save';
+      confirmSave.textContent = 'save';
+      const confirmCancel = document.createElement('button');
+      confirmCancel.type = 'button';
+      confirmCancel.className = 'confirm-cancel';
+      confirmCancel.textContent = 'cancel';
+      confirmBox.appendChild(confirmLine);
+      confirmBox.appendChild(confirmSave);
+      confirmBox.appendChild(confirmCancel);
+      const status = document.createElement('p');
+      status.className = 'save-status';
+      actions.appendChild(editBtn);
+      actions.appendChild(saveBtn);
+      actions.appendChild(lockNote);
+      actions.appendChild(confirmBox);
+      actions.appendChild(status);
+      row.appendChild(actions);
+      summary.appendChild(row);
       details.appendChild(summary);
 
       const body = document.createElement('div');
@@ -975,7 +1131,11 @@
           return;
         }
 
-        appendSectionLabel(body, section.label);
+        const pioneerKeysHint = property.slug === 'pioneer_1404'
+          && section.fields.some((field) => field.key === 'keys_1')
+          ? "record only. automatic lockout replies don't use these yet."
+          : '';
+        appendSectionLabel(body, section.label, pioneerKeysHint);
         body.appendChild(renderLabelValueTable(property, section, savedValues));
       });
       if (!extrasRendered) {
@@ -999,9 +1159,135 @@
       return details;
     }
 
-    async function initCodes() {
-      const CODES_UID = '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2';
-      const isCodesUser = () => auth.currentUser && auth.currentUser.uid === CODES_UID;
+    function renderAllHouses(docsBySlug) {
+      list.innerHTML = '';
+      const loaded = docsBySlug instanceof Map;
+      DEFAULTS.forEach((property) => {
+        const live = loaded && docsBySlug.has(property.slug);
+        const saved = live ? (docsBySlug.get(property.slug) || {}) : {};
+        rememberHouseLoad(property.slug, saved);
+        const node = renderProperty(property, saved, live);
+        if (loaded && !live) {
+          const note = document.createElement('div');
+          note.className = 'section-hint';
+          note.textContent = `no codes saved for ${property.address} yet.`;
+          const body = node.querySelector('.property-body');
+          if (body) body.prepend(note);
+        }
+        list.appendChild(node);
+      });
+    }
+
+    const LOCK_NOTE = "this updates the record only. it doesn't change the lock.";
+    const SAVE_FAILURE = "didn't save, nothing changed. try again.";
+    let editingSlug = null;
+    const baselineBySlug = new Map();
+    const loadedUpdatedAtBySlug = new Map();
+
+    function houseDisplayName(address) {
+      return String(address || '').replace(/^\d+\s+/, '').trim().toLowerCase();
+    }
+
+    function changeLabels(baseline, current) {
+      const labels = [];
+      Object.keys(current || {}).forEach((key) => {
+        const before = baseline && baseline[key] != null ? String(baseline[key]).trim() : '';
+        const after = current[key] == null ? '' : String(current[key]).trim();
+        if (before === after) return;
+        labels.push(after === '' ? `clear ${key}` : key);
+      });
+      return labels;
+    }
+
+    function saveConfirmLine(houseName, labels) {
+      const count = labels.length;
+      const noun = count === 1 ? 'change' : 'changes';
+      return `save ${count} ${noun} to ${houseName}? ${labels.join(', ')}`;
+    }
+
+    function formatSavedTime(date) {
+      const when = date instanceof Date ? date : new Date();
+      let hour = when.getHours();
+      const minute = String(when.getMinutes()).padStart(2, '0');
+      const suffix = hour >= 12 ? 'pm' : 'am';
+      hour %= 12;
+      if (hour === 0) hour = 12;
+      return `saved ${hour}:${minute}${suffix}`;
+    }
+
+    function updatedAtToken(value) {
+      if (value == null || value === '') return '';
+      if (typeof value.toMillis === 'function') return `ms:${value.toMillis()}`;
+      if (typeof value === 'object' && typeof value.seconds === 'number') {
+        const nanos = typeof value.nanoseconds === 'number' ? value.nanoseconds : 0;
+        return `ts:${value.seconds}.${nanos}`;
+      }
+      if (typeof value === 'string' || typeof value === 'number') return `v:${value}`;
+      return `o:${String(value)}`;
+    }
+
+    function sameUpdatedAt(loaded, current) {
+      return updatedAtToken(loaded) === updatedAtToken(current);
+    }
+
+    function conflictMessage(houseName) {
+      return `${houseName} changed since you opened it. refresh first.`;
+    }
+
+    function nextEditingSlug(currentSlug, nextSlug, dirty, confirmFn) {
+      if (!nextSlug || currentSlug === nextSlug) return currentSlug;
+      if (currentSlug && dirty && !confirmFn()) return currentSlug;
+      return nextSlug;
+    }
+
+    function discardPromptCopy(houseName) {
+      return `${houseName} has unsaved changes. discard them?`;
+    }
+
+    function buildDiscardPrompt(doc, houseName) {
+      const wrap = doc.createElement('div');
+      wrap.className = 'discard-prompt';
+      wrap.setAttribute('role', 'dialog');
+      wrap.setAttribute('aria-modal', 'true');
+      const card = doc.createElement('div');
+      card.className = 'discard-prompt-card';
+      const line = doc.createElement('p');
+      line.className = 'discard-prompt-line';
+      line.textContent = discardPromptCopy(houseName);
+      const actions = doc.createElement('div');
+      actions.className = 'discard-prompt-actions';
+      const keep = doc.createElement('button');
+      keep.type = 'button';
+      keep.className = 'discard-keep';
+      keep.textContent = 'keep editing';
+      const discardBtn = doc.createElement('button');
+      discardBtn.type = 'button';
+      discardBtn.className = 'discard-go';
+      discardBtn.textContent = 'discard';
+      actions.appendChild(keep);
+      actions.appendChild(discardBtn);
+      card.appendChild(line);
+      card.appendChild(actions);
+      wrap.appendChild(card);
+      (doc.body || doc).appendChild(wrap);
+      keep.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter') return;
+        event.preventDefault();
+        keep.click();
+      });
+      keep.focus();
+      return { wrap, keep, discard: discardBtn, line };
+    }
+
+    function rememberHouseLoad(slug, data) {
+      const saved = data && typeof data === 'object' ? data : {};
+      baselineBySlug.set(slug, canonicalizeCodeFields(saved));
+      loadedUpdatedAtBySlug.set(slug, saved.updatedAt == null ? null : saved.updatedAt);
+    }
+    // end save-flow helpers
+
+    async function initCodes(generation) {
+      const isCodesUser = () => isApprovedCodesUser(auth.currentUser);
 
       const liveRef = (slug) => doc(db, 'property_codes', slug);
       const versionsCol = (slug) => collection(db, 'property_codes', slug, 'code_versions');
@@ -1017,12 +1303,6 @@
         });
       }
 
-      async function latestVersionHash(slug) {
-        const snap = await getDocs(query(versionsCol(slug), orderBy('createdAt', 'desc'), limit(1)));
-        if (snap.empty) return '';
-        return snap.docs[0].data().contentHash || '';
-      }
-
       function collectForm(slug) {
         const payload = {};
         list.querySelectorAll(`input[data-prop="${slug}"], textarea[data-prop="${slug}"]`).forEach((input) => {
@@ -1036,10 +1316,13 @@
         if (!property) return;
         const snap = await getDoc(liveRef(slug));
         const hasLive = snap.exists();
-        const node = renderProperty(property, hasLive ? snap.data() : {}, hasLive);
+        const data = hasLive ? snap.data() : {};
+        rememberHouseLoad(slug, data);
+        const node = renderProperty(property, data, hasLive);
         const old = list.querySelector(`details[data-house="${slug}"]`);
         if (old) old.replaceWith(node);
         else list.appendChild(node);
+        if (editingSlug === slug) editingSlug = null;
         bindHouse(node, slug, property.address);
       }
 
@@ -1205,6 +1488,184 @@
         }
       }
 
+      function houseNode(slug) {
+        return list.querySelector(`details[data-house="${slug}"]`);
+      }
+
+      function fieldsOf(slug) {
+        return [...list.querySelectorAll(`input[data-prop="${slug}"], textarea[data-prop="${slug}"]`)];
+      }
+
+      function setSaveStatus(slug, message) {
+        const node = houseNode(slug);
+        const status = node && node.querySelector('.save-status');
+        if (status) status.textContent = message || '';
+      }
+
+      function setHouseEditing(slug, on) {
+        const node = houseNode(slug);
+        if (!node) return;
+        fieldsOf(slug).forEach((input) => {
+          input.readOnly = !on;
+        });
+        const editBtn = node.querySelector('.edit-btn');
+        const saveBtn = node.querySelector('.save-btn');
+        const note = node.querySelector('.lock-note');
+        const confirm = node.querySelector('.save-confirm');
+        if (editBtn) editBtn.classList.toggle('hidden', on);
+        if (saveBtn) {
+          saveBtn.classList.toggle('hidden', !on);
+          saveBtn.disabled = !on || !isCodesUser();
+        }
+        if (note) note.classList.toggle('hidden', !on);
+        if (confirm) confirm.classList.add('hidden');
+        const status = node.querySelector('.save-status');
+        if (status) status.textContent = '';
+      }
+
+      function restoreHouseFields(slug) {
+        const base = baselineBySlug.get(slug) || {};
+        fieldsOf(slug).forEach((input) => {
+          const key = input.dataset.field;
+          input.value = base[key] == null ? '' : String(base[key]);
+          updateDateOverdueState(input);
+        });
+      }
+
+      let discardPromptOpen = false;
+
+      function askDiscard(houseName) {
+        if (discardPromptOpen) return Promise.resolve(false);
+        discardPromptOpen = true;
+        return new Promise((resolve) => {
+          const prompt = buildDiscardPrompt(document, houseName);
+          const finish = (discarded) => {
+            discardPromptOpen = false;
+            if (prompt.wrap.remove) prompt.wrap.remove();
+            resolve(discarded);
+          };
+          prompt.keep.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            finish(false);
+          });
+          prompt.discard.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            finish(true);
+          });
+        });
+      }
+
+      async function openHouseEdit(slug) {
+        if (!isCodesUser()) return;
+        const leaving = Boolean(editingSlug && editingSlug !== slug);
+        const dirty = Boolean(leaving && changeLabels(baselineBySlug.get(editingSlug) || {}, collectForm(editingSlug)).length);
+        if (leaving && dirty) {
+          const currentName = houseDisplayName((DEFAULTS.find((item) => item.slug === editingSlug) || {}).address);
+          const discarded = await askDiscard(currentName);
+          if (!discarded) return;
+          restoreHouseFields(editingSlug);
+          setHouseEditing(editingSlug, false);
+        } else if (leaving) {
+          setHouseEditing(editingSlug, false);
+        } else if (editingSlug === slug) {
+          return;
+        }
+        editingSlug = slug;
+        setHouseEditing(slug, true);
+      }
+
+      function showSaveConfirm(slug, address) {
+        if (!isCodesUser() || editingSlug !== slug) return;
+        const node = houseNode(slug);
+        if (!node) return;
+        const labels = changeLabels(baselineBySlug.get(slug) || {}, collectForm(slug));
+        const box = node.querySelector('.save-confirm');
+        const line = node.querySelector('.save-confirm-line');
+        if (!labels.length) {
+          if (box) box.classList.add('hidden');
+          return;
+        }
+        if (line) line.textContent = saveConfirmLine(houseDisplayName(address), labels);
+        if (box) box.classList.remove('hidden');
+      }
+
+      let saveInFlight = null;
+
+      async function commitHouseSave(slug, address) {
+        if (!isCodesUser() || editingSlug !== slug || saveInFlight) return;
+        const node = houseNode(slug);
+        if (!node) return;
+        const payload = collectForm(slug);
+        const labels = changeLabels(baselineBySlug.get(slug) || {}, payload);
+        const box = node.querySelector('.save-confirm');
+        const line = node.querySelector('.save-confirm-line');
+        if (!labels.length) {
+          if (box) box.classList.add('hidden');
+          return;
+        }
+        const expected = saveConfirmLine(houseDisplayName(address), labels);
+        if (!line || line.textContent !== expected) {
+          if (line) line.textContent = expected;
+          if (box) box.classList.remove('hidden');
+          return;
+        }
+        saveInFlight = slug;
+        const saveBtn = node.querySelector('.save-btn');
+        if (saveBtn) saveBtn.disabled = true;
+        if (box) box.classList.add('hidden');
+        try {
+          await runTransaction(db, async (transaction) => {
+            const snap = await transaction.get(liveRef(slug));
+            const serverAt = snap.exists() ? snap.data().updatedAt : null;
+            if (!sameUpdatedAt(loadedUpdatedAtBySlug.get(slug), serverAt)) {
+              const conflict = new Error('codes-conflict');
+              conflict.code = 'codes-conflict';
+              throw conflict;
+            }
+            const merged = Object.assign({}, snap.exists() ? snap.data() : {}, payload);
+            const digest = await hashCodeFields(merged);
+            const previousHash = snap.exists() ? (snap.data().contentHash || '') : '';
+            transaction.set(liveRef(slug), {
+              ...payload,
+              contentHash: digest,
+              updatedAt: serverTimestamp()
+            }, { merge: true });
+            if (digest !== previousHash) {
+              transaction.set(doc(versionsCol(slug)), {
+                fields: canonicalizeCodeFields(merged),
+                contentHash: digest,
+                createdAt: serverTimestamp(),
+                expireAt: Timestamp.fromMillis(Date.now() + 90 * 24 * 60 * 60 * 1000),
+                source: 'page'
+              });
+            }
+          });
+          try {
+            const after = await getDoc(liveRef(slug));
+            rememberHouseLoad(slug, after.exists() ? after.data() : payload);
+          } catch (readErr) {
+            console.error('saved codes read-back failed', readErr && readErr.code);
+            const prior = baselineBySlug.get(slug) || {};
+            baselineBySlug.set(slug, { ...prior, ...payload });
+          }
+          editingSlug = null;
+          setHouseEditing(slug, false);
+          setSaveStatus(slug, formatSavedTime(new Date()));
+        } catch (err) {
+          console.error('Failed to save codes', err && err.code);
+          if (err && (err.code === 'codes-conflict' || err.message === 'codes-conflict')) {
+            setSaveStatus(slug, conflictMessage(houseDisplayName(address)));
+          } else {
+            setSaveStatus(slug, SAVE_FAILURE);
+          }
+        } finally {
+          saveInFlight = null;
+          if (saveBtn && editingSlug === slug) saveBtn.disabled = false;
+        }
+      }
+
       function bindHouse(node, slug, address) {
         const summaryRow = node.querySelector('.flex-between');
         if (summaryRow && !summaryRow.querySelector('.history-btn')) {
@@ -1213,8 +1674,8 @@
           prev.className = 'history-btn';
           prev.dataset.history = slug;
           prev.textContent = 'Previous';
-          const saveBtn = summaryRow.querySelector('.save-btn');
-          if (saveBtn) summaryRow.insertBefore(prev, saveBtn);
+          const actions = summaryRow.querySelector('.save-actions');
+          if (actions) summaryRow.insertBefore(prev, actions);
           else summaryRow.appendChild(prev);
           const panel = document.createElement('div');
           panel.className = 'history-panel hidden';
@@ -1236,67 +1697,65 @@
           });
         }
 
-        const btn = node.querySelector('.save-btn');
-        if (!btn || btn.dataset.bound === '1') return;
-        btn.dataset.bound = '1';
-        btn.addEventListener('click', async (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          if (!isCodesUser()) return;
-          const payload = collectForm(slug);
-          btn.disabled = true;
-          const oldText = btn.textContent;
-          try {
-            await setDoc(liveRef(slug), {
-              ...payload,
-              updatedAt: serverTimestamp()
-            }, { merge: true });
-            const after = await getDoc(liveRef(slug));
-            const live = after.exists() ? after.data() : payload;
-            const digest = await hashCodeFields(live);
-            const latest = await latestVersionHash(slug);
-            if (digest !== latest) {
-              try {
-                await writeSnapshot(slug, live, 'page');
-              } catch (snapErr) {
-                console.error('Failed to snapshot codes', snapErr);
-                btn.textContent = 'Error';
-                setTimeout(() => { btn.textContent = oldText; }, 1500);
-                return;
-              }
-            }
-            btn.textContent = 'Saved ✓';
-            btn.classList.add('saved');
-            setTimeout(() => {
-              btn.textContent = 'Save';
-              btn.classList.remove('saved');
-            }, 1500);
-          } catch (err) {
-            console.error('Failed to save codes', err);
-            btn.textContent = 'Error';
-            setTimeout(() => {
-              btn.textContent = oldText;
-            }, 1500);
-          } finally {
-            setTimeout(() => { btn.disabled = false; }, 200);
-          }
-        });
+        const editBtn = node.querySelector('.edit-btn');
+        if (editBtn && editBtn.dataset.bound !== '1') {
+          editBtn.dataset.bound = '1';
+          editBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            openHouseEdit(slug);
+          });
+        }
+
+        const saveBtn = node.querySelector('.save-btn');
+        if (saveBtn && saveBtn.dataset.bound !== '1') {
+          saveBtn.dataset.bound = '1';
+          saveBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            showSaveConfirm(slug, address);
+          });
+        }
+
+        const confirmSave = node.querySelector('.confirm-save');
+        if (confirmSave && confirmSave.dataset.bound !== '1') {
+          confirmSave.dataset.bound = '1';
+          confirmSave.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            commitHouseSave(slug, address);
+          });
+        }
+
+        const confirmCancel = node.querySelector('.confirm-cancel');
+        if (confirmCancel && confirmCancel.dataset.bound !== '1') {
+          confirmCancel.dataset.bound = '1';
+          confirmCancel.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const box = node.querySelector('.save-confirm');
+            if (box) box.classList.add('hidden');
+          });
+        }
       }
 
-      const snapshot = await getDocs(collection(db, 'property_codes'));
+      const snapshot = await getDocsFromServer(collection(db, 'property_codes'));
+      if (generation !== loadGeneration) return;
       const docsBySlug = new Map();
       snapshot.forEach((d) => docsBySlug.set(d.id, d.data()));
 
-      list.innerHTML = '';
+      setApprovedChrome(true);
+      editingSlug = null;
+      renderAllHouses(docsBySlug);
       DEFAULTS.forEach((property) => {
-        const hasLive = docsBySlug.has(property.slug);
-        const node = renderProperty(property, docsBySlug.get(property.slug) || {}, hasLive);
-        list.appendChild(node);
-        bindHouse(node, property.slug, property.address);
+        const node = list.querySelector(`details[data-house="${property.slug}"]`);
+        if (node) bindHouse(node, property.slug, property.address);
       });
 
       const pageHistoryBtn = document.getElementById('page-history-btn');
       const pageHistoryPanel = document.getElementById('page-history-panel');
+      startNotes();
+
       if (pageHistoryBtn && pageHistoryPanel && pageHistoryBtn.dataset.bound !== '1') {
         pageHistoryBtn.dataset.bound = '1';
         pageHistoryBtn.addEventListener('click', (e) => {
@@ -1309,21 +1768,29 @@
       }
     }
 
-    onAuthStateChanged(auth, (user) => {
-      if (user) showApp();
-      else showGate();
-    });
-    document.getElementById('signout-btn').addEventListener('click', () => signOut(auth));
-
     // ── Notes ────────────────────────────────────────────────────────────────
+    // Subscribe only after an allowlisted load. Signed-out reads of notes/codes are denied.
+    let notesUnsub = null;
     const NOTES_DOC = doc(db, 'notes', 'codes');
     const notesTA = document.getElementById('notes-textarea');
     const notesSave = document.getElementById('notes-save-btn');
     const notesCopy = document.getElementById('notes-copy-btn');
-    onSnapshot(NOTES_DOC, snap => {
-      if (snap.exists() && document.activeElement !== notesTA)
-        notesTA.value = snap.data().text || '';
-    });
+    function stopNotes() {
+      if (notesUnsub) {
+        notesUnsub();
+        notesUnsub = null;
+      }
+      if (notesTA) notesTA.value = '';
+    }
+    function startNotes() {
+      if (notesUnsub || !notesTA) return;
+      notesUnsub = onSnapshot(NOTES_DOC, (snap) => {
+        if (snap.exists() && document.activeElement !== notesTA)
+          notesTA.value = snap.data().text || '';
+      }, () => {
+        if (notesTA) notesTA.value = '';
+      });
+    }
     notesSave.addEventListener('click', async () => {
       notesSave.textContent = 'Saving…'; notesSave.disabled = true;
       try { await setDoc(NOTES_DOC, { text: notesTA.value }, { merge: true }); notesSave.textContent = 'Saved!'; }
@@ -1336,6 +1803,31 @@
         setTimeout(() => notesCopy.classList.remove('copied'), 1500);
       });
     });
+
+    showSignedOut();
+
+    onAuthStateChanged(auth, (user) => {
+      const generation = ++loadGeneration;
+      if (!user) {
+        showSignedOut();
+        return;
+      }
+      if (!isApprovedCodesUser(user)) {
+        showNotApproved();
+        return;
+      }
+      showLoading();
+      initCodes(generation).then(() => {
+        if (generation !== loadGeneration) return;
+        setCodesStatus('');
+      }).catch((err) => {
+        if (generation !== loadGeneration) return;
+        console.error('codes load failed', err && err.code);
+        if (isPermissionDenied(err)) showNotApproved();
+        else showLoadError();
+      });
+    });
+    document.getElementById('signout-btn').addEventListener('click', () => signOut(auth));
   </script>
 </body>
 </html>

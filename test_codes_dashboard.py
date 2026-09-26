@@ -8,7 +8,12 @@ from pathlib import Path
 
 
 HTML_PATH = Path(__file__).resolve().parent / "docs" / "codes.html"
+DOCS_DIR = HTML_PATH.parent
 OCCUPANCY_PATH = Path(__file__).resolve().parent / "docs" / "data" / "occupancy.json"
+DIGIT_RUN_RE = re.compile(r"\d{4,}")
+VALUE_STRING_RE = re.compile(
+    r"""\bvalue\s*:\s*(?P<q>["'])(?P<body>(?:\\.|(?!(?P=q)).)*)(?P=q)"""
+)
 
 HOUSE_SLUGS = [
     "leana_6623",
@@ -262,18 +267,20 @@ class CodesDashboardStructureTests(unittest.TestCase):
         self.assertIn("startAfter", self.html)
         self.assertIn("history-older", self.html)
         self.assertIn("async function restoreLiveCodes", self.html)
-        self.assertIn("8jOJNgLoxpfyseZ0RY1PDZ1DXbi2", self.html)
+        self.assertIn("function approvedCodesUid()", self.html)
+        self.assertIn("isApprovedCodesUser", self.html)
         self.assertIn("hashCodeFields", self.html)
         self.assertIn("SHA-256", self.html)
         self.assertIn("deletes live keys", self.html)
         self.assertIn("Unsaved edits for this house are lost", self.html)
         self.assertIn("window.confirm", self.html)
         self.assertIn("slug === 'spanish_moss'", self.html)
-        restore_fn = self.html.split("async function restoreLiveCodes", 1)[1].split("function bindHouse", 1)[0]
+        restore_fn = self.html.split("async function restoreLiveCodes", 1)[1].split("function houseNode", 1)[0]
         self.assertIn("setDoc(liveRef(slug)", restore_fn)
         self.assertNotIn("{ merge: true }", restore_fn)
-        save_fn = self.html.split("btn.addEventListener('click', async (e) => {", 1)[1]
+        save_fn = self.html.split("async function commitHouseSave", 1)[1].split("function bindHouse", 1)[0]
         self.assertIn("{ merge: true }", save_fn)
+        self.assertIn("serverTimestamp()", save_fn)
 
     def test_occupancy_json_has_no_codes_or_filter_sizes(self):
         occupancy = OCCUPANCY_PATH.read_text(encoding="utf-8")
@@ -296,28 +303,144 @@ class CodesDashboardStructureTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, msg="renderer structure test failed")
         self.assertIn("codes dashboard renderer structure ok", result.stdout)
 
-    def test_existing_default_values_unchanged(self):
-        main_html = None
-        for ref in ("origin/main", "main"):
-            result = subprocess.run(
-                ["git", "show", f"{ref}:docs/codes.html"],
-                capture_output=True,
-                text=True,
-            )
-            if result.returncode == 0:
-                main_html = result.stdout
-                break
-        if main_html is None:
-            self.skipTest("main codes.html not available for comparison")
-        main_houses = _house_blocks(main_html)
-        for slug, main_block in main_houses.items():
-            if slug not in self.houses:
+    def test_codes_config_has_no_values_or_digit_runs(self):
+        values = re.findall(r'value:\s*"([^"]*)"', self.defaults)
+        self.assertGreater(len(values), 0)
+        for index, value in enumerate(values):
+            self.assertEqual(value, "", msg=f"DEFAULTS value[{index}] must be empty")
+            self.assertIsNone(DIGIT_RUN_RE.search(value), msg=f"DEFAULTS value[{index}] has a digit run")
+        kept = []
+        for line in self.defaults.splitlines():
+            if re.search(r"\b(?:slug|address)\s*:", line):
                 continue
-            current = _key_values(self.houses[slug])
-            previous = _key_values(main_block)
-            for key, old_value in previous.items():
-                self.assertIn(key, current, msg=f"{slug} dropped key {key}")
-                self.assertEqual(current[key], old_value, msg=f"{slug} changed default for {key}")
+            kept.append(line)
+        self.assertIsNone(
+            DIGIT_RUN_RE.search("\n".join(kept)),
+            msg="digit run of 4+ in the codes config outside slug/address lines",
+        )
+
+    def test_docs_pages_have_no_nonempty_value_strings(self):
+        files = [
+            path
+            for path in DOCS_DIR.rglob("*")
+            if path.suffix in {".html", ".js"} and path.is_file()
+        ]
+        self.assertTrue(any(path.name == "codes.html" for path in files))
+        for path in files:
+            text = path.read_text(encoding="utf-8")
+            for match in VALUE_STRING_RE.finditer(text):
+                body = match.group("body")
+                if body == "" and not DIGIT_RUN_RE.search(body):
+                    continue
+                rel = path.relative_to(DOCS_DIR.parent)
+                self.fail(f"{rel} has a DEFAULTS value string at offset {match.start()}")
+
+    def test_codes_page_state_copy(self):
+        self.assertIn("<title>ops</title>", self.html)
+        self.assertNotIn("PadSplit Codes", self.html)
+        head = self.html.split("</head>", 1)[0]
+        self.assertIsNone(
+            re.search(
+                r'<meta[^>]+(?:name="description"|property="og:|name="twitter:)',
+                head,
+                re.I,
+            )
+        )
+        self.assertIn('id="app-wrap" class="hidden"', self.html)
+        self.assertIn("loading codes…", self.html)
+        self.assertIn("your account isn't approved for codes yet. ask ang.", self.html)
+        self.assertIn("no codes saved for ${property.address} yet.", self.html)
+        self.assertIn("couldn't load codes. refresh, or use the lockout ladder.", self.html)
+        self.assertNotIn("sign in to load codes", self.html)
+        self.assertNotIn("No codes stored for this house.", self.html)
+        self.assertNotIn("renderAllHouses(null)", self.html)
+        self.assertIn("getDocsFromServer", self.html)
+        self.assertNotIn("copy-all", self.html.lower())
+        self.assertNotIn("copy all", self.html.lower())
+        self.assertNotRegex(self.html, r"(?i)\bexport\b")
+        signed_out = self.html.split("function showSignedOut", 1)[1].split("function showLoading", 1)[0]
+        self.assertNotIn("renderAllHouses", signed_out)
+        self.assertIn("clearPropertyList", signed_out)
+        loading = self.html.split("function showLoading", 1)[1].split("function showNotApproved", 1)[0]
+        self.assertIn("loading codes…", loading)
+        self.assertIn("clearPropertyList", loading)
+        self.assertNotIn("renderAllHouses", loading)
+        denied = self.html.split("function showNotApproved", 1)[1].split("function showLoadError", 1)[0]
+        self.assertIn("your account isn't approved for codes yet. ask ang.", denied)
+        self.assertIn("clearPropertyList", denied)
+        self.assertNotIn("renderAllHouses", denied)
+        failed = self.html.split("function showLoadError", 1)[1].split("function isPermissionDenied", 1)[0]
+        self.assertIn("couldn't load codes. refresh, or use the lockout ladder.", failed)
+        self.assertIn("clearPropertyList", failed)
+        self.assertNotIn("renderAllHouses", failed)
+        self.assertNotIn("localStorage", failed)
+        self.assertEqual(self.html.count("onSnapshot(NOTES_DOC"), 1)
+        start_notes = self.html.split("function startNotes()", 1)[1].split("function ", 1)[0]
+        self.assertIn("onSnapshot(NOTES_DOC", start_notes)
+        cleared = self.html.split("function clearPropertyList()", 1)[1].split("function ", 1)[0]
+        self.assertIn("stopNotes()", cleared)
+        init_codes = self.html.split("async function initCodes", 1)[1].split("showSignedOut();", 1)[0]
+        self.assertIn("startNotes()", init_codes)
+
+    def test_codes_page_has_no_client_value_fallback(self):
+        self.assertIn("if (!currentHasLiveDoc) return '';", self.html)
+        self.assertIn("function angCodesUid()", self.html)
+        self.assertIn("function approvedCodesUid()", self.html)
+        self.assertIn("return '';", self.html)
+        self.assertIn("function isApprovedCodesUser(user)", self.html)
+        self.assertIn("user.uid === angCodesUid()", self.html)
+        self.assertIn("const joe = approvedCodesUid();", self.html)
+        self.assertIn("return !!(joe && user.uid === joe);", self.html)
+        self.assertIn("if (!isApprovedCodesUser(user))", self.html)
+        self.assertNotIn("CODES_UID", self.html)
+        resolver = self.html.split("function resolveSavedOrDefault", 1)[1].split("function ", 1)[0]
+        self.assertNotIn("field.value", resolver)
+        self.assertNotIn("return fallback", resolver)
+        self.assertNotIn("return _fallback", resolver)
+        defaults_fn = self.html.split("function defaultFieldValue", 1)[1].split("let currentHasLiveDoc", 1)[0]
+        self.assertNotIn("field.value", defaults_fn)
+        self.assertNotIn("return fallback", defaults_fn)
+        self.assertNotIn("return _fallback", defaults_fn)
+        for banned in (
+            "localStorage",
+            "sessionStorage",
+            "indexedDB",
+            "enableIndexedDbPersistence",
+            "persistentLocalCache",
+            "serviceWorker",
+            "caches.open",
+        ):
+            self.assertNotIn(banned, self.html, msg=banned)
+
+    def test_save_flow_is_edit_confirm_and_conflict(self):
+        self.assertIn("input.readOnly = true", self.html)
+        self.assertEqual(self.html.count("let editingSlug"), 1)
+        self.assertIn("edit ${houseDisplayName(property.address)}", self.html)
+        self.assertIn("this updates the record only. it doesn't change the lock.", self.html)
+        self.assertIn("didn't save, nothing changed. try again.", self.html)
+        self.assertIn("changed since you opened it. refresh first.", self.html)
+        self.assertIn("runTransaction(db", self.html)
+        self.assertIn("clear ${key}", self.html)
+        self.assertIn("save ${count} ${noun} to ${houseName}? ${labels.join(', ')}", self.html)
+        self.assertIn("function nextEditingSlug", self.html)
+        self.assertIn("has unsaved changes. discard them?", self.html)
+        self.assertIn("keep editing", self.html)
+        self.assertIn("keep.focus()", self.html)
+        edit = self.html.split("async function openHouseEdit", 1)[1].split("function showSaveConfirm", 1)[0]
+        self.assertIn("askDiscard", edit)
+        self.assertIn("restoreHouseFields", edit)
+        self.assertIn("setHouseEditing(editingSlug, false)", edit)
+        self.assertNotIn("window.confirm", edit)
+        commit = self.html.split("async function commitHouseSave", 1)[1].split("function bindHouse", 1)[0]
+        self.assertLess(commit.index("codes-conflict"), commit.index("transaction.set"))
+        self.assertIn("updatedAt: serverTimestamp()", commit)
+        self.assertIn("source: 'page'", commit)
+        failure = commit.split("} catch (err)", 1)[1]
+        self.assertIn("SAVE_FAILURE", failure)
+        self.assertIn("conflictMessage(", failure)
+        self.assertNotIn(".value", failure)
+        self.assertNotIn("refreshHouse", failure)
+        self.assertNotIn("restoreHouseFields", failure)
 
 
 if __name__ == "__main__":

@@ -1,21 +1,40 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Ang keeps access via angCodesUid(). Joe's slot is approvedCodesUid().
+    // Leave Joe's return empty until Ang fills it. Empty matches nobody.
+    function angCodesUid() {
+      return '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2';
+    }
+    function approvedCodesUid() {
+      return '';
+    }
+    function isApprovedCodesUser() {
+      return request.auth != null
+        && (
+          request.auth.uid == angCodesUid()
+          || (approvedCodesUid() != '' && request.auth.uid == approvedCodesUid())
+        );
+    }
     match /property_codes/{slug} {
-      allow read, write: if request.auth.uid == '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2';
+      allow read, write: if isApprovedCodesUser();
       match /code_versions/{id} {
-        allow get: if request.auth.uid == '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2';
-        allow list: if request.auth.uid == '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2'
+        allow get: if isApprovedCodesUser();
+        allow list: if isApprovedCodesUser()
           && request.query.limit != null
           && request.query.limit <= 50;
-        allow create: if request.auth.uid == '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2'
+        allow create: if isApprovedCodesUser()
           && request.resource.data.keys().hasOnly(['fields', 'contentHash', 'createdAt', 'expireAt', 'source']);
         allow update, delete: if false;
       }
     }
+    match /notes/codes {
+      allow read, write: if isApprovedCodesUser();
+    }
     match /notes/{document} {
-      allow read: if true;
-      allow write: if request.auth.uid == '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2';
+      allow read: if document != 'codes';
+      allow write: if document != 'codes'
+        && request.auth.uid == '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2';
     }
     match /task_messages/{id} {
       allow read: if true;
