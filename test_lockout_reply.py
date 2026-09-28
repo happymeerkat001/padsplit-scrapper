@@ -985,6 +985,8 @@ class SafetyGateTests(unittest.TestCase):
                 "GITHUB_ACTIONS": "",
                 "PADSPLIT_ENABLE_ACTION_HOOKS": "1",
                 "PADSPLIT_COLLECTION_ONLY": "0",
+                "PADSPLIT_EMAIL": "",
+                "PADSPLIT_PASSWORD": "",
             },
             clear=False,
         ):
@@ -1230,6 +1232,170 @@ class TerminatedMemberTests(unittest.TestCase):
             "terminated_message_ids",
             (saved.get("threads") or {}).get("chat-leana") or {},
         )
+
+    def test_dry_run_with_session_checks_terminated_and_does_not_write(self) -> None:
+        thread = member_thread(street="6623 Leana Avenue")
+        thread["occupancy"]["id"] = "occ-77"
+        calls: list[tuple[str, str]] = []
+
+        class Response:
+            def __init__(self, payload: dict | list) -> None:
+                self.status_code = 200
+                self._payload = payload
+
+            def json(self) -> dict | list:
+                return self._payload
+
+        def authed(_session, method, url, **_kwargs):
+            calls.append((str(method).upper(), str(url)))
+            if str(method).upper() != "GET":
+                raise AssertionError(f"dry-run write: {method} {url}")
+            if "properties" in url:
+                return Response([{"id": 11, "address": "6623 Leana Avenue", "balance": "99123.45"}])
+            return Response(
+                {
+                    "next": None,
+                    "results": [
+                        {
+                            "occupancy_id": "occ-77",
+                            "room_number": 2,
+                            "is_terminated": False,
+                            "move_out_date": None,
+                            "first_name": "ZqxPat",
+                            "balance": "99123.45",
+                            "member_score": "88441",
+                        }
+                    ],
+                }
+            )
+
+        fake = FakeSend()
+        buf = io.StringIO()
+        login = unittest.mock.MagicMock()
+        session_cm = unittest.mock.MagicMock()
+        session_cm.__enter__.return_value = object()
+        session_cm.__exit__.return_value = False
+        with tempfile.TemporaryDirectory() as tmpdir:
+            state_path = Path(tmpdir) / "state.json"
+            with patch.object(partner_members, "_authed_request", side_effect=authed), patch.object(
+                new_booking, "send_host_message", side_effect=AssertionError("padsplit send")
+            ), patch.object(
+                lock_codes, "change_passcode", side_effect=AssertionError("sifely rotate")
+            ), patch.object(
+                lockout_reply, "obtain_spanish_moss_back", side_effect=AssertionError("sifely")
+            ), patch.object(
+                lockout_reply, "post_automations_discord", side_effect=AssertionError("discord")
+            ), patch.object(
+                lockout_reply, "fetch_property_codes", return_value=fake_doc()
+            ), patch.object(
+                new_booking, "load_leftover_compose_tabs", return_value=[]
+            ):
+                with redirect_stderr(buf):
+                    result = lockout_reply.run(
+                        now=NOW,
+                        dry_run=True,
+                        host_messages=[thread],
+                        leftover_compose_tabs=[],
+                        state_path=state_path,
+                        session=object(),
+                        creds={"email": "host@example.com", "password": "secret"},
+                        codes_fn=lambda _slug: fake_doc(),
+                        send_fn=fake.send,
+                    )
+                    with patch.dict(
+                        "os.environ",
+                        {
+                            "LOCKOUT_REPLY_DRY_RUN": "1",
+                            "LOCKOUT_REPLY_ENABLE": "1",
+                            "CI": "",
+                            "GITHUB_ACTIONS": "",
+                            "PADSPLIT_EMAIL": "host@example.com",
+                            "PADSPLIT_PASSWORD": "secret",
+                            "PADSPLIT_ENABLE_ACTION_HOOKS": "1",
+                            "PADSPLIT_COLLECTION_ONLY": "0",
+                        },
+                        clear=False,
+                    ), patch.object(
+                        lockout_reply, "create_session", return_value=session_cm
+                    ), patch.object(lockout_reply, "login", login), patch.object(
+                        lockout_reply,
+                        "load_host_messages",
+                        return_value=[
+                            member_thread(
+                                created=(datetime.now(timezone.utc) - timedelta(minutes=20)).strftime(
+                                    "%Y-%m-%dT%H:%M:%SZ"
+                                ),
+                                street="6623 Leana Avenue",
+                            )
+                        ],
+                    ):
+                        code = lockout_reply.main([])
+            self.assertFalse(state_path.exists())
+        self.assertEqual(code, 0)
+        login.assert_called_once()
+        log = buf.getvalue()
+        self.assertIn("dry_run_session: read_only", log)
+        self.assertIn("terminated_check: ok", log)
+        self.assertNotIn("ZqxPat", log)
+        self.assertNotIn("99123.45", log)
+        self.assertNotIn("88441", log)
+        self.assertNotIn("secret", log)
+        self.assertEqual(result.sent, 0)
+        self.assertEqual(result.results[0]["action"], "would_send")
+        self.assertEqual(fake.sends, [])
+        self.assertTrue(calls)
+        self.assertTrue(all(method == "GET" for method, _url in calls))
+        self.assertTrue(any("members" in url for _method, url in calls))
+        self.assertTrue(any("properties" in url for _method, url in calls))
+
+    def test_dry_run_without_creds_logs_no_session(self) -> None:
+        buf = io.StringIO()
+        with patch.dict(
+            "os.environ",
+            {
+                "LOCKOUT_REPLY_DRY_RUN": "1",
+                "LOCKOUT_REPLY_ENABLE": "1",
+                "CI": "",
+                "GITHUB_ACTIONS": "",
+                "PADSPLIT_EMAIL": "",
+                "PADSPLIT_PASSWORD": "",
+                "PADSPLIT_ENABLE_ACTION_HOOKS": "1",
+                "PADSPLIT_COLLECTION_ONLY": "0",
+            },
+            clear=False,
+        ):
+            with patch.object(lockout_reply, "login") as login, patch.object(
+                lockout_reply, "create_session"
+            ) as session, patch.object(
+                lockout_reply,
+                "load_host_messages",
+                return_value=[
+                    member_thread(
+                        created=(datetime.now(timezone.utc) - timedelta(minutes=20)).strftime(
+                            "%Y-%m-%dT%H:%M:%SZ"
+                        )
+                    )
+                ],
+            ), patch.object(
+                new_booking, "send_host_message", side_effect=AssertionError("padsplit send")
+            ), patch.object(
+                lock_codes, "change_passcode", side_effect=AssertionError("sifely rotate")
+            ), patch.object(
+                lockout_reply, "fetch_property_codes", return_value=fake_doc()
+            ), patch.object(
+                lockout_reply, "obtain_spanish_moss_back", side_effect=AssertionError("sifely")
+            ), patch.object(
+                new_booking, "load_leftover_compose_tabs", return_value=[]
+            ):
+                with redirect_stderr(buf):
+                    code = lockout_reply.main([])
+        self.assertEqual(code, 0)
+        login.assert_not_called()
+        session.assert_not_called()
+        log = buf.getvalue()
+        self.assertIn("terminated_unconfirmed (no session)", log)
+        self.assertNotIn("dry_run_session: read_only", log)
+        self.assertNotIn(FAKE_FRONT, log)
 
     def test_dry_run_without_session_logs_unconfirmed(self) -> None:
         fake = FakeSend()

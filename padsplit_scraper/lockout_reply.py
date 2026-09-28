@@ -16,9 +16,12 @@ Safety: never write lock codes or PIN digits to git, logs, Discord outbound,
 PR text, or README examples. Tests use labeled fake placeholders only.
 
 LOCKOUT_REPLY_ENABLE default off. GitHub Actions / CI must not send.
-LOCKOUT_REPLY_DRY_RUN=1 decides and logs without sending or logging in.
-When the scraper already has a session, dry-run still confirms the member
-is not terminated. With no session it logs terminated_unconfirmed (no session).
+LOCKOUT_REPLY_DRY_RUN=1 decides and logs without sending. When PadSplit
+credentials or a session are available, dry-run opens that session and uses
+it only for partner-members and partner-properties GETs, and logs
+dry_run_session: read_only. Message posts, Quo, Sifely rotation, and other
+writes stay blocked. With no credentials and no session it logs
+terminated_unconfirmed (no session).
 Before any send, partner members must confirm is_terminated is false. If
 that cannot be confirmed, the action is terminated_unconfirmed (fail closed).
 Only a true terminated result is stored, so the same message is not retried.
@@ -479,9 +482,19 @@ def lockout_max_sends() -> int:
 
 
 def dry_run_requested() -> bool:
-    """True when LOCKOUT_REPLY_DRY_RUN is on. Does not send or log in."""
+    """True when LOCKOUT_REPLY_DRY_RUN is on. Does not send."""
     load_environment()
     return runtime.flag_value(os.getenv("LOCKOUT_REPLY_DRY_RUN")) is True
+
+
+def padsplit_credentials() -> Optional[Dict[str, str]]:
+    """Login pair when both values are set. The values are never logged."""
+    load_environment()
+    email = (os.getenv("PADSPLIT_EMAIL") or "").strip()
+    password = (os.getenv("PADSPLIT_PASSWORD") or "").strip()
+    if not email or not password:
+        return None
+    return {"email": email, "password": password}
 
 
 def _status_fragments(payload: Dict[str, Any], keys: Sequence[str]) -> List[str]:
@@ -1996,6 +2009,8 @@ def run(
     if not live_send_enabled() and not dry_run:
         _log("disabled (LOCKOUT_REPLY_ENABLE or CI)")
         return RunResult(action="disabled", reason="LOCKOUT_REPLY_ENABLE is off")
+    if dry_run and session is not None:
+        _log("dry_run_session: read_only")
 
     messages = host_messages if host_messages is not None else load_host_messages()
     tabs = leftover_compose_tabs
@@ -2090,7 +2105,18 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         return 0
 
     if preview:
-        run(dry_run=True)
+        creds = padsplit_credentials()
+        if creds is None:
+            run(dry_run=True)
+            return 0
+        with create_session() as session:
+            try:
+                login(session, creds["email"], creds["password"], force=False)
+            except Exception as exc:
+                detail = "auth failed" if partner_members._auth_failure(exc) else "request failed"
+                _log(f"terminated_unconfirmed ({detail})")
+                return 0
+            run(dry_run=True, session=session, creds=creds)
         return 0
 
     creds = load_credentials()
