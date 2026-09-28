@@ -16,6 +16,11 @@ Safety: never write lock codes or PIN digits to git, logs, Discord outbound,
 PR text, or README examples. Tests use labeled fake placeholders only.
 
 LOCKOUT_REPLY_ENABLE default off. GitHub Actions / CI must not send.
+LOCKOUT_REPLY_DRY_RUN=1 decides and logs without sending or logging in.
+LOCKOUT_REPLY_MAX_AGE_HOURS (default 2) marks older member lockout messages
+stale and records that message id so a later run does not send it.
+A non-member message after the lockout, other than this bot's own pack, is
+already_answered. LOCKOUT_REPLY_MAX_SENDS (default 5) caps sends per run.
 """
 
 from __future__ import annotations
@@ -161,6 +166,8 @@ HOST_ROLE_ID = "A_1"
 TENANT_ROLE_ID = "A_0"
 LOOKBACK = timedelta(hours=36)
 IDEMPOTENCY_WINDOW = timedelta(hours=24)
+DEFAULT_MAX_AGE_HOURS = 2
+DEFAULT_MAX_SENDS = 5
 STAGE_DOOR = "door"
 STAGE_LOCKBOX = "lockbox"
 LOCKOUT_PACK_MARKER = "Sorry you’re locked out — here’s entry for"
@@ -270,6 +277,7 @@ class Decision:
     discord_kind: Optional[str] = None
     send_body: str = ""
     stage: str = ""
+    message_key: str = ""
 
 
 class CorruptStateError(ValueError):
@@ -424,6 +432,128 @@ def current_occupant(thread: Dict[str, Any], now: datetime) -> bool:
     if move_out is not None and move_out.date() < now.date():
         return False
     return True
+
+
+_NOT_CURRENT_STATUS_RE = re.compile(
+    r"(?i)\b(?:terminated|termination|moved[\s-]?out|inactive|evicted|eviction|cancelled|canceled|ended)\b"
+)
+_REINSTATED_RE = re.compile(r"(?i)reinstat")
+_STATUS_KEYS = ("status", "occupancyStatus", "memberStatus", "state")
+
+
+def lockout_max_age() -> timedelta:
+    """Age cutoff for the member lockout message. Default 2 hours."""
+    raw = (os.getenv("LOCKOUT_REPLY_MAX_AGE_HOURS") or "").strip()
+    if not raw:
+        return timedelta(hours=DEFAULT_MAX_AGE_HOURS)
+    try:
+        hours = float(raw)
+    except ValueError:
+        return timedelta(hours=DEFAULT_MAX_AGE_HOURS)
+    if hours < 0:
+        return timedelta(hours=DEFAULT_MAX_AGE_HOURS)
+    return timedelta(hours=hours)
+
+
+def lockout_max_sends() -> int:
+    """Per-run send cap. Default 5. Zero sends nothing."""
+    raw = (os.getenv("LOCKOUT_REPLY_MAX_SENDS") or "").strip()
+    if not raw:
+        return DEFAULT_MAX_SENDS
+    try:
+        value = int(raw)
+    except ValueError:
+        return DEFAULT_MAX_SENDS
+    if value < 0:
+        return DEFAULT_MAX_SENDS
+    return value
+
+
+def dry_run_requested() -> bool:
+    """True when LOCKOUT_REPLY_DRY_RUN is on. Does not send or log in."""
+    load_environment()
+    return runtime.flag_value(os.getenv("LOCKOUT_REPLY_DRY_RUN")) is True
+
+
+def _status_fragments(payload: Dict[str, Any], keys: Sequence[str]) -> List[str]:
+    parts: List[str] = []
+    for key in keys:
+        value = payload.get(key)
+        if isinstance(value, str) and value.strip():
+            parts.append(value.strip())
+    return parts
+
+
+def member_is_current(thread: Dict[str, Any], now: datetime) -> bool:
+    """Whether this chat is a current occupant for a lockout send.
+
+    Live chat rows have occupancy user, move-in/out, isCancelled, and
+    isArchived. They do not include a terminated/reinstated field. Status
+    strings are honored when a payload happens to carry them. Reinstated
+    stays current.
+    """
+    if thread.get("isCancelled") is True or thread.get("isArchived") is True:
+        return False
+    if not current_occupant(thread, now):
+        return False
+    occupancy = thread.get("occupancy") if isinstance(thread.get("occupancy"), dict) else {}
+    user = occupancy.get("user") if isinstance(occupancy.get("user"), dict) else {}
+    if user.get("isActive") is False:
+        return False
+    status = " ".join(
+        _status_fragments(occupancy, _STATUS_KEYS) + _status_fragments(user, ("status", "memberStatus"))
+    )
+    if status and _NOT_CURRENT_STATUS_RE.search(status) and not _REINSTATED_RE.search(status):
+        return False
+    move_in = parse_dt(occupancy.get("moveInDate"))
+    if move_in is not None and move_in.date() > now.date():
+        return False
+    return True
+
+
+def message_key(message: Optional[Dict[str, Any]]) -> str:
+    if not isinstance(message, dict):
+        return ""
+    mid = str(message.get("id") or "").strip()
+    if mid:
+        return mid
+    created = str(message.get("created") or "").strip()
+    return f"created:{created}" if created else ""
+
+
+def message_is_stale(message: Dict[str, Any], *, now: datetime, max_age: timedelta) -> bool:
+    created = parse_dt(message.get("created"))
+    if created is None:
+        return True
+    return (now - created) > max_age
+
+
+def is_automated_lockout_pack(message: Dict[str, Any]) -> bool:
+    text = message_text(message)
+    return (
+        LOCKOUT_PACK_MARKER in text
+        or LOCKBOX_PACK_MARKER in text
+        or LOCKBOX_LINE_MARKER in text
+    )
+
+
+def hand_replied_after(thread: Dict[str, Any], anchor: datetime) -> bool:
+    """True when anyone besides the member wrote after the lockout anchor.
+
+    This bot's own door/lockbox packs are not a hand answer. The stage
+    ladder still owns those messages.
+    """
+    for message in iter_thread_messages(thread):
+        if message.get("deleted"):
+            continue
+        if is_member_message(thread, message):
+            continue
+        if is_automated_lockout_pack(message):
+            continue
+        created = parse_dt(message.get("created"))
+        if created is None or created > anchor:
+            return True
+    return False
 
 
 def match_house(street: str, extra_text: str = "") -> HouseHit:
@@ -794,6 +924,49 @@ def record_resolved(
     threads[chat_id] = row
 
 
+def stale_message_ids(state: Dict[str, Any], chat_id: str) -> set[str]:
+    row = _thread_state(state, chat_id)
+    raw = row.get("stale_message_ids") or []
+    if not isinstance(raw, list):
+        return set()
+    return {str(item) for item in raw if item}
+
+
+def record_stale(
+    state: Dict[str, Any],
+    chat_id: str,
+    message_key_value: str,
+    *,
+    now: datetime,
+) -> None:
+    """Remember a stale lockout message so a later run does not send it."""
+    if not chat_id or not message_key_value:
+        return
+    threads = state.setdefault("threads", {})
+    row = threads.get(chat_id) if isinstance(threads.get(chat_id), dict) else {}
+    ids = [str(item) for item in (row.get("stale_message_ids") or []) if item]
+    if message_key_value not in ids:
+        ids.append(message_key_value)
+    row["stale_message_ids"] = ids
+    row["action"] = "stale"
+    row["stale_at"] = now.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    threads[chat_id] = row
+
+
+def _recorded_stale(state: Optional[Dict[str, Any]], chat_id: str, key: str) -> bool:
+    return bool(state is not None and key and key in stale_message_ids(state, chat_id))
+
+
+def _stale_decision(chat_id: str, key: str, reason: str) -> Decision:
+    return Decision(
+        action="stale",
+        reason=reason,
+        certainty=100,
+        chat_id=chat_id,
+        message_key=key,
+    )
+
+
 def host_lockout_stage_messages(
     thread: Dict[str, Any],
 ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
@@ -1059,6 +1232,120 @@ def obtain_spanish_moss_back(
         return (code or "", "inbound_share" if code else "missing")
 
 
+def _door_block(
+    thread: Dict[str, Any],
+    lockout_message: Dict[str, Any],
+    *,
+    now: datetime,
+    state: Optional[Dict[str, Any]],
+    chat_id: str,
+    max_age: timedelta,
+) -> Optional[Decision]:
+    key = message_key(lockout_message)
+    if _recorded_stale(state, chat_id, key):
+        return _stale_decision(chat_id, key, "stale lockout already recorded")
+    if message_is_stale(lockout_message, now=now, max_age=max_age):
+        return _stale_decision(chat_id, key, "lockout message older than max age")
+    created = parse_dt(lockout_message.get("created"))
+    if created is not None and hand_replied_after(thread, created):
+        return Decision(
+            action="already_answered",
+            reason="non-member replied after the lockout",
+            certainty=100,
+            chat_id=chat_id,
+            stage=STAGE_DOOR,
+        )
+    return None
+
+
+def _followup_block(
+    thread: Dict[str, Any],
+    followup: Dict[str, Any],
+    *,
+    now: datetime,
+    state: Optional[Dict[str, Any]],
+    chat_id: str,
+    max_age: timedelta,
+) -> Optional[Decision]:
+    follow_key = message_key(followup)
+    if _recorded_stale(state, chat_id, follow_key):
+        return _stale_decision(chat_id, follow_key, "stale lockout already recorded")
+    if message_is_stale(followup, now=now, max_age=max_age):
+        return _stale_decision(chat_id, follow_key, "door-fail follow-up older than max age")
+    anchor = recent_member_lockout(thread, now=now) or followup
+    anchor_at = parse_dt(anchor.get("created")) if anchor else None
+    if anchor_at is not None and hand_replied_after(thread, anchor_at):
+        return Decision(
+            action="already_answered",
+            reason="non-member replied after the lockout",
+            certainty=100,
+            chat_id=chat_id,
+            stage=STAGE_LOCKBOX,
+        )
+    return None
+
+
+def should_load_codes(
+    thread: Dict[str, Any],
+    *,
+    now: datetime,
+    state: Optional[Dict[str, Any]],
+    max_age: timedelta,
+) -> bool:
+    """False when a send is already impossible, so codes and Sifely stay unread."""
+    chat_id = str(thread.get("id") or "")
+    if not chat_id or not member_is_current(thread, now):
+        return False
+    door_from_state = state is not None and already_sent_stage(state, chat_id, STAGE_DOOR, now=now)
+    lockbox_from_state = state is not None and already_sent_stage(
+        state, chat_id, STAGE_LOCKBOX, now=now
+    )
+    door_sent = door_from_state or host_already_sent_stage(thread, STAGE_DOOR)
+    lockbox_sent = lockbox_from_state or host_already_sent_stage(thread, STAGE_LOCKBOX)
+    if lockbox_sent:
+        return False
+    if door_sent:
+        after = door_reply_at(state, thread, chat_id) or datetime.min.replace(tzinfo=timezone.utc)
+        resolved_stamp = resolved_at(state, chat_id) if state is not None else None
+        resolved_in_window = state is not None and already_resolved(state, chat_id, now=now)
+        if resolved_in_window and resolved_stamp is not None:
+            success_after = recent_entry_success(thread, now=now, after=resolved_stamp)
+            reopen = recent_fresh_lockout_and_fail(thread, now=now, after=resolved_stamp)
+            if success_after is not None or reopen is None:
+                return False
+            return (
+                _followup_block(
+                    thread, reopen, now=now, state=state, chat_id=chat_id, max_age=max_age
+                )
+                is None
+            )
+        if recent_entry_success(thread, now=now, after=after) is not None:
+            return False
+        followup = recent_door_fail_followup(thread, now=now, after=after)
+        if followup is None:
+            return False
+        return (
+            _followup_block(
+                thread, followup, now=now, state=state, chat_id=chat_id, max_age=max_age
+            )
+            is None
+        )
+    lockout_message = recent_member_lockout(thread, now=now)
+    if lockout_message is None:
+        return False
+    return (
+        _door_block(
+            thread,
+            lockout_message,
+            now=now,
+            state=state,
+            chat_id=chat_id,
+            max_age=max_age,
+        )
+        is None
+    )
+
+
 def decide(
     thread: Dict[str, Any],
     *,
@@ -1067,12 +1354,19 @@ def decide(
     codes_doc: Optional[Dict[str, Any]] = None,
     sifely_back: str = "",
     sifely_source: str = "",
+    max_age: Optional[timedelta] = None,
 ) -> Decision:
+    max_age = lockout_max_age() if max_age is None else max_age
     chat_id = str(thread.get("id") or "")
     if not chat_id:
         return Decision(action="skip", reason="missing chat id", certainty=0)
-    if not current_occupant(thread, now):
-        return Decision(action="skip", reason="not a current occupant thread", certainty=0, chat_id=chat_id)
+    if not member_is_current(thread, now):
+        return Decision(
+            action="not_current_member",
+            reason="not a current member",
+            certainty=0,
+            chat_id=chat_id,
+        )
 
     door_from_state = state is not None and already_sent_stage(state, chat_id, STAGE_DOOR, now=now)
     lockbox_from_state = state is not None and already_sent_stage(
@@ -1110,6 +1404,11 @@ def decide(
                     chat_id=chat_id,
                     stage=STAGE_DOOR,
                 )
+            blocked = _followup_block(
+                thread, reopen, now=now, state=state, chat_id=chat_id, max_age=max_age
+            )
+            if blocked is not None:
+                return blocked
             stage = STAGE_LOCKBOX
             member_text = message_text(reopen)
         else:
@@ -1131,12 +1430,27 @@ def decide(
                     chat_id=chat_id,
                     stage=STAGE_DOOR,
                 )
+            blocked = _followup_block(
+                thread, followup, now=now, state=state, chat_id=chat_id, max_age=max_age
+            )
+            if blocked is not None:
+                return blocked
             stage = STAGE_LOCKBOX
             member_text = message_text(followup)
     else:
         lockout_message = recent_member_lockout(thread, now=now)
         if lockout_message is None:
             return Decision(action="skip", reason="no recent member lockout", certainty=0, chat_id=chat_id)
+        blocked = _door_block(
+            thread,
+            lockout_message,
+            now=now,
+            state=state,
+            chat_id=chat_id,
+            max_age=max_age,
+        )
+        if blocked is not None:
+            return blocked
         stage = STAGE_DOOR
         member_text = message_text(lockout_message)
 
@@ -1270,8 +1584,12 @@ def process_lockouts(
     post_discord: Optional[Callable[[str], Any]] = None,
     send_enabled: bool = True,
     dry_run: bool = False,
+    max_age: Optional[timedelta] = None,
+    max_sends: Optional[int] = None,
 ) -> List[Dict[str, Any]]:
     now = now or datetime.now(timezone.utc)
+    max_age = lockout_max_age() if max_age is None else max_age
+    max_sends = lockout_max_sends() if max_sends is None else max_sends
     if state is None:
         try:
             state = load_state(state_path)
@@ -1287,6 +1605,7 @@ def process_lockouts(
     results: List[Dict[str, Any]] = []
     codes_cache: Dict[str, Dict[str, Any]] = {}
     sifely_cache: Optional[Tuple[str, str]] = None
+    sends_used = 0
 
     for thread in threads:
         chat_id = str(thread.get("id") or "")
@@ -1298,10 +1617,13 @@ def process_lockouts(
         codes_doc: Optional[Dict[str, Any]] = None
         sifely_back = ""
         sifely_source = ""
-        # Codes / Sifely only after an in-window lockout from a current occupant.
-        # Default obtain_spanish_moss_back never runs in preview/dry_run or when
-        # send is disabled. An injected sifely_fn may still run for fixtures.
-        if lockout_message and house_preview.slug and current_occupant(thread, now):
+        # Codes / Sifely only when a send is still possible. Stale, hand-answered,
+        # and non-current threads never reach Firestore or Sifely. Default
+        # obtain_spanish_moss_back never runs in preview/dry_run or when send
+        # is disabled. An injected sifely_fn may still run for fixtures.
+        if house_preview.slug and should_load_codes(
+            thread, now=now, state=state, max_age=max_age
+        ):
             if house_preview.slug not in codes_cache:
                 loader = codes_fn or fetch_property_codes
                 try:
@@ -1329,6 +1651,7 @@ def process_lockouts(
             codes_doc=codes_doc,
             sifely_back=sifely_back,
             sifely_source=sifely_source,
+            max_age=max_age,
         )
         row = {
             "chat_id": decision.chat_id or chat_id,
@@ -1359,13 +1682,31 @@ def process_lockouts(
                 now=now,
                 reason=decision.reason or "member confirmed entry",
             )
+        if decision.action == "stale" and not dry_run:
+            record_stale(
+                state,
+                decision.chat_id or chat_id,
+                decision.message_key,
+                now=now,
+            )
 
         if decision.action != "send":
+            if decision.action != "skip":
+                _log(f"{row['action']}: {row['reason']}")
             results.append(row)
             continue
 
+        if sends_used >= max_sends:
+            row["action"] = "send_cap"
+            row["reason"] = "per-run send cap reached"
+            _log(f"send_cap: {row['reason']}")
+            results.append(row)
+            continue
+        sends_used += 1
+
         if not send_enabled or dry_run:
             row["action"] = "would_send"
+            _log("would_send")
             results.append(row)
             continue
 
@@ -1496,12 +1837,13 @@ def run_for_scraper(
     leftover_compose_tabs: Optional[List[Dict[str, Any]]] = None,
     leftover_tabs_path: Path = new_booking.LEFTOVER_TABS_PATH,
 ) -> List[Dict[str, Any]]:
-    if not live_send_enabled():
+    preview = dry_run_requested()
+    if not live_send_enabled() and not preview:
         _log("skipped in scraper (LOCKOUT_REPLY_ENABLE or CI)")
         return []
     result = run(
         now=now,
-        dry_run=False,
+        dry_run=preview,
         host_messages=messages,
         leftover_compose_tabs=leftover_compose_tabs,
         leftover_tabs_path=leftover_tabs_path,
@@ -1517,14 +1859,15 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument("--dry-run", action="store_true", help="Decide only; do not send")
     args = parser.parse_args(argv)
     load_environment()
-    if running_in_ci() and not args.dry_run:
+    preview = bool(args.dry_run) or dry_run_requested()
+    if running_in_ci() and not preview:
         _log("skip_ci: GitHub Actions / CI must not send lockout replies")
         return 0
-    if not live_send_enabled() and not args.dry_run:
+    if not live_send_enabled() and not preview:
         _log("disabled (LOCKOUT_REPLY_ENABLE or CI)")
         return 0
 
-    if args.dry_run:
+    if preview:
         run(dry_run=True)
         return 0
 
