@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Readers of task_messages and manual_tasks stay on the approved-user gate."""
+import subprocess
 import unittest
 from pathlib import Path
 
@@ -55,6 +56,44 @@ class TaskCollectionsGateTests(unittest.TestCase):
         self.assertNotIn("initFirestore();", before)
         self.assertIn("if (!isApprovedCodesUser(user))", after)
         self.assertLess(after.index("isApprovedCodesUser(user)"), after.index("initFirestore();"))
+        self.assertLess(after.index("render();"), after.index("initFirestore();"))
+        signed_out = after.split("if (!isApprovedCodesUser(user))", 1)[0]
+        self.assertNotIn("initFirestore();", signed_out)
+
+    def test_task_sections_hide_until_approved(self) -> None:
+        index = (ROOT / "docs" / "index.html").read_text()
+        sign_in = "tasks are on the ops pages (sign-in required)."
+        empty = "no open tasks."
+        self.assertEqual(index.count(sign_in), 1)
+        self.assertEqual(index.count(empty), 1)
+        self.assertNotIn(f">{sign_in}</a>", index)
+        self.assertNotIn(f'href="{sign_in}"', index)
+        self.assertIn("line.textContent = text", index)
+        self.assertIn("onTaskListenerError", index)
+        self.assertEqual(index.count("onTaskListenerError"), 3)
+        start = index.index("// begin task-section-state")
+        end = index.index("// end task-section-state")
+        source = index[start:end]
+        script = source + """
+const cases = [
+  [false, false, 4, TASKS_SIGN_IN],
+  [false, true, 0, TASKS_SIGN_IN],
+  [true, true, 0, TASKS_SIGN_IN],
+  [true, false, 0, TASKS_EMPTY],
+  [true, false, 2, ""],
+];
+for (const [approved, denied, openCount, expected] of cases) {
+  if (taskSectionMessage(approved, denied, openCount) !== expected) process.exit(1);
+}
+if (taskSectionMessage(true, true, 0) === TASKS_EMPTY) process.exit(1);
+"""
+        result = subprocess.run(
+            ["node", "--input-type=module", "-e", script],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_status_monitor_uses_admin_sdk(self) -> None:
         src = (ROOT / "padsplit_scraper" / "firestore_status_monitor.py").read_text()

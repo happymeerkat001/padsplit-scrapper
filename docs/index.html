@@ -200,6 +200,7 @@
     .task-gate input { padding: 0.35rem 0.5rem; border-radius: 8px; border: 1px solid rgba(148,163,184,0.35); background: #0b1222; color: var(--text); font: inherit; font-size: 0.85rem; }
     .task-gate button { padding: 0.35rem 0.75rem; border-radius: 8px; border: none; background: var(--accent); color: #0b1222; font-weight: 600; cursor: pointer; font: inherit; }
     .task-gate-error { margin: -0.75rem 0 1rem; color: var(--error); font-size: 0.85rem; }
+    .task-section-line { margin: 0 0 1rem; color: var(--muted); }
 
   </style>
 </head>
@@ -301,6 +302,19 @@
       if (user.uid === angCodesUid()) return true;
       return approvedCodesUids().includes(user.uid);
     }
+    // begin task-section-state
+    const TASKS_SIGN_IN = "tasks are on the ops pages (sign-in required).";
+    const TASKS_EMPTY = "no open tasks.";
+    function taskSectionMessage(approved, denied, openCount) {
+      if (!approved || denied) return TASKS_SIGN_IN;
+      if (openCount === 0) return TASKS_EMPTY;
+      return "";
+    }
+    // end task-section-state
+    let latestData = null;
+    let tasksApproved = false;
+    let tasksDenied = false;
+    let manualListenerSettled = false;
 
     const REFRESH_SEC = 300;
     let counter = REFRESH_SEC;
@@ -649,74 +663,29 @@
       manualCountBadge.textContent = manualTaskRows.size;
     }
 
-    function render(data) {
-      const root = document.createElement('div');
+    function countScrapedOpen(data) {
+      const tasks = (data && data.tasks) || {};
+      const dismissed = new Set(JSON.parse(localStorage.getItem('dismissed_task_ids') || '[]'));
+      let count = 0;
+      Object.keys(tasks).forEach((bucket) => {
+        if (bucket === 'Complete') return;
+        count += (tasks[bucket] || []).filter((t) => t.id && !dismissed.has(t.id)).length;
+      });
+      return count;
+    }
+
+    function showTasksLine(text) {
+      const container = document.getElementById('content');
+      const line = document.createElement('p');
+      line.className = 'task-section-line';
+      line.textContent = text;
+      container.replaceChildren(line);
       taskMessageContainers.clear();
       manualTasksDiv = null;
       manualCountBadge = null;
+    }
 
-      // Header info
-      const last = document.getElementById('last-updated');
-      last.textContent = `Updated ${fmtDate(data.scraped_at)}`;
-
-      // Tasks
-      const taskSection = document.createElement('div');
-      taskSection.className = 'section';
-      const taskDetails = document.createElement('div');
-      const taskHeader = document.createElement('h2');
-      taskHeader.textContent = 'Tasks';
-      taskDetails.appendChild(taskHeader);
-      const tasks = data.tasks || {};
-      const dismissed = new Set(JSON.parse(localStorage.getItem('dismissed_task_ids') || '[]'));
-      Object.keys(tasks).forEach(bucket => {
-        if (bucket === 'Complete') return;
-        const bucketTasks = tasks[bucket].filter(t => t.id && !dismissed.has(t.id));
-        if (bucketTasks.length === 0) return;
-
-        const bucketDiv = document.createElement('div');
-        bucketDiv.className = 'card';
-        const header = document.createElement('div');
-        header.className = 'flex-between';
-        header.innerHTML = `<h3>${bucket}</h3><span class="badge">${bucketTasks.length}</span>`;
-
-        bucketDiv.appendChild(header);
-        bucketTasks.forEach(t => {
-          const taskId = t.id || `${bucket}-${Math.random().toString(16).slice(2)}`;
-          const row = document.createElement('div');
-          row.style.marginTop = '0.5rem';
-          row.innerHTML = `
-            <div class="flex-between">
-              <div class="status">${t.category || 'Task'}</div>
-              <span class="chip">${t.status || 'unknown'}</span>
-            </div>
-            <div class="muted">${t.details || t.description || 'No details'}</div>
-            <div class="chips">
-              ${t.property_address?.street1 ? `<span class="chip">${t.property_address.street1}</span>` : ''}
-              ${t.location ? `<span class="chip">${t.location}${t.room_number != null ? ` #${t.room_number}` : ''}</span>` : ''}
-            </div>
-          `;
-          row.querySelector('.flex-between').prepend(buildImportantBtn(taskId));
-
-          row.appendChild(buildTaskChatBox(taskId));
-          bucketDiv.appendChild(row);
-          renderTaskMessages(taskId);
-        });
-        taskDetails.appendChild(bucketDiv);
-      });
-
-      const manualBucketDiv = document.createElement('div');
-      manualBucketDiv.className = 'card';
-      manualBucketDiv.innerHTML = `<div class="flex-between"><h3>Manual</h3><span class="badge">0</span></div>`;
-      manualCountBadge = manualBucketDiv.querySelector('.badge');
-      manualTasksDiv = document.createElement('div');
-      manualBucketDiv.appendChild(manualTasksDiv);
-      manualTaskRows.forEach((row, taskId) => {
-        manualTasksDiv.appendChild(row);
-        renderTaskMessages(taskId);
-      });
-      updateManualBadgeCount();
-      taskDetails.appendChild(manualBucketDiv);
-
+    function buildAddCard() {
       const addCard = document.createElement('div');
       addCard.className = 'card';
       addCard.style.marginTop = '1rem';
@@ -766,7 +735,96 @@
           addBtn.disabled = false;
         }
       });
-      taskDetails.appendChild(addCard);
+      return addCard;
+    }
+
+    function render(data) {
+      if (data) latestData = data;
+      if (latestData && latestData.scraped_at) {
+        document.getElementById('last-updated').textContent = `Updated ${fmtDate(latestData.scraped_at)}`;
+      }
+      const gateMessage = taskSectionMessage(tasksApproved, tasksDenied, null);
+      if (gateMessage) {
+        showTasksLine(gateMessage);
+        return;
+      }
+      if (!latestData) return;
+
+      const root = document.createElement('div');
+      taskMessageContainers.clear();
+      manualTasksDiv = null;
+      manualCountBadge = null;
+
+      const taskSection = document.createElement('div');
+      taskSection.className = 'section';
+      const taskDetails = document.createElement('div');
+      const taskHeader = document.createElement('h2');
+      taskHeader.textContent = 'Tasks';
+      taskDetails.appendChild(taskHeader);
+      const scrapedOpen = countScrapedOpen(latestData);
+      if (scrapedOpen === 0 && manualTaskRows.size === 0) {
+        if (!manualListenerSettled) {
+          document.getElementById('content').replaceChildren();
+          manualTasksDiv = null;
+          manualCountBadge = null;
+          return;
+        }
+        showTasksLine(TASKS_EMPTY);
+        document.getElementById('content').appendChild(buildAddCard());
+        return;
+      }
+
+      const tasks = latestData.tasks || {};
+      const dismissed = new Set(JSON.parse(localStorage.getItem('dismissed_task_ids') || '[]'));
+      Object.keys(tasks).forEach(bucket => {
+        if (bucket === 'Complete') return;
+        const bucketTasks = tasks[bucket].filter(t => t.id && !dismissed.has(t.id));
+        if (bucketTasks.length === 0) return;
+
+        const bucketDiv = document.createElement('div');
+        bucketDiv.className = 'card';
+        const header = document.createElement('div');
+        header.className = 'flex-between';
+        header.innerHTML = `<h3>${bucket}</h3><span class="badge">${bucketTasks.length}</span>`;
+
+        bucketDiv.appendChild(header);
+        bucketTasks.forEach(t => {
+          const taskId = t.id || `${bucket}-${Math.random().toString(16).slice(2)}`;
+          const row = document.createElement('div');
+          row.style.marginTop = '0.5rem';
+          row.innerHTML = `
+            <div class="flex-between">
+              <div class="status">${t.category || 'Task'}</div>
+              <span class="chip">${t.status || 'unknown'}</span>
+            </div>
+            <div class="muted">${t.details || t.description || 'No details'}</div>
+            <div class="chips">
+              ${t.property_address?.street1 ? `<span class="chip">${t.property_address.street1}</span>` : ''}
+              ${t.location ? `<span class="chip">${t.location}${t.room_number != null ? ` #${t.room_number}` : ''}</span>` : ''}
+            </div>
+          `;
+          row.querySelector('.flex-between').prepend(buildImportantBtn(taskId));
+
+          row.appendChild(buildTaskChatBox(taskId));
+          bucketDiv.appendChild(row);
+          renderTaskMessages(taskId);
+        });
+        taskDetails.appendChild(bucketDiv);
+      });
+
+      const manualBucketDiv = document.createElement('div');
+      manualBucketDiv.className = 'card';
+      manualBucketDiv.innerHTML = `<div class="flex-between"><h3>Manual</h3><span class="badge">0</span></div>`;
+      manualCountBadge = manualBucketDiv.querySelector('.badge');
+      manualTasksDiv = document.createElement('div');
+      manualBucketDiv.appendChild(manualTasksDiv);
+      manualTaskRows.forEach((row, taskId) => {
+        manualTasksDiv.appendChild(row);
+        renderTaskMessages(taskId);
+      });
+      updateManualBadgeCount();
+      taskDetails.appendChild(manualBucketDiv);
+      taskDetails.appendChild(buildAddCard());
 
       taskSection.appendChild(taskDetails);
       root.appendChild(taskSection);
@@ -880,6 +938,10 @@
       })
       .then(render)
       .catch(err => {
+        if (!tasksApproved || tasksDenied) {
+          showTasksLine(TASKS_SIGN_IN);
+          return;
+        }
         document.getElementById('content').innerHTML =
           `<div class="card error">Failed to load latest.json (${err.message}).</div>`;
         console.error(err);
@@ -900,6 +962,7 @@
       manualTaskRows.forEach((row) => row.remove());
       manualTaskRows.clear();
       if (manualTasksDiv) manualTasksDiv.innerHTML = '';
+      manualListenerSettled = false;
       updateManualBadgeCount();
       const ta = document.getElementById('notes-textarea');
       if (ta) ta.value = '';
@@ -911,6 +974,16 @@
       const notes = document.querySelector('.notes-section');
       if (notes) notes.classList.add('hidden');
     }
+    function isTaskPermissionDenied(err) {
+      const code = err && err.code ? String(err.code) : "";
+      return code === "permission-denied" || code.endsWith("/permission-denied");
+    }
+    function onTaskListenerError(err) {
+      if (!isTaskPermissionDenied(err)) return;
+      tasksDenied = true;
+      stopFirestore();
+      showTasksLine(TASKS_SIGN_IN);
+    }
     function initFirestore() {
     if (firestoreStarted) return;
     firestoreStarted = true;
@@ -918,6 +991,7 @@
     if (notesSection) notesSection.classList.remove('hidden');
     const q = query(collection(db, "task_messages"), orderBy("created", "asc"));
     firestoreUnsubs.push(onSnapshot(q, (snapshot) => {
+      if (tasksDenied || !tasksApproved) return;
       snapshot.docChanges().forEach(change => {
         if (change.type === "added" || change.type === "modified") {
           upsertTaskMessage(change.doc.id, change.doc.data());
@@ -926,7 +1000,7 @@
           removeTaskMessage(change.doc.id);
         }
       });
-    }, () => {}));
+    }, onTaskListenerError));
 
     // ── Notes ────────────────────────────────────────────────────────────────
     // begin notes-save
@@ -1012,6 +1086,8 @@
 
     const manualQ = query(collection(db, "manual_tasks"), orderBy("created", "asc"));
     firestoreUnsubs.push(onSnapshot(manualQ, (snapshot) => {
+      if (tasksDenied || !tasksApproved) return;
+      manualListenerSettled = true;
       snapshot.docChanges().forEach(change => {
         const taskId = change.doc.id;
         if (change.type === "added") {
@@ -1033,7 +1109,9 @@
           updateManualBadgeCount();
         }
       });
-    }, () => {}));
+      const openCount = countScrapedOpen(latestData) + manualTaskRows.size;
+      if (!manualTasksDiv || openCount === 0) render(latestData);
+    }, onTaskListenerError));
     } // end initFirestore
 
     const taskGateForm = document.getElementById('task-gate-form');
@@ -1059,17 +1137,24 @@
     });
     signoutBtn.addEventListener('click', () => signOut(auth));
     onAuthStateChanged(auth, (user) => {
+      tasksDenied = false;
       if (!user) {
+        tasksApproved = false;
         stopFirestore();
         setTaskGate('signed-out', '');
+        render();
         return;
       }
       if (!isApprovedCodesUser(user)) {
+        tasksApproved = false;
         stopFirestore();
         setTaskGate('denied', "this account isn't approved. ask ang to add it.");
+        render();
         return;
       }
+      tasksApproved = true;
       setTaskGate('approved', '');
+      render();
       initFirestore();
     });
   </script>
