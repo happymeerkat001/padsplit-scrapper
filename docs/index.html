@@ -305,15 +305,17 @@
     // begin task-section-state
     const TASKS_SIGN_IN = "tasks are on the ops pages (sign-in required).";
     const TASKS_EMPTY = "no open tasks.";
-    function taskSectionMessage(approved, denied, openCount) {
-      if (!approved || denied) return TASKS_SIGN_IN;
+    const TASKS_LOAD_ERROR = "couldn't load. refresh or sign in again.";
+    function taskSectionMessage(approved, failed, openCount) {
+      if (!approved) return TASKS_SIGN_IN;
+      if (failed) return TASKS_LOAD_ERROR;
       if (openCount === 0) return TASKS_EMPTY;
       return "";
     }
     // end task-section-state
     let latestData = null;
     let tasksApproved = false;
-    let tasksDenied = false;
+    let tasksLoadFailed = false;
     let manualListenerSettled = false;
 
     const REFRESH_SEC = 300;
@@ -743,7 +745,7 @@
       if (latestData && latestData.scraped_at) {
         document.getElementById('last-updated').textContent = `Updated ${fmtDate(latestData.scraped_at)}`;
       }
-      const gateMessage = taskSectionMessage(tasksApproved, tasksDenied, null);
+      const gateMessage = taskSectionMessage(tasksApproved, tasksLoadFailed, null);
       if (gateMessage) {
         showTasksLine(gateMessage);
         return;
@@ -938,8 +940,8 @@
       })
       .then(render)
       .catch(err => {
-        if (!tasksApproved || tasksDenied) {
-          showTasksLine(TASKS_SIGN_IN);
+        if (!tasksApproved || tasksLoadFailed) {
+          showTasksLine(taskSectionMessage(tasksApproved, tasksLoadFailed, 0));
           return;
         }
         document.getElementById('content').innerHTML =
@@ -974,15 +976,10 @@
       const notes = document.querySelector('.notes-section');
       if (notes) notes.classList.add('hidden');
     }
-    function isTaskPermissionDenied(err) {
-      const code = err && err.code ? String(err.code) : "";
-      return code === "permission-denied" || code.endsWith("/permission-denied");
-    }
-    function onTaskListenerError(err) {
-      if (!isTaskPermissionDenied(err)) return;
-      tasksDenied = true;
+    function onTaskListenerError() {
+      tasksLoadFailed = true;
       stopFirestore();
-      showTasksLine(TASKS_SIGN_IN);
+      showTasksLine(taskSectionMessage(tasksApproved, true, 0));
     }
     function initFirestore() {
     if (firestoreStarted) return;
@@ -991,7 +988,7 @@
     if (notesSection) notesSection.classList.remove('hidden');
     const q = query(collection(db, "task_messages"), orderBy("created", "asc"));
     firestoreUnsubs.push(onSnapshot(q, (snapshot) => {
-      if (tasksDenied || !tasksApproved) return;
+      if (tasksLoadFailed || !tasksApproved) return;
       snapshot.docChanges().forEach(change => {
         if (change.type === "added" || change.type === "modified") {
           upsertTaskMessage(change.doc.id, change.doc.data());
@@ -1086,7 +1083,7 @@
 
     const manualQ = query(collection(db, "manual_tasks"), orderBy("created", "asc"));
     firestoreUnsubs.push(onSnapshot(manualQ, (snapshot) => {
-      if (tasksDenied || !tasksApproved) return;
+      if (tasksLoadFailed || !tasksApproved) return;
       manualListenerSettled = true;
       snapshot.docChanges().forEach(change => {
         const taskId = change.doc.id;
@@ -1137,7 +1134,7 @@
     });
     signoutBtn.addEventListener('click', () => signOut(auth));
     onAuthStateChanged(auth, (user) => {
-      tasksDenied = false;
+      tasksLoadFailed = false;
       if (!user) {
         tasksApproved = false;
         stopFirestore();

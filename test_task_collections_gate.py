@@ -64,11 +64,15 @@ class TaskCollectionsGateTests(unittest.TestCase):
         index = (ROOT / "docs" / "index.html").read_text()
         sign_in = "tasks are on the ops pages (sign-in required)."
         empty = "no open tasks."
+        load_error = "couldn't load. refresh or sign in again."
         self.assertEqual(index.count(sign_in), 1)
         self.assertEqual(index.count(empty), 1)
+        self.assertEqual(index.count(load_error), 1)
         self.assertNotIn(f">{sign_in}</a>", index)
         self.assertNotIn(f'href="{sign_in}"', index)
         self.assertIn("line.textContent = text", index)
+        self.assertIn("showTasksLine(taskSectionMessage(tasksApproved, true, 0))", index)
+        self.assertNotIn("isTaskPermissionDenied", index)
         self.assertIn("onTaskListenerError", index)
         self.assertEqual(index.count("onTaskListenerError"), 3)
         start = index.index("// begin task-section-state")
@@ -78,14 +82,16 @@ class TaskCollectionsGateTests(unittest.TestCase):
 const cases = [
   [false, false, 4, TASKS_SIGN_IN],
   [false, true, 0, TASKS_SIGN_IN],
-  [true, true, 0, TASKS_SIGN_IN],
+  [true, true, 0, TASKS_LOAD_ERROR],
+  [true, true, 3, TASKS_LOAD_ERROR],
   [true, false, 0, TASKS_EMPTY],
   [true, false, 2, ""],
 ];
-for (const [approved, denied, openCount, expected] of cases) {
-  if (taskSectionMessage(approved, denied, openCount) !== expected) process.exit(1);
+for (const [approved, failed, openCount, expected] of cases) {
+  if (taskSectionMessage(approved, failed, openCount) !== expected) process.exit(1);
 }
 if (taskSectionMessage(true, true, 0) === TASKS_EMPTY) process.exit(1);
+if (taskSectionMessage(true, true, 0) === TASKS_SIGN_IN) process.exit(1);
 """
         result = subprocess.run(
             ["node", "--input-type=module", "-e", script],
