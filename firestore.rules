@@ -45,15 +45,16 @@ service cloud.firestore {
       allow write: if request.auth.uid == '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2';
     }
     match /vendors/{id} {
-      allow read: if true;
-      allow write: if request.auth.uid == '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2';
+      allow read, write: if isApprovedCodesUser();
     }
+    // templates/shared stays world-readable. Booking and leak reply fetch it
+    // with unauthenticated REST. Writes stay on Ang's uid.
     match /templates/{document} {
       allow read: if true;
       allow write: if request.auth.uid == '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2';
     }
     match /stats/{document} {
-      allow read, write: if request.auth.uid == 'TXSU0LOpmDWNBbbv0x3uHHBnZb12';
+      allow read, write: if isApprovedCodesUser();
     }
     // Scraper Admin SDK writes private_pages. Approved clients may read.
     // Client creates, updates, and deletes are denied.
