@@ -89,7 +89,9 @@ class CodesHostingTests(unittest.TestCase):
             self.assertIn('doc(db, "private_pages", pageId)', text)
             self.assertIn("isApprovedCodesUser", text)
             self.assertIn("signInWithEmailAndPassword", text)
-            self.assertIn("function approvedCodesUid()", text)
+            self.assertIn("function approvedCodesUids()", text)
+            self.assertIn("return [];", text)
+            self.assertIn("approvedCodesUids().includes(user.uid)", text)
             callback = text.split("onAuthStateChanged", 1)[1]
             self.assertLess(callback.index("isApprovedCodesUser"), callback.index("loadPrivatePage("))
             self.assertIn("id=\"gate-wrap\"", text)

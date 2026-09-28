@@ -1170,15 +1170,14 @@
     function angCodesUid() {
       return '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2';
     }
-    function approvedCodesUid() {
-      // Joe's slot. Same empty return as firestore.rules approvedCodesUid(). Ang keeps angCodesUid().
-      return '';
+    function approvedCodesUids() {
+      // Extra approved uids. Same empty list as firestore.rules approvedCodesUids(). Ang keeps angCodesUid().
+      return [];
     }
     function isApprovedCodesUser(user) {
       if (!user || !user.uid) return false;
       if (user.uid === angCodesUid()) return true;
-      const joe = approvedCodesUid();
-      return !!(joe && user.uid === joe);
+      return approvedCodesUids().includes(user.uid);
     }
     function isPermissionDenied(err) {
       const code = err && err.code ? String(err.code) : '';
