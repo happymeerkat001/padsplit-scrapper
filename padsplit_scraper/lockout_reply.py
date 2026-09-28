@@ -16,7 +16,17 @@ Safety: never write lock codes or PIN digits to git, logs, Discord outbound,
 PR text, or README examples. Tests use labeled fake placeholders only.
 
 LOCKOUT_REPLY_ENABLE default off. GitHub Actions / CI must not send.
-LOCKOUT_REPLY_DRY_RUN=1 decides and logs without sending or logging in.
+LOCKOUT_REPLY_DRY_RUN=1 decides and logs without sending. When PadSplit
+credentials or a session are available, dry-run opens that session and uses
+it only for partner-members and partner-properties GETs, and logs
+dry_run_session: read_only. Message posts, Quo, Sifely rotation, and other
+writes stay blocked. With no credentials and no session it logs
+terminated_unconfirmed (no session).
+Before any send, partner members must confirm is_terminated is false. If
+that cannot be confirmed, the action is terminated_unconfirmed (fail closed).
+Only a true terminated result is stored, so the same message is not retried.
+Request and auth failures are not stored; a later run can retry while the
+member message is still inside LOCKOUT_REPLY_MAX_AGE_HOURS.
 LOCKOUT_REPLY_MAX_AGE_HOURS (default 2) marks older member lockout messages
 stale and records that message id so a later run does not send it.
 A non-member message after the lockout, other than this bot's own pack, is
@@ -40,6 +50,7 @@ from dotenv import load_dotenv
 try:
     from padsplit_scraper import lock_codes
     from padsplit_scraper import new_booking
+    from padsplit_scraper import partner_members
     from padsplit_scraper import runtime
     from padsplit_scraper.scraper import (
         create_session,
@@ -49,6 +60,7 @@ try:
 except ModuleNotFoundError:  # python3 padsplit_scraper/lockout_reply.py
     import lock_codes  # type: ignore
     import new_booking  # type: ignore
+    import partner_members  # type: ignore
     import runtime  # type: ignore
     from scraper import create_session, load_credentials, login  # type: ignore
 
@@ -470,9 +482,19 @@ def lockout_max_sends() -> int:
 
 
 def dry_run_requested() -> bool:
-    """True when LOCKOUT_REPLY_DRY_RUN is on. Does not send or log in."""
+    """True when LOCKOUT_REPLY_DRY_RUN is on. Does not send."""
     load_environment()
     return runtime.flag_value(os.getenv("LOCKOUT_REPLY_DRY_RUN")) is True
+
+
+def padsplit_credentials() -> Optional[Dict[str, str]]:
+    """Login pair when both values are set. The values are never logged."""
+    load_environment()
+    email = (os.getenv("PADSPLIT_EMAIL") or "").strip()
+    password = (os.getenv("PADSPLIT_PASSWORD") or "").strip()
+    if not email or not password:
+        return None
+    return {"email": email, "password": password}
 
 
 def _status_fragments(payload: Dict[str, Any], keys: Sequence[str]) -> List[str]:
@@ -957,6 +979,173 @@ def _recorded_stale(state: Optional[Dict[str, Any]], chat_id: str, key: str) -> 
     return bool(state is not None and key and key in stale_message_ids(state, chat_id))
 
 
+def terminated_message_ids(state: Dict[str, Any], chat_id: str) -> set[str]:
+    row = _thread_state(state, chat_id)
+    raw = row.get("terminated_message_ids") or []
+    if not isinstance(raw, list):
+        return set()
+    return {str(item) for item in raw if item}
+
+
+def record_terminated(
+    state: Dict[str, Any],
+    chat_id: str,
+    message_key_value: str,
+    *,
+    now: datetime,
+) -> None:
+    """Remember a confirmed terminated member so that message is not retried."""
+    if not chat_id or not message_key_value:
+        return
+    threads = state.setdefault("threads", {})
+    row = threads.get(chat_id) if isinstance(threads.get(chat_id), dict) else {}
+    ids = [str(item) for item in (row.get("terminated_message_ids") or []) if item]
+    if message_key_value not in ids:
+        ids.append(message_key_value)
+    row["terminated_message_ids"] = ids
+    row["action"] = "terminated_unconfirmed"
+    row["terminated_at"] = now.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    threads[chat_id] = row
+
+
+def _recorded_terminated(state: Optional[Dict[str, Any]], chat_id: str, key: str) -> bool:
+    return bool(state is not None and key and key in terminated_message_ids(state, chat_id))
+
+
+_STREET_SUFFIXES = {
+    "avenue": "ave",
+    "street": "st",
+    "drive": "dr",
+    "lane": "ln",
+    "road": "rd",
+    "court": "ct",
+    "place": "pl",
+    "boulevard": "blvd",
+}
+
+
+def _street_key(value: str) -> str:
+    parts = []
+    for part in re.sub(r"[^a-z0-9]+", " ", (value or "").lower()).split():
+        parts.append(_STREET_SUFFIXES.get(part, part))
+    return " ".join(parts)
+
+
+def _streets_match(left: str, right: str) -> bool:
+    key = _street_key(left)
+    return bool(key) and key == _street_key(right)
+
+
+def _thread_occupancy_id(thread: Dict[str, Any]) -> str:
+    occupancy = thread.get("occupancy") if isinstance(thread.get("occupancy"), dict) else {}
+    for key in ("occupancy_id", "occupancyId", "id"):
+        value = occupancy.get(key)
+        if value not in (None, ""):
+            return str(value).strip()
+    for key in ("occupancy_id", "occupancyId"):
+        value = thread.get(key)
+        if value not in (None, ""):
+            return str(value).strip()
+    return ""
+
+
+def _explicit_property_id(thread: Dict[str, Any]) -> str:
+    property_obj = thread.get("property") if isinstance(thread.get("property"), dict) else {}
+    occupancy = thread.get("occupancy") if isinstance(thread.get("occupancy"), dict) else {}
+    room = occupancy.get("room") if isinstance(occupancy.get("room"), dict) else {}
+    candidates = (
+        thread.get("property_id"),
+        thread.get("psproperty_id"),
+        property_obj.get("id"),
+        property_obj.get("pk"),
+        property_obj.get("psproperty_id"),
+        property_obj.get("property_id"),
+        occupancy.get("property_id"),
+        occupancy.get("psproperty_id"),
+        room.get("psproperty_id"),
+        room.get("property_id"),
+    )
+    for value in candidates:
+        if value not in (None, ""):
+            return str(value).strip()
+    return ""
+
+
+def _member_rows_for_thread(directory: Any, thread: Dict[str, Any]) -> Tuple[List[Dict[str, Any]], str]:
+    """Rows to match, or a fail-closed detail when the property cannot be chosen."""
+    explicit = _explicit_property_id(thread)
+    if explicit:
+        return list(directory.members_for(explicit)), ""
+    refs = list(directory.property_index() or [])
+    street = thread_street(thread)
+    matched = [
+        str(ref.get("id") or "").strip()
+        for ref in refs
+        if isinstance(ref, dict) and _streets_match(str(ref.get("street") or ""), street)
+    ]
+    matched = [property_id for property_id in matched if property_id]
+    occupancy_id = _thread_occupancy_id(thread)
+    if len(matched) == 1:
+        return list(directory.members_for(matched[0])), ""
+    if occupancy_id and matched:
+        rows: List[Dict[str, Any]] = []
+        for property_id in matched:
+            rows.extend(directory.members_for(property_id))
+        return rows, ""
+    if occupancy_id and refs:
+        rows = []
+        for ref in refs:
+            property_id = str(ref.get("id") or "").strip() if isinstance(ref, dict) else ""
+            if property_id:
+                rows.extend(directory.members_for(property_id))
+        return rows, ""
+    return [], "property unknown"
+
+
+@dataclass
+class _TerminationGate:
+    ok: bool
+    detail: str
+    terminal: bool = False
+
+
+def _termination_gate(
+    thread: Dict[str, Any],
+    *,
+    now: datetime,
+    session: Any,
+    members_fn: Optional[Callable[[Dict[str, Any]], List[Dict[str, Any]]]],
+    directory: Any,
+) -> _TerminationGate:
+    if members_fn is not None:
+        try:
+            rows = list(members_fn(thread) or [])
+        except partner_members.MembersRequestError as exc:
+            return _TerminationGate(False, exc.detail)
+        except Exception:
+            return _TerminationGate(False, "request failed")
+    elif session is None or directory is None:
+        return _TerminationGate(False, "no session")
+    else:
+        try:
+            rows, detail = _member_rows_for_thread(directory, thread)
+        except partner_members.MembersRequestError as exc:
+            return _TerminationGate(False, exc.detail)
+        except Exception:
+            return _TerminationGate(False, "request failed")
+        if detail:
+            return _TerminationGate(False, detail)
+    match = partner_members.select_member(
+        rows,
+        occupancy_id=_thread_occupancy_id(thread),
+        room_number=thread_room(thread),
+        now=now,
+    )
+    if match.ok:
+        return _TerminationGate(True, "ok")
+    return _TerminationGate(False, match.detail, terminal=match.terminal)
+
+
 def _stale_decision(chat_id: str, key: str, reason: str) -> Decision:
     return Decision(
         action="stale",
@@ -1376,6 +1565,7 @@ def decide(
     lockbox_from_host = host_already_sent_stage(thread, STAGE_LOCKBOX)
     door_sent = door_from_state or door_from_host
     lockbox_sent = lockbox_from_state or lockbox_from_host
+    trigger_message: Optional[Dict[str, Any]] = None
 
     if lockbox_sent:
         return Decision(
@@ -1411,6 +1601,7 @@ def decide(
                 return blocked
             stage = STAGE_LOCKBOX
             member_text = message_text(reopen)
+            trigger_message = reopen
         else:
             success = recent_entry_success(thread, now=now, after=after)
             if success is not None:
@@ -1437,6 +1628,7 @@ def decide(
                 return blocked
             stage = STAGE_LOCKBOX
             member_text = message_text(followup)
+            trigger_message = followup
     else:
         lockout_message = recent_member_lockout(thread, now=now)
         if lockout_message is None:
@@ -1453,6 +1645,7 @@ def decide(
             return blocked
         stage = STAGE_DOOR
         member_text = message_text(lockout_message)
+        trigger_message = lockout_message
 
     house = match_house(thread_street(thread), member_text)
     room = resolve_room(thread, member_text)
@@ -1481,6 +1674,7 @@ def decide(
         room=room.room or "",
         slug=house.slug,
         stage=stage,
+        message_key=message_key(trigger_message),
     )
 
     if certainty < 80:
@@ -1586,6 +1780,10 @@ def process_lockouts(
     dry_run: bool = False,
     max_age: Optional[timedelta] = None,
     max_sends: Optional[int] = None,
+    session: Any = None,
+    creds: Optional[Dict[str, str]] = None,
+    members_fn: Optional[Callable[[Dict[str, Any]], List[Dict[str, Any]]]] = None,
+    member_directory: Any = None,
 ) -> List[Dict[str, Any]]:
     now = now or datetime.now(timezone.utc)
     max_age = lockout_max_age() if max_age is None else max_age
@@ -1606,6 +1804,9 @@ def process_lockouts(
     codes_cache: Dict[str, Dict[str, Any]] = {}
     sifely_cache: Optional[Tuple[str, str]] = None
     sends_used = 0
+    directory = member_directory
+    if directory is None and members_fn is None and session is not None:
+        directory = partner_members.MemberDirectory(session, creds or {})
 
     for thread in threads:
         chat_id = str(thread.get("id") or "")
@@ -1661,6 +1862,36 @@ def process_lockouts(
             "house_label": decision.house_label,
             "stage": decision.stage,
         }
+
+        if decision.action == "send":
+            trigger_key = decision.message_key
+            if _recorded_terminated(state, decision.chat_id or chat_id, trigger_key):
+                row["action"] = "terminated_unconfirmed"
+                row["reason"] = "terminated already recorded"
+                _log("terminated_unconfirmed (terminated already recorded)")
+                results.append(row)
+                continue
+            gate = _termination_gate(
+                thread,
+                now=now,
+                session=session,
+                members_fn=members_fn,
+                directory=directory,
+            )
+            if not gate.ok:
+                row["action"] = "terminated_unconfirmed"
+                row["reason"] = gate.detail
+                _log(f"terminated_unconfirmed ({gate.detail})")
+                if gate.terminal and not dry_run:
+                    record_terminated(
+                        state,
+                        decision.chat_id or chat_id,
+                        trigger_key,
+                        now=now,
+                    )
+                results.append(row)
+                continue
+            _log("terminated_check: ok")
 
         if decision.discord_kind:
             text = _discord_text(decision.discord_kind, decision.house_label)
@@ -1768,6 +1999,7 @@ def run(
     state_path: Path = STATE_PATH,
     session=None,
     creds: Optional[Dict[str, str]] = None,
+    members_fn: Optional[Callable[[Dict[str, Any]], List[Dict[str, Any]]]] = None,
 ) -> RunResult:
     load_environment()
     current = now or datetime.now(timezone.utc)
@@ -1777,6 +2009,8 @@ def run(
     if not live_send_enabled() and not dry_run:
         _log("disabled (LOCKOUT_REPLY_ENABLE or CI)")
         return RunResult(action="disabled", reason="LOCKOUT_REPLY_ENABLE is off")
+    if dry_run and session is not None:
+        _log("dry_run_session: read_only")
 
     messages = host_messages if host_messages is not None else load_host_messages()
     tabs = leftover_compose_tabs
@@ -1807,6 +2041,9 @@ def run(
         post_discord=post_discord,
         send_enabled=not dry_run,
         dry_run=dry_run,
+        session=session,
+        creds=creds,
+        members_fn=members_fn,
     )
     if leftover_compose_tabs is None and not dry_run:
         new_booking.save_leftover_compose_tabs(tabs, leftover_tabs_path)
@@ -1868,7 +2105,18 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         return 0
 
     if preview:
-        run(dry_run=True)
+        creds = padsplit_credentials()
+        if creds is None:
+            run(dry_run=True)
+            return 0
+        with create_session() as session:
+            try:
+                login(session, creds["email"], creds["password"], force=False)
+            except Exception as exc:
+                detail = "auth failed" if partner_members._auth_failure(exc) else "request failed"
+                _log(f"terminated_unconfirmed ({detail})")
+                return 0
+            run(dry_run=True, session=session, creds=creds)
         return 0
 
     creds = load_credentials()
