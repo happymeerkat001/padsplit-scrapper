@@ -2,6 +2,38 @@
   "firestore": {
     "rules": "firestore.rules"
   },
+  "hosting": {
+    "target": "codes",
+    "public": "hosting/codes",
+    "cleanUrls": false,
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "predeploy": [
+      "python3 scripts/sync_codes_hosting.py"
+    ],
+    "headers": [
+      {
+        "source": "/codes.html",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-store"
+          },
+          {
+            "key": "X-Robots-Tag",
+            "value": "noindex"
+          },
+          {
+            "key": "X-Frame-Options",
+            "value": "DENY"
+          }
+        ]
+      }
+    ]
+  },
   "emulators": {
     "firestore": {
       "port": 8080
