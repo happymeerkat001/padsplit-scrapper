@@ -16,6 +16,17 @@ service cloud.firestore {
           || (approvedCodesUid() != '' && request.auth.uid == approvedCodesUid())
         );
     }
+    function vendorFieldsOk() {
+      return request.resource.data.keys().hasOnly(['name', 'specialty', 'contact', 'location'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() < 500
+        && request.resource.data.specialty is string
+        && request.resource.data.specialty.size() < 500
+        && request.resource.data.contact is string
+        && request.resource.data.contact.size() < 500
+        && request.resource.data.location is string
+        && request.resource.data.location.size() < 500;
+    }
     match /property_codes/{slug} {
       allow read, write: if isApprovedCodesUser();
       match /code_versions/{id} {
@@ -45,16 +56,20 @@ service cloud.firestore {
       allow write: if request.auth.uid == '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2';
     }
     match /vendors/{id} {
-      allow read, write: if isApprovedCodesUser();
+      allow read: if isApprovedCodesUser();
+      allow delete: if isApprovedCodesUser();
+      allow create, update: if isApprovedCodesUser() && vendorFieldsOk();
     }
-    // templates/shared stays world-readable. Booking and leak reply fetch it
-    // with unauthenticated REST. Writes stay on Ang's uid.
+    // templates/shared is an approved-user read. Booking and leak reply use
+    // the Admin SDK, which bypasses these rules. Writes stay on Ang's uid.
     match /templates/{document} {
-      allow read: if true;
+      allow read: if isApprovedCodesUser();
       allow write: if request.auth.uid == '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2';
     }
+    // Only the Admin SDK writes stats. Clients may read after codes sign-in.
     match /stats/{document} {
-      allow read, write: if isApprovedCodesUser();
+      allow read: if isApprovedCodesUser();
+      allow write: if false;
     }
     // Scraper Admin SDK writes private_pages. Approved clients may read.
     // Client creates, updates, and deletes are denied.

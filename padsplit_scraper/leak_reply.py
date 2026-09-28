@@ -435,16 +435,15 @@ def canonicalize_water_key_youtube(text: str) -> str:
 
 def load_shared_template_fields(
     fetch_doc: Optional[Callable[[], Dict[str, Any]]] = None,
+    *,
+    client: Any = None,
 ) -> Dict[str, str]:
-    """Same templates/shared doc new_booking uses for the Hirevire card."""
+    """Same templates/shared doc new_booking reads through the Admin SDK."""
     if fetch_doc is None:
-
-        def fetch_doc() -> Dict[str, Any]:
-            resp = requests.get(new_booking.TEMPLATES_DOC_URL, timeout=DEFAULT_TIMEOUT)
-            resp.raise_for_status()
-            return resp.json()
-
-    return new_booking.parse_firestore_string_map(fetch_doc())
+        doc = new_booking.fetch_shared_templates_doc(client)
+    else:
+        doc = fetch_doc()
+    return new_booking.parse_firestore_string_map(doc)
 
 
 def pick_t5_source(fields: Dict[str, str]) -> str:
@@ -457,9 +456,11 @@ def pick_t5_source(fields: Dict[str, str]) -> str:
 
 def load_t5_source(
     fetch_doc: Optional[Callable[[], Dict[str, Any]]] = None,
+    *,
+    client: Any = None,
 ) -> str:
     try:
-        source = pick_t5_source(load_shared_template_fields(fetch_doc))
+        source = pick_t5_source(load_shared_template_fields(fetch_doc, client=client))
         if source.strip():
             return source
     except Exception as exc:
@@ -508,9 +509,10 @@ def format_leak_body(
     source: Optional[str] = None,
     *,
     fetch_doc: Optional[Callable[[], Dict[str, Any]]] = None,
+    client: Any = None,
 ) -> str:
     """PadSplit 1:1 body from live t5 (or baked t5). Quo + canonical YouTube."""
-    raw = source if source is not None else load_t5_source(fetch_doc)
+    raw = source if source is not None else load_t5_source(fetch_doc, client=client)
     body = adapt_t5_to_member_thread(raw)
     if QUO_FIELD_PHONE not in body:
         raise RuntimeError("refusing to format leak body without Quo number")

@@ -44,10 +44,7 @@ except ModuleNotFoundError:  # Support python3 padsplit_scraper/scraper.py
 OUTPUT_DIR = Path(__file__).resolve().parent / "output"
 STATE_PATH = OUTPUT_DIR / "new_booking_first_messages.json"
 LEFTOVER_TABS_PATH = OUTPUT_DIR / "leftover_compose_tabs.json"
-TEMPLATES_DOC_URL = (
-    "https://firestore.googleapis.com/v1/projects/padsplit-scrapper/"
-    "databases/(default)/documents/templates/shared"
-)
+TEMPLATES_UNAVAILABLE = "templates_unavailable (no firestore credentials)"
 NEW_BOOKING_LABEL = "new booking request"
 HIREVIRE_ACCOUNT_EMAIL = "liaisonventuresmanagement@gmail.com"
 HIREVIRE_APPLICATION_ID = "977d344b-8592-4fc5-bd41-38717d6fa90a"
@@ -253,15 +250,52 @@ def parse_firestore_string_map(doc: Dict[str, Any]) -> Dict[str, str]:
     return parsed
 
 
+def _shared_templates_client() -> Any:
+    """Same Admin SDK loader persist.py and private_pages.py use."""
+    try:
+        from padsplit_scraper.persist import _firestore_client_or_none
+    except ModuleNotFoundError:  # python3 padsplit_scraper/new_booking.py
+        from persist import _firestore_client_or_none
+    return _firestore_client_or_none()
+
+
+def _templates_unavailable(message: str) -> RuntimeError:
+    sys.stderr.write(f"# {message}\n")
+    return RuntimeError(message)
+
+
+def fetch_shared_templates_doc(client: Any = None) -> Dict[str, Any]:
+    """Read templates/shared with the Admin SDK. No unauthenticated REST.
+
+    Returns the same {"fields": ...} shape private_pages stores. Missing
+    credentials or a failed read logs a skip and raises. Callers must not
+    send a reply from an empty document.
+    """
+    db = client if client is not None else _shared_templates_client()
+    if db is None:
+        raise _templates_unavailable(TEMPLATES_UNAVAILABLE)
+    try:
+        snap = db.collection("templates").document("shared").get()
+        exists = bool(getattr(snap, "exists", False))
+        data = snap.to_dict() if exists else None
+    except Exception as exc:
+        raise _templates_unavailable(
+            f"templates_unavailable ({exc.__class__.__name__})"
+        ) from exc
+    if not isinstance(data, dict):
+        raise _templates_unavailable("templates_unavailable (empty templates/shared)")
+    return {"fields": data}
+
+
 def load_live_new_booking_template(
     fetch_doc: Optional[Callable[[], Dict[str, Any]]] = None,
+    *,
+    client: Any = None,
 ) -> Dict[str, str]:
-    """Read the live **new booking request** card from docs/templates.html storage."""
+    """Read the live **new booking request** card through the Admin SDK."""
     if fetch_doc is None:
         def fetch_doc() -> Dict[str, Any]:
-            resp = requests.get(TEMPLATES_DOC_URL, timeout=DEFAULT_TIMEOUT)
-            resp.raise_for_status()
-            return resp.json()
+            return fetch_shared_templates_doc(client)
 
     fields = parse_firestore_string_map(fetch_doc())
     for index in range(9):
@@ -899,7 +933,9 @@ def process_new_bookings(
         if template is None:
             loader = load_template or load_live_new_booking_template
             template = loader()
-        text = template["text"]
+        text = str((template or {}).get("text") or "").strip()
+        if not text:
+            raise _templates_unavailable("templates_unavailable (empty template text)")
         if not hirevire_already:
             hirevire_already = host_already_sent_hirevire(thread, text)
 
