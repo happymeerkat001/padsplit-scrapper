@@ -37,8 +37,6 @@ commit_and_push() {
     padsplit_scraper/output/latest.json \
     padsplit_scraper/output/drafts.json \
     padsplit_scraper/output/drafted_messages.json \
-    padsplit_scraper/output/stats.json \
-    padsplit_scraper/output/monthly_history.json \
     padsplit_scraper/output/occupancy.json \
     thermostat/output/latest.json \
     docs/data/latest.json \

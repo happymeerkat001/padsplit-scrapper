@@ -198,6 +198,13 @@
 
     let allMessages = [];
 
+    function personLabel(person) {
+      if (!person || typeof person !== 'object') return '';
+      const display = String(person.displayName || '').trim();
+      if (display) return display;
+      return [person.firstName, person.lastName].filter(Boolean).join(' ').trim();
+    }
+
     function renderList(messages) {
       const list = document.getElementById('list');
       document.getElementById('count').textContent = `${messages.length} thread${messages.length !== 1 ? 's' : ''}`;
@@ -208,9 +215,7 @@
       list.innerHTML = '';
       messages.forEach(msg => {
         const unread = msg.member?.isUnread || msg.unread || (msg.unreadCount > 0);
-        const tenantName = msg.title
-          || msg.occupancy?.user?.firstName + ' ' + (msg.occupancy?.user?.lastName || '')
-          || 'Unknown Tenant';
+        const tenantName = (msg.title || personLabel(msg.occupancy?.user) || 'Unknown Tenant').trim();
         const address = [
           msg.property?.address?.street1,
           msg.property?.address?.city?.name,
@@ -237,7 +242,7 @@
           const thread = document.createElement('div');
           thread.className = 'thread';
           filtered.forEach(m => {
-            const senderLabel = (m.sender?.displayName || `${m.sender?.firstName || ''} ${m.sender?.lastName || ''}`).trim();
+            const senderLabel = personLabel(m.sender);
             const msgDiv = document.createElement('div');
             msgDiv.className = 'thread-msg';
             msgDiv.innerHTML = `
@@ -250,9 +255,7 @@
         } else {
           const lastText = msg.lastMessage?.text || msg.lastMessage?.body || '(no text)';
           const lastDate = msg.lastMessage?.created || msg.lastMessage?.createdAt;
-          const senderFirst = msg.lastMessage?.sender?.firstName || '';
-          const senderDisplay = msg.lastMessage?.sender?.displayName || '';
-          const senderLabel = senderDisplay || senderFirst || '';
+          const senderLabel = personLabel(msg.lastMessage?.sender);
           const msgTextDiv = document.createElement('div');
           msgTextDiv.className = 'message-text';
           msgTextDiv.textContent = lastText;
@@ -273,7 +276,7 @@
         const q = e.target.value.toLowerCase();
         if (!q) { renderList(allMessages); return; }
         renderList(allMessages.filter(msg => {
-          const name = (msg.title || '').toLowerCase();
+          const name = (msg.title || personLabel(msg.occupancy?.user) || '').toLowerCase();
           const addr = (msg.property?.address?.street1 || '').toLowerCase();
           const text = (msg.lastMessage?.text || msg.lastMessage?.body || '').toLowerCase();
           const room = String(msg.occupancy?.room?.roomNumber ?? '');

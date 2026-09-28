@@ -43,6 +43,10 @@ def _latest_output_path() -> Path:
     return OUTPUT_DIR / "latest.json"
 
 
+def _docs_latest_path() -> Path:
+    return DOCS_DATA_DIR / "latest.json"
+
+
 def _stats_output_path() -> Path:
     return OUTPUT_DIR / "stats.json"
 
@@ -56,8 +60,9 @@ def _docs_occupancy_path() -> Path:
 
 
 def _persist_occupancy_payload(payload: Dict[str, Any]) -> None:
-    _write_json(_occupancy_output_path(), payload)
-    _write_json(_docs_occupancy_path(), payload)
+    published = sanitize_published_snapshot(payload)
+    _write_json(_occupancy_output_path(), published)
+    _write_json(_docs_occupancy_path(), published)
 
 
 def _timestamped_output_path(scraped_at: str) -> Path:
@@ -212,14 +217,18 @@ def _persist_latest_payload(
 ) -> Path:
     """Write the rolling snapshot CI copies to ``docs/data``.
 
-    The file is sanitized first (no ``room_code``, redacted free text) so the
-    copy committed from ``scrape.yml`` cannot contain door, lockbox, or wifi
-    secrets. The in-memory ``payload`` is left unchanged.
+    ``output/latest.json`` is gitignored and keeps name, money, and score
+    keys so local tools (field SMS, drafts, the daily note) can still read
+    them. Door-code redaction still runs. ``docs/data/latest.json`` is the
+    public copy: the same redaction plus name, money, and score keys removed.
+    Timestamped files are gitignored and use the public form. The in-memory
+    ``payload`` is left unchanged.
     """
     latest_payload = _attach_run_status(payload, run_status) if run_status else payload
+    local = sanitize_published_snapshot(latest_payload, strip_private_keys=False)
     published = sanitize_published_snapshot(latest_payload)
-    latest_path = _latest_output_path()
-    _write_json(latest_path, published)
+    _write_json(_latest_output_path(), local)
+    _write_json(_docs_latest_path(), published)
     out_path = _timestamped_output_path(scraped_at)
     if write_timestamped:
         _write_json(out_path, published)
@@ -298,8 +307,10 @@ def _build_stats_payload(
 ) -> Dict[str, Any]:
     """Private stats payload. Ticket details are redacted before this is written.
 
-    ``stats.json`` is not copied to Pages, but morning/afternoon git-add it, so
-    the same free-text redactor runs here. ``room_code`` is not part of this
+    ``stats.json`` is gitignored and is not copied to Pages. Morning and
+    afternoon runs must not ``git add`` it. The free-text redactor still runs
+    here. Name, money, and score keys are kept so the Firestore upload still
+    has earnings and the manager score. ``room_code`` is not part of this
     payload. The caller's ``kpis`` object is not modified.
     """
     payload = {
@@ -310,12 +321,12 @@ def _build_stats_payload(
         "kpis": kpis,
         "run_status": run_status,
     }
-    return sanitize_published_snapshot(payload)
+    return sanitize_published_snapshot(payload, strip_private_keys=False)
 
 
 def _persist_stats_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
     """Rewrite stats with free-text redaction. Used for degraded fallback reuse."""
-    sanitized = sanitize_published_snapshot(payload)
+    sanitized = sanitize_published_snapshot(payload, strip_private_keys=False)
     _write_json(_stats_output_path(), sanitized)
     return sanitized
 

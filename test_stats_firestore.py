@@ -87,9 +87,13 @@ class StatsFirestoreTests(unittest.TestCase):
         self.assertIn("FIREBASE_SERVICE_ACCOUNT_JSON", WORKFLOW)
         self.assertNotIn("docs/data/stats.json", MORNING)
         self.assertNotIn("docs/data/monthly_history.json", MORNING)
+        self.assertNotIn("padsplit_scraper/output/stats.json", MORNING)
+        self.assertNotIn("padsplit_scraper/output/monthly_history.json", MORNING)
         self.assertIn("docs/data/occupancy.json", MORNING)
         self.assertNotIn("docs/data/stats.json", AFTERNOON)
         self.assertNotIn("docs/data/monthly_history.json", AFTERNOON)
+        self.assertNotIn("padsplit_scraper/output/stats.json", AFTERNOON)
+        self.assertNotIn("padsplit_scraper/output/monthly_history.json", AFTERNOON)
         self.assertNotIn('ROOT_DIR / "docs" / "data" / "stats.json"', SEO)
 
     def test_seed_copies_legacy_docs_history_once(self) -> None:

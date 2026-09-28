@@ -66,15 +66,48 @@ jobs:
       - name: Copy latest snapshot for Pages
         run: |
           mkdir -p docs/data
-          cp padsplit_scraper/output/latest.json docs/data/latest.json
-          cp padsplit_scraper/output/occupancy.json docs/data/occupancy.json || echo "occupancy.json not found, skipping"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          from padsplit_scraper.publish_sanitize import sanitize_published_snapshot
+
+          docs = Path("docs/data")
+          latest_raw = json.loads(Path("padsplit_scraper/output/latest.json").read_text())
+          published = sanitize_published_snapshot(latest_raw)
+          (docs / "latest.json").write_text(json.dumps(published, indent=2) + "\n")
+          occupancy_path = Path("padsplit_scraper/output/occupancy.json")
+          if occupancy_path.is_file():
+              occupancy = sanitize_published_snapshot(json.loads(occupancy_path.read_text()))
+              (docs / "occupancy.json").write_text(json.dumps(occupancy, indent=2) + "\n")
+          else:
+              print("occupancy.json not found, skipping")
+          PY
 
       - name: Reject unsanitized public snapshots
         run: |
-          python padsplit_scraper/check_published_snapshot.py docs/data/latest.json
-          if [ -f docs/data/occupancy.json ]; then
-            python padsplit_scraper/check_published_snapshot.py docs/data/occupancy.json
-          fi
+          python - <<'PY'
+          import subprocess
+          import sys
+          from pathlib import Path
+
+          files = sorted(str(path) for path in Path("docs/data").glob("*.json"))
+          tracked = subprocess.check_output(
+              ["git", "ls-files", "--", "padsplit_scraper/output"],
+              text=True,
+          )
+          files.extend(
+              line for line in tracked.splitlines() if line.endswith(".json")
+          )
+          if not files:
+              sys.stderr.write("no public snapshots to check\n")
+              sys.exit(1)
+          sys.exit(
+              subprocess.call(
+                  [sys.executable, "padsplit_scraper/check_published_snapshot.py", *files]
+              )
+          )
+          PY
 
       - name: Diagnose token permissions
         run: |
