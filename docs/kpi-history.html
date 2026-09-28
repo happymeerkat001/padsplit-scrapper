@@ -200,7 +200,7 @@
 <body>
   <div id="gate-wrap" class="card hidden">
     <h2 class="gate-title">Stats Access</h2>
-    <div class="muted">Stats-only login. The Codes password will not unlock this tab.</div>
+    <div class="muted">Enter password to view history.</div>
     <form id="gate-form" class="gate-form">
       <input id="gate-email" type="email" placeholder="Email" autocomplete="email" />
       <input id="gate-input" type="password" placeholder="Password" autocomplete="current-password" />
@@ -570,7 +570,18 @@
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    const STATS_UID = "TXSU0LOpmDWNBbbv0x3uHHBnZb12";
+    function angCodesUid() {
+      return '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2';
+    }
+    function approvedCodesUids() {
+      // Extra approved uids. Same empty list as firestore.rules approvedCodesUids(). Ang keeps angCodesUid().
+      return [];
+    }
+    function isApprovedCodesUser(user) {
+      if (!user || !user.uid) return false;
+      if (user.uid === angCodesUid()) return true;
+      return approvedCodesUids().includes(user.uid);
+    }
     const firebaseConfig = {
       apiKey: "AIzaSyCSWOHI6QLqugy_Fao2p4bBehg02_fu3No",
       authDomain: "padsplit-scrapper.firebaseapp.com",
@@ -619,7 +630,7 @@
     showGate();
     await signOut(auth);
     onAuthStateChanged(auth, (user) => {
-      if (user && user.uid === STATS_UID) {
+      if (isApprovedCodesUser(user)) {
         showApp();
         loadHistory().catch((err) => {
           document.getElementById("updated-label").textContent = `Error: ${err.message}`;

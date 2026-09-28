@@ -16,7 +16,7 @@
 import { readFileSync } from "node:fs";
 import { after, before, test } from "node:test";
 import { assertFails, assertSucceeds, initializeTestEnvironment } from "@firebase/rules-unit-testing";
-import { collection, doc, getDoc, getDocs, limit, query, setDoc } from "firebase/firestore";
+import { collection, deleteDoc, doc, getDoc, getDocs, limit, query, setDoc } from "firebase/firestore";
 
 const RULES_PATH = new URL("./firestore.rules", import.meta.url);
 const rules = readFileSync(RULES_PATH, "utf8");
@@ -143,4 +143,118 @@ test("two approved uids can read codes and code_versions", async () => {
   await assertCodesDenied(other);
   await assertFails(setDoc(doc(other.firestore(), "property_codes/example_house"), { front_door: "y" }));
   await assertFails(setDoc(doc(other.firestore(), "notes/codes"), { text: "m" }));
+});
+
+const PRIVATE_PAGE = "private_pages/stats";
+const PRIVATE_PART = "private_pages/stats/parts/0";
+
+async function assertPrivatePagesDenied(context) {
+  await assertFails(readDoc(context, PRIVATE_PAGE));
+  await assertFails(readDoc(context, PRIVATE_PART));
+  await assertFails(readDoc(context, "private_pages/templates"));
+  await assertFails(readDoc(context, "private_pages/vendors"));
+}
+
+async function assertPrivatePagesReadable(context) {
+  await assertSucceeds(readDoc(context, PRIVATE_PAGE));
+  await assertSucceeds(readDoc(context, PRIVATE_PART));
+  await assertSucceeds(readDoc(context, "private_pages/templates"));
+  await assertSucceeds(readDoc(context, "private_pages/vendors"));
+}
+
+async function assertPrivatePagesNotWritable(context) {
+  const db = context.firestore();
+  await assertFails(setDoc(doc(db, PRIVATE_PAGE), { json: "{}" }));
+  await assertFails(setDoc(doc(db, PRIVATE_PART), { index: 0, json: "{}" }));
+  await assertFails(deleteDoc(doc(db, PRIVATE_PAGE)));
+  await assertFails(deleteDoc(doc(db, PRIVATE_PART)));
+}
+
+test("signed-out reads and writes of private_pages are denied", async () => {
+  const db = emptyEnv.unauthenticatedContext();
+  await assertPrivatePagesDenied(db);
+  await assertPrivatePagesNotWritable(db);
+});
+
+test("non-approved uid cannot read or write private_pages", async () => {
+  const other = emptyEnv.authenticatedContext(OTHER_UID);
+  await assertPrivatePagesDenied(other);
+  await assertPrivatePagesNotWritable(other);
+  const emptyJoe = emptyEnv.authenticatedContext(TEST_UID);
+  await assertPrivatePagesDenied(emptyJoe);
+  await assertPrivatePagesNotWritable(emptyJoe);
+});
+
+test("approved codes uid can read private_pages and cannot write them", async () => {
+  const ang = emptyEnv.authenticatedContext(ANG_UID);
+  await assertPrivatePagesReadable(ang);
+  await assertPrivatePagesNotWritable(ang);
+
+  const joe = filledEnv.authenticatedContext(TEST_UID);
+  await assertPrivatePagesReadable(joe);
+  await assertPrivatePagesNotWritable(joe);
+
+  const signedOut = filledEnv.unauthenticatedContext();
+  await assertPrivatePagesDenied(signedOut);
+
+  const other = filledEnv.authenticatedContext(OTHER_UID);
+  await assertPrivatePagesDenied(other);
+  await assertPrivatePagesNotWritable(other);
+});
+
+test("templates/shared stays public-read and Ang can still save it", async () => {
+  const signedOut = emptyEnv.unauthenticatedContext();
+  await assertSucceeds(readDoc(signedOut, "templates/shared"));
+  await assertFails(setDoc(doc(signedOut.firestore(), "templates/shared"), { t0: "x" }));
+
+  const ang = emptyEnv.authenticatedContext(ANG_UID);
+  await assertSucceeds(setDoc(doc(ang.firestore(), "templates/shared"), { t0: "x" }));
+
+  const other = emptyEnv.authenticatedContext(OTHER_UID);
+  await assertSucceeds(readDoc(other, "templates/shared"));
+  await assertFails(setDoc(doc(other.firestore(), "templates/shared"), { t0: "y" }));
+});
+
+test("signed-out reads of vendors and stats are denied", async () => {
+  const db = emptyEnv.unauthenticatedContext();
+  await assertFails(readDoc(db, "vendors/example"));
+  await assertFails(getDocs(collection(db.firestore(), "vendors")));
+  await assertFails(readDoc(db, "stats/latest"));
+  await assertFails(readDoc(db, "stats/monthly_history"));
+  await assertFails(setDoc(doc(db.firestore(), "vendors/example"), { name: "x" }));
+  await assertFails(setDoc(doc(db.firestore(), "stats/latest"), { json: "{}" }));
+  await assertFails(setDoc(doc(db.firestore(), "stats/monthly_history"), { json: "{}" }));
+});
+
+test("approved codes uid can read and write vendors and stats", async () => {
+  const ang = emptyEnv.authenticatedContext(ANG_UID);
+  await assertSucceeds(readDoc(ang, "vendors/example"));
+  await assertSucceeds(getDocs(collection(ang.firestore(), "vendors")));
+  await assertSucceeds(readDoc(ang, "stats/latest"));
+  await assertSucceeds(readDoc(ang, "stats/monthly_history"));
+  await assertSucceeds(setDoc(doc(ang.firestore(), "vendors/example"), {
+    name: "x",
+    specialty: "",
+    contact: "",
+    location: "",
+  }));
+  await assertSucceeds(setDoc(doc(ang.firestore(), "stats/latest"), { json: "{}" }));
+  await assertSucceeds(setDoc(doc(ang.firestore(), "stats/monthly_history"), { json: "{}" }));
+
+  const joe = filledEnv.authenticatedContext(TEST_UID);
+  await assertSucceeds(readDoc(joe, "vendors/example"));
+  await assertSucceeds(readDoc(joe, "stats/latest"));
+  await assertSucceeds(readDoc(joe, "stats/monthly_history"));
+  await assertSucceeds(setDoc(doc(joe.firestore(), "vendors/joe"), { name: "y" }));
+
+  const other = emptyEnv.authenticatedContext(OTHER_UID);
+  await assertFails(readDoc(other, "vendors/example"));
+  await assertFails(readDoc(other, "stats/latest"));
+  await assertFails(readDoc(other, "stats/monthly_history"));
+  await assertFails(setDoc(doc(other.firestore(), "vendors/example"), { name: "z" }));
+
+  const emptyJoe = emptyEnv.authenticatedContext(TEST_UID);
+  await assertFails(readDoc(emptyJoe, "vendors/example"));
+  await assertFails(readDoc(emptyJoe, "stats/latest"));
+  await assertFails(readDoc(emptyJoe, "stats/monthly_history"));
 });
