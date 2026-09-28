@@ -38,11 +38,12 @@ class SnapshotContractTests(unittest.TestCase):
         self.assertNotIn(STATS_UID, block)
         self.assertRegex(
             RULES,
-            r"function approvedCodesUid\(\) \{\s*return '';\s*\}",
+            r"function approvedCodesUids\(\) \{\s*return \[\];\s*\}",
         )
         self.assertIn("function angCodesUid()", RULES)
         self.assertIn("request.auth.uid == angCodesUid()", RULES)
-        self.assertIn("approvedCodesUid() != ''", RULES)
+        self.assertIn("request.auth.uid in approvedCodesUids()", RULES)
+        self.assertNotIn("function approvedCodesUid()", RULES)
         self.assertIn("allow get", block)
         self.assertIn("allow list", block)
         self.assertIn("allow create", block)
