@@ -16,6 +16,11 @@ service cloud.firestore {
           || (approvedCodesUid() != '' && request.auth.uid == approvedCodesUid())
         );
     }
+    function notesTextOk() {
+      return request.resource.data.keys().hasOnly(['text'])
+        && request.resource.data.text is string
+        && request.resource.data.text.size() < 20000;
+    }
     function vendorFieldsOk() {
       return request.resource.data.keys().hasOnly(['name', 'specialty', 'contact', 'location'])
         && request.resource.data.name is string
@@ -39,13 +44,13 @@ service cloud.firestore {
         allow update, delete: if false;
       }
     }
-    match /notes/codes {
-      allow read, write: if isApprovedCodesUser();
-    }
+    // notes/codes, templates, stats, dashboard, and messages are all { text }.
+    // No server reader. Approved users may read and write; creates and updates
+    // must be that one string, under 20000 characters.
     match /notes/{document} {
-      allow read: if document != 'codes';
-      allow write: if document != 'codes'
-        && request.auth.uid == '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2';
+      allow read: if isApprovedCodesUser();
+      allow delete: if isApprovedCodesUser();
+      allow create, update: if isApprovedCodesUser() && notesTextOk();
     }
     match /task_messages/{id} {
       allow read: if true;

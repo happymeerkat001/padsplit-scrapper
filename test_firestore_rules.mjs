@@ -107,9 +107,38 @@ test("existing codes uid can read codes and code_versions while Joe's slot is em
   await assertSucceeds(setDoc(doc(db.firestore(), "property_codes/example_house"), { front_door: "x" }));
 });
 
-test("signed-out read of other notes documents stays allowed", async () => {
+const NOTE_DOCS = ["notes/codes", "notes/templates", "notes/stats", "notes/dashboard", "notes/messages"];
+
+function notesPayload(text) {
+  return { text };
+}
+
+test("signed-out reads and writes of notes are denied", async () => {
   const db = emptyEnv.unauthenticatedContext();
-  await assertSucceeds(readDoc(db, "notes/dashboard"));
+  for (const path of NOTE_DOCS) {
+    await assertFails(readDoc(db, path));
+    await assertFails(setDoc(doc(db.firestore(), path), notesPayload("n")));
+  }
+});
+
+test("approved user can read and save notes, and an oversize note is denied", async () => {
+  const ang = emptyEnv.authenticatedContext(ANG_UID);
+  const joe = filledEnv.authenticatedContext(TEST_UID);
+  for (const path of ["notes/templates", "notes/stats", "notes/codes", "notes/dashboard", "notes/messages"]) {
+    await assertSucceeds(readDoc(ang, path));
+    await assertSucceeds(setDoc(doc(ang.firestore(), path), notesPayload("n"), { merge: true }));
+    await assertSucceeds(readDoc(joe, path));
+    await assertSucceeds(setDoc(doc(joe.firestore(), path), notesPayload(""), { merge: true }));
+  }
+  const oversize = "x".repeat(20000);
+  await assertFails(setDoc(doc(ang.firestore(), "notes/templates"), notesPayload(oversize)));
+  await assertFails(setDoc(doc(ang.firestore(), "notes/stats"), notesPayload(oversize)));
+  await assertSucceeds(setDoc(doc(ang.firestore(), "notes/templates"), notesPayload("x".repeat(19999))));
+  await assertFails(setDoc(doc(ang.firestore(), "notes/stats"), { text: "n", extra: "nope" }));
+
+  const signedOut = emptyEnv.unauthenticatedContext();
+  await assertFails(readDoc(signedOut, "notes/templates"));
+  await assertFails(setDoc(doc(signedOut.firestore(), "notes/stats"), notesPayload("n")));
 });
 
 test("filled Joe slot is allowed and any other uid stays denied", async () => {
