@@ -1,9 +1,11 @@
 """Sanitize snapshots before they can be published or committed.
 
-``sanitize_published_snapshot`` is applied in the persist write path, before
-``padsplit_scraper/output/latest.json`` is written. CI copies that file to
-``docs/data/latest.json``. Stripping here means codes never land in ``docs/``
-or in the scrape commit.
+``sanitize_published_snapshot`` is applied in the persist write path.
+``padsplit_scraper/output/latest.json`` is gitignored: it is code-redacted
+and still has name, money, and score keys for local tools. The public
+``docs/data/latest.json`` (and the scrape workflow copy) uses the default,
+which also drops those keys. Codes never land in ``docs/`` or in the scrape
+commit.
 
 No private ``room_code`` sidecar is written. Nothing in this repo reads task
 ``room_code`` from a snapshot. Lockout replies load Firestore property fields
@@ -99,21 +101,62 @@ Edge cases, accepted on purpose:
 
 Bare-number allowlist (key name, unless noted as a path). Keyword+token
 rules still apply on these strings. The list is only ids, timestamps, counts,
-room numbers, prices, phones, address parts, and url/media fields:
+room numbers, phones, address parts, and url/media fields:
 
     id, pk, property_id, occupancy_id, user_id, role_id, psproperty_id,
     created, modified, scraped_at, seenAt, update_status_at, started_at,
     finished_at, run_scraped_at, moveInDate, moveOutDate, move_out_date,
     room_number, roomNumber, room_status, moveout_photos_count,
     days_to_complete, days_in_current_status,
-    base_price, last_room_price, new_price, recommended_price,
-    metro_area_average_price, zip, street1, street2, full_street, address,
+    zip, street1, street2, full_street, address,
     phone, phone_number, mobile,
     picture, preferredPicture, url, cover, filename
     paths ending in attachments[].location or media[].location
 
+Price keys are not allowlisted. They are private money keys (below).
+
 Ticket ``location`` is not allowlisted. Attachment and media locations are
 file paths whose ids are not door codes.
+
+Private keys on published snapshots
+------------------------------------
+``sanitize_published_snapshot`` drops these keys when writing
+``docs/data/latest.json`` and ``occupancy.json``. The gitignored
+``output/latest.json`` keeps them. The checker fails if any remain in a
+file it scans. Reports list key paths only.
+
+Names, dropped entirely (no first-name initial). ``docs/index.html`` labels
+rooms by address and room number. ``docs/private-messages.html`` is the only
+page that rendered tenant or sender names; with the keys gone it shows
+"Unknown Tenant" / "Unknown" and still shows address, room, and message text.
+City and state ``name`` fields stay.
+
+* ``firstName``, ``lastName``, ``displayName``, and ``room_name`` anywhere.
+* ``title`` only when an ancestor key is ``messages`` or ``tasks``. In this
+  snapshot that is the PadSplit chat title (``$.messages[].title``), which
+  the messages page uses as the tenant name. A ``title`` on a task ticket
+  is treated as a ticket title and dropped too. A ``title`` outside those
+  trees is not a person or ticket title and is kept.
+* ``name`` only when an ancestor key is ``reported_by`` or ``sender``.
+  ``property.address.city.name``, ``state.name``, and other ``name`` fields
+  stay.
+
+Money keys anywhere: ``gross_revenue``, ``net_revenue``, ``payout_amount``,
+``total_payout_amount``, ``processing_fee``, ``management_fee``,
+``booking_fee``, ``gross_adjustments``, ``monthly_net_revenue``,
+``revenue_per_room``, ``base_price``, ``last_room_price``, ``new_price``,
+``recommended_price``, ``metro_area_average_price``, ``price_deviation``,
+``minimumPayment``, ``balance``, ``amount_owed``, ``days_behind``,
+``past_due``, ``outstanding_balance``.
+
+Score keys anywhere: ``score``, ``base_score``, ``bonus_points``,
+``penalty_points``, ``subjective_score``, ``bonuses``, ``penalties``,
+``score_history``, ``avg_score_30d``, ``mini_score``.
+
+``stats.json`` and ``monthly_history.json`` call the same redactor with
+``strip_private_keys=False``. Those files stay on disk for the Firestore
+upload and are gitignored. Owner-gated Stats and KPI History still read
+money and score from Firestore.
 """
 
 from __future__ import annotations
@@ -322,11 +365,6 @@ BARE_NUMBER_KEY_ALLOWLIST = frozenset(
         "moveout_photos_count",
         "days_to_complete",
         "days_in_current_status",
-        "base_price",
-        "last_room_price",
-        "new_price",
-        "recommended_price",
-        "metro_area_average_price",
         "zip",
         "street1",
         "street2",
@@ -340,6 +378,49 @@ BARE_NUMBER_KEY_ALLOWLIST = frozenset(
         "url",
         "cover",
         "filename",
+    }
+)
+# Person and room labels. ``title`` and ``name`` are contextual; see
+# ``private_key_kind``.
+NAME_KEYS_ANYWHERE = frozenset({"firstName", "lastName", "displayName", "room_name"})
+MONEY_KEYS = frozenset(
+    {
+        "gross_revenue",
+        "net_revenue",
+        "payout_amount",
+        "total_payout_amount",
+        "processing_fee",
+        "management_fee",
+        "booking_fee",
+        "gross_adjustments",
+        "monthly_net_revenue",
+        "revenue_per_room",
+        "base_price",
+        "last_room_price",
+        "new_price",
+        "recommended_price",
+        "metro_area_average_price",
+        "price_deviation",
+        "minimumPayment",
+        "balance",
+        "amount_owed",
+        "days_behind",
+        "past_due",
+        "outstanding_balance",
+    }
+)
+SCORE_KEYS = frozenset(
+    {
+        "score",
+        "base_score",
+        "bonus_points",
+        "penalty_points",
+        "subjective_score",
+        "bonuses",
+        "penalties",
+        "score_history",
+        "avg_score_30d",
+        "mini_score",
     }
 )
 _BARE_NUMBER_PATH_ALLOWLIST = (
@@ -462,14 +543,38 @@ def bare_number_allowed(key: str, path: str) -> bool:
     return any(pattern.search(collapsed) for pattern in _BARE_NUMBER_PATH_ALLOWLIST)
 
 
-def sanitize_published_snapshot(payload: Any) -> Any:
+def private_key_kind(key: str, path: str) -> str | None:
+    """``name``, ``money``, or ``score`` when this key must not be published.
+
+    ``title`` counts only under ``messages`` or ``tasks`` (chat title or
+    ticket title). ``name`` counts only under ``reported_by`` or ``sender``.
+    Place names and other ``name`` / ``title`` fields are not private keys.
+    """
+    if key in MONEY_KEYS:
+        return "money"
+    if key in SCORE_KEYS:
+        return "score"
+    if key in NAME_KEYS_ANYWHERE:
+        return "name"
+    ancestors = _path_segments(path)[:-1]
+    if key == "title" and ("messages" in ancestors or "tasks" in ancestors):
+        return "name"
+    if key == "name" and ("reported_by" in ancestors or "sender" in ancestors):
+        return "name"
+    return None
+
+
+def sanitize_published_snapshot(payload: Any, *, strip_private_keys: bool = True) -> Any:
     """Deep-copy ``payload``, drop ``room_code``, and redact free text.
 
-    The caller's object is not modified, so in-memory occupancy and KPI
-    calculations can still see the scrape that just finished.
+    Published writes (``latest.json``, ``occupancy.json``) also drop name,
+    money, and score keys. Pass ``strip_private_keys=False`` for the private
+    stats file that is uploaded to Firestore. The caller's object is not
+    modified, so in-memory occupancy and KPI calculations can still see the
+    scrape that just finished.
     """
     cloned = copy.deepcopy(payload)
-    _sanitize_inplace(cloned)
+    _sanitize_inplace(cloned, strip_private_keys=strip_private_keys)
     return cloned
 
 
@@ -494,29 +599,38 @@ def format_violation_report(label: str, violations: Sequence[Violation]) -> str:
     room = sum(1 for item in violations if item.kind == "room_code")
     sensitive = sum(1 for item in violations if item.kind == "sensitive_text")
     bare = sum(1 for item in violations if item.kind == "bare_number")
+    names = sum(1 for item in violations if item.kind == "name")
+    money = sum(1 for item in violations if item.kind == "money")
+    score = sum(1 for item in violations if item.kind == "score")
     lines = [
         f"path: {label}",
         f"room_code_keys: {room}",
         f"sensitive_texts: {sensitive}",
         f"bare_numbers: {bare}",
+        f"name_keys: {names}",
+        f"money_keys: {money}",
+        f"score_keys: {score}",
     ]
     for kind, path, count in collapsed_counts(violations):
         lines.append(f"{kind} {path} {count}")
     return "\n".join(lines) + "\n"
 
 
-def _sanitize_inplace(node: Any, path: str = "$") -> None:
+def _sanitize_inplace(node: Any, path: str = "$", *, strip_private_keys: bool = True) -> None:
     if isinstance(node, dict):
         node.pop("room_code", None)
         for key, value in list(node.items()):
             child = f"{path}.{key}"
+            if strip_private_keys and private_key_kind(key, child):
+                node.pop(key, None)
+                continue
             if isinstance(value, str):
                 node[key] = _redact_field(key, child, value)
             else:
-                _sanitize_inplace(value, child)
+                _sanitize_inplace(value, child, strip_private_keys=strip_private_keys)
     elif isinstance(node, list):
         for index, item in enumerate(node):
-            _sanitize_inplace(item, f"{path}[{index}]")
+            _sanitize_inplace(item, f"{path}[{index}]", strip_private_keys=strip_private_keys)
 
 
 def _redact_field(key: str, path: str, value: str) -> str:
@@ -543,6 +657,9 @@ def _collect_violations(node: Any, path: str, found: List[Violation]) -> None:
             child = f"{path}.{key}"
             if key == "room_code":
                 found.append(Violation("room_code", child))
+            private_kind = private_key_kind(key, child)
+            if private_kind:
+                found.append(Violation(private_kind, child))
             if isinstance(value, str):
                 _collect_string_violations(key, child, value, found)
             else:
@@ -661,3 +778,7 @@ def _merged(spans: Iterable[Span], text: str) -> List[Span]:
 
 def _collapse_indexes(path: str) -> str:
     return re.sub(r"\[\d+\]", "[]", path)
+
+
+def _path_segments(path: str) -> List[str]:
+    return re.findall(r"[A-Za-z_][A-Za-z0-9_]*", path)

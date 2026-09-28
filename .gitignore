@@ -31,3 +31,7 @@ logs/
 
 *.log
 padsplit_scraper/output/latest.json
+# Private earnings, room prices, and manager score. Written locally and
+# uploaded to Firestore. Do not git add these.
+padsplit_scraper/output/stats.json
+padsplit_scraper/output/monthly_history.json

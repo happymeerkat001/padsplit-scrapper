@@ -11,7 +11,11 @@ from unittest.mock import patch
 
 import padsplit_scraper.persist as persist
 from padsplit_scraper.publish_sanitize import (
+    BARE_NUMBER_KEY_ALLOWLIST,
+    MONEY_KEYS,
+    NAME_KEYS_ANYWHERE,
     REDACTION,
+    SCORE_KEYS,
     find_violations,
     format_violation_report,
     redact_sensitive_text,
@@ -313,15 +317,17 @@ class PersistWritePathTests(unittest.TestCase):
         }
         payload = persist._build_stats_payload(
             scraped_at="2026-09-01T00:00:00Z",
-            rooms=[{"id": 1, "base_price": 700}],
+            rooms=[{"id": 1, "base_price": 700, "firstName": "Ada"}],
             properties=[],
             earnings_payload={"results": []},
             kpis=kpis,
             run_status={"state": "ok"},
         )
-        self.assertEqual(find_violations(payload), [])
+        code_kinds = {"room_code", "sensitive_text", "bare_number"}
+        self.assertFalse(any(item.kind in code_kinds for item in find_violations(payload)))
         self.assertEqual(payload["kpis"]["score"], 90)
         self.assertEqual(payload["rooms"][0]["base_price"], 700)
+        self.assertEqual(payload["rooms"][0]["firstName"], "Ada")
         self.assertIn("room_code", kpis["open_ticket_items"][0])
         self.assertIn(DOOR_DIGITS, kpis["open_ticket_items"][0]["details"])
 
@@ -384,14 +390,230 @@ class CheckScriptTests(unittest.TestCase):
         gitignore = (ROOT / ".gitignore").read_text()
         self.assertIn("cron: '17,47 * * * *'", workflow)
         self.assertLess(
+            workflow.index("sanitize_published_snapshot"),
+            workflow.index("check_published_snapshot.py"),
+        )
+        self.assertLess(
             workflow.index("check_published_snapshot.py"),
             workflow.index("git add docs/data/latest.json"),
         )
         self.assertIn("docs/data/occupancy.json", workflow)
+        self.assertIn('Path("docs/data").glob("*.json")', workflow)
+        self.assertIn('["git", "ls-files", "--", "padsplit_scraper/output"]', workflow)
+        self.assertIn("padsplit_scraper/output", workflow)
         self.assertNotIn("latest.private", workflow)
         self.assertNotIn("latest.internal", workflow)
         self.assertIn("padsplit_scraper/output/latest.json", gitignore)
+        self.assertIn("padsplit_scraper/output/stats.json", gitignore)
+        self.assertIn("padsplit_scraper/output/monthly_history.json", gitignore)
         self.assertIn("padsplit_scraper/output/202*.json", gitignore)
+        morning = (ROOT / "run_morning.sh").read_text()
+        afternoon = (ROOT / "run_afternoon.sh").read_text()
+        for script in (morning, afternoon, workflow):
+            self.assertNotIn("padsplit_scraper/output/stats.json", script)
+            self.assertNotIn("padsplit_scraper/output/monthly_history.json", script)
+
+
+NAME_SENTINEL = "TenantExampleName"
+MONEY_SENTINEL = 8800199
+SCORE_SENTINEL = 909091
+EXPECTED_MONEY_KEYS = frozenset(
+    {
+        "gross_revenue",
+        "net_revenue",
+        "payout_amount",
+        "total_payout_amount",
+        "processing_fee",
+        "management_fee",
+        "booking_fee",
+        "gross_adjustments",
+        "monthly_net_revenue",
+        "revenue_per_room",
+        "base_price",
+        "last_room_price",
+        "new_price",
+        "recommended_price",
+        "metro_area_average_price",
+        "price_deviation",
+        "minimumPayment",
+        "balance",
+        "amount_owed",
+        "days_behind",
+        "past_due",
+        "outstanding_balance",
+    }
+)
+EXPECTED_SCORE_KEYS = frozenset(
+    {
+        "score",
+        "base_score",
+        "bonus_points",
+        "penalty_points",
+        "subjective_score",
+        "bonuses",
+        "penalties",
+        "score_history",
+        "avg_score_30d",
+        "mini_score",
+    }
+)
+EXPECTED_NAME_KEYS = frozenset({"firstName", "lastName", "displayName", "room_name"})
+
+
+def _private_key_payload() -> dict:
+    return {
+        "messages": [
+            {
+                "title": NAME_SENTINEL,
+                "occupancy": {
+                    "user": {
+                        "firstName": NAME_SENTINEL,
+                        "lastName": NAME_SENTINEL,
+                        "displayName": NAME_SENTINEL,
+                    }
+                },
+                "sender": {"name": NAME_SENTINEL},
+                "property": {
+                    "address": {"city": {"name": "Dallas"}, "street1": "1 Main St"},
+                    "host": {"firstName": NAME_SENTINEL},
+                },
+                "lastMessage": {"text": "The sink is leaking.", "sender": {"name": NAME_SENTINEL}},
+            }
+        ],
+        "tasks": {
+            "Requests": [
+                {
+                    "title": NAME_SENTINEL,
+                    "room_name": NAME_SENTINEL,
+                    "reported_by": {"name": NAME_SENTINEL, "id": 4},
+                    "details": "Filter replaced",
+                }
+            ]
+        },
+        "catalog": {"title": "House rules"},
+        "room": {"name": "Front room"},
+        "money": {key: MONEY_SENTINEL for key in EXPECTED_MONEY_KEYS},
+        "kpis": {key: SCORE_SENTINEL for key in EXPECTED_SCORE_KEYS},
+    }
+
+
+class PrivateKeyFamilyTests(unittest.TestCase):
+    def test_key_sets_match_the_published_blocklist(self) -> None:
+        self.assertEqual(MONEY_KEYS, EXPECTED_MONEY_KEYS)
+        self.assertEqual(SCORE_KEYS, EXPECTED_SCORE_KEYS)
+        self.assertEqual(NAME_KEYS_ANYWHERE, EXPECTED_NAME_KEYS)
+        for key in (
+            "base_price",
+            "last_room_price",
+            "new_price",
+            "recommended_price",
+            "metro_area_average_price",
+        ):
+            self.assertNotIn(key, BARE_NUMBER_KEY_ALLOWLIST)
+
+    def test_name_keys_fail_and_a_clean_snapshot_passes(self) -> None:
+        raw = _private_key_payload()
+        violations = find_violations(raw)
+        name_paths = [item.path for item in violations if item.kind == "name"]
+        self.assertTrue(name_paths)
+        for key in EXPECTED_NAME_KEYS:
+            self.assertTrue(any(path.endswith("." + key) for path in name_paths), key)
+        self.assertIn("$.messages[0].title", name_paths)
+        self.assertIn("$.tasks.Requests[0].title", name_paths)
+        self.assertIn("$.messages[0].sender.name", name_paths)
+        self.assertIn("$.tasks.Requests[0].reported_by.name", name_paths)
+        self.assertIn("$.messages[0].lastMessage.sender.name", name_paths)
+        self.assertNotIn("$.messages[0].property.address.city.name", name_paths)
+        self.assertNotIn("$.catalog.title", name_paths)
+        self.assertNotIn("$.room.name", name_paths)
+        place_only = {
+            "catalog": {"title": "House rules"},
+            "property": {"address": {"city": {"name": "Dallas"}, "state": {"name": "Texas"}}},
+            "room": {"name": "Front room"},
+        }
+        self.assertEqual(find_violations(place_only), [])
+        cleaned = sanitize_published_snapshot(raw)
+        self.assertEqual(find_violations(cleaned), [])
+        self.assertEqual(cleaned["messages"][0]["property"]["address"]["city"]["name"], "Dallas")
+        self.assertEqual(cleaned["catalog"]["title"], "House rules")
+        self.assertEqual(cleaned["room"]["name"], "Front room")
+        self.assertNotIn("title", cleaned["messages"][0])
+        self.assertNotIn(NAME_SENTINEL, json.dumps(cleaned))
+
+    def test_money_keys_fail_and_a_clean_snapshot_passes(self) -> None:
+        raw = {"earnings": {key: MONEY_SENTINEL for key in EXPECTED_MONEY_KEYS}}
+        violations = find_violations(raw)
+        money_paths = [item.path for item in violations if item.kind == "money"]
+        self.assertEqual(len(money_paths), len(EXPECTED_MONEY_KEYS))
+        for key in EXPECTED_MONEY_KEYS:
+            self.assertIn(f"$.earnings.{key}", money_paths)
+        digit_price = find_violations({"base_price": str(MONEY_SENTINEL)})
+        self.assertTrue(any(item.kind == "money" for item in digit_price))
+        self.assertTrue(any(item.kind == "bare_number" for item in digit_price))
+        cleaned = sanitize_published_snapshot(raw)
+        self.assertEqual(find_violations(cleaned), [])
+        self.assertEqual(cleaned["earnings"], {})
+        self.assertNotIn(str(MONEY_SENTINEL), json.dumps(cleaned))
+        kept = sanitize_published_snapshot(raw, strip_private_keys=False)
+        self.assertEqual(kept["earnings"]["base_price"], MONEY_SENTINEL)
+
+    def test_score_keys_fail_and_a_clean_snapshot_passes(self) -> None:
+        raw = {"kpis": {key: SCORE_SENTINEL for key in EXPECTED_SCORE_KEYS}}
+        violations = find_violations(raw)
+        score_paths = [item.path for item in violations if item.kind == "score"]
+        self.assertEqual(len(score_paths), len(EXPECTED_SCORE_KEYS))
+        for key in EXPECTED_SCORE_KEYS:
+            self.assertIn(f"$.kpis.{key}", score_paths)
+        cleaned = sanitize_published_snapshot(raw)
+        self.assertEqual(find_violations(cleaned), [])
+        self.assertEqual(cleaned["kpis"], {})
+        self.assertNotIn(str(SCORE_SENTINEL), json.dumps(cleaned))
+
+    def test_private_key_report_prints_paths_only(self) -> None:
+        report = format_violation_report("fixture.json", find_violations(_private_key_payload()))
+        self.assertIn("name_keys:", report)
+        self.assertIn("money_keys:", report)
+        self.assertIn("score_keys:", report)
+        self.assertIn("name $.messages[].title", report)
+        self.assertIn("money $.money.base_price", report)
+        self.assertIn("score $.kpis.score", report)
+        for secret in (NAME_SENTINEL, str(MONEY_SENTINEL), str(SCORE_SENTINEL), "Dallas"):
+            self.assertNotIn(secret, report)
+
+    def test_published_writes_strip_private_keys_and_keep_room_labels(self) -> None:
+        raw = {
+            "scraped_at": "2026-09-01T00:00:00Z",
+            "messages": [{"title": NAME_SENTINEL, "lastMessage": {"text": "The sink is leaking."}}],
+            "rooms": [
+                {
+                    "address": "1 Main St",
+                    "room_number": 2,
+                    "firstName": NAME_SENTINEL,
+                    "base_price": MONEY_SENTINEL,
+                    "score": SCORE_SENTINEL,
+                }
+            ],
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = Path(tmp) / "output"
+            docs_dir = Path(tmp) / "docs" / "data"
+            with (
+                patch.object(persist, "OUTPUT_DIR", output_dir),
+                patch.object(persist, "DOCS_DATA_DIR", docs_dir),
+            ):
+                persist._persist_latest_payload(raw, scraped_at="2026-09-01T00:00:00Z")
+                persist._persist_occupancy_payload(raw)
+            local_latest = json.loads((output_dir / "latest.json").read_text())
+            public_latest = json.loads((docs_dir / "latest.json").read_text())
+            occupancy = json.loads((docs_dir / "occupancy.json").read_text())
+        self.assertEqual(local_latest["messages"][0]["title"], NAME_SENTINEL)
+        self.assertEqual(find_violations(public_latest), [])
+        self.assertEqual(find_violations(occupancy), [])
+        self.assertNotIn("title", public_latest["messages"][0])
+        self.assertEqual(occupancy["rooms"][0]["address"], "1 Main St")
+        self.assertEqual(occupancy["rooms"][0]["room_number"], 2)
+        self.assertNotIn("firstName", occupancy["rooms"][0])
+        self.assertIn(NAME_SENTINEL, raw["messages"][0]["title"])
 
 
 class DashboardStillIgnoresRoomCodeTests(unittest.TestCase):
@@ -401,6 +623,10 @@ class DashboardStillIgnoresRoomCodeTests(unittest.TestCase):
             self.assertNotIn("room_code", text)
         self.assertIn("t.details", (ROOT / "docs" / "index.html").read_text())
         self.assertIn("room_number", (ROOT / "docs" / "index.html").read_text())
+        messages = (ROOT / "docs" / "private-messages.html").read_text()
+        self.assertIn("Unknown Tenant", messages)
+        self.assertIn("personLabel", messages)
+        self.assertNotIn("firstName + ' '", messages)
 
 
 if __name__ == "__main__":
