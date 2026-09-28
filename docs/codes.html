@@ -346,6 +346,7 @@
       <div class="header-meta">
         <a href="./index.html" class="header-link">Dashboard</a>
         <a href="./templates.html" class="header-link">Templates</a>
+        <a href="./vendors.html" class="header-link">Vendors</a>
         <a href="./stats.html" class="header-link">Stats</a>
         <button id="signout-btn" class="header-link" style="background:none;border:none;cursor:pointer;padding:0">Sign out</button>
       </div>
@@ -390,12 +391,44 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    // CSS and script are inline. Firebase SDK loads from gstatic. The only
-    // relative URLs are sibling dashboard pages that exist on GitHub Pages.
-    // Hosting publishes this file alone, so drop those links off Pages.
-    if (!location.hostname.endsWith('github.io')) {
-      document.querySelectorAll('a.header-link[href]').forEach((link) => link.remove());
+    // CSS and script are inline. Firebase SDK loads from gstatic. On GitHub
+    // Pages the header keeps the dashboard links. On the Hosting site the
+    // nav points only at the four private pages.
+    const HOSTED_NAV = [
+      ["./codes.html", "Codes"],
+      ["./templates.html", "Templates"],
+      ["./vendors.html", "Vendors"],
+      ["./stats.html", "Stats"]
+    ];
+    function applyHostedNav() {
+      if (location.hostname.endsWith('github.io')) return;
+      document.querySelectorAll('.pages-only').forEach((el) => el.remove());
+      document.querySelectorAll('a[href]').forEach((link) => {
+        if (link.classList.contains('header-link')) return;
+        const href = link.getAttribute('href') || '';
+        const file = href.split('#')[0].split('/').pop();
+        if (file && file.endsWith('.html') && !HOSTED_NAV.some(([item]) => item.slice(2) === file)) {
+          const span = document.createElement('span');
+          span.textContent = link.textContent;
+          link.replaceWith(span);
+        }
+      });
+      const meta = document.querySelector('.header-meta');
+      if (!meta) return;
+      const page = (location.pathname.split('/').pop() || '').split('?')[0];
+      meta.querySelectorAll('a.header-link').forEach((link) => link.remove());
+      const signout = document.getElementById('signout-btn');
+      HOSTED_NAV.forEach(([href, label]) => {
+        if (href.slice(2) === page) return;
+        const a = document.createElement('a');
+        a.className = 'header-link';
+        a.href = href;
+        a.textContent = label;
+        if (signout && signout.parentElement === meta) meta.insertBefore(a, signout);
+        else meta.appendChild(a);
+      });
     }
+    applyHostedNav();
 
     const DEFAULTS = [
       {

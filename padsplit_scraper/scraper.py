@@ -44,6 +44,7 @@ try:
         prior_last_complete_success,
         upload_stats_to_firestore,
     )
+    from padsplit_scraper.private_pages import upload_private_pages
 except ModuleNotFoundError:  # Support the cron entry point: python3 padsplit_scraper/scraper.py
     from persist import (  # type: ignore
         DEGRADED_EXIT_CODE,
@@ -61,6 +62,7 @@ except ModuleNotFoundError:  # Support the cron entry point: python3 padsplit_sc
         prior_last_complete_success,
         upload_stats_to_firestore,
     )
+    from private_pages import upload_private_pages  # type: ignore
 
 
 # ==========================================
@@ -1047,6 +1049,7 @@ def run(messages_only: bool = False, *, isolate_output: bool = False, policy=Non
             )
             _persist_latest_payload(payload, scraped_at=scraped_at, run_status=run_status, write_timestamped=True)
             sys.stderr.write(f"# Saved raw data to {out_path}\n")
+            upload_private_pages(stats_payload=None, updated_at=scraped_at)
             return _ok_outcome(run_status)
 
         fetched_tasks = _run_phase("Fetching tasks...", "tasks", lambda: fetch_tasks(session, creds))
@@ -1136,8 +1139,13 @@ def run(messages_only: bool = False, *, isolate_output: bool = False, policy=Non
                 _write_json(_stats_output_path(), preserved)
                 history_payload = _load_json_if_exists(_monthly_history_path()) or {}
                 upload_stats_to_firestore(preserved, history_payload)
+                upload_private_pages(
+                    stats_payload=preserved,
+                    updated_at=str(preserved.get("scraped_at") or scraped_at),
+                )
                 sys.stderr.write(f"# Degraded stats run; re-used prior stats from {_stats_output_path()}\n")
             else:
+                upload_private_pages(stats_payload=None, updated_at=scraped_at)
                 sys.stderr.write(f"# Degraded stats run; no prior stats fallback at {_stats_output_path()}\n")
 
             sys.stderr.write(f"{exc}\n")
@@ -1177,6 +1185,7 @@ def run(messages_only: bool = False, *, isolate_output: bool = False, policy=Non
         _write_json(_stats_output_path(), stats_payload)
         _write_json(_monthly_history_path(), monthly_history_payload)
         upload_stats_to_firestore(stats_payload, monthly_history_payload)
+        upload_private_pages(stats_payload=stats_payload, updated_at=scraped_at)
         sys.stderr.write(f"# Saved raw data to {out_path}\n")
         return _ok_outcome(run_status)
 

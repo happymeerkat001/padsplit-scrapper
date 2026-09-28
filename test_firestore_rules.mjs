@@ -16,7 +16,7 @@
 import { readFileSync } from "node:fs";
 import { after, before, test } from "node:test";
 import { assertFails, assertSucceeds, initializeTestEnvironment } from "@firebase/rules-unit-testing";
-import { collection, doc, getDoc, getDocs, limit, query, setDoc } from "firebase/firestore";
+import { collection, deleteDoc, doc, getDoc, getDocs, limit, query, setDoc } from "firebase/firestore";
 
 const RULES_PATH = new URL("./firestore.rules", import.meta.url);
 const rules = readFileSync(RULES_PATH, "utf8");
@@ -135,4 +135,61 @@ test("filled Joe slot is allowed and any other uid stays denied", async () => {
   await assertCodesDenied(other);
   await assertFails(setDoc(doc(other.firestore(), "property_codes/example_house"), { front_door: "y" }));
   await assertFails(setDoc(doc(other.firestore(), "notes/codes"), { text: "m" }));
+});
+
+const PRIVATE_PAGE = "private_pages/stats";
+const PRIVATE_PART = "private_pages/stats/parts/0";
+
+async function assertPrivatePagesDenied(context) {
+  await assertFails(readDoc(context, PRIVATE_PAGE));
+  await assertFails(readDoc(context, PRIVATE_PART));
+  await assertFails(readDoc(context, "private_pages/templates"));
+  await assertFails(readDoc(context, "private_pages/vendors"));
+}
+
+async function assertPrivatePagesReadable(context) {
+  await assertSucceeds(readDoc(context, PRIVATE_PAGE));
+  await assertSucceeds(readDoc(context, PRIVATE_PART));
+  await assertSucceeds(readDoc(context, "private_pages/templates"));
+  await assertSucceeds(readDoc(context, "private_pages/vendors"));
+}
+
+async function assertPrivatePagesNotWritable(context) {
+  const db = context.firestore();
+  await assertFails(setDoc(doc(db, PRIVATE_PAGE), { json: "{}" }));
+  await assertFails(setDoc(doc(db, PRIVATE_PART), { index: 0, json: "{}" }));
+  await assertFails(deleteDoc(doc(db, PRIVATE_PAGE)));
+  await assertFails(deleteDoc(doc(db, PRIVATE_PART)));
+}
+
+test("signed-out reads and writes of private_pages are denied", async () => {
+  const db = emptyEnv.unauthenticatedContext();
+  await assertPrivatePagesDenied(db);
+  await assertPrivatePagesNotWritable(db);
+});
+
+test("non-approved uid cannot read or write private_pages", async () => {
+  const other = emptyEnv.authenticatedContext(OTHER_UID);
+  await assertPrivatePagesDenied(other);
+  await assertPrivatePagesNotWritable(other);
+  const emptyJoe = emptyEnv.authenticatedContext(TEST_UID);
+  await assertPrivatePagesDenied(emptyJoe);
+  await assertPrivatePagesNotWritable(emptyJoe);
+});
+
+test("approved codes uid can read private_pages and cannot write them", async () => {
+  const ang = emptyEnv.authenticatedContext(ANG_UID);
+  await assertPrivatePagesReadable(ang);
+  await assertPrivatePagesNotWritable(ang);
+
+  const joe = filledEnv.authenticatedContext(TEST_UID);
+  await assertPrivatePagesReadable(joe);
+  await assertPrivatePagesNotWritable(joe);
+
+  const signedOut = filledEnv.unauthenticatedContext();
+  await assertPrivatePagesDenied(signedOut);
+
+  const other = filledEnv.authenticatedContext(OTHER_UID);
+  await assertPrivatePagesDenied(other);
+  await assertPrivatePagesNotWritable(other);
 });

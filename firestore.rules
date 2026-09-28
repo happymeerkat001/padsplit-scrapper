@@ -55,6 +55,12 @@ service cloud.firestore {
     match /stats/{document} {
       allow read, write: if request.auth.uid == 'TXSU0LOpmDWNBbbv0x3uHHBnZb12';
     }
+    // Scraper Admin SDK writes private_pages. Approved clients may read.
+    // Client creates, updates, and deletes are denied.
+    match /private_pages/{document=**} {
+      allow read: if isApprovedCodesUser();
+      allow write: if false;
+    }
     match /{document=**} {
       allow read, write: if false;
     }
