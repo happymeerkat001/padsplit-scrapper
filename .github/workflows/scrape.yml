@@ -75,6 +75,16 @@ jobs:
           if [ -f docs/data/occupancy.json ]; then
             python padsplit_scraper/check_published_snapshot.py docs/data/occupancy.json
           fi
+          python - <<'PY'
+          import sys
+          from pathlib import Path
+          from padsplit_scraper.check_published_snapshot import find_private_messages_references
+          hits = find_private_messages_references(Path("docs"))
+          if hits:
+              sys.stdout.write("private-messages still published:\n")
+              sys.stdout.write("\n".join(hits) + "\n")
+              raise SystemExit(1)
+          PY
 
       - name: Diagnose token permissions
         run: |

@@ -42,6 +42,34 @@ def check_path(path: Path) -> int:
     return 1 if violations else 0
 
 
+def find_private_messages_references(docs_dir: Path) -> list[str]:
+    """Paths that still publish the private-messages page.
+
+    Hits are ``private-messages.html`` under ``docs_dir``, any file whose
+    path contains ``private-messages``, and any file whose text contains
+    that string. Returns paths only.
+    """
+    hits: list[str] = []
+    page = docs_dir / "private-messages.html"
+    if page.exists():
+        hits.append(page.as_posix())
+    if not docs_dir.is_dir():
+        return hits
+    for path in sorted(item for item in docs_dir.rglob("*") if item.is_file()):
+        posix = path.as_posix()
+        if "private-messages" in posix:
+            if posix not in hits:
+                hits.append(posix)
+            continue
+        try:
+            text = path.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        if "private-messages" in text:
+            hits.append(posix)
+    return hits
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     args = list(sys.argv[1:] if argv is None else argv)
     if not args:
