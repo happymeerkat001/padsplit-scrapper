@@ -73,16 +73,27 @@ class StatsFirestoreTests(unittest.TestCase):
         self.assertIn("match /stats/{document}", RULES)
         self.assertNotIn("TXSU0LOpmDWNBbbv0x3uHHBnZb12", RULES)
         self.assertIn("8jOJNgLoxpfyseZ0RY1PDZ1DXbi2", RULES)
-        stats_block = RULES.split("match /stats/{document}")[1].split("match /{document=**}")[0]
-        self.assertIn("allow read, write: if isApprovedCodesUser()", stats_block)
+        stats_block = RULES.split("match /stats/{document}")[1].split("match /private_pages/{document=**}")[0]
+        self.assertIn("allow read: if isApprovedCodesUser()", stats_block)
+        self.assertIn("allow write: if false", stats_block)
+        self.assertNotIn("allow read, write: if isApprovedCodesUser()", stats_block)
         self.assertNotIn("TXSU0LOpmDWNBbbv0x3uHHBnZb12", stats_block)
         self.assertNotIn("pcJSHjdXeDfOeGRQMgso11Gvlxh2", stats_block)
         self.assertNotIn("8jOJNgLoxpfyseZ0RY1PDZ1DXbi2", stats_block)
         vendors_block = RULES.split("match /vendors/{id}")[1].split("match /templates/{document}")[0]
-        self.assertIn("allow read, write: if isApprovedCodesUser()", vendors_block)
+        self.assertIn("allow read: if isApprovedCodesUser()", vendors_block)
+        self.assertIn("vendorFieldsOk()", vendors_block)
         self.assertNotIn("allow read: if true", vendors_block)
+        self.assertNotIn("allow read, write: if isApprovedCodesUser()", vendors_block)
+        self.assertIn("name.size() < 500", RULES)
+        self.assertIn("keys().hasOnly(['name', 'specialty', 'contact', 'location'])", RULES)
         templates_block = RULES.split("match /templates/{document}")[1].split("match /stats/{document}")[0]
-        self.assertIn("allow read: if true", templates_block)
+        self.assertIn("allow read: if isApprovedCodesUser()", templates_block)
+        self.assertNotIn("allow read: if true", templates_block)
+        self.assertIn(
+            "allow write: if request.auth.uid == '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2'",
+            templates_block,
+        )
         self.assertIn("allow read, write: if false", RULES)
 
     def test_pages_no_longer_publishes_financial_json(self) -> None:

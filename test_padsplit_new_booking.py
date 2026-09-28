@@ -3,12 +3,14 @@
 
 from __future__ import annotations
 
+import contextlib
+import io
 import json
 import tempfile
 import unittest
 from datetime import datetime, timezone
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from padsplit_scraper import new_booking
 
@@ -307,6 +309,61 @@ class NewBookingFirstMessageTests(unittest.TestCase):
                 now=NOW,
             )
         )
+
+    def test_template_loader_uses_admin_sdk_and_skips_without_credentials(self) -> None:
+        snap = MagicMock()
+        snap.exists = True
+        snap.to_dict.return_value = {
+            "n0": "NEW BOOKING REQUEST",
+            "t0": f"NEW BOOKING REQUEST\n\n{HIREVIRE_BODY}",
+        }
+        client = MagicMock()
+        client.collection.return_value.document.return_value.get.return_value = snap
+        loaded = new_booking.load_live_new_booking_template(client=client)
+        self.assertEqual(loaded["text"], HIREVIRE_BODY)
+        client.collection.assert_called_once_with("templates")
+        client.collection.return_value.document.assert_called_once_with("shared")
+
+        stderr = io.StringIO()
+        with patch.object(new_booking, "_shared_templates_client", return_value=None):
+            with contextlib.redirect_stderr(stderr):
+                with self.assertRaises(RuntimeError) as caught:
+                    new_booking.load_live_new_booking_template()
+        self.assertIn("templates_unavailable (no firestore credentials)", stderr.getvalue())
+        self.assertIn("templates_unavailable (no firestore credentials)", str(caught.exception))
+
+        failed = MagicMock()
+        failed.collection.return_value.document.return_value.get.side_effect = RuntimeError("secret")
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            with self.assertRaises(RuntimeError) as caught:
+                new_booking.load_live_new_booking_template(client=failed)
+        self.assertIn("templates_unavailable (RuntimeError)", stderr.getvalue())
+        self.assertNotIn("secret", str(caught.exception))
+        self.assertNotIn("secret", stderr.getvalue())
+
+    def test_empty_template_text_does_not_send(self) -> None:
+        fake = FakeSend()
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            with self.assertRaises(RuntimeError):
+                run_process(
+                    fake,
+                    [occupancy_thread()],
+                    load_template=lambda: {"label": "new booking request", "text": "   ", "index": "0"},
+                )
+        self.assertEqual(fake.sends, [])
+        self.assertIn("templates_unavailable (empty template text)", stderr.getvalue())
+
+    def test_no_firestore_rest_read_of_templates(self) -> None:
+        root = Path(__file__).resolve().parent
+        needle = "https://" + "firestore.googleapis.com"
+        offenders = []
+        for path in (root / "padsplit_scraper").rglob("*.py"):
+            text = path.read_text(encoding="utf-8")
+            if needle in text or "documents/templates" in text:
+                offenders.append(path.relative_to(root).as_posix())
+        self.assertEqual(offenders, [])
 
     def test_template_loader_uses_new_booking_request_card(self) -> None:
         doc = {

@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """Unit tests for water-leak auto-reply. No live sends."""
 
+import contextlib
+import io
 import os
 import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from padsplit_scraper import leak_reply
 from padsplit_scraper import lock_codes
@@ -259,6 +261,34 @@ class BodyTests(unittest.TestCase):
         self.assertIn("Dear All", source)
         self.assertNotIn("Welcome variant", source)
         self.assertEqual(leak_reply.T6_LABEL.lower(), "water leak new tenants")
+
+    def test_t5_uses_admin_sdk_and_skips_without_credentials(self) -> None:
+        snap = MagicMock()
+        snap.exists = True
+        snap.to_dict.return_value = {
+            "n5": "Water leak announcement",
+            "t5": leak_reply.BAKED_T5_TEXT,
+        }
+        client = MagicMock()
+        client.collection.return_value.document.return_value.get.return_value = snap
+        fields = leak_reply.load_shared_template_fields(client=client)
+        self.assertEqual(fields["n5"], "Water leak announcement")
+        self.assertTrue(fields["t5"].strip())
+        client.collection.assert_called_once_with("templates")
+        client.collection.return_value.document.assert_called_once_with("shared")
+        body = leak_reply.format_leak_body(client=client)
+        self.assertIn(leak_reply.QUO_FIELD_PHONE, body)
+        self.assertNotIn("placeholder", body.lower())
+
+        stderr = io.StringIO()
+        with patch.object(new_booking, "_shared_templates_client", return_value=None):
+            with contextlib.redirect_stderr(stderr):
+                skipped = leak_reply.format_leak_body()
+        self.assertIn("templates_unavailable (no firestore credentials)", stderr.getvalue())
+        self.assertIn(leak_reply.QUO_FIELD_PHONE, skipped)
+        self.assertIn(leak_reply.LEAK_PACK_MARKER, skipped)
+        self.assertTrue(skipped.strip())
+        self.assertNotIn("https://" + "firestore.googleapis.com", skipped)
 
     def test_t5_fetch_failure_falls_back_to_baked(self) -> None:
         def boom() -> dict:

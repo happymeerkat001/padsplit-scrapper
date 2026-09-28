@@ -113,9 +113,38 @@ test("owner can read codes and code_versions while the approved list is empty", 
   await assertSucceeds(setDoc(doc(db.firestore(), "property_codes/example_house"), { front_door: "x" }));
 });
 
-test("signed-out read of other notes documents stays allowed", async () => {
+const NOTE_DOCS = ["notes/codes", "notes/templates", "notes/stats", "notes/dashboard", "notes/messages"];
+
+function notesPayload(text) {
+  return { text };
+}
+
+test("signed-out reads and writes of notes are denied", async () => {
   const db = emptyEnv.unauthenticatedContext();
-  await assertSucceeds(readDoc(db, "notes/dashboard"));
+  for (const path of NOTE_DOCS) {
+    await assertFails(readDoc(db, path));
+    await assertFails(setDoc(doc(db.firestore(), path), notesPayload("n")));
+  }
+});
+
+test("approved user can read and save notes, and an oversize note is denied", async () => {
+  const ang = emptyEnv.authenticatedContext(ANG_UID);
+  const joe = filledEnv.authenticatedContext(TEST_UID);
+  for (const path of ["notes/templates", "notes/stats", "notes/codes", "notes/dashboard", "notes/messages"]) {
+    await assertSucceeds(readDoc(ang, path));
+    await assertSucceeds(setDoc(doc(ang.firestore(), path), notesPayload("n"), { merge: true }));
+    await assertSucceeds(readDoc(joe, path));
+    await assertSucceeds(setDoc(doc(joe.firestore(), path), notesPayload(""), { merge: true }));
+  }
+  const oversize = "x".repeat(20000);
+  await assertFails(setDoc(doc(ang.firestore(), "notes/templates"), notesPayload(oversize)));
+  await assertFails(setDoc(doc(ang.firestore(), "notes/stats"), notesPayload(oversize)));
+  await assertSucceeds(setDoc(doc(ang.firestore(), "notes/templates"), notesPayload("x".repeat(19999))));
+  await assertFails(setDoc(doc(ang.firestore(), "notes/stats"), { text: "n", extra: "nope" }));
+
+  const signedOut = emptyEnv.unauthenticatedContext();
+  await assertFails(readDoc(signedOut, "notes/templates"));
+  await assertFails(setDoc(doc(signedOut.firestore(), "notes/stats"), notesPayload("n")));
 });
 
 test("two approved uids can read codes and code_versions", async () => {
@@ -202,17 +231,65 @@ test("approved codes uid can read private_pages and cannot write them", async ()
   await assertPrivatePagesNotWritable(other);
 });
 
-test("templates/shared stays public-read and Ang can still save it", async () => {
+test("templates/shared signed-out read is denied and an approved user can read it", async () => {
   const signedOut = emptyEnv.unauthenticatedContext();
-  await assertSucceeds(readDoc(signedOut, "templates/shared"));
+  await assertFails(readDoc(signedOut, "templates/shared"));
   await assertFails(setDoc(doc(signedOut.firestore(), "templates/shared"), { t0: "x" }));
 
   const ang = emptyEnv.authenticatedContext(ANG_UID);
+  await assertSucceeds(readDoc(ang, "templates/shared"));
   await assertSucceeds(setDoc(doc(ang.firestore(), "templates/shared"), { t0: "x" }));
 
+  const joe = filledEnv.authenticatedContext(TEST_UID);
+  await assertSucceeds(readDoc(joe, "templates/shared"));
+
   const other = emptyEnv.authenticatedContext(OTHER_UID);
-  await assertSucceeds(readDoc(other, "templates/shared"));
+  await assertFails(readDoc(other, "templates/shared"));
   await assertFails(setDoc(doc(other.firestore(), "templates/shared"), { t0: "y" }));
+
+  const filledOut = filledEnv.unauthenticatedContext();
+  await assertFails(readDoc(filledOut, "templates/shared"));
+});
+
+const TASK_COLLECTIONS = ["task_messages", "manual_tasks"];
+
+test("signed-out reads and writes of task_messages and manual_tasks are denied", async () => {
+  const db = emptyEnv.unauthenticatedContext();
+  for (const name of TASK_COLLECTIONS) {
+    await assertFails(readDoc(db, `${name}/example`));
+    await assertFails(getDocs(collection(db.firestore(), name)));
+    await assertFails(setDoc(doc(db.firestore(), `${name}/example`), { text: "x" }));
+    await assertFails(deleteDoc(doc(db.firestore(), `${name}/example`)));
+  }
+});
+
+test("approved user can read task_messages and manual_tasks", async () => {
+  const ang = emptyEnv.authenticatedContext(ANG_UID);
+  for (const name of TASK_COLLECTIONS) {
+    await assertSucceeds(readDoc(ang, `${name}/example`));
+    await assertSucceeds(getDocs(collection(ang.firestore(), name)));
+    await assertSucceeds(setDoc(doc(ang.firestore(), `${name}/example`), { text: "x" }));
+  }
+
+  const joe = filledEnv.authenticatedContext(TEST_UID);
+  await assertSucceeds(readDoc(joe, "task_messages/example"));
+  await assertSucceeds(readDoc(joe, "manual_tasks/example"));
+  await assertSucceeds(setDoc(doc(joe.firestore(), "manual_tasks/joe"), { notes: "x" }));
+
+  const other = emptyEnv.authenticatedContext(OTHER_UID);
+  await assertFails(readDoc(other, "task_messages/example"));
+  await assertFails(readDoc(other, "manual_tasks/example"));
+  await assertFails(setDoc(doc(other.firestore(), "task_messages/example"), { text: "x" }));
+  await assertFails(setDoc(doc(other.firestore(), "manual_tasks/example"), { notes: "x" }));
+
+  const emptyJoe = emptyEnv.authenticatedContext(TEST_UID);
+  await assertFails(readDoc(emptyJoe, "task_messages/example"));
+  await assertFails(readDoc(emptyJoe, "manual_tasks/example"));
+  await assertFails(setDoc(doc(emptyJoe.firestore(), "task_messages/example"), { text: "x" }));
+
+  const signedOutFilled = filledEnv.unauthenticatedContext();
+  await assertFails(readDoc(signedOutFilled, "task_messages/example"));
+  await assertFails(readDoc(signedOutFilled, "manual_tasks/example"));
 });
 
 test("signed-out reads of vendors and stats are denied", async () => {
@@ -226,35 +303,58 @@ test("signed-out reads of vendors and stats are denied", async () => {
   await assertFails(setDoc(doc(db.firestore(), "stats/monthly_history"), { json: "{}" }));
 });
 
-test("approved codes uid can read and write vendors and stats", async () => {
+function vendorPayload(overrides = {}) {
+  return {
+    name: "x",
+    specialty: "",
+    contact: "",
+    location: "",
+    ...overrides,
+  };
+}
+
+test("approved codes uid can read vendors and stats, and cannot write stats", async () => {
   const ang = emptyEnv.authenticatedContext(ANG_UID);
   await assertSucceeds(readDoc(ang, "vendors/example"));
   await assertSucceeds(getDocs(collection(ang.firestore(), "vendors")));
   await assertSucceeds(readDoc(ang, "stats/latest"));
   await assertSucceeds(readDoc(ang, "stats/monthly_history"));
-  await assertSucceeds(setDoc(doc(ang.firestore(), "vendors/example"), {
-    name: "x",
-    specialty: "",
-    contact: "",
-    location: "",
-  }));
-  await assertSucceeds(setDoc(doc(ang.firestore(), "stats/latest"), { json: "{}" }));
-  await assertSucceeds(setDoc(doc(ang.firestore(), "stats/monthly_history"), { json: "{}" }));
+  await assertSucceeds(setDoc(doc(ang.firestore(), "vendors/example"), vendorPayload(), { merge: true }));
+  await assertSucceeds(deleteDoc(doc(ang.firestore(), "vendors/example")));
+  await assertFails(setDoc(doc(ang.firestore(), "stats/latest"), { json: "{}" }));
+  await assertFails(setDoc(doc(ang.firestore(), "stats/monthly_history"), { json: "{}" }));
+  await assertFails(deleteDoc(doc(ang.firestore(), "stats/latest")));
 
   const joe = filledEnv.authenticatedContext(TEST_UID);
   await assertSucceeds(readDoc(joe, "vendors/example"));
   await assertSucceeds(readDoc(joe, "stats/latest"));
   await assertSucceeds(readDoc(joe, "stats/monthly_history"));
-  await assertSucceeds(setDoc(doc(joe.firestore(), "vendors/joe"), { name: "y" }));
+  await assertSucceeds(setDoc(doc(joe.firestore(), "vendors/joe"), vendorPayload({ name: "y" })));
+  await assertFails(setDoc(doc(joe.firestore(), "stats/latest"), { json: "{}" }));
 
   const other = emptyEnv.authenticatedContext(OTHER_UID);
   await assertFails(readDoc(other, "vendors/example"));
   await assertFails(readDoc(other, "stats/latest"));
   await assertFails(readDoc(other, "stats/monthly_history"));
-  await assertFails(setDoc(doc(other.firestore(), "vendors/example"), { name: "z" }));
+  await assertFails(setDoc(doc(other.firestore(), "vendors/example"), vendorPayload({ name: "z" })));
 
   const emptyJoe = emptyEnv.authenticatedContext(TEST_UID);
   await assertFails(readDoc(emptyJoe, "vendors/example"));
   await assertFails(readDoc(emptyJoe, "stats/latest"));
   await assertFails(readDoc(emptyJoe, "stats/monthly_history"));
+});
+
+test("vendor writes reject a bad type, an oversize string, or an unexpected key", async () => {
+  const ang = emptyEnv.authenticatedContext(ANG_UID);
+  const db = ang.firestore();
+  await assertFails(setDoc(doc(db, "vendors/bad-type"), vendorPayload({ name: 1 })));
+  await assertFails(setDoc(doc(db, "vendors/oversize"), vendorPayload({ contact: "x".repeat(500) })));
+  await assertFails(setDoc(doc(db, "vendors/extra"), vendorPayload({ note: "nope" })));
+  await assertSucceeds(setDoc(doc(db, "vendors/ok"), vendorPayload({ name: "x".repeat(499) })));
+  await assertSucceeds(setDoc(doc(db, "vendors/blank"), {
+    name: "",
+    specialty: "",
+    contact: "",
+    location: "",
+  }));
 });

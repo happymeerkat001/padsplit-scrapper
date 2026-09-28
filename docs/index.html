@@ -193,7 +193,14 @@
     .notes-section h2 { margin: 0 0 0.75rem; font-size: 1.2rem; }
     .notes-card { background: linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0)); border: 1px solid rgba(148,163,184,.15); border-radius: 12px; padding: 1rem; }
     .notes-textarea { width: 100%; min-height: 120px; background: rgba(255,255,255,.04); border: 1px solid rgba(148,163,184,.2); border-radius: 8px; color: var(--text); font-family: inherit; font-size: .9rem; line-height: 1.5; padding: .65rem .75rem; resize: vertical; outline: none; box-sizing: border-box; }
+    .notes-save-error { margin: 0.45rem 0 0; color: #f87171; font-size: 0.8rem; }
     .notes-copy-btn svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .hidden { display: none !important; }
+    .task-gate { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin: 0; }
+    .task-gate input { padding: 0.35rem 0.5rem; border-radius: 8px; border: 1px solid rgba(148,163,184,0.35); background: #0b1222; color: var(--text); font: inherit; font-size: 0.85rem; }
+    .task-gate button { padding: 0.35rem 0.75rem; border-radius: 8px; border: none; background: var(--accent); color: #0b1222; font-weight: 600; cursor: pointer; font: inherit; }
+    .task-gate-error { margin: -0.75rem 0 1rem; color: var(--error); font-size: 0.85rem; }
+    .task-section-line { margin: 0 0 1rem; color: var(--muted); }
 
   </style>
 </head>
@@ -209,9 +216,15 @@
       <a href="./codes.html" class="header-link">Codes</a>
       <a href="./stats.html" class="header-link">Stats</a>
       <a href="./vendors.html" class="header-link">Vendors</a>
-      <button id="signout-btn" class="header-link" style="background:none;border:none;cursor:pointer;padding:0">Sign out</button>
+      <form id="task-gate-form" class="task-gate">
+        <input id="task-gate-email" type="email" placeholder="Email" autocomplete="email" />
+        <input id="task-gate-password" type="password" placeholder="Password" autocomplete="current-password" />
+        <button type="submit">Sign in</button>
+      </form>
+      <button id="signout-btn" class="header-link hidden" style="background:none;border:none;cursor:pointer;padding:0">Sign out</button>
     </div>
   </header>
+  <p id="task-gate-error" class="task-gate-error hidden"></p>
 
   <section class="occupancy-split" id="occupancy-section">
     <div class="flex-between">
@@ -244,7 +257,7 @@
     </div>
   </details>
 
-  <section class="notes-section">
+  <section class="notes-section hidden">
     <h2>Notes</h2>
     <div class="notes-card">
       <textarea class="notes-textarea" id="notes-textarea" placeholder="Add shared notes…"></textarea>
@@ -252,6 +265,7 @@
         <button class="notes-save-btn" id="notes-save-btn">Save</button>
         <button class="notes-copy-btn" id="notes-copy-btn" title="Copy notes"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
       </div>
+      <p id="notes-save-error" class="notes-save-error" hidden></p>
     </div>
   </section>
 
@@ -261,7 +275,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import { getFirestore, collection, addDoc, deleteDoc, doc, setDoc, serverTimestamp, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     // Paste your Firebase config keys here (all fields required)
@@ -276,6 +290,33 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
+    function angCodesUid() {
+      return '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2';
+    }
+    function approvedCodesUids() {
+      // Extra approved uids. Same empty list as firestore.rules approvedCodesUids(). Ang keeps angCodesUid().
+      return [];
+    }
+    function isApprovedCodesUser(user) {
+      if (!user || !user.uid) return false;
+      if (user.uid === angCodesUid()) return true;
+      return approvedCodesUids().includes(user.uid);
+    }
+    // begin task-section-state
+    const TASKS_SIGN_IN = "tasks are on the ops pages (sign-in required).";
+    const TASKS_EMPTY = "no open tasks.";
+    const TASKS_LOAD_ERROR = "couldn't load. refresh or sign in again.";
+    function taskSectionMessage(approved, failed, openCount) {
+      if (!approved) return TASKS_SIGN_IN;
+      if (failed) return TASKS_LOAD_ERROR;
+      if (openCount === 0) return TASKS_EMPTY;
+      return "";
+    }
+    // end task-section-state
+    let latestData = null;
+    let tasksApproved = false;
+    let tasksLoadFailed = false;
+    let manualListenerSettled = false;
 
     const REFRESH_SEC = 300;
     let counter = REFRESH_SEC;
@@ -624,74 +665,29 @@
       manualCountBadge.textContent = manualTaskRows.size;
     }
 
-    function render(data) {
-      const root = document.createElement('div');
+    function countScrapedOpen(data) {
+      const tasks = (data && data.tasks) || {};
+      const dismissed = new Set(JSON.parse(localStorage.getItem('dismissed_task_ids') || '[]'));
+      let count = 0;
+      Object.keys(tasks).forEach((bucket) => {
+        if (bucket === 'Complete') return;
+        count += (tasks[bucket] || []).filter((t) => t.id && !dismissed.has(t.id)).length;
+      });
+      return count;
+    }
+
+    function showTasksLine(text) {
+      const container = document.getElementById('content');
+      const line = document.createElement('p');
+      line.className = 'task-section-line';
+      line.textContent = text;
+      container.replaceChildren(line);
       taskMessageContainers.clear();
       manualTasksDiv = null;
       manualCountBadge = null;
+    }
 
-      // Header info
-      const last = document.getElementById('last-updated');
-      last.textContent = `Updated ${fmtDate(data.scraped_at)}`;
-
-      // Tasks
-      const taskSection = document.createElement('div');
-      taskSection.className = 'section';
-      const taskDetails = document.createElement('div');
-      const taskHeader = document.createElement('h2');
-      taskHeader.textContent = 'Tasks';
-      taskDetails.appendChild(taskHeader);
-      const tasks = data.tasks || {};
-      const dismissed = new Set(JSON.parse(localStorage.getItem('dismissed_task_ids') || '[]'));
-      Object.keys(tasks).forEach(bucket => {
-        if (bucket === 'Complete') return;
-        const bucketTasks = tasks[bucket].filter(t => t.id && !dismissed.has(t.id));
-        if (bucketTasks.length === 0) return;
-
-        const bucketDiv = document.createElement('div');
-        bucketDiv.className = 'card';
-        const header = document.createElement('div');
-        header.className = 'flex-between';
-        header.innerHTML = `<h3>${bucket}</h3><span class="badge">${bucketTasks.length}</span>`;
-
-        bucketDiv.appendChild(header);
-        bucketTasks.forEach(t => {
-          const taskId = t.id || `${bucket}-${Math.random().toString(16).slice(2)}`;
-          const row = document.createElement('div');
-          row.style.marginTop = '0.5rem';
-          row.innerHTML = `
-            <div class="flex-between">
-              <div class="status">${t.category || 'Task'}</div>
-              <span class="chip">${t.status || 'unknown'}</span>
-            </div>
-            <div class="muted">${t.details || t.description || 'No details'}</div>
-            <div class="chips">
-              ${t.property_address?.street1 ? `<span class="chip">${t.property_address.street1}</span>` : ''}
-              ${t.location ? `<span class="chip">${t.location}${t.room_number != null ? ` #${t.room_number}` : ''}</span>` : ''}
-            </div>
-          `;
-          row.querySelector('.flex-between').prepend(buildImportantBtn(taskId));
-
-          row.appendChild(buildTaskChatBox(taskId));
-          bucketDiv.appendChild(row);
-          renderTaskMessages(taskId);
-        });
-        taskDetails.appendChild(bucketDiv);
-      });
-
-      const manualBucketDiv = document.createElement('div');
-      manualBucketDiv.className = 'card';
-      manualBucketDiv.innerHTML = `<div class="flex-between"><h3>Manual</h3><span class="badge">0</span></div>`;
-      manualCountBadge = manualBucketDiv.querySelector('.badge');
-      manualTasksDiv = document.createElement('div');
-      manualBucketDiv.appendChild(manualTasksDiv);
-      manualTaskRows.forEach((row, taskId) => {
-        manualTasksDiv.appendChild(row);
-        renderTaskMessages(taskId);
-      });
-      updateManualBadgeCount();
-      taskDetails.appendChild(manualBucketDiv);
-
+    function buildAddCard() {
       const addCard = document.createElement('div');
       addCard.className = 'card';
       addCard.style.marginTop = '1rem';
@@ -741,7 +737,96 @@
           addBtn.disabled = false;
         }
       });
-      taskDetails.appendChild(addCard);
+      return addCard;
+    }
+
+    function render(data) {
+      if (data) latestData = data;
+      if (latestData && latestData.scraped_at) {
+        document.getElementById('last-updated').textContent = `Updated ${fmtDate(latestData.scraped_at)}`;
+      }
+      const gateMessage = taskSectionMessage(tasksApproved, tasksLoadFailed, null);
+      if (gateMessage) {
+        showTasksLine(gateMessage);
+        return;
+      }
+      if (!latestData) return;
+
+      const root = document.createElement('div');
+      taskMessageContainers.clear();
+      manualTasksDiv = null;
+      manualCountBadge = null;
+
+      const taskSection = document.createElement('div');
+      taskSection.className = 'section';
+      const taskDetails = document.createElement('div');
+      const taskHeader = document.createElement('h2');
+      taskHeader.textContent = 'Tasks';
+      taskDetails.appendChild(taskHeader);
+      const scrapedOpen = countScrapedOpen(latestData);
+      if (scrapedOpen === 0 && manualTaskRows.size === 0) {
+        if (!manualListenerSettled) {
+          document.getElementById('content').replaceChildren();
+          manualTasksDiv = null;
+          manualCountBadge = null;
+          return;
+        }
+        showTasksLine(TASKS_EMPTY);
+        document.getElementById('content').appendChild(buildAddCard());
+        return;
+      }
+
+      const tasks = latestData.tasks || {};
+      const dismissed = new Set(JSON.parse(localStorage.getItem('dismissed_task_ids') || '[]'));
+      Object.keys(tasks).forEach(bucket => {
+        if (bucket === 'Complete') return;
+        const bucketTasks = tasks[bucket].filter(t => t.id && !dismissed.has(t.id));
+        if (bucketTasks.length === 0) return;
+
+        const bucketDiv = document.createElement('div');
+        bucketDiv.className = 'card';
+        const header = document.createElement('div');
+        header.className = 'flex-between';
+        header.innerHTML = `<h3>${bucket}</h3><span class="badge">${bucketTasks.length}</span>`;
+
+        bucketDiv.appendChild(header);
+        bucketTasks.forEach(t => {
+          const taskId = t.id || `${bucket}-${Math.random().toString(16).slice(2)}`;
+          const row = document.createElement('div');
+          row.style.marginTop = '0.5rem';
+          row.innerHTML = `
+            <div class="flex-between">
+              <div class="status">${t.category || 'Task'}</div>
+              <span class="chip">${t.status || 'unknown'}</span>
+            </div>
+            <div class="muted">${t.details || t.description || 'No details'}</div>
+            <div class="chips">
+              ${t.property_address?.street1 ? `<span class="chip">${t.property_address.street1}</span>` : ''}
+              ${t.location ? `<span class="chip">${t.location}${t.room_number != null ? ` #${t.room_number}` : ''}</span>` : ''}
+            </div>
+          `;
+          row.querySelector('.flex-between').prepend(buildImportantBtn(taskId));
+
+          row.appendChild(buildTaskChatBox(taskId));
+          bucketDiv.appendChild(row);
+          renderTaskMessages(taskId);
+        });
+        taskDetails.appendChild(bucketDiv);
+      });
+
+      const manualBucketDiv = document.createElement('div');
+      manualBucketDiv.className = 'card';
+      manualBucketDiv.innerHTML = `<div class="flex-between"><h3>Manual</h3><span class="badge">0</span></div>`;
+      manualCountBadge = manualBucketDiv.querySelector('.badge');
+      manualTasksDiv = document.createElement('div');
+      manualBucketDiv.appendChild(manualTasksDiv);
+      manualTaskRows.forEach((row, taskId) => {
+        manualTasksDiv.appendChild(row);
+        renderTaskMessages(taskId);
+      });
+      updateManualBadgeCount();
+      taskDetails.appendChild(manualBucketDiv);
+      taskDetails.appendChild(buildAddCard());
 
       taskSection.appendChild(taskDetails);
       root.appendChild(taskSection);
@@ -855,15 +940,55 @@
       })
       .then(render)
       .catch(err => {
+        if (!tasksApproved || tasksLoadFailed) {
+          showTasksLine(taskSectionMessage(tasksApproved, tasksLoadFailed, 0));
+          return;
+        }
         document.getElementById('content').innerHTML =
           `<div class="card error">Failed to load latest.json (${err.message}).</div>`;
         console.error(err);
       });
 
-    // Real-time Firestore listeners (gated behind auth)
+    // Real-time Firestore listeners. Started only after codes sign-in.
+    let firestoreUnsubs = [];
+    let firestoreStarted = false;
+    let notesClicksBound = false;
+    let notesPad = null;
+    function stopFirestore() {
+      firestoreUnsubs.forEach((unsub) => unsub());
+      firestoreUnsubs = [];
+      firestoreStarted = false;
+      taskMessagesById.clear();
+      taskMessagesByTaskId.clear();
+      taskMessageContainers.forEach((container) => { container.innerHTML = ''; });
+      manualTaskRows.forEach((row) => row.remove());
+      manualTaskRows.clear();
+      if (manualTasksDiv) manualTasksDiv.innerHTML = '';
+      manualListenerSettled = false;
+      updateManualBadgeCount();
+      const ta = document.getElementById('notes-textarea');
+      if (ta) ta.value = '';
+      const notesError = document.getElementById('notes-save-error');
+      if (notesError) {
+        notesError.textContent = '';
+        notesError.hidden = true;
+      }
+      const notes = document.querySelector('.notes-section');
+      if (notes) notes.classList.add('hidden');
+    }
+    function onTaskListenerError() {
+      tasksLoadFailed = true;
+      stopFirestore();
+      showTasksLine(taskSectionMessage(tasksApproved, true, 0));
+    }
     function initFirestore() {
+    if (firestoreStarted) return;
+    firestoreStarted = true;
+    const notesSection = document.querySelector('.notes-section');
+    if (notesSection) notesSection.classList.remove('hidden');
     const q = query(collection(db, "task_messages"), orderBy("created", "asc"));
-    onSnapshot(q, (snapshot) => {
+    firestoreUnsubs.push(onSnapshot(q, (snapshot) => {
+      if (tasksLoadFailed || !tasksApproved) return;
       snapshot.docChanges().forEach(change => {
         if (change.type === "added" || change.type === "modified") {
           upsertTaskMessage(change.doc.id, change.doc.data());
@@ -872,34 +997,94 @@
           removeTaskMessage(change.doc.id);
         }
       });
-    });
+    }, onTaskListenerError));
 
     // ── Notes ────────────────────────────────────────────────────────────────
+    // begin notes-save
+    const NOTES_LIMIT = 20000;
+    const NOTES_TOO_LONG = "too long to save (20,000 character limit). nothing was saved.";
+    const NOTES_SAVE_FAILED = "couldn't save. your text is still here. sign in again and retry.";
+    function bindNotesPad(textarea, errorEl, saveBtn, writeText) {
+      let holdLocal = false;
+      function showError(message) {
+        errorEl.textContent = message;
+        errorEl.hidden = false;
+      }
+      function clearError() {
+        errorEl.textContent = "";
+        errorEl.hidden = true;
+      }
+      function applyServerText(text, active) {
+        if (holdLocal || active) return false;
+        textarea.value = text || "";
+        return true;
+      }
+      function onListenerError() {
+        return false;
+      }
+      async function save() {
+        const text = textarea.value;
+        if (text.length >= NOTES_LIMIT) {
+          holdLocal = true;
+          showError(NOTES_TOO_LONG);
+          saveBtn.textContent = "Save";
+          saveBtn.disabled = false;
+          return;
+        }
+        holdLocal = true;
+        saveBtn.textContent = "Saving…";
+        saveBtn.disabled = true;
+        try {
+          await writeText(text);
+          holdLocal = textarea.value !== text;
+          clearError();
+          saveBtn.textContent = "Saved!";
+        } catch {
+          holdLocal = true;
+          showError(NOTES_SAVE_FAILED);
+          saveBtn.textContent = "Save";
+        }
+        saveBtn.disabled = false;
+        if (saveBtn.textContent === "Saved!") {
+          setTimeout(() => {
+            if (saveBtn.textContent === "Saved!") saveBtn.textContent = "Save";
+          }, 1500);
+        }
+      }
+      return { applyServerText, onListenerError, save };
+    }
+    // end notes-save
     (function initNotes(pageId) {
       const NOTES_DOC = doc(db, 'notes', pageId);
       const ta = document.getElementById('notes-textarea');
       const saveBtn = document.getElementById('notes-save-btn');
       const copyBtn = document.getElementById('notes-copy-btn');
-      onSnapshot(NOTES_DOC, snap => {
-        if (snap.exists() && document.activeElement !== ta)
-          ta.value = snap.data().text || '';
-      });
-      saveBtn.addEventListener('click', async () => {
-        saveBtn.textContent = 'Saving…'; saveBtn.disabled = true;
-        try { await setDoc(NOTES_DOC, { text: ta.value }, { merge: true }); saveBtn.textContent = 'Saved!'; }
-        catch { saveBtn.textContent = 'Error'; }
-        setTimeout(() => { saveBtn.textContent = 'Save'; saveBtn.disabled = false; }, 1500);
-      });
-      copyBtn.addEventListener('click', () => {
-        navigator.clipboard.writeText(ta.value).then(() => {
-          copyBtn.classList.add('copied');
-          setTimeout(() => copyBtn.classList.remove('copied'), 1500);
+      const notesError = document.getElementById('notes-save-error');
+      notesPad = bindNotesPad(ta, notesError, saveBtn, (text) => (
+        setDoc(NOTES_DOC, { text }, { merge: true })
+      ));
+      firestoreUnsubs.push(onSnapshot(NOTES_DOC, (snap) => {
+        const serverText = snap.exists() ? (snap.data().text || '') : '';
+        notesPad.applyServerText(serverText, document.activeElement === ta);
+      }, () => {
+        notesPad.onListenerError();
+      }));
+      if (!notesClicksBound) {
+        notesClicksBound = true;
+        saveBtn.addEventListener('click', () => { notesPad.save(); });
+        copyBtn.addEventListener('click', () => {
+          navigator.clipboard.writeText(ta.value).then(() => {
+            copyBtn.classList.add('copied');
+            setTimeout(() => copyBtn.classList.remove('copied'), 1500);
+          });
         });
-      });
+      }
     })('dashboard');
 
     const manualQ = query(collection(db, "manual_tasks"), orderBy("created", "asc"));
-    onSnapshot(manualQ, (snapshot) => {
+    firestoreUnsubs.push(onSnapshot(manualQ, (snapshot) => {
+      if (tasksLoadFailed || !tasksApproved) return;
+      manualListenerSettled = true;
       snapshot.docChanges().forEach(change => {
         const taskId = change.doc.id;
         if (change.type === "added") {
@@ -921,12 +1106,54 @@
           updateManualBadgeCount();
         }
       });
-    });
+      const openCount = countScrapedOpen(latestData) + manualTaskRows.size;
+      if (!manualTasksDiv || openCount === 0) render(latestData);
+    }, onTaskListenerError));
     } // end initFirestore
 
-    initFirestore();
-
-    document.getElementById('signout-btn').addEventListener('click', () => signOut(auth));
+    const taskGateForm = document.getElementById('task-gate-form');
+    const taskGateError = document.getElementById('task-gate-error');
+    const signoutBtn = document.getElementById('signout-btn');
+    function setTaskGate(mode, message) {
+      const signedIn = mode !== 'signed-out';
+      taskGateForm.classList.toggle('hidden', signedIn);
+      signoutBtn.classList.toggle('hidden', !signedIn);
+      taskGateError.textContent = message || '';
+      taskGateError.classList.toggle('hidden', !message);
+    }
+    taskGateForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('task-gate-email').value.trim();
+      try {
+        await signInWithEmailAndPassword(auth, email, document.getElementById('task-gate-password').value);
+        taskGateError.classList.add('hidden');
+      } catch (err) {
+        console.error('sign-in failed', err && err.code);
+        setTaskGate('signed-out', 'Incorrect email or password.');
+      }
+    });
+    signoutBtn.addEventListener('click', () => signOut(auth));
+    onAuthStateChanged(auth, (user) => {
+      tasksLoadFailed = false;
+      if (!user) {
+        tasksApproved = false;
+        stopFirestore();
+        setTaskGate('signed-out', '');
+        render();
+        return;
+      }
+      if (!isApprovedCodesUser(user)) {
+        tasksApproved = false;
+        stopFirestore();
+        setTaskGate('denied', "this account isn't approved. ask ang to add it.");
+        render();
+        return;
+      }
+      tasksApproved = true;
+      setTaskGate('approved', '');
+      render();
+      initFirestore();
+    });
   </script>
 </body>
 </html>

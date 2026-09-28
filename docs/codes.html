@@ -322,6 +322,7 @@
     .notes-footer { display: flex; align-items: center; justify-content: flex-end; gap: .5rem; margin-top: .5rem; }
     .notes-save-btn { background: none; border: 1px solid rgba(148,163,184,.25); border-radius: 6px; color: var(--muted); cursor: pointer; font-size: .8rem; padding: .3rem .65rem; transition: color .15s, border-color .15s; }
     .notes-save-btn:hover { color: var(--success); border-color: var(--success); }
+    .notes-save-error { margin: 0.45rem 0 0; color: #f87171; font-size: 0.8rem; }
     .notes-copy-btn { background: none; border: 1px solid rgba(148,163,184,.25); border-radius: 6px; color: var(--muted); cursor: pointer; padding: .3rem .5rem; display: flex; align-items: center; transition: color .15s, border-color .15s; }
     .notes-copy-btn:hover { color: var(--accent); border-color: var(--accent); }
     .notes-copy-btn.copied { color: var(--success); border-color: var(--success); }
@@ -376,6 +377,7 @@
           <button class="notes-save-btn" id="notes-save-btn">Save</button>
           <button class="notes-copy-btn" id="notes-copy-btn" title="Copy notes"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
         </div>
+        <p id="notes-save-error" class="notes-save-error" hidden></p>
       </div>
     </section>
     </div>
@@ -1848,6 +1850,67 @@
     const notesTA = document.getElementById('notes-textarea');
     const notesSave = document.getElementById('notes-save-btn');
     const notesCopy = document.getElementById('notes-copy-btn');
+    const notesError = document.getElementById('notes-save-error');
+
+    // begin notes-save
+    const NOTES_LIMIT = 20000;
+    const NOTES_TOO_LONG = "too long to save (20,000 character limit). nothing was saved.";
+    const NOTES_SAVE_FAILED = "couldn't save. your text is still here. sign in again and retry.";
+    function bindNotesPad(textarea, errorEl, saveBtn, writeText) {
+      let holdLocal = false;
+      function showError(message) {
+        errorEl.textContent = message;
+        errorEl.hidden = false;
+      }
+      function clearError() {
+        errorEl.textContent = "";
+        errorEl.hidden = true;
+      }
+      function applyServerText(text, active) {
+        if (holdLocal || active) return false;
+        textarea.value = text || "";
+        return true;
+      }
+      function onListenerError() {
+        return false;
+      }
+      async function save() {
+        const text = textarea.value;
+        if (text.length >= NOTES_LIMIT) {
+          holdLocal = true;
+          showError(NOTES_TOO_LONG);
+          saveBtn.textContent = "Save";
+          saveBtn.disabled = false;
+          return;
+        }
+        holdLocal = true;
+        saveBtn.textContent = "Saving…";
+        saveBtn.disabled = true;
+        try {
+          await writeText(text);
+          holdLocal = textarea.value !== text;
+          clearError();
+          saveBtn.textContent = "Saved!";
+        } catch {
+          holdLocal = true;
+          showError(NOTES_SAVE_FAILED);
+          saveBtn.textContent = "Save";
+        }
+        saveBtn.disabled = false;
+        if (saveBtn.textContent === "Saved!") {
+          setTimeout(() => {
+            if (saveBtn.textContent === "Saved!") saveBtn.textContent = "Save";
+          }, 1500);
+        }
+      }
+      return { applyServerText, onListenerError, save };
+    }
+    // end notes-save
+
+    const notesPad = bindNotesPad(notesTA, notesError, notesSave, (text) => (
+      setDoc(NOTES_DOC, { text }, { merge: true })
+    ));
+
     function stopNotes() {
       if (notesUnsub) {
         notesUnsub();
@@ -1858,18 +1921,13 @@
     function startNotes() {
       if (notesUnsub || !notesTA) return;
       notesUnsub = onSnapshot(NOTES_DOC, (snap) => {
-        if (snap.exists() && document.activeElement !== notesTA)
-          notesTA.value = snap.data().text || '';
+        const serverText = snap.exists() ? (snap.data().text || '') : '';
+        notesPad.applyServerText(serverText, document.activeElement === notesTA);
       }, () => {
-        if (notesTA) notesTA.value = '';
+        notesPad.onListenerError();
       });
     }
-    notesSave.addEventListener('click', async () => {
-      notesSave.textContent = 'Saving…'; notesSave.disabled = true;
-      try { await setDoc(NOTES_DOC, { text: notesTA.value }, { merge: true }); notesSave.textContent = 'Saved!'; }
-      catch { notesSave.textContent = 'Error'; }
-      setTimeout(() => { notesSave.textContent = 'Save'; notesSave.disabled = false; }, 1500);
-    });
+    notesSave.addEventListener('click', () => { notesPad.save(); });
     notesCopy.addEventListener('click', () => {
       navigator.clipboard.writeText(notesTA.value).then(() => {
         notesCopy.classList.add('copied');
