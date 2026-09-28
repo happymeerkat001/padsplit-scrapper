@@ -243,6 +243,47 @@ test("templates/shared signed-out read is denied and an approved user can read i
   await assertFails(readDoc(filledOut, "templates/shared"));
 });
 
+const TASK_COLLECTIONS = ["task_messages", "manual_tasks"];
+
+test("signed-out reads and writes of task_messages and manual_tasks are denied", async () => {
+  const db = emptyEnv.unauthenticatedContext();
+  for (const name of TASK_COLLECTIONS) {
+    await assertFails(readDoc(db, `${name}/example`));
+    await assertFails(getDocs(collection(db.firestore(), name)));
+    await assertFails(setDoc(doc(db.firestore(), `${name}/example`), { text: "x" }));
+    await assertFails(deleteDoc(doc(db.firestore(), `${name}/example`)));
+  }
+});
+
+test("approved user can read task_messages and manual_tasks", async () => {
+  const ang = emptyEnv.authenticatedContext(ANG_UID);
+  for (const name of TASK_COLLECTIONS) {
+    await assertSucceeds(readDoc(ang, `${name}/example`));
+    await assertSucceeds(getDocs(collection(ang.firestore(), name)));
+    await assertSucceeds(setDoc(doc(ang.firestore(), `${name}/example`), { text: "x" }));
+  }
+
+  const joe = filledEnv.authenticatedContext(TEST_UID);
+  await assertSucceeds(readDoc(joe, "task_messages/example"));
+  await assertSucceeds(readDoc(joe, "manual_tasks/example"));
+  await assertSucceeds(setDoc(doc(joe.firestore(), "manual_tasks/joe"), { notes: "x" }));
+
+  const other = emptyEnv.authenticatedContext(OTHER_UID);
+  await assertFails(readDoc(other, "task_messages/example"));
+  await assertFails(readDoc(other, "manual_tasks/example"));
+  await assertFails(setDoc(doc(other.firestore(), "task_messages/example"), { text: "x" }));
+  await assertFails(setDoc(doc(other.firestore(), "manual_tasks/example"), { notes: "x" }));
+
+  const emptyJoe = emptyEnv.authenticatedContext(TEST_UID);
+  await assertFails(readDoc(emptyJoe, "task_messages/example"));
+  await assertFails(readDoc(emptyJoe, "manual_tasks/example"));
+  await assertFails(setDoc(doc(emptyJoe.firestore(), "task_messages/example"), { text: "x" }));
+
+  const signedOutFilled = filledEnv.unauthenticatedContext();
+  await assertFails(readDoc(signedOutFilled, "task_messages/example"));
+  await assertFails(readDoc(signedOutFilled, "manual_tasks/example"));
+});
+
 test("signed-out reads of vendors and stats are denied", async () => {
   const db = emptyEnv.unauthenticatedContext();
   await assertFails(readDoc(db, "vendors/example"));

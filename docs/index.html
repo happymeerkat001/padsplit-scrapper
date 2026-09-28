@@ -195,6 +195,11 @@
     .notes-textarea { width: 100%; min-height: 120px; background: rgba(255,255,255,.04); border: 1px solid rgba(148,163,184,.2); border-radius: 8px; color: var(--text); font-family: inherit; font-size: .9rem; line-height: 1.5; padding: .65rem .75rem; resize: vertical; outline: none; box-sizing: border-box; }
     .notes-save-error { margin: 0.45rem 0 0; color: #f87171; font-size: 0.8rem; }
     .notes-copy-btn svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .hidden { display: none !important; }
+    .task-gate { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin: 0; }
+    .task-gate input { padding: 0.35rem 0.5rem; border-radius: 8px; border: 1px solid rgba(148,163,184,0.35); background: #0b1222; color: var(--text); font: inherit; font-size: 0.85rem; }
+    .task-gate button { padding: 0.35rem 0.75rem; border-radius: 8px; border: none; background: var(--accent); color: #0b1222; font-weight: 600; cursor: pointer; font: inherit; }
+    .task-gate-error { margin: -0.75rem 0 1rem; color: var(--error); font-size: 0.85rem; }
 
   </style>
 </head>
@@ -210,9 +215,15 @@
       <a href="./codes.html" class="header-link">Codes</a>
       <a href="./stats.html" class="header-link">Stats</a>
       <a href="./vendors.html" class="header-link">Vendors</a>
-      <button id="signout-btn" class="header-link" style="background:none;border:none;cursor:pointer;padding:0">Sign out</button>
+      <form id="task-gate-form" class="task-gate">
+        <input id="task-gate-email" type="email" placeholder="Email" autocomplete="email" />
+        <input id="task-gate-password" type="password" placeholder="Password" autocomplete="current-password" />
+        <button type="submit">Sign in</button>
+      </form>
+      <button id="signout-btn" class="header-link hidden" style="background:none;border:none;cursor:pointer;padding:0">Sign out</button>
     </div>
   </header>
+  <p id="task-gate-error" class="task-gate-error hidden"></p>
 
   <section class="occupancy-split" id="occupancy-section">
     <div class="flex-between">
@@ -245,7 +256,7 @@
     </div>
   </details>
 
-  <section class="notes-section">
+  <section class="notes-section hidden">
     <h2>Notes</h2>
     <div class="notes-card">
       <textarea class="notes-textarea" id="notes-textarea" placeholder="Add shared notes…"></textarea>
@@ -263,7 +274,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import { getFirestore, collection, addDoc, deleteDoc, doc, setDoc, serverTimestamp, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     // Paste your Firebase config keys here (all fields required)
@@ -278,6 +289,19 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
+    function angCodesUid() {
+      return '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2';
+    }
+    function approvedCodesUid() {
+      // Joe's slot. Same empty return as firestore.rules approvedCodesUid(). Ang keeps angCodesUid().
+      return '';
+    }
+    function isApprovedCodesUser(user) {
+      if (!user || !user.uid) return false;
+      if (user.uid === angCodesUid()) return true;
+      const joe = approvedCodesUid();
+      return !!(joe && user.uid === joe);
+    }
 
     const REFRESH_SEC = 300;
     let counter = REFRESH_SEC;
@@ -862,10 +886,39 @@
         console.error(err);
       });
 
-    // Real-time Firestore listeners (gated behind auth)
+    // Real-time Firestore listeners. Started only after codes sign-in.
+    let firestoreUnsubs = [];
+    let firestoreStarted = false;
+    let notesClicksBound = false;
+    let notesPad = null;
+    function stopFirestore() {
+      firestoreUnsubs.forEach((unsub) => unsub());
+      firestoreUnsubs = [];
+      firestoreStarted = false;
+      taskMessagesById.clear();
+      taskMessagesByTaskId.clear();
+      taskMessageContainers.forEach((container) => { container.innerHTML = ''; });
+      manualTaskRows.forEach((row) => row.remove());
+      manualTaskRows.clear();
+      if (manualTasksDiv) manualTasksDiv.innerHTML = '';
+      updateManualBadgeCount();
+      const ta = document.getElementById('notes-textarea');
+      if (ta) ta.value = '';
+      const notesError = document.getElementById('notes-save-error');
+      if (notesError) {
+        notesError.textContent = '';
+        notesError.hidden = true;
+      }
+      const notes = document.querySelector('.notes-section');
+      if (notes) notes.classList.add('hidden');
+    }
     function initFirestore() {
+    if (firestoreStarted) return;
+    firestoreStarted = true;
+    const notesSection = document.querySelector('.notes-section');
+    if (notesSection) notesSection.classList.remove('hidden');
     const q = query(collection(db, "task_messages"), orderBy("created", "asc"));
-    onSnapshot(q, (snapshot) => {
+    firestoreUnsubs.push(onSnapshot(q, (snapshot) => {
       snapshot.docChanges().forEach(change => {
         if (change.type === "added" || change.type === "modified") {
           upsertTaskMessage(change.doc.id, change.doc.data());
@@ -874,7 +927,7 @@
           removeTaskMessage(change.doc.id);
         }
       });
-    });
+    }, () => {}));
 
     // ── Notes ────────────────────────────────────────────────────────────────
     // begin notes-save
@@ -937,26 +990,29 @@
       const saveBtn = document.getElementById('notes-save-btn');
       const copyBtn = document.getElementById('notes-copy-btn');
       const notesError = document.getElementById('notes-save-error');
-      const notesPad = bindNotesPad(ta, notesError, saveBtn, (text) => (
+      notesPad = bindNotesPad(ta, notesError, saveBtn, (text) => (
         setDoc(NOTES_DOC, { text }, { merge: true })
       ));
-      onSnapshot(NOTES_DOC, (snap) => {
+      firestoreUnsubs.push(onSnapshot(NOTES_DOC, (snap) => {
         const serverText = snap.exists() ? (snap.data().text || '') : '';
         notesPad.applyServerText(serverText, document.activeElement === ta);
       }, () => {
         notesPad.onListenerError();
-      });
-      saveBtn.addEventListener('click', () => { notesPad.save(); });
-      copyBtn.addEventListener('click', () => {
-        navigator.clipboard.writeText(ta.value).then(() => {
-          copyBtn.classList.add('copied');
-          setTimeout(() => copyBtn.classList.remove('copied'), 1500);
+      }));
+      if (!notesClicksBound) {
+        notesClicksBound = true;
+        saveBtn.addEventListener('click', () => { notesPad.save(); });
+        copyBtn.addEventListener('click', () => {
+          navigator.clipboard.writeText(ta.value).then(() => {
+            copyBtn.classList.add('copied');
+            setTimeout(() => copyBtn.classList.remove('copied'), 1500);
+          });
         });
-      });
+      }
     })('dashboard');
 
     const manualQ = query(collection(db, "manual_tasks"), orderBy("created", "asc"));
-    onSnapshot(manualQ, (snapshot) => {
+    firestoreUnsubs.push(onSnapshot(manualQ, (snapshot) => {
       snapshot.docChanges().forEach(change => {
         const taskId = change.doc.id;
         if (change.type === "added") {
@@ -978,12 +1034,45 @@
           updateManualBadgeCount();
         }
       });
-    });
+    }, () => {}));
     } // end initFirestore
 
-    initFirestore();
-
-    document.getElementById('signout-btn').addEventListener('click', () => signOut(auth));
+    const taskGateForm = document.getElementById('task-gate-form');
+    const taskGateError = document.getElementById('task-gate-error');
+    const signoutBtn = document.getElementById('signout-btn');
+    function setTaskGate(mode, message) {
+      const signedIn = mode !== 'signed-out';
+      taskGateForm.classList.toggle('hidden', signedIn);
+      signoutBtn.classList.toggle('hidden', !signedIn);
+      taskGateError.textContent = message || '';
+      taskGateError.classList.toggle('hidden', !message);
+    }
+    taskGateForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('task-gate-email').value.trim();
+      try {
+        await signInWithEmailAndPassword(auth, email, document.getElementById('task-gate-password').value);
+        taskGateError.classList.add('hidden');
+      } catch (err) {
+        console.error('sign-in failed', err && err.code);
+        setTaskGate('signed-out', 'Incorrect email or password.');
+      }
+    });
+    signoutBtn.addEventListener('click', () => signOut(auth));
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        stopFirestore();
+        setTaskGate('signed-out', '');
+        return;
+      }
+      if (!isApprovedCodesUser(user)) {
+        stopFirestore();
+        setTaskGate('denied', "this account isn't approved. ask ang to add it.");
+        return;
+      }
+      setTaskGate('approved', '');
+      initFirestore();
+    });
   </script>
 </body>
 </html>

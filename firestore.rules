@@ -52,13 +52,14 @@ service cloud.firestore {
       allow delete: if isApprovedCodesUser();
       allow create, update: if isApprovedCodesUser() && notesTextOk();
     }
+    // Dashboard task chat and manual tasks. The page starts these listeners
+    // only after codes sign-in. The status monitor reads task_messages with
+    // the Admin SDK, which bypasses these rules.
     match /task_messages/{id} {
-      allow read: if true;
-      allow write: if request.auth.uid == '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2';
+      allow read, write: if isApprovedCodesUser();
     }
     match /manual_tasks/{id} {
-      allow read: if true;
-      allow write: if request.auth.uid == '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2';
+      allow read, write: if isApprovedCodesUser();
     }
     match /vendors/{id} {
       allow read: if isApprovedCodesUser();
