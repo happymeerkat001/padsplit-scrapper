@@ -326,6 +326,8 @@
     .notes-copy-btn:hover { color: var(--accent); border-color: var(--accent); }
     .notes-copy-btn.copied { color: var(--success); border-color: var(--success); }
     .notes-copy-btn svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    #page-status { color: var(--muted); margin: 0 0 1rem; }
+    #page-nav.hidden, #page-data.hidden, #page-status.hidden { display: none !important; }
   </style>
 </head>
 <body>
@@ -344,14 +346,18 @@
     <header>
       <h1>Property Codes</h1>
       <div class="header-meta">
-        <a href="./index.html" class="header-link">Dashboard</a>
-        <a href="./templates.html" class="header-link">Templates</a>
-        <a href="./vendors.html" class="header-link">Vendors</a>
-        <a href="./stats.html" class="header-link">Stats</a>
+        <nav id="page-nav">
+          <a href="./index.html" class="header-link">Dashboard</a>
+          <a href="./templates.html" class="header-link">Templates</a>
+          <a href="./vendors.html" class="header-link">Vendors</a>
+          <a href="./stats.html" class="header-link">Stats</a>
+        </nav>
         <button id="signout-btn" class="header-link" style="background:none;border:none;cursor:pointer;padding:0">Sign out</button>
       </div>
     </header>
 
+    <p id="page-status" class="hidden"></p>
+    <div id="page-data">
     <div class="card">
       <div class="codes-intro hidden">
         <button type="button" id="page-history-btn" class="history-btn">History</button>
@@ -372,6 +378,7 @@
         </div>
       </div>
     </section>
+    </div>
   </div>
 
   <script type="module">
@@ -393,41 +400,7 @@
 
     // CSS and script are inline. Firebase SDK loads from gstatic. On GitHub
     // Pages the header keeps the dashboard links. On the Hosting site the
-    // nav points only at the four private pages.
-    const HOSTED_NAV = [
-      ["./codes.html", "Codes"],
-      ["./templates.html", "Templates"],
-      ["./vendors.html", "Vendors"],
-      ["./stats.html", "Stats"]
-    ];
-    function applyHostedNav() {
-      if (location.hostname.endsWith('github.io')) return;
-      document.querySelectorAll('.pages-only').forEach((el) => el.remove());
-      document.querySelectorAll('a[href]').forEach((link) => {
-        if (link.classList.contains('header-link')) return;
-        const href = link.getAttribute('href') || '';
-        const file = href.split('#')[0].split('/').pop();
-        if (file && file.endsWith('.html') && !HOSTED_NAV.some(([item]) => item.slice(2) === file)) {
-          const span = document.createElement('span');
-          span.textContent = link.textContent;
-          link.replaceWith(span);
-        }
-      });
-      const meta = document.querySelector('.header-meta');
-      if (!meta) return;
-      const page = (location.pathname.split('/').pop() || '').split('?')[0];
-      meta.querySelectorAll('a.header-link').forEach((link) => link.remove());
-      const signout = document.getElementById('signout-btn');
-      HOSTED_NAV.forEach(([href, label]) => {
-        if (href.slice(2) === page) return;
-        const a = document.createElement('a');
-        a.className = 'header-link';
-        a.href = href;
-        a.textContent = label;
-        if (signout && signout.parentElement === meta) meta.insertBefore(a, signout);
-        else meta.appendChild(a);
-      });
-    }
+    // nav is codes · templates · vendors · stats.
     applyHostedNav();
 
     const DEFAULTS = [
@@ -776,34 +749,95 @@
       if (pageHistoryPanel) pageHistoryPanel.classList.add('hidden');
     }
 
+    // hosted-page-state
+    const HIDE_DATA_WHEN_EMPTY = true;
+    function clearPageRows() {
+      const rowList = document.getElementById('codes-list');
+      if (rowList) rowList.innerHTML = '';
+      const notes = document.querySelector('.notes-section');
+      if (notes) notes.classList.add('hidden');
+      const intro = document.querySelector('.codes-intro');
+      if (intro) intro.classList.add('hidden');
+      const panel = document.getElementById('page-history-panel');
+      if (panel) panel.classList.add('hidden');
+    }
+    function setChrome(mode, message) {
+      const gate = document.getElementById('gate-wrap');
+      const app = document.getElementById('app-wrap');
+      const nav = document.getElementById('page-nav');
+      const data = document.getElementById('page-data');
+      const status = document.getElementById('page-status');
+      const signout = document.getElementById('signout-btn');
+      const signedOut = mode === 'signed-out';
+      if (gate) gate.classList.toggle('hidden', !signedOut);
+      if (app) app.classList.toggle('hidden', signedOut);
+      if (nav) nav.classList.toggle('hidden', signedOut || mode === 'denied');
+      const showData = mode === 'ready' || (mode === 'empty' && !HIDE_DATA_WHEN_EMPTY);
+      if (data) data.classList.toggle('hidden', !showData);
+      if (signout) signout.classList.toggle('hidden', signedOut);
+      if (status) {
+        status.textContent = message || '';
+        status.classList.toggle('hidden', !message);
+      }
+      if (mode !== 'ready') clearPageRows();
+    }
+    function applyHostedNav() {
+      if (location.hostname.endsWith('github.io')) return;
+      document.querySelectorAll('.pages-only').forEach((el) => el.remove());
+      const nav = document.getElementById('page-nav');
+      document.querySelectorAll('a[href]').forEach((link) => {
+        if (nav && nav.contains(link)) return;
+        const href = link.getAttribute('href') || '';
+        const file = href.split('#')[0].split('/').pop();
+        if (file === 'codes.html' || file === 'templates.html' || file === 'vendors.html' || file === 'stats.html') return;
+        const span = document.createElement('span');
+        span.textContent = link.textContent;
+        link.replaceWith(span);
+      });
+      if (!nav) return;
+      const page = (location.pathname.split('/').pop() || '').split('?')[0];
+      nav.replaceChildren();
+      [
+        ['codes.html', 'codes'],
+        ['templates.html', 'templates'],
+        ['vendors.html', 'vendors'],
+        ['stats.html', 'stats']
+      ].forEach(([file, label], index) => {
+        if (index) nav.appendChild(document.createTextNode(' · '));
+        if (file === page) {
+          const span = document.createElement('span');
+          span.textContent = label;
+          nav.appendChild(span);
+        } else {
+          const a = document.createElement('a');
+          a.className = 'header-link';
+          a.href = './' + file;
+          a.textContent = label;
+          nav.appendChild(a);
+        }
+      });
+    }
     function showSignedOut() {
-      gateWrap.classList.remove('hidden');
-      appWrap.classList.add('hidden');
       clearPropertyList();
-      setCodesStatus('');
+      setChrome('signed-out', '');
       gateInput.focus();
     }
-
     function showLoading() {
-      gateWrap.classList.add('hidden');
-      appWrap.classList.remove('hidden');
       clearPropertyList();
-      setCodesStatus('loading codes…');
+      setChrome('loading', 'loading…');
     }
-
     function showNotApproved() {
-      gateWrap.classList.add('hidden');
-      appWrap.classList.remove('hidden');
       clearPropertyList();
-      setCodesStatus("your account isn't approved for codes yet. ask ang.");
+      setChrome('denied', "this account isn't approved. ask ang to add it.");
     }
-
     function showLoadError() {
-      gateWrap.classList.add('hidden');
-      appWrap.classList.remove('hidden');
       clearPropertyList();
-      setCodesStatus("couldn't load codes. refresh, or use the lockout ladder.");
+      setChrome('error', "couldn't load. refresh or sign in again.");
     }
+    function showReady() {
+      setChrome('ready', '');
+    }
+    // hosted-page-state-end
 
     function isPermissionDenied(err) {
       const code = err && err.code ? String(err.code) : '';
@@ -1859,7 +1893,7 @@
       showLoading();
       initCodes(generation).then(() => {
         if (generation !== loadGeneration) return;
-        setCodesStatus('');
+        showReady();
       }).catch((err) => {
         if (generation !== loadGeneration) return;
         console.error('codes load failed', err && err.code);

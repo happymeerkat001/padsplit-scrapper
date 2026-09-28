@@ -401,6 +401,8 @@
       cursor: pointer;
     }
     .hidden { display: none; }
+    #page-status { color: var(--muted); margin: 0 0 1rem; padding: 0 clamp(1rem, 4vw, 2.5rem); }
+    #page-nav.hidden, #page-data.hidden, #page-status.hidden { display: none !important; }
     .shake {
       animation: shake 240ms linear 2;
     }
@@ -429,16 +431,20 @@
   <header>
     <h1>Manager KPI Dashboard</h1>
     <div class="header-meta">
-      <span class="muted" id="updated">Loading...</span>
-      <a href="./index.html#occupancy-section" class="header-link">Live occupancy</a>
-      <a href="./index.html" class="header-link">Dashboard</a>
-      <a href="./templates.html" class="header-link">Templates</a>
-      <a href="./vendors.html" class="header-link">Vendors</a>
-      <a href="./codes.html" class="header-link">Codes</a>
+      <span class="muted" id="updated"></span>
+      <nav id="page-nav">
+        <a href="./index.html#occupancy-section" class="header-link">Live occupancy</a>
+        <a href="./index.html" class="header-link">Dashboard</a>
+        <a href="./templates.html" class="header-link">Templates</a>
+        <a href="./vendors.html" class="header-link">Vendors</a>
+        <a href="./codes.html" class="header-link">Codes</a>
+      </nav>
       <button id="signout-btn" class="header-link" style="background:none;border:none;cursor:pointer;padding:0">Sign out</button>
     </div>
   </header>
 
+  <p id="page-status" class="hidden"></p>
+  <div id="page-data">
   <div class="stack">
     <section class="stale-banner" id="stats-freshness" hidden>
       <strong>Stats are stale.</strong>
@@ -1120,7 +1126,8 @@
           document.getElementById("manual-reset-btn").addEventListener("click", resetManualInputs);
         }
       } catch (err) {
-        document.getElementById("updated").textContent = "Failed to load stats";
+        clearStatsView();
+        throw err;
       }
     }
   </script>
@@ -1135,6 +1142,7 @@
       </div>
     </div>
   </section>
+  </div>
 
   </div>
 
@@ -1155,40 +1163,6 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    const HOSTED_NAV = [
-      ["./codes.html", "Codes"],
-      ["./templates.html", "Templates"],
-      ["./vendors.html", "Vendors"],
-      ["./stats.html", "Stats"]
-    ];
-    function applyHostedNav() {
-      if (location.hostname.endsWith('github.io')) return;
-      document.querySelectorAll('.pages-only').forEach((el) => el.remove());
-      document.querySelectorAll('a[href]').forEach((link) => {
-        if (link.classList.contains('header-link')) return;
-        const href = link.getAttribute('href') || '';
-        const file = href.split('#')[0].split('/').pop();
-        if (file && file.endsWith('.html') && !HOSTED_NAV.some(([item]) => item.slice(2) === file)) {
-          const span = document.createElement('span');
-          span.textContent = link.textContent;
-          link.replaceWith(span);
-        }
-      });
-      const meta = document.querySelector('.header-meta');
-      if (!meta) return;
-      const page = (location.pathname.split('/').pop() || '').split('?')[0];
-      meta.querySelectorAll('a.header-link').forEach((link) => link.remove());
-      const signout = document.getElementById('signout-btn');
-      HOSTED_NAV.forEach(([href, label]) => {
-        if (href.slice(2) === page) return;
-        const a = document.createElement('a');
-        a.className = 'header-link';
-        a.href = href;
-        a.textContent = label;
-        if (signout && signout.parentElement === meta) meta.insertBefore(a, signout);
-        else meta.appendChild(a);
-      });
-    }
     applyHostedNav();
 
     function angCodesUid() {
@@ -1254,51 +1228,170 @@
       });
     });
 
+    // hosted-page-state
+    const HIDE_DATA_WHEN_EMPTY = true;
+    const EMPTY_COPY = "no stats saved yet.";
+    function clearPageRows() {
+      ["bonus-list", "penalty-list", "occupancy-cards", "vacancy-body", "retention-cards", "retention-hist", "flip-body", "tickets-body", "property-body"].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = "";
+      });
+      const updated = document.getElementById("updated");
+      if (updated) updated.textContent = "";
+    }
+    function setChrome(mode, message) {
+      const gate = document.getElementById("gate-wrap");
+      const app = document.getElementById("app-wrap");
+      const nav = document.getElementById("page-nav");
+      const data = document.getElementById("page-data");
+      const status = document.getElementById("page-status");
+      const signout = document.getElementById("signout-btn");
+      const signedOut = mode === "signed-out";
+      if (gate) gate.classList.toggle("hidden", !signedOut);
+      if (app) app.classList.toggle("hidden", signedOut);
+      if (nav) nav.classList.toggle("hidden", signedOut || mode === "denied");
+      const showData = mode === "ready" || (mode === "empty" && !HIDE_DATA_WHEN_EMPTY);
+      if (data) data.classList.toggle("hidden", !showData);
+      if (signout) signout.classList.toggle("hidden", signedOut);
+      if (status) {
+        status.textContent = message || "";
+        status.classList.toggle("hidden", !message);
+      }
+      if (mode !== "ready") clearPageRows();
+    }
+    function applyHostedNav() {
+      if (location.hostname.endsWith('github.io')) return;
+      document.querySelectorAll(".pages-only").forEach((el) => el.remove());
+      const nav = document.getElementById("page-nav");
+      document.querySelectorAll("a[href]").forEach((link) => {
+        if (nav && nav.contains(link)) return;
+        const href = link.getAttribute("href") || "";
+        const file = href.split("#")[0].split("/").pop();
+        if (file === "codes.html" || file === "templates.html" || file === "vendors.html" || file === "stats.html") return;
+        const span = document.createElement("span");
+        span.textContent = link.textContent;
+        link.replaceWith(span);
+      });
+      if (!nav) return;
+      const page = (location.pathname.split("/").pop() || "").split("?")[0];
+      nav.replaceChildren();
+      [
+        ["codes.html", "codes"],
+        ["templates.html", "templates"],
+        ["vendors.html", "vendors"],
+        ["stats.html", "stats"]
+      ].forEach(([file, label], index) => {
+        if (index) nav.appendChild(document.createTextNode(" · "));
+        if (file === page) {
+          const span = document.createElement("span");
+          span.textContent = label;
+          nav.appendChild(span);
+        } else {
+          const a = document.createElement("a");
+          a.className = "header-link";
+          a.href = "./" + file;
+          a.textContent = label;
+          nav.appendChild(a);
+        }
+      });
+    }
+    function assemblePrivatePage(parent, parts) {
+      if (!parent || parent.exists === false) return null;
+      const data = parent.data && typeof parent.data === "object" ? parent.data : {};
+      const count = Number(data.chunk_count || 1);
+      if (!(count > 1)) {
+        const raw = data.json == null ? "" : String(data.json);
+        if (!raw) return null;
+        return JSON.parse(raw);
+      }
+      const slices = [];
+      for (let i = 0; i < count; i++) {
+        const part = parts ? parts[i] : null;
+        const piece = part && part.exists !== false && part.data ? part.data.json : null;
+        if (piece == null || piece === "") {
+          const err = new Error("private page chunk missing");
+          err.code = "chunk-missing";
+          throw err;
+        }
+        slices.push(String(piece));
+      }
+      const raw = slices.join("");
+      if (!raw) return null;
+      return JSON.parse(raw);
+    }
+    function pagePayloadEmpty(value) {
+      return !(value && typeof value === "object" && Object.keys(value).length);
+    }
+    function presentPrivatePage(parent, parts, render) {
+      let value;
+      try {
+        value = assemblePrivatePage(parent, parts);
+      } catch (err) {
+        showLoadError();
+        return;
+      }
+      if (value == null || pagePayloadEmpty(value)) {
+        showEmpty();
+        return;
+      }
+      try {
+        showReady();
+        render(value);
+      } catch (err) {
+        showLoadError();
+      }
+    }
     function showSignedOut() {
-      gateWrap.classList.remove("hidden");
-      appWrap.classList.add("hidden");
       clearStatsView();
       stopNotes();
+      setChrome("signed-out", "");
       gateInput.focus();
     }
-    function showNotApproved() {
-      gateWrap.classList.add("hidden");
-      appWrap.classList.remove("hidden");
+    function showLoading() {
       clearStatsView();
       stopNotes();
-      document.getElementById("updated").textContent = "your account isn't approved for this page yet. ask ang.";
+      setChrome("loading", "loading…");
     }
-    function showApp() {
-      gateWrap.classList.add("hidden");
-      appWrap.classList.remove("hidden");
-      document.getElementById("updated").textContent = "Loading...";
+    function showNotApproved() {
+      clearStatsView();
+      stopNotes();
+      setChrome("denied", "this account isn't approved. ask ang to add it.");
     }
+    function showEmpty() {
+      clearStatsView();
+      stopNotes();
+      setChrome("empty", EMPTY_COPY);
+    }
+    function showLoadError() {
+      clearStatsView();
+      stopNotes();
+      setChrome("error", "couldn't load. refresh or sign in again.");
+    }
+    function showReady() {
+      setChrome("ready", "");
+    }
+    // hosted-page-state-end
 
     async function readPrivatePage(pageId) {
       const snap = await getDoc(doc(db, "private_pages", pageId));
-      if (!snap.exists()) throw new Error("private page missing");
-      const data = snap.data() || {};
-      const count = Number(data.chunk_count || 1);
-      let raw = "";
-      if (count <= 1) {
-        raw = data.json == null ? "" : String(data.json);
-      } else {
-        const parts = [];
+      const parent = { exists: snap.exists(), data: snap.exists() ? (snap.data() || {}) : null };
+      const count = Number((parent.data && parent.data.chunk_count) || 1);
+      const parts = [];
+      if (parent.exists && count > 1) {
         for (let i = 0; i < count; i++) {
           const part = await getDoc(doc(db, "private_pages", pageId, "parts", String(i)));
-          if (!part.exists()) throw new Error("private page chunk missing");
-          parts.push(part.data().json == null ? "" : String(part.data().json));
+          parts.push({ exists: part.exists(), data: part.exists() ? (part.data() || {}) : null });
         }
-        raw = parts.join("");
       }
-      if (!raw) throw new Error("private page empty");
-      return JSON.parse(raw);
+      return { parent, parts };
     }
     async function loadPrivatePage(generation) {
-      const data = await readPrivatePage("stats");
+      const loaded = await readPrivatePage("stats");
       if (generation !== loadGeneration) return;
-      renderStats(data);
-      startNotes();
+      presentPrivatePage(loaded.parent, loaded.parts, (value) => {
+        renderStats(value);
+        startNotes();
+      });
     }
 
     gateForm.addEventListener("submit", async (e) => {
@@ -1328,14 +1421,14 @@
         showNotApproved();
         return;
       }
-      showApp();
+      showLoading();
       loadPrivatePage(generation).catch((err) => {
         if (generation !== loadGeneration) return;
         console.error("stats load failed", err && err.code);
         clearStatsView();
         stopNotes();
         if (isPermissionDenied(err)) showNotApproved();
-        else document.getElementById("updated").textContent = "Failed to load stats";
+        else showLoadError();
       });
     });
     document.getElementById("signout-btn").addEventListener("click", () => signOut(auth));
