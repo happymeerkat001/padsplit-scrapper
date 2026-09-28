@@ -23,6 +23,7 @@ from test_lockout_reply import (
     FAKE_ROOM,
     NOW,
     FakeSend,
+    active_member_rows,
     fake_doc,
     member_thread,
     run_process,
@@ -134,6 +135,7 @@ class PreviewGateTests(NetworkGuard):
                 post_discord=fake.posts.append,
                 send_enabled=True,
                 dry_run=True,
+                members_fn=active_member_rows,
             )
             self.assertFalse(state_path.exists())
         self.assertEqual(sifely, ["ok"])
@@ -187,6 +189,7 @@ class PreviewGateTests(NetworkGuard):
                 post_discord=fake.posts.append,
                 send_enabled=True,
                 dry_run=False,
+                members_fn=active_member_rows,
             )
             first = lockout_reply.process_lockouts([member_thread()], **kwargs)
             second = lockout_reply.process_lockouts([member_thread()], **kwargs)

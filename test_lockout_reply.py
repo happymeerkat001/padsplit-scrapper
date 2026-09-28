@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Unit tests for lockout auto-reply. Fake placeholder codes only. No live sends."""
 
+import io
 import tempfile
 import unittest
+from contextlib import redirect_stderr
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import patch
@@ -10,6 +12,7 @@ from unittest.mock import patch
 from padsplit_scraper import lock_codes
 from padsplit_scraper import lockout_reply
 from padsplit_scraper import new_booking
+from padsplit_scraper import partner_members
 
 
 NOW = datetime(2026, 9, 7, 15, 0, tzinfo=timezone.utc)
@@ -131,6 +134,23 @@ class FakeSend:
         return {"ok": True}
 
 
+def active_member_rows(thread: dict) -> list[dict]:
+    """One not-terminated row for the thread. Tests opt into a confirmed member."""
+    occupancy = thread.get("occupancy") if isinstance(thread.get("occupancy"), dict) else {}
+    room = occupancy.get("room") if isinstance(occupancy.get("room"), dict) else {}
+    room_number = room.get("roomNumber")
+    return [
+        {
+            "occupancy_id": str(occupancy.get("id") or ""),
+            "room_number": "" if room_number in (None, "") else str(room_number),
+            "move_in_date": occupancy.get("moveInDate"),
+            "move_out_date": None,
+            "is_terminated": False,
+            "occupancy_status": "active",
+        }
+    ]
+
+
 def run_process(fake: FakeSend, threads: list[dict], **kwargs):
     with tempfile.TemporaryDirectory() as tmpdir:
         state_path = Path(tmpdir) / "state.json"
@@ -145,6 +165,7 @@ def run_process(fake: FakeSend, threads: list[dict], **kwargs):
             post_discord=fake.posts.append,
             send_enabled=True,
             dry_run=False,
+            members_fn=active_member_rows,
         )
         defaults.update(kwargs)
         rows = lockout_reply.process_lockouts(threads, **defaults)
@@ -407,6 +428,7 @@ class FlowTests(unittest.TestCase):
                 codes_fn=lambda _slug: fake_doc(),
                 post_discord=fake.posts.append,
                 send_enabled=True,
+                members_fn=active_member_rows,
             )
             first = lockout_reply.process_lockouts([member_thread()], **kwargs)
             second = lockout_reply.process_lockouts([member_thread()], **kwargs)
@@ -453,6 +475,7 @@ class FlowTests(unittest.TestCase):
                 codes_fn=lambda _slug: fake_doc(),
                 post_discord=fake.posts.append,
                 send_enabled=True,
+                members_fn=active_member_rows,
             )
             first = lockout_reply.process_lockouts([thread], **kwargs)
             second = lockout_reply.process_lockouts([thread], **kwargs)
@@ -550,6 +573,7 @@ class FlowTests(unittest.TestCase):
                 codes_fn=lambda _slug: fake_doc(),
                 post_discord=fake.posts.append,
                 send_enabled=True,
+                members_fn=active_member_rows,
             )
             first = lockout_reply.process_lockouts([got_it], now=NOW, **kwargs)
             noisy = member_thread(
@@ -578,6 +602,7 @@ class FlowTests(unittest.TestCase):
                 codes_fn=lambda _slug: fake_doc(),
                 post_discord=fake.posts.append,
                 send_enabled=True,
+                members_fn=active_member_rows,
             )
             first = lockout_reply.process_lockouts([got_it], now=NOW, **kwargs)
             fresh = member_thread(host_texts=[DOOR_HOST], follow_up="got it")
@@ -642,6 +667,7 @@ class FlowTests(unittest.TestCase):
                 codes_fn=lambda _slug: fake_doc(),
                 post_discord=fake.posts.append,
                 send_enabled=True,
+                members_fn=active_member_rows,
             )
         self.assertEqual(rows[0]["action"], "already_sent")
         self.assertEqual(fake.sends, [])
@@ -830,6 +856,7 @@ class SafetyGateTests(unittest.TestCase):
                 post_discord=fake.posts.append,
                 send_enabled=True,
                 dry_run=False,
+                members_fn=active_member_rows,
             )
             first = lockout_reply.process_lockouts([thread], now=NOW, **kwargs)
             saved = lockout_reply.load_state(state_path)
@@ -860,6 +887,7 @@ class SafetyGateTests(unittest.TestCase):
                 post_discord=fake.posts.append,
                 send_enabled=True,
                 dry_run=True,
+                members_fn=active_member_rows,
             )
             self.assertFalse(state_path.exists())
         self.assertEqual(rows[0]["action"], "stale")
@@ -938,6 +966,7 @@ class SafetyGateTests(unittest.TestCase):
                 post_discord=fake.posts.append,
                 send_enabled=True,
                 dry_run=False,
+                members_fn=active_member_rows,
             )
             first = lockout_reply.process_lockouts(threads, **kwargs)
             second = lockout_reply.process_lockouts(threads, **kwargs)
@@ -1006,6 +1035,343 @@ class ObtainSifelyTests(unittest.TestCase):
             code, source = lockout_reply.obtain_spanish_moss_back(inbound_messages=inbound)
         self.assertEqual(code, "REDACTED")
         self.assertEqual(source, "inbound_share")
+
+
+def _member_lookup(rows: list[dict]):
+    def lookup(_thread: dict) -> list[dict]:
+        return rows
+
+    return lookup
+
+
+class TerminatedMemberTests(unittest.TestCase):
+    def test_match_by_occupancy_id_sends(self) -> None:
+        fake = FakeSend()
+        thread = member_thread()
+        thread["occupancy"]["id"] = "occ-77"
+        rows = [
+            {
+                "occupancy_id": "other",
+                "room_number": "2",
+                "move_out_date": None,
+                "is_terminated": True,
+                "first_name": "ZqxPat",
+            },
+            {
+                "occupancy_id": "occ-77",
+                "room_number": "9",
+                "move_out_date": "2020-01-01",
+                "is_terminated": False,
+            },
+        ]
+        buf = io.StringIO()
+        with redirect_stderr(buf):
+            result, _ = run_process(fake, [thread], members_fn=_member_lookup(rows))
+        self.assertEqual(result[0]["action"], "sent")
+        self.assertIn("terminated_check: ok", buf.getvalue())
+        self.assertNotIn("ZqxPat", buf.getvalue())
+        self.assertEqual(len(fake.sends), 1)
+
+    def test_match_by_room_ignores_past_move_out(self) -> None:
+        fake = FakeSend()
+        rows = [
+            {
+                "occupancy_id": "old",
+                "room_number": "2",
+                "move_out_date": "2020-01-01",
+                "is_terminated": True,
+            },
+            {
+                "occupancy_id": "new",
+                "room_number": "02",
+                "move_out_date": "2026-12-01",
+                "is_terminated": False,
+            },
+        ]
+        result, _ = run_process(fake, [member_thread()], members_fn=_member_lookup(rows))
+        self.assertEqual(result[0]["action"], "sent")
+        self.assertEqual(len(fake.sends), 1)
+
+    def test_multiple_open_room_rows_skip(self) -> None:
+        fake = FakeSend()
+        rows = [
+            {"occupancy_id": "a", "room_number": "2", "move_out_date": None, "is_terminated": False},
+            {"occupancy_id": "b", "room_number": "2", "move_out_date": None, "is_terminated": False},
+        ]
+        result, _ = run_process(fake, [member_thread()], members_fn=_member_lookup(rows))
+        self.assertEqual(result[0]["action"], "terminated_unconfirmed")
+        self.assertEqual(result[0]["reason"], "multiple matches")
+        self.assertEqual(fake.sends, [])
+
+    def test_no_match_skips(self) -> None:
+        fake = FakeSend()
+        rows = [{"occupancy_id": "a", "room_number": "9", "move_out_date": None, "is_terminated": False}]
+        result, _ = run_process(fake, [member_thread()], members_fn=_member_lookup(rows))
+        self.assertEqual(result[0]["action"], "terminated_unconfirmed")
+        self.assertEqual(result[0]["reason"], "no match")
+        self.assertEqual(fake.sends, [])
+
+    def test_terminated_true_is_terminal_skip(self) -> None:
+        fake = FakeSend()
+        thread = member_thread()
+        thread["occupancy"]["id"] = "occ-77"
+
+        def terminated(_thread: dict) -> list[dict]:
+            return [
+                {
+                    "occupancy_id": "occ-77",
+                    "room_number": "2",
+                    "move_out_date": None,
+                    "is_terminated": True,
+                }
+            ]
+
+        def boom(_thread: dict) -> list[dict]:
+            raise AssertionError("terminated message was retried")
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            state_path = Path(tmpdir) / "state.json"
+            common = dict(
+                now=NOW,
+                state_path=state_path,
+                leftover_compose_tabs=[],
+                close_tabs_fn=fake.close_tabs,
+                send_fn=fake.send,
+                codes_fn=lambda _slug: fake_doc(),
+                post_discord=fake.posts.append,
+                send_enabled=True,
+                dry_run=False,
+            )
+            first = lockout_reply.process_lockouts([thread], members_fn=terminated, **common)
+            saved = lockout_reply.load_state(state_path)
+            second = lockout_reply.process_lockouts([thread], members_fn=boom, **common)
+        self.assertEqual(first[0]["action"], "terminated_unconfirmed")
+        self.assertEqual(first[0]["reason"], "terminated")
+        self.assertEqual(second[0]["action"], "terminated_unconfirmed")
+        self.assertEqual(second[0]["reason"], "terminated already recorded")
+        self.assertEqual(fake.sends, [])
+        self.assertIn("m-lockout", saved["threads"]["chat-leana"]["terminated_message_ids"])
+
+    def test_missing_is_terminated_can_retry(self) -> None:
+        fake = FakeSend()
+        calls = {"n": 0}
+
+        def lookup(thread: dict) -> list[dict]:
+            calls["n"] += 1
+            if calls["n"] == 1:
+                return [
+                    {
+                        "occupancy_id": "",
+                        "room_number": "2",
+                        "move_out_date": None,
+                        "is_terminated": None,
+                    }
+                ]
+            return active_member_rows(thread)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            state_path = Path(tmpdir) / "state.json"
+            common = dict(
+                now=NOW,
+                state_path=state_path,
+                leftover_compose_tabs=[],
+                close_tabs_fn=fake.close_tabs,
+                send_fn=fake.send,
+                codes_fn=lambda _slug: fake_doc(),
+                post_discord=fake.posts.append,
+                send_enabled=True,
+                dry_run=False,
+                members_fn=lookup,
+            )
+            first = lockout_reply.process_lockouts([member_thread()], **common)
+            saved = lockout_reply.load_state(state_path)
+            second = lockout_reply.process_lockouts([member_thread()], **common)
+        self.assertEqual(first[0]["action"], "terminated_unconfirmed")
+        self.assertEqual(first[0]["reason"], "is_terminated missing")
+        self.assertEqual(second[0]["action"], "sent")
+        self.assertEqual(len(fake.sends), 1)
+        self.assertNotIn(
+            "terminated_message_ids",
+            (saved.get("threads") or {}).get("chat-leana") or {},
+        )
+
+    def test_http_error_can_retry(self) -> None:
+        fake = FakeSend()
+        calls = {"n": 0}
+
+        def lookup(thread: dict) -> list[dict]:
+            calls["n"] += 1
+            if calls["n"] == 1:
+                raise partner_members.MembersRequestError("request failed")
+            return active_member_rows(thread)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            state_path = Path(tmpdir) / "state.json"
+            common = dict(
+                now=NOW,
+                state_path=state_path,
+                leftover_compose_tabs=[],
+                close_tabs_fn=fake.close_tabs,
+                send_fn=fake.send,
+                codes_fn=lambda _slug: fake_doc(),
+                post_discord=fake.posts.append,
+                send_enabled=True,
+                dry_run=False,
+                members_fn=lookup,
+            )
+            first = lockout_reply.process_lockouts([member_thread()], **common)
+            saved = lockout_reply.load_state(state_path)
+            second = lockout_reply.process_lockouts([member_thread()], **common)
+        self.assertEqual(first[0]["action"], "terminated_unconfirmed")
+        self.assertEqual(first[0]["reason"], "request failed")
+        self.assertEqual(second[0]["action"], "sent")
+        self.assertEqual(fake.sends[0][0], "chat-leana")
+        self.assertNotIn(
+            "terminated_message_ids",
+            (saved.get("threads") or {}).get("chat-leana") or {},
+        )
+
+    def test_dry_run_without_session_logs_unconfirmed(self) -> None:
+        fake = FakeSend()
+        buf = io.StringIO()
+        with redirect_stderr(buf):
+            rows, _ = run_process(
+                fake,
+                [member_thread()],
+                members_fn=None,
+                session=None,
+                dry_run=True,
+            )
+        self.assertEqual(rows[0]["action"], "terminated_unconfirmed")
+        self.assertEqual(rows[0]["reason"], "no session")
+        self.assertIn("terminated_unconfirmed (no session)", buf.getvalue())
+        self.assertNotIn(FAKE_FRONT, buf.getvalue())
+        self.assertEqual(fake.sends, [])
+
+    def test_live_without_session_does_not_send(self) -> None:
+        fake = FakeSend()
+        rows, _ = run_process(fake, [member_thread()], members_fn=None, session=None)
+        self.assertEqual(rows[0]["action"], "terminated_unconfirmed")
+        self.assertEqual(rows[0]["reason"], "no session")
+        self.assertEqual(fake.sends, [])
+
+    def test_dry_run_terminated_is_not_recorded(self) -> None:
+        fake = FakeSend()
+        thread = member_thread()
+        thread["occupancy"]["id"] = "occ-77"
+
+        def terminated(_thread: dict) -> list[dict]:
+            return [
+                {
+                    "occupancy_id": "occ-77",
+                    "room_number": "2",
+                    "move_out_date": None,
+                    "is_terminated": True,
+                }
+            ]
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            state_path = Path(tmpdir) / "state.json"
+            common = dict(
+                now=NOW,
+                state_path=state_path,
+                leftover_compose_tabs=[],
+                close_tabs_fn=fake.close_tabs,
+                send_fn=fake.send,
+                codes_fn=lambda _slug: fake_doc(),
+                post_discord=fake.posts.append,
+                send_enabled=True,
+            )
+            first = lockout_reply.process_lockouts(
+                [thread], dry_run=True, members_fn=terminated, **common
+            )
+            second = lockout_reply.process_lockouts(
+                [thread], dry_run=False, members_fn=active_member_rows, **common
+            )
+        self.assertEqual(first[0]["action"], "terminated_unconfirmed")
+        self.assertEqual(second[0]["action"], "sent")
+        self.assertEqual(len(fake.sends), 1)
+
+    def test_confirmation_log_has_no_pii(self) -> None:
+        fake = FakeSend()
+
+        def lookup(thread: dict) -> list[dict]:
+            row = active_member_rows(thread)[0]
+            row["first_name"] = "ZqxPat"
+            row["balance"] = "99123.45"
+            row["member_score"] = "88441"
+            return [row]
+
+        buf = io.StringIO()
+        with redirect_stderr(buf):
+            rows, _ = run_process(fake, [member_thread()], members_fn=lookup)
+        log = buf.getvalue()
+        self.assertEqual(rows[0]["action"], "sent")
+        self.assertIn("terminated_check: ok", log)
+        self.assertNotIn("ZqxPat", log)
+        self.assertNotIn("99123.45", log)
+        self.assertNotIn("88441", log)
+        self.assertNotIn(FAKE_FRONT, log)
+
+    def test_explicit_property_id_queries_once(self) -> None:
+        fake = FakeSend()
+        thread = member_thread(street="6623 Leana Avenue")
+        thread["property_id"] = "11"
+        thread["occupancy"]["id"] = "occ-77"
+
+        class Directory:
+            def __init__(self) -> None:
+                self.members: list[str] = []
+
+            def property_index(self) -> list[dict]:
+                raise AssertionError("property index should not be fetched")
+
+            def members_for(self, property_id: str) -> list[dict]:
+                self.members.append(property_id)
+                return [
+                    {
+                        "occupancy_id": "occ-77",
+                        "room_number": "1",
+                        "move_out_date": None,
+                        "is_terminated": False,
+                    }
+                ]
+
+        directory = Directory()
+        rows, _ = run_process(
+            fake,
+            [thread],
+            members_fn=None,
+            session=object(),
+            member_directory=directory,
+        )
+        self.assertEqual(rows[0]["action"], "sent")
+        self.assertEqual(directory.members, ["11"])
+
+    def test_ambiguous_property_without_occupancy_id_skips(self) -> None:
+        fake = FakeSend()
+        thread = member_thread(street="6623 Leana Avenue")
+
+        class Directory:
+            def property_index(self) -> list[dict]:
+                return [
+                    {"id": "11", "street": "6623 Leana Avenue"},
+                    {"id": "12", "street": "6623 Leana Ave"},
+                ]
+
+            def members_for(self, _property_id: str) -> list[dict]:
+                raise AssertionError("ambiguous property must not fetch members")
+
+        rows, _ = run_process(
+            fake,
+            [thread],
+            members_fn=None,
+            session=object(),
+            member_directory=Directory(),
+        )
+        self.assertEqual(rows[0]["action"], "terminated_unconfirmed")
+        self.assertEqual(rows[0]["reason"], "property unknown")
+        self.assertEqual(fake.sends, [])
 
 
 if __name__ == "__main__":
