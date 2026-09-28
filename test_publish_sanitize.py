@@ -10,6 +10,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import padsplit_scraper.persist as persist
+from padsplit_scraper.check_published_snapshot import find_private_messages_references
 from padsplit_scraper.publish_sanitize import (
     REDACTION,
     find_violations,
@@ -392,15 +393,46 @@ class CheckScriptTests(unittest.TestCase):
         self.assertNotIn("latest.internal", workflow)
         self.assertIn("padsplit_scraper/output/latest.json", gitignore)
         self.assertIn("padsplit_scraper/output/202*.json", gitignore)
+        self.assertIn("find_private_messages_references", workflow)
+        self.assertLess(
+            workflow.index("find_private_messages_references"),
+            workflow.index("git add docs/data/latest.json"),
+        )
 
 
 class DashboardStillIgnoresRoomCodeTests(unittest.TestCase):
     def test_pages_do_not_read_room_code(self) -> None:
-        for name in ("index.html", "stats.html", "private-messages.html"):
+        for name in ("index.html", "stats.html"):
             text = (ROOT / "docs" / name).read_text()
             self.assertNotIn("room_code", text)
         self.assertIn("t.details", (ROOT / "docs" / "index.html").read_text())
         self.assertIn("room_number", (ROOT / "docs" / "index.html").read_text())
+
+
+class UnpublishedPrivateMessagesTests(unittest.TestCase):
+    def test_docs_do_not_publish_private_messages(self) -> None:
+        docs = ROOT / "docs"
+        self.assertFalse((docs / "private-messages.html").exists())
+        self.assertEqual(find_private_messages_references(docs), [])
+
+    def test_detector_flags_page_and_content_references(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            docs = Path(tmp) / "docs"
+            docs.mkdir()
+            (docs / "index.html").write_text(
+                '<a href="./private-messages.html">Tenant Messages</a>\n',
+                encoding="utf-8",
+            )
+            (docs / "notes.md").write_text("no link here\n", encoding="utf-8")
+            content_hits = find_private_messages_references(docs)
+            self.assertEqual(content_hits, [(docs / "index.html").as_posix()])
+
+            page = docs / "private-messages.html"
+            page.write_text("<html></html>\n", encoding="utf-8")
+            page_hits = find_private_messages_references(docs)
+            self.assertIn(page.as_posix(), page_hits)
+            self.assertIn((docs / "index.html").as_posix(), page_hits)
+            self.assertNotIn((docs / "notes.md").as_posix(), page_hits)
 
 
 if __name__ == "__main__":
