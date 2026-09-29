@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-09-29T05:49:33Z",
+  "scraped_at": "2026-09-29T13:00:27Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6NDQ2NzIy",
@@ -16705,63 +16705,6 @@
         "is_on_payment_plan": false,
         "payment_plan_end_date": null,
         "payment_plan_reason_note": null
-      },
-      {
-        "id": 475579,
-        "status": "completed",
-        "comment": null,
-        "category": "unclassified",
-        "media": [
-          {
-            "id": 158606,
-            "location": "img/tickets/ticket_475579_0.jpg",
-            "category": "default",
-            "media_type": "image"
-          },
-          {
-            "id": 158607,
-            "location": "img/tickets/ticket_475579_1.jpg",
-            "category": "default",
-            "media_type": "image"
-          }
-        ],
-        "created": "2026-09-16T07:08:16.249176",
-        "modified": "2026-09-21T20:42:29.763253",
-        "room_name": "A-1",
-        "room_number": 1,
-        "room_status": 3,
-        "room_code": "9999",
-        "location": "Doorlock",
-        "details": "Someone broke the keys off the cable to the back door lockbox and took one of the keys and left one that flew out the box because it wasn\u2019t attached to the lockbox anymore. I found it like that when I came back after work.",
-        "property_id": 5735,
-        "property_address": {
-          "id": 7379,
-          "street1": "3414 Pebbleshores Drive",
-          "street2": "",
-          "city": "Dallas",
-          "state": "TX",
-          "zip": "75241",
-          "city_slug": "dallas-tx"
-        },
-        "reported_by": {
-          "id": 904975,
-          "name": "Jb",
-          "role_id": 0,
-          "picture": "img/profiles/user_904975_1f221956-ca3c-4d4c-ba21-11211b3c2755.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-09-21T20:42:29.757598",
-        "rating": null,
-        "extra_data": {
-          "checklist": {}
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
       }
     ]
   },
@@ -16772,13 +16715,13 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-09-29T05:49:33Z",
-    "started_at": "2026-09-29T05:49:20Z",
-    "finished_at": "2026-09-29T05:49:43Z",
+    "run_scraped_at": "2026-09-29T13:00:27Z",
+    "started_at": "2026-09-29T13:00:13Z",
+    "finished_at": "2026-09-29T13:00:36Z",
     "host": "runnervmtr4k5",
     "counts": {
       "messages": 52,
-      "tasks": 15,
+      "tasks": 14,
       "rooms": 62,
       "properties": 9,
       "earnings_properties": 0
@@ -16789,7 +16732,7 @@
     "sources": {
       "messages": {
         "state": "ok",
-        "scraped_at": "2026-09-29T05:49:33Z"
+        "scraped_at": "2026-09-29T13:00:27Z"
       },
       "stats": {
         "state": "degraded",
