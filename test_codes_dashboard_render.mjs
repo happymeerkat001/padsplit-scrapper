@@ -12,7 +12,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)));
 const html = readFileSync(join(root, "docs/codes.html"), "utf8");
 
 const start = html.indexOf("    const OVERDUE_DAYS = {");
-const end = html.indexOf("    async function initCodes()");
+const end = html.indexOf("    async function initCodes");
 if (start < 0 || end < 0 || end <= start) {
   throw new Error("Could not extract codes dashboard renderer");
 }
@@ -103,7 +103,7 @@ function walk(el, visit) {
   el.children.forEach((child) => walk(child, visit));
 }
 
-const tree = api.renderProperty(dummy, {});
+const tree = api.renderProperty(dummy, { lockbox_1: "MAPPED" }, true);
 const inputs = [];
 const texts = [];
 walk(tree, (el) => {
@@ -148,9 +148,46 @@ walk(liveTree, (el) => {
   if (el.tagName === "INPUT" || el.tagName === "TEXTAREA") liveInputs.push(el);
 });
 const liveLockbox = liveInputs.find((el) => el.dataset.field === "lockbox_1");
-assert.equal(liveLockbox.value, "", "live doc missing key is empty, not DEFAULTS");
+assert.equal(liveLockbox.value, "", "live doc missing key is empty, not structure");
 const liveFront = liveInputs.find((el) => el.dataset.field === "front_door");
 assert.equal(liveFront.value, "X");
+
+const poisoned = {
+  slug: "fixture_house",
+  address: "Fixture House",
+  sections: [
+    {
+      label: "Door Codes",
+      fields: [{ key: "front_door", label: "Front", value: "DO_NOT_SHOW" }]
+    },
+    {
+      label: "Rooms",
+      fields: [{ key: "r1", label: "R1", value: "DO_NOT_SHOW" }]
+    },
+    {
+      label: "Lockboxes",
+      fields: [{ key: "lockbox_1", label: "1", value: "DO_NOT_SHOW" }]
+    }
+  ]
+};
+const coldTree = api.renderProperty(poisoned, { front_door: "FROM_DOC", lockbox_1: "FROM_DOC" }, false);
+const coldInputs = [];
+walk(coldTree, (el) => {
+  if (el.tagName === "INPUT" || el.tagName === "TEXTAREA") coldInputs.push(el);
+});
+assert.ok(coldInputs.length > 0);
+for (const el of coldInputs) {
+  assert.equal(el.value, "", "signed-out or missing live doc stays empty");
+}
+const poisonedLive = api.renderProperty(poisoned, { front_door: "FROM_DOC" }, true);
+const poisonedInputs = [];
+walk(poisonedLive, (el) => {
+  if (el.tagName === "INPUT" || el.tagName === "TEXTAREA") poisonedInputs.push(el);
+});
+assert.equal(poisonedInputs.find((el) => el.dataset.field === "front_door").value, "FROM_DOC");
+assert.equal(poisonedInputs.find((el) => el.dataset.field === "lockbox_1").value, "");
+assert.equal(poisonedInputs.find((el) => el.dataset.field === "r1").value, "");
+assert.ok(poisonedInputs.every((el) => el.value !== "DO_NOT_SHOW"));
 
 const room1 = inputs.find((el) => el.dataset.field === "r1");
 assert.notEqual(room1, lockbox1);
@@ -239,6 +276,62 @@ assert.ok(!noRoomsFields.has("lockbox_1"));
 
 const otherSpecial = inputs.find((el) => el.dataset.field === "other_special");
 assert.equal(otherSpecial.tagName, "TEXTAREA");
+
+assert.ok(inputs.every((el) => el.readOnly === true), "fields are read-only until edit");
+const buttons = [];
+walk(tree, (el) => {
+  if (el.tagName === "BUTTON") buttons.push(el);
+});
+const editBtn = buttons.find((el) => el.className.split(/\s+/).includes("edit-btn"));
+const saveBtn = buttons.find((el) => el.className.split(/\s+/).includes("save-btn"));
+assert.equal(editBtn.textContent, "edit fixture house");
+assert.ok(saveBtn.className.split(/\s+/).includes("hidden"), "save stays hidden until edit");
+assert.equal(saveBtn.textContent, "save");
+assert.ok(texts.includes("this updates the record only. it doesn't change the lock."));
+assert.ok(texts.includes("cancel"));
+
+const PIONEER_KEYS_HINT = "record only. automatic lockout replies don't use these yet.";
+const pioneer = {
+  slug: "pioneer_1404",
+  address: "1404 Pioneer Lane",
+  sections: [
+    {
+      label: "Door Codes",
+      fields: [{ key: "front_door", label: "Front", value: "" }]
+    },
+    {
+      label: "Other",
+      fields: [
+        { key: "keys_1", label: "Keys 1", value: "" },
+        { key: "keys_7", label: "Keys 7", value: "" }
+      ]
+    }
+  ]
+};
+const otherHouseWithKeys = {
+  slug: "fixture_house",
+  address: "Fixture House",
+  sections: [
+    {
+      label: "Other",
+      fields: [
+        { key: "keys_1", label: "Keys 1", value: "" },
+        { key: "keys_7", label: "Keys 7", value: "" }
+      ]
+    }
+  ]
+};
+function hintTexts(node) {
+  const found = [];
+  walk(node, (el) => {
+    if (el.textContent === PIONEER_KEYS_HINT) found.push(el.textContent);
+  });
+  return found;
+}
+assert.deepEqual(hintTexts(api.renderProperty(pioneer, {}, true)), [PIONEER_KEYS_HINT]);
+assert.deepEqual(hintTexts(api.renderProperty(otherHouseWithKeys, {}, true)), []);
+assert.deepEqual(hintTexts(tree), []);
+assert.deepEqual(hintTexts(noRoomsTree), []);
 
 console.log("codes dashboard renderer structure ok");
 console.log(`inputs=${inputs.length} no_rooms_inputs=${noRoomsInputs.length}`);
