@@ -4,6 +4,7 @@ Multi-scraper data collection repo for:
 
 - PadSplit rental metrics via GraphQL/REST APIs
 - Thermostat data and thermostat setpoint control via Total Connect Comfort
+- SmartHome / Midea window-AC cloud control (`smarthome/`)
 - Versioned JSON outputs in `padsplit_scraper/output/`, `thermostat/output/`, and `docs/data/`
 
 ## Setup
@@ -19,6 +20,8 @@ PADSPLIT_EMAIL=
 PADSPLIT_PASSWORD=
 TCC_EMAIL=
 TCC_PASSWORD=
+SMARTHOME_EMAIL=
+SMARTHOME_PASSWORD=
 ANTHROPIC_API_KEY=
 DISCORD_WEBHOOK_URL=
 OBSIDIAN_DAILY_NOTES_DIR=
@@ -99,6 +102,12 @@ python3 test_padsplit_scraper.py
 python3 test_thermostat_scraper.py
 python3 test_thermostat_set_temps.py
 python3 test_thermostat_schedule.py
+python3 test_smarthome_watcher.py
+python3 test_smarthome_cloud.py
+python3 test_smarthome_clocks.py
+python3 test_smarthome_intent.py
+python3 test_smarthome_cli.py
+python3 test_smarthome_identity.py
 python3 test_obsidian_daily_digest.py
 python3 test_field_mms.py
 python3 test_seo_monthly.py
@@ -151,6 +160,29 @@ Unload launch agent:
 ```bash
 launchctl unload ~/Library/LaunchAgents/com.padsplit.thermostat-set-temps.plist
 ```
+
+## SmartHome window ACs
+
+Cloud control of Midea/SmartHome window units. The Mac persists one client identity under gitignored `logs/` and reuses it. Cloud error 65027 starts a one-hour cooldown.
+
+```bash
+source venv/bin/activate
+pip install -r smarthome/requirements.txt
+python3 -m smarthome list
+python3 -m smarthome set "window unit name" 72
+python3 -m smarthome off "window unit name"
+python3 -m smarthome status
+python3 -m smarthome.watcher
+```
+
+Watcher: hourly (`StartInterval` 3600). Daytime floor is 74°F (a higher setpoint is left alone). Off 1:00–5:59, back on at 6:00. Discord status digest at 06:00 / 14:00 / 20:00, once per clock hour. Posts go through the Discord bot (`DISCORD_BOT_TOKEN` + `DISCORD_CHANNEL_ID`), the same PadSplit Ops channel used by `post_discord_message`.
+
+```bash
+python3 -m smarthome.watcher write-plist
+launchctl load ~/Library/LaunchAgents/com.padsplit.smarthome.watcher.plist
+```
+
+Label: `com.padsplit.smarthome.watcher`. Logs: `logs/smarthome-watcher.log`.
 
 ## Thermostat Schedule
 
