@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-10-04T00:06:46Z",
+  "scraped_at": "2026-10-04T06:00:05Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzQwMTQ1",
@@ -44,17 +44,17 @@
       },
       "isCancelled": false,
       "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE5NTc0MTc=",
-        "created": "2026-10-03T23:35:42.699637",
-        "text": "Hi Keyonna, I'll review your records and will email Padsplit to put the credit to your account. I'll let you know when it's done.",
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE5NTk2NjI=",
+        "created": "2026-10-04T01:37:20.624233",
+        "text": "ok thank you ",
         "deleted": null,
         "extra": null,
         "messageType": "TEXT",
         "sender": {
-          "pk": 318367,
-          "firstName": "Ang",
-          "lastName": "Li",
-          "displayName": "Joe Manager"
+          "pk": 1075227,
+          "firstName": "Keyonna",
+          "lastName": "Pierre",
+          "displayName": null
         },
         "attachments": [],
         "paymentExtensionStatus": null,
@@ -64,9 +64,35 @@
       "member": {
         "seenAt": "2026-10-03T23:35:42.317645",
         "isPinned": false,
-        "isUnread": false
+        "isUnread": true
       },
       "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE5NTk2NjI=",
+          "text": "ok thank you ",
+          "created": "2026-10-04T01:37:20.624233",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjEwNzUyMjc=",
+            "pk": 1075227,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_1075227_915e3548-e1b8-46d3-a065-0e6653c19447.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1075227_915e3548-e1b8-46d3-a065-0e6653c19447.jpg",
+            "firstName": "Keyonna",
+            "lastName": "Pierre",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 1012469
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
         {
           "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE5NTc0MTc=",
           "text": "Hi Keyonna, I'll review your records and will email Padsplit to put the credit to your account. I'll let you know when it's done.",
@@ -282,32 +308,6 @@
           "messageType": "TEXT",
           "deleted": null,
           "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Joe Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE4NDIyMDU=",
-          "text": "Hi everyone! \ud83d\udc4b\n\nJust a friendly reminder to regularly clean and organize the refrigerator. Please remove any expired, spoiled, or unwanted food to help keep the fridge clean and prevent unpleasant odors and pests.\n\nOnce you\u2019ve cleaned it, please send us a clear photo of the inside of the refrigerator. We\u2019d like to check its condition and available space so we can determine the best way to place the labels/stickers.\n\nThank you for your help in keeping the shared areas clean and organized!",
-          "created": "2026-09-29T00:01:51.399029",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": true,
           "extra": null,
           "sender": {
             "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
@@ -12931,9 +12931,9 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-10-04T00:06:46Z",
-    "started_at": "2026-10-04T00:06:34Z",
-    "finished_at": "2026-10-04T00:06:58Z",
+    "run_scraped_at": "2026-10-04T06:00:05Z",
+    "started_at": "2026-10-04T05:59:57Z",
+    "finished_at": "2026-10-04T06:00:16Z",
     "host": "runnervm8df0l",
     "counts": {
       "messages": 50,
@@ -12948,7 +12948,7 @@
     "sources": {
       "messages": {
         "state": "ok",
-        "scraped_at": "2026-10-04T00:06:46Z"
+        "scraped_at": "2026-10-04T06:00:05Z"
       },
       "stats": {
         "state": "degraded",
