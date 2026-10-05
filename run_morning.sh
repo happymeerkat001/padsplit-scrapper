@@ -71,7 +71,7 @@ set -e
 
 run_phase "thermostat scraper" "$VENV" "$WORKSPACE/thermostat/scraper.py"
 run_phase "PadSplit scraper (messages + tasks)" "$VENV" "$WORKSPACE/padsplit_scraper/scraper.py"
-run_phase "Spanish Moss lock codes" "$VENV" "$WORKSPACE/padsplit_scraper/lock_codes.py"
+run_phase "Sifely lock codes" "$VENV" "$WORKSPACE/padsplit_scraper/lock_codes.py"
 run_phase "Codes history catch-up" "$VENV" "$WORKSPACE/padsplit_scraper/codes_history.py"
 run_phase "PadSplit lockout replies" "$VENV" "$WORKSPACE/padsplit_scraper/lockout_reply.py"
 run_phase "PadSplit leak replies" "$VENV" "$WORKSPACE/padsplit_scraper/leak_reply.py"
