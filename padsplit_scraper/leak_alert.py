@@ -1,16 +1,27 @@
 #!/usr/bin/env python3
-"""Dry-run planner for leak alerts. No HTTP.
+"""Dry-run planner for leak alerts. This module does not place calls or send texts.
 
 Voice entries are shaped for Bland (fixed script, max_duration 1 minute,
-voicemail leave_message) for Don, Tom, and Joe. Joe falls back to one
-private Quo text when Bland is not configured. Tenants are one private
-Quo text each. More than 10 recipients fails closed and stores nothing
-for that incident's tenant list.
+voicemail leave_message) for Don and Tom only. Ang gets one private Quo
+text. Tenants are one private Quo text each. More than 10 tenant numbers
+fails closed and stores nothing for that incident's tenant list.
 
-Numbers come from LEAK_ALERT_DON_E164, LEAK_ALERT_TOM_E164,
-LEAK_ALERT_JOE_E164, and LEAK_TENANT_ROSTER_PATH. This module has no
-default numbers. Plans, logs, and logs/leak_alert_state.json never
-include a phone number or API key.
+Don, Tom, and Ang numbers come only from LEAK_ALERT_DON_E164,
+LEAK_ALERT_TOM_E164, and LEAK_ALERT_ANG_E164. There are no defaults.
+
+Tenant numbers are read at incident time from the host member profile,
+for current members of the leaking house only, using the scraper's
+authenticated session. They stay in memory. Plans, logs, Discord, and
+logs/leak_alert_state.json store a recipient hash, never the number.
+If a profile has no phone, that member is skipped and nothing is sent.
+
+Phone source (host SPA, ShowPhoneToHostStore.loadPhoneNumber):
+  GET {apiUrl}/api/host-member-profile/member-phone/{occupancy.pk}/
+  JSON field phone_number (the SPA camelizes this to phoneNumber).
+occupancy.pk is the numeric id on the host occupant-profile route. Messenger
+threads store it as the GraphQL id MessengerOccupancyType:{pk}. The occupant
+profile GraphQL selection also has user.phone, bundled with email and
+screening fields; this planner does not query that.
 """
 
 from __future__ import annotations
@@ -27,15 +38,20 @@ from typing import Any, Dict, List, Mapping, Optional, Sequence
 try:
     from padsplit_scraper import leak_reply
     from padsplit_scraper import lockout_reply
+    from padsplit_scraper import new_booking
     from padsplit_scraper import runtime
 except ModuleNotFoundError:  # python3 padsplit_scraper/leak_alert.py
     import leak_reply  # type: ignore
     import lockout_reply  # type: ignore
+    import new_booking  # type: ignore
     import runtime  # type: ignore
 
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 STATE_PATH = ROOT_DIR / "logs" / "leak_alert_state.json"
+
+PADSPLIT_API_ROOT = "https://www.padsplit.com/api"
+MEMBER_PHONE_PATH = "/host-member-profile/member-phone/{occupancy_pk}/"
 
 TENANT_CAP = 10
 BLAND_MAX_DURATION_MIN = 1
@@ -47,10 +63,10 @@ QUO_MESSAGES_PATH = "/v1/messages"
 ROLE_ENV = {
     "don": "LEAK_ALERT_DON_E164",
     "tom": "LEAK_ALERT_TOM_E164",
-    "joe": "LEAK_ALERT_JOE_E164",
 }
-VOICE_ROLES = ("don", "tom", "joe")
-PERSIST_STATUSES = {"planned", "standby", "skipped_handled"}
+ANG_ENV = "LEAK_ALERT_ANG_E164"
+VOICE_ROLES = ("don", "tom")
+PERSIST_STATUSES = {"planned", "skipped_handled"}
 
 _E164_LEAK_RE = re.compile(r"\+\d{10,15}")
 _PHONE_CHARS_RE = re.compile(r"\D")
@@ -191,115 +207,158 @@ def save_state(state: Dict[str, Any], path: Path = STATE_PATH) -> None:
     path.write_text(encoded)
 
 
-def _roster_path(environ: Mapping[str, str], explicit: Optional[Path]) -> Optional[Path]:
-    if explicit is not None:
-        return explicit
-    raw = (environ.get("LEAK_TENANT_ROSTER_PATH") or "").strip()
-    if not raw:
-        return None
-    return Path(raw)
-
-
-def load_roster(path: Path) -> Dict[str, List[str]]:
-    """House slug to normalized numbers. Caller must not log the lists."""
-    try:
-        payload = json.loads(path.read_text())
-    except (OSError, ValueError) as exc:
-        raise ValueError("corrupt roster") from exc
-    if not isinstance(payload, dict):
-        raise ValueError("corrupt roster")
-    roster: Dict[str, List[str]] = {}
-    for slug, numbers in payload.items():
-        if not isinstance(numbers, list):
-            continue
-        cleaned: List[str] = []
-        seen: set[str] = set()
-        for item in numbers:
-            normalized = normalize_e164(str(item))
-            if not normalized or normalized in seen:
-                continue
-            seen.add(normalized)
-            cleaned.append(normalized)
-        roster[str(slug)] = cleaned
-    return roster
-
-
-def _voice_status(has_number: bool, bland_ready: bool) -> str:
+def _configured_status(has_number: bool, provider_ready: bool) -> str:
     if not has_number:
         return "missing_number"
-    if not bland_ready:
+    if not provider_ready:
         return "missing_credentials"
     return "planned"
+
+
+def occupancy_pk(thread: Mapping[str, Any]) -> Optional[str]:
+    """Numeric occupancy.pk. Messenger stores it inside the GraphQL id."""
+    occupancy = thread.get("occupancy") if isinstance(thread.get("occupancy"), dict) else {}
+    raw_pk = occupancy.get("pk")
+    if raw_pk is not None and str(raw_pk).strip().isdigit():
+        return str(raw_pk).strip()
+    decoded = new_booking.occupancy_pk_from_gid(occupancy.get("id"))
+    if decoded is None:
+        return None
+    return str(decoded)
+
+
+def phone_from_profile_payload(payload: Any) -> str:
+    """Read phone_number from a member-phone response. Empty when absent."""
+    if isinstance(payload, str):
+        return normalize_e164(payload)
+    if not isinstance(payload, dict):
+        return ""
+    for key in ("phone_number", "phoneNumber", "phone"):
+        raw = payload.get(key)
+        if raw:
+            return normalize_e164(str(raw))
+    return ""
+
+
+def member_phone_fetcher(session: Any, api_root: str = PADSPLIT_API_ROOT):
+    """GET the host member-phone endpoint. The number is not logged."""
+
+    def fetch(pk: str) -> Dict[str, Any]:
+        occupancy_pk_value = str(pk or "").strip()
+        if not occupancy_pk_value.isdigit():
+            return {}
+        url = f"{api_root.rstrip('/')}{MEMBER_PHONE_PATH.format(occupancy_pk=occupancy_pk_value)}"
+        try:
+            response = session.get(url, timeout=30)
+        except Exception:
+            return {}
+        status = int(getattr(response, "status_code", 0) or 0)
+        if status != 200:
+            return {}
+        try:
+            payload = response.json()
+        except Exception:
+            return {}
+        return payload if isinstance(payload, dict) else {}
+
+    return fetch
+
+
+def _house_member_phones(
+    source: Mapping[str, Any],
+    house_threads: Sequence[Mapping[str, Any]],
+    *,
+    now: datetime,
+    profile_fetcher,
+) -> tuple[List[str], int]:
+    """In-memory E.164 list for current members of this house, plus a skip count."""
+    phones: List[str] = []
+    seen_pk: set[str] = set()
+    seen_phone: set[str] = set()
+    missing = 0
+    for thread in house_threads:
+        if not isinstance(thread, dict):
+            continue
+        if not lockout_reply.current_occupant(thread, now):
+            continue
+        if not leak_reply.same_house(source, thread):  # type: ignore[arg-type]
+            continue
+        pk = occupancy_pk(thread)
+        if not pk or pk in seen_pk:
+            if not pk:
+                missing += 1
+            continue
+        seen_pk.add(pk)
+        if profile_fetcher is None:
+            missing += 1
+            continue
+        try:
+            payload = profile_fetcher(pk)
+        except Exception:
+            payload = {}
+        number = phone_from_profile_payload(payload)
+        if not number:
+            missing += 1
+            continue
+        if number in seen_phone:
+            continue
+        seen_phone.add(number)
+        phones.append(number)
+    return phones, missing
 
 
 def _tenant_entries(
     *,
     incident: str,
-    house_slug: str,
     house_label: str,
     room: str,
     ask_photos: bool,
-    environ: Mapping[str, str],
-    roster_path: Optional[Path],
+    phones: Sequence[str],
+    missing: int,
     quo_ready: bool,
 ) -> List[Dict[str, Any]]:
-    path = _roster_path(environ, roster_path)
     base = {
         "kind": "tenant_text",
         "provider": "quo",
         "mode": "private_1to1",
         "path": QUO_MESSAGES_PATH,
     }
-    if path is None or not path.exists():
-        return [{
-            **base,
-            "key": f"tenant:{incident}:missing_roster",
-            "status": "missing_roster",
-        }]
-    try:
-        roster = load_roster(path)
-    except ValueError:
-        return [{
-            **base,
-            "key": f"tenant:{incident}:fail_closed",
-            "status": "fail_closed",
-            "reason": "corrupt_roster",
-        }]
-    if not house_slug:
-        return [{
-            **base,
-            "key": f"tenant:{incident}:fail_closed",
-            "status": "fail_closed",
-            "reason": "house_unknown",
-        }]
-    numbers = roster.get(house_slug) or []
-    if not numbers:
-        return [{
-            **base,
-            "key": f"tenant:{incident}:missing_roster",
-            "status": "missing_roster",
-            "reason": "house_not_in_roster",
-        }]
-    if len(numbers) > TENANT_CAP:
+    if len(phones) > TENANT_CAP:
         return [{
             **base,
             "key": f"tenant:{incident}:fail_closed",
             "status": "fail_closed",
             "reason": "over_cap",
-            "count": len(numbers),
+            "count": len(phones),
             "cap": TENANT_CAP,
         }]
-    body = tenant_body(house_label, room, ask_photos=ask_photos)
-    status = "planned" if quo_ready else "missing_credentials"
     entries: List[Dict[str, Any]] = []
-    for number in numbers:
+    if phones:
+        body = tenant_body(house_label, room, ask_photos=ask_photos)
+        status = "planned" if quo_ready else "missing_credentials"
+        for number in phones:
+            entries.append({
+                **base,
+                **quo_private_spec(body),
+                "key": f"tenant:{incident}:{recipient_hash(number)}",
+                "status": status,
+                "ask_photos": ask_photos,
+                "body": body,
+            })
+    if not phones:
         entries.append({
             **base,
-            **quo_private_spec(body),
-            "key": f"tenant:{incident}:{recipient_hash(number)}",
-            "status": status,
-            "ask_photos": ask_photos,
-            "body": body,
+            "key": f"tenant:{incident}:skipped_no_phone",
+            "status": "skipped_no_phone",
+            "reason": "no_phone",
+        })
+    elif missing:
+        entries.append({
+            **base,
+            "key": f"tenant:{incident}:skipped_no_phone",
+            "status": "skipped_no_phone",
+            "reason": "no_phone",
+            "skipped_count": missing,
         })
     return entries
 
@@ -310,7 +369,7 @@ def build_plan(
     now: datetime,
     house_threads: Sequence[Dict[str, Any]],
     environ: Optional[Mapping[str, str]] = None,
-    roster_path: Optional[Path] = None,
+    profile_fetcher=None,
 ) -> Optional[AlertPlan]:
     """Plan one incident. Returns None when there is no current member leak."""
     env: Mapping[str, str] = environ if environ is not None else os.environ
@@ -348,7 +407,7 @@ def build_plan(
     entries: List[Dict[str, Any]] = []
     number_present = {role: bool(normalize_e164(env.get(ROLE_ENV[role]) or "")) for role in VOICE_ROLES}
     for role in VOICE_ROLES:
-        status = _voice_status(number_present[role], bland_ready)
+        status = _configured_status(number_present[role], bland_ready)
         entries.append({
             "key": f"voice:{incident}:{role}",
             "kind": "voice",
@@ -363,21 +422,13 @@ def build_plan(
             "bland": voice_spec,
         })
 
-    joe_voice_planned = number_present["joe"] and bland_ready
-    if joe_voice_planned:
-        joe_status = "standby"
-    elif not number_present["joe"]:
-        joe_status = "missing_number"
-    elif not quo_ready:
-        joe_status = "missing_credentials"
-    else:
-        joe_status = "planned"
+    ang_present = bool(normalize_e164(env.get(ANG_ENV) or ""))
     entries.append({
-        "key": f"joe:{incident}",
+        "key": f"ang:{incident}",
         "kind": "quo_text",
-        "role": "joe",
-        "status": joe_status,
-        "has_number": number_present["joe"],
+        "role": "ang",
+        "status": _configured_status(ang_present, quo_ready),
+        "has_number": ang_present,
         "script": script,
         **quo_private_spec(script),
     })
@@ -392,15 +443,20 @@ def build_plan(
             "reason": "host leak pack already at house",
         })
     else:
+        phones, missing = _house_member_phones(
+            thread,
+            house_threads,
+            now=now,
+            profile_fetcher=profile_fetcher,
+        )
         entries.extend(
             _tenant_entries(
                 incident=incident,
-                house_slug=house.slug,
                 house_label=house.label,
                 room=room,
                 ask_photos=ask_photos,
-                environ=env,
-                roster_path=roster_path,
+                phones=phones,
+                missing=missing,
                 quo_ready=quo_ready,
             )
         )

@@ -808,7 +808,8 @@ def process_leaks(
     alert_enabled: bool = False,
     alert_state_path: Path = Path(__file__).resolve().parent.parent / "logs" / "leak_alert_state.json",
     alert_environ: Optional[Dict[str, str]] = None,
-    roster_path: Optional[Path] = None,
+    profile_fetcher: Optional[Callable[[str], Any]] = None,
+    session=None,
 ) -> List[Dict[str, Any]]:
     now = now or datetime.now(timezone.utc)
     if state is None:
@@ -866,12 +867,15 @@ def process_leaks(
             except ModuleNotFoundError:
                 import leak_alert  # type: ignore
             try:
+                fetcher = profile_fetcher
+                if fetcher is None and session is not None:
+                    fetcher = leak_alert.member_phone_fetcher(session)
                 plan = leak_alert.build_plan(
                     thread,
                     now=now,
                     house_threads=thread_list,
                     environ=alert_environ,
-                    roster_path=roster_path,
+                    profile_fetcher=fetcher,
                 )
                 if plan is not None:
                     if alert_state is not None and alert_enabled and not dry_run:
@@ -957,7 +961,7 @@ def run(
     fetch_doc: Optional[Callable[[], Dict[str, Any]]] = None,
     alert_state_path: Optional[Path] = None,
     alert_environ: Optional[Dict[str, str]] = None,
-    roster_path: Optional[Path] = None,
+    profile_fetcher: Optional[Callable[[str], Any]] = None,
 ) -> RunResult:
     load_environment()
     current = now or datetime.now(timezone.utc)
@@ -1007,7 +1011,8 @@ def run(
         alert_enabled=alert_live and not dry_run,
         alert_state_path=alert_state_path or leak_alert.STATE_PATH,
         alert_environ=alert_environ,
-        roster_path=roster_path,
+        profile_fetcher=profile_fetcher,
+        session=session,
     )
     if leftover_compose_tabs is None and not dry_run:
         new_booking.save_leftover_compose_tabs(tabs, leftover_tabs_path)
