@@ -804,6 +804,11 @@ def process_leaks(
     dry_run: bool = False,
     fetch_doc: Optional[Callable[[], Dict[str, Any]]] = None,
     leak_body: Optional[str] = None,
+    plan_alerts: bool = False,
+    alert_enabled: bool = False,
+    alert_state_path: Path = Path(__file__).resolve().parent.parent / "logs" / "leak_alert_state.json",
+    alert_environ: Optional[Dict[str, str]] = None,
+    roster_path: Optional[Path] = None,
 ) -> List[Dict[str, Any]]:
     now = now or datetime.now(timezone.utc)
     if state is None:
@@ -821,6 +826,19 @@ def process_leaks(
     results: List[Dict[str, Any]] = []
     body = leak_body if leak_body is not None else format_leak_body(fetch_doc=fetch_doc)
     thread_list = list(threads)
+    alert_state: Optional[Dict[str, Any]] = None
+    alerts_on = (plan_alerts or alert_enabled) and not running_in_ci()
+    if alerts_on and alert_enabled and not dry_run:
+        try:
+            from padsplit_scraper import leak_alert
+        except ModuleNotFoundError:
+            import leak_alert  # type: ignore
+        try:
+            alert_state = leak_alert.load_state(alert_state_path)
+        except leak_alert.CorruptAlertState as exc:
+            _log(f"corrupt alert state; refusing to plan: {exc}")
+            alerts_on = False
+            alert_state = None
 
     for thread in thread_list:
         decision = decide(
@@ -841,6 +859,27 @@ def process_leaks(
         }
         if decision.discord:
             row["discord"] = decision.discord
+
+        if alerts_on and decision.action in {"send", "already_sent"}:
+            try:
+                from padsplit_scraper import leak_alert
+            except ModuleNotFoundError:
+                import leak_alert  # type: ignore
+            try:
+                plan = leak_alert.build_plan(
+                    thread,
+                    now=now,
+                    house_threads=thread_list,
+                    environ=alert_environ,
+                    roster_path=roster_path,
+                )
+                if plan is not None:
+                    if alert_state is not None and alert_enabled and not dry_run:
+                        row["alerts"] = leak_alert.persist_plan(plan, alert_state, now=now)
+                    else:
+                        row["alerts"] = plan.entries
+            except Exception as exc:
+                _log(f"alert plan failed; continuing: {type(exc).__name__}")
 
         if decision.action != "send":
             results.append(row)
@@ -890,6 +929,12 @@ def process_leaks(
 
     if not dry_run:
         save_state(state, state_path)
+    if alert_state is not None and alert_enabled and not dry_run:
+        try:
+            from padsplit_scraper import leak_alert
+        except ModuleNotFoundError:
+            import leak_alert  # type: ignore
+        leak_alert.save_state(alert_state, alert_state_path)
     return results
 
 
@@ -910,13 +955,23 @@ def run(
     session=None,
     creds: Optional[Dict[str, str]] = None,
     fetch_doc: Optional[Callable[[], Dict[str, Any]]] = None,
+    alert_state_path: Optional[Path] = None,
+    alert_environ: Optional[Dict[str, str]] = None,
+    roster_path: Optional[Path] = None,
 ) -> RunResult:
     load_environment()
     current = now or datetime.now(timezone.utc)
-    if running_in_ci() and not dry_run:
+    ci = running_in_ci()
+    if ci and not dry_run:
         _log("skip_ci: GitHub Actions / CI must not send leak replies")
         return RunResult(action="skip_ci", reason="CI must not send")
-    if not live_send_enabled() and not dry_run:
+    try:
+        from padsplit_scraper import leak_alert
+    except ModuleNotFoundError:
+        import leak_alert  # type: ignore
+    alert_live = (not ci) and leak_alert.live_enabled(alert_environ)
+    leak_on = live_send_enabled()
+    if not leak_on and not alert_live and not dry_run:
         _log("disabled (LEAK_REPLY_ENABLE or CI)")
         return RunResult(action="disabled", reason="LEAK_REPLY_ENABLE is off")
 
@@ -943,11 +998,16 @@ def run(
         now=current,
         state_path=state_path,
         leftover_compose_tabs=tabs,
-        send_fn=_send if not dry_run else None,
+        send_fn=_send if (leak_on and not dry_run) else None,
         post_discord=post_discord,
-        send_enabled=not dry_run,
+        send_enabled=leak_on and not dry_run,
         dry_run=dry_run,
         fetch_doc=fetch_doc,
+        plan_alerts=(dry_run or alert_live) and not ci,
+        alert_enabled=alert_live and not dry_run,
+        alert_state_path=alert_state_path or leak_alert.STATE_PATH,
+        alert_environ=alert_environ,
+        roster_path=roster_path,
     )
     if leftover_compose_tabs is None and not dry_run:
         new_booking.save_leftover_compose_tabs(tabs, leftover_tabs_path)
@@ -979,7 +1039,11 @@ def run_for_scraper(
     leftover_compose_tabs: Optional[List[Dict[str, Any]]] = None,
     leftover_tabs_path: Path = new_booking.LEFTOVER_TABS_PATH,
 ) -> List[Dict[str, Any]]:
-    if not live_send_enabled():
+    try:
+        from padsplit_scraper import leak_alert
+    except ModuleNotFoundError:
+        import leak_alert  # type: ignore
+    if running_in_ci() or (not live_send_enabled() and not leak_alert.live_enabled()):
         _log("skipped in scraper (LEAK_REPLY_ENABLE or CI)")
         return []
     result = run(
@@ -1003,12 +1067,17 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     if running_in_ci() and not args.dry_run:
         _log("skip_ci: GitHub Actions / CI must not send leak replies")
         return 0
-    if not live_send_enabled() and not args.dry_run:
+    try:
+        from padsplit_scraper import leak_alert
+    except ModuleNotFoundError:
+        import leak_alert  # type: ignore
+    alert_live = (not running_in_ci()) and leak_alert.live_enabled()
+    if not live_send_enabled() and not alert_live and not args.dry_run:
         _log("disabled (LEAK_REPLY_ENABLE or CI)")
         return 0
 
-    if args.dry_run:
-        run(dry_run=True)
+    if args.dry_run or not live_send_enabled():
+        run(dry_run=args.dry_run)
         return 0
 
     creds = load_credentials()
