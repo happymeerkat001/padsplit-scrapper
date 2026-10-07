@@ -2,12 +2,22 @@
 """Dry-run planner for leak alerts. This module does not place calls or send texts.
 
 Voice entries are shaped for Bland (fixed script, max_duration 1 minute,
-voicemail leave_message) for Don and Tom only. Ang gets one private Quo
-text. Tenants are one private Quo text each. More than 10 tenant numbers
-fails closed and stores nothing for that incident's tenant list.
+voicemail leave_message) for Don and Tom only. Don, Tom, and Ang share one
+Quo group post (not a 1:1 to Ang). Tenants are one private Quo text each.
+More than 10 tenant numbers, or more than 10 group participants, fails
+closed and stores nothing for that list.
 
-Don, Tom, and Ang numbers come only from LEAK_ALERT_DON_E164,
-LEAK_ALERT_TOM_E164, and LEAK_ALERT_ANG_E164. There are no defaults.
+Don and Tom numbers come only from LEAK_ALERT_DON_E164 and
+LEAK_ALERT_TOM_E164. The group comes only from LEAK_ALERT_GROUP_E164S, a
+comma list of participants excluding the from-line. There are no defaults.
+If that list is unset, the group entry is a skip.
+
+Quo v1 cannot send by conversation id. POST /v1/messages takes content,
+from, and to (the participant list, max 10). GET /v1/messages addresses a
+group thread by that same participant set. Optional
+LEAK_ALERT_GROUP_CONVERSATION_ID is a dry-run check only: GET
+/v1/conversations confirms the list matches that conversation's
+participants. Numbers are not logged. The check does not run on a live plan.
 
 Tenant numbers are read at incident time from the host member profile,
 for current members of the leaking house only, using the scraper's
@@ -30,6 +40,8 @@ import hashlib
 import json
 import os
 import re
+import urllib.parse
+import urllib.request
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -58,13 +70,18 @@ BLAND_MAX_DURATION_MIN = 1
 BLAND_VOICEMAIL_ACTION = "leave_message"
 SCRIPT_ID = "leak_alert_v1"
 BLAND_CALLS_PATH = "/v1/calls"
+QUO_API_BASE = "https://api.quo.com"
 QUO_MESSAGES_PATH = "/v1/messages"
+QUO_CONVERSATIONS_PATH = "/v1/conversations"
+CONVERSATION_PAGE_SIZE = 50
+CONVERSATION_PAGE_CAP = 20
 
 ROLE_ENV = {
     "don": "LEAK_ALERT_DON_E164",
     "tom": "LEAK_ALERT_TOM_E164",
 }
-ANG_ENV = "LEAK_ALERT_ANG_E164"
+GROUP_ENV = "LEAK_ALERT_GROUP_E164S"
+GROUP_CONVERSATION_ENV = "LEAK_ALERT_GROUP_CONVERSATION_ID"
 VOICE_ROLES = ("don", "tom")
 PERSIST_STATUSES = {"planned", "skipped_handled"}
 
@@ -173,6 +190,182 @@ def quo_private_spec(content: str) -> Dict[str, Any]:
         "mode": "private_1to1",
         "content": content,
     }
+
+
+def parse_group_e164s(raw: str) -> List[str]:
+    """Comma or whitespace list. Empty when unset. Never log the result."""
+    numbers: List[str] = []
+    seen: set[str] = set()
+    for part in re.split(r"[,;\s]+", raw or ""):
+        number = normalize_e164(part)
+        if not number or number in seen:
+            continue
+        seen.add(number)
+        numbers.append(number)
+    return numbers
+
+
+def quo_group_spec(content: str, participant_count: int) -> Dict[str, Any]:
+    """One group POST. The participant list is applied at send time and is not stored."""
+    return {
+        "provider": "quo",
+        "method": "POST",
+        "path": QUO_MESSAGES_PATH,
+        "mode": "group",
+        "participant_count": participant_count,
+        "content": content,
+    }
+
+
+def _conversations_url(page_token: str = "") -> str:
+    query = {"maxResults": str(CONVERSATION_PAGE_SIZE)}
+    if page_token:
+        query["pageToken"] = page_token
+    return f"{QUO_API_BASE}{QUO_CONVERSATIONS_PATH}?{urllib.parse.urlencode(query)}"
+
+
+def default_quo_get(url: str, headers: Mapping[str, str]) -> tuple[int, Dict[str, Any]]:
+    """GET helper for the dry-run conversation check. The body is not logged."""
+    request = urllib.request.Request(url, headers={str(k): str(v) for k, v in headers.items()}, method="GET")
+    try:
+        with urllib.request.urlopen(request, timeout=30) as response:
+            raw = response.read()
+            status = int(response.status)
+    except Exception as exc:
+        code = getattr(exc, "code", None)
+        if code is None:
+            return 0, {}
+        reader = getattr(exc, "read", None)
+        raw = b""
+        if callable(reader):
+            try:
+                raw = reader()
+            except Exception:
+                raw = b""
+        status = int(code)
+    try:
+        payload = json.loads(raw.decode("utf-8", errors="replace") or "{}")
+    except Exception:
+        payload = {}
+    return status, payload if isinstance(payload, dict) else {}
+
+
+def _participant_set(values: Sequence[Any]) -> set[str]:
+    found: set[str] = set()
+    for value in values:
+        number = normalize_e164(str(value or ""))
+        if number:
+            found.add(number)
+    return found
+
+
+def check_group_conversation(
+    expected: Sequence[str],
+    conversation_id: str,
+    *,
+    api_key: str,
+    getter=None,
+) -> str:
+    """Dry-run only. Return matched, mismatch, not_found, or check_failed.
+
+    Does not return or log phone numbers.
+    """
+    fetch = getter or default_quo_get
+    headers = {"Authorization": api_key}
+    page_token = ""
+    wanted = str(conversation_id or "").strip()
+    expected_set = _participant_set(expected)
+    for _page in range(CONVERSATION_PAGE_CAP):
+        try:
+            status, payload = fetch(_conversations_url(page_token), headers)
+        except Exception:
+            return "check_failed"
+        if int(status or 0) != 200 or not isinstance(payload, dict):
+            return "check_failed"
+        rows = payload.get("data")
+        if not isinstance(rows, list):
+            return "check_failed"
+        for row in rows:
+            if not isinstance(row, dict) or str(row.get("id") or "") != wanted:
+                continue
+            actual = row.get("participants")
+            if not isinstance(actual, list):
+                return "mismatch"
+            if _participant_set(actual) == expected_set:
+                return "matched"
+            return "mismatch"
+        token = payload.get("nextPageToken")
+        if not token:
+            return "not_found"
+        page_token = str(token)
+    return "not_found"
+
+
+def _group_entry(
+    *,
+    incident: str,
+    script: str,
+    environ: Mapping[str, str],
+    quo_ready: bool,
+    dry_run: bool,
+    conversations_get,
+) -> Dict[str, Any]:
+    raw = environ.get(GROUP_ENV)
+    base = {
+        "key": f"group:{incident}",
+        "kind": "quo_group",
+        "provider": "quo",
+        "method": "POST",
+        "path": QUO_MESSAGES_PATH,
+        "mode": "group",
+    }
+    if raw is None or not str(raw).strip():
+        return {**base, "status": "skipped", "reason": "group_unset"}
+    numbers = parse_group_e164s(str(raw))
+    from_raw = (environ.get("QUO_FROM_NUMBER") or environ.get("FIELD_MMS_QUO_FROM") or "").strip()
+    from_number = normalize_e164(from_raw) if from_raw else ""
+    if from_number:
+        numbers = [number for number in numbers if number != from_number]
+    if not numbers:
+        return {**base, "status": "skipped", "reason": "group_unset"}
+    if len(numbers) > TENANT_CAP:
+        return {
+            **base,
+            "status": "fail_closed",
+            "reason": "over_cap",
+            "count": len(numbers),
+            "cap": TENANT_CAP,
+        }
+    if not quo_ready:
+        return {
+            **base,
+            **quo_group_spec(script, len(numbers)),
+            "status": "missing_credentials",
+        }
+    entry = {
+        **base,
+        **quo_group_spec(script, len(numbers)),
+        "status": "planned",
+    }
+    conversation_id = str(environ.get(GROUP_CONVERSATION_ENV) or "").strip()
+    if not conversation_id:
+        entry["conversation_check"] = "skipped"
+        return entry
+    if not dry_run:
+        entry["conversation_check"] = "not_run"
+        return entry
+    api_key = str(environ.get("QUO_API_KEY") or "").strip()
+    check = check_group_conversation(
+        numbers,
+        conversation_id,
+        api_key=api_key,
+        getter=conversations_get,
+    )
+    entry["conversation_check"] = check
+    if check != "matched":
+        entry["status"] = "skipped"
+        entry["reason"] = f"conversation_{check}"
+    return entry
 
 
 def assert_plan_has_no_numbers(payload: str) -> None:
@@ -370,6 +563,8 @@ def build_plan(
     house_threads: Sequence[Dict[str, Any]],
     environ: Optional[Mapping[str, str]] = None,
     profile_fetcher=None,
+    dry_run: bool = False,
+    conversations_get=None,
 ) -> Optional[AlertPlan]:
     """Plan one incident. Returns None when there is no current member leak."""
     env: Mapping[str, str] = environ if environ is not None else os.environ
@@ -422,16 +617,16 @@ def build_plan(
             "bland": voice_spec,
         })
 
-    ang_present = bool(normalize_e164(env.get(ANG_ENV) or ""))
-    entries.append({
-        "key": f"ang:{incident}",
-        "kind": "quo_text",
-        "role": "ang",
-        "status": _configured_status(ang_present, quo_ready),
-        "has_number": ang_present,
-        "script": script,
-        **quo_private_spec(script),
-    })
+    entries.append(
+        _group_entry(
+            incident=incident,
+            script=script,
+            environ=env,
+            quo_ready=quo_ready,
+            dry_run=dry_run,
+            conversations_get=conversations_get,
+        )
+    )
 
     if handled:
         entries.append({

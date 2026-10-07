@@ -22,7 +22,10 @@ from test_leak_reply import run_process
 
 DON = "+15555550101"
 TOM = "+15555550102"
-ANG = "+15555550103"
+GROUP_A = "+15555550121"
+GROUP_B = "+15555550122"
+GROUP_C = "+15555550123"
+GROUP_LIST = f"{GROUP_A}, {GROUP_B},{GROUP_C}"
 TENANT_A = "+15555550111"
 TENANT_B = "+15555550112"
 
@@ -37,7 +40,7 @@ def _env(**extra: str) -> dict:
         "QUO_API_KEY": "quo-test",
         "LEAK_ALERT_DON_E164": DON,
         "LEAK_ALERT_TOM_E164": TOM,
-        "LEAK_ALERT_ANG_E164": ANG,
+        "LEAK_ALERT_GROUP_E164S": GROUP_LIST,
         "LEAK_ALERT_ENABLE": "1",
     }
     base.update(extra)
@@ -91,7 +94,7 @@ class FlagTests(unittest.TestCase):
 
 
 class PlanTests(unittest.TestCase):
-    def test_voice_is_bland_for_don_and_tom_and_ang_is_a_private_text(self) -> None:
+    def test_voice_is_bland_for_don_and_tom_and_group_is_one_quo_post(self) -> None:
         reporter = _house(9001)
         sibling = _house(9002, chat_id="chat-leana-2", room=3, text="ok")
         plan = leak_alert.build_plan(
@@ -105,7 +108,7 @@ class PlanTests(unittest.TestCase):
         assert plan is not None
         encoded = json.dumps(plan.entries)
         leak_alert.assert_plan_has_no_numbers(encoded)
-        for secret in (DON, TOM, ANG, TENANT_A, TENANT_B, "bland-test", "quo-test"):
+        for secret in (DON, TOM, GROUP_A, GROUP_B, GROUP_C, TENANT_A, TENANT_B, "bland-test", "quo-test"):
             self.assertNotIn(secret, encoded)
         self.assertNotIn("9001", encoded)
         self.assertNotIn("9002", encoded)
@@ -114,6 +117,7 @@ class PlanTests(unittest.TestCase):
         self.assertEqual(plan.incident, incident)
         self.assertNotIn(f"voice:{incident}:joe", rows)
         self.assertNotIn(f"joe:{incident}", rows)
+        self.assertNotIn(f"ang:{incident}", rows)
         for role in ("don", "tom"):
             voice = rows[f"voice:{incident}:{role}"]
             self.assertEqual(voice["provider"], "bland")
@@ -124,11 +128,15 @@ class PlanTests(unittest.TestCase):
             self.assertEqual(voice["bland"]["max_duration"], 1)
             self.assertIn("Category wall_ceiling", voice["script"])
             self.assertNotIn("phone_number", voice["bland"])
-        ang = rows[f"ang:{incident}"]
-        self.assertEqual(ang["status"], "planned")
-        self.assertEqual(ang["mode"], "private_1to1")
-        self.assertEqual(ang["provider"], "quo")
-        self.assertEqual(ang["path"], "/v1/messages")
+        group = rows[f"group:{incident}"]
+        self.assertEqual(group["status"], "planned")
+        self.assertEqual(group["mode"], "group")
+        self.assertEqual(group["method"], "POST")
+        self.assertEqual(group["provider"], "quo")
+        self.assertEqual(group["path"], "/v1/messages")
+        self.assertEqual(group["participant_count"], 3)
+        self.assertEqual(group["conversation_check"], "skipped")
+        self.assertNotIn("to", group)
         tenant_keys = [key for key in rows if key.startswith(f"tenant:{incident}:") and rows[key]["status"] == "planned"]
         self.assertEqual(len(tenant_keys), 2)
         for key in tenant_keys:
@@ -137,7 +145,7 @@ class PlanTests(unittest.TestCase):
         self.assertIn(f"tenant:{incident}:{leak_alert.recipient_hash(TENANT_A)}", rows)
         self.assertNotIn("twilio", encoded.lower())
 
-    def test_ang_text_needs_quo_credentials(self) -> None:
+    def test_group_text_needs_quo_credentials(self) -> None:
         plan = leak_alert.build_plan(
             _house(9001),
             now=NOW,
@@ -149,7 +157,8 @@ class PlanTests(unittest.TestCase):
         rows = _by_key(plan.entries)
         incident = plan.incident
         self.assertEqual(rows[f"voice:{incident}:don"]["status"], "planned")
-        self.assertEqual(rows[f"ang:{incident}"]["status"], "missing_credentials")
+        self.assertEqual(rows[f"group:{incident}"]["status"], "missing_credentials")
+        self.assertEqual(rows[f"group:{incident}"]["mode"], "group")
         tenant = next(entry for entry in plan.entries if entry["kind"] == "tenant_text")
         self.assertEqual(tenant["status"], "missing_credentials")
 
@@ -161,16 +170,20 @@ class PlanTests(unittest.TestCase):
             environ=_env(
                 LEAK_ALERT_DON_E164="",
                 LEAK_ALERT_TOM_E164="",
-                LEAK_ALERT_ANG_E164="",
+                LEAK_ALERT_GROUP_E164S="",
             ),
         )
         assert plan is not None
         for entry in plan.entries:
-            if entry["kind"] == "voice" or entry["key"].startswith("ang:"):
+            if entry["kind"] == "voice":
                 self.assertEqual(entry["status"], "missing_number")
                 self.assertFalse(entry["has_number"])
+        group = next(entry for entry in plan.entries if entry["key"].startswith("group:"))
+        self.assertEqual(group["status"], "skipped")
+        self.assertEqual(group["reason"], "group_unset")
         source = Path("padsplit_scraper/leak_alert.py").read_text()
         self.assertNotIn("LEAK_ALERT_JOE", source)
+        self.assertNotIn("LEAK_ALERT_ANG_E164", source)
         self.assertNotIn("LEAK_TENANT_ROSTER", source)
         self.assertIsNone(re.search(r"\+\d{10,}", source))
 
@@ -305,8 +318,9 @@ class PlanTests(unittest.TestCase):
         voices = [entry for entry in plan.entries if entry["kind"] == "voice"]
         self.assertEqual([entry["role"] for entry in voices], ["don", "tom"])
         self.assertTrue(all(entry["status"] == "planned" for entry in voices))
-        ang = next(entry for entry in plan.entries if entry["role"] == "ang")
-        self.assertEqual(ang["status"], "planned")
+        group = next(entry for entry in plan.entries if entry["key"].startswith("group:"))
+        self.assertEqual(group["status"], "planned")
+        self.assertEqual(group["mode"], "group")
 
     def test_state_records_keys_once_and_never_stores_numbers(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -326,15 +340,16 @@ class PlanTests(unittest.TestCase):
             second = leak_alert.persist_plan(plan, state, now=NOW)
             raw = state_path.read_text()
             leak_alert.assert_plan_has_no_numbers(raw)
-            for secret in (DON, TOM, ANG, TENANT_A, "bland-test", "quo-test", "9001"):
+            for secret in (DON, TOM, GROUP_A, GROUP_B, GROUP_C, TENANT_A, "bland-test", "quo-test", "9001"):
                 self.assertNotIn(secret, raw)
             incident = "chat-leana:m-leak"
             self.assertIn(f"voice:{incident}:don", state["alerts"])
             self.assertIn(f"voice:{incident}:tom", state["alerts"])
             self.assertNotIn(f"voice:{incident}:joe", state["alerts"])
             self.assertNotIn(f"joe:{incident}", state["alerts"])
-            self.assertEqual(state["alerts"][f"ang:{incident}"]["status"], "planned")
-            self.assertEqual(state["alerts"][f"ang:{incident}"]["mode"], "private_1to1")
+            self.assertNotIn(f"ang:{incident}", state["alerts"])
+            self.assertEqual(state["alerts"][f"group:{incident}"]["status"], "planned")
+            self.assertEqual(state["alerts"][f"group:{incident}"]["mode"], "group")
             self.assertIn(f"tenant:{incident}:{leak_alert.recipient_hash(TENANT_A)}", state["alerts"])
             self.assertEqual(state["alerts"][f"voice:{incident}:don"]["max_duration_min"], 1)
             self.assertEqual(state["alerts"][f"voice:{incident}:don"]["voicemail"], "leave_message")
@@ -343,15 +358,104 @@ class PlanTests(unittest.TestCase):
                 all(
                     entry["status"] == "planned"
                     for entry in first
-                    if entry["kind"] == "voice" or entry["key"].startswith("ang:")
+                    if entry["kind"] == "voice" or entry["key"].startswith("group:")
                 )
             )
 
-    def test_module_does_not_call_http_libraries(self) -> None:
+    def test_module_does_not_send_or_import_a_client(self) -> None:
         source = Path("padsplit_scraper/leak_alert.py").read_text().lower()
         self.assertNotIn("twilio", source)
         self.assertNotIn("requests", source)
-        self.assertNotIn("urlopen", source)
+        self.assertIn("urlopen", source)
+        self.assertIn("/v1/conversations", source)
+
+
+class GroupConversationTests(unittest.TestCase):
+    def _getter(self, pages: list[tuple[int, dict]]):
+        calls: list[str] = []
+
+        def fetch(url: str, headers: dict):
+            calls.append(url)
+            self.assertEqual(headers.get("Authorization"), "quo-test")
+            self.assertNotIn("quo-test", url)
+            return pages.pop(0)
+
+        fetch.calls = calls  # type: ignore[attr-defined]
+        return fetch
+
+    def test_dry_run_matches_participants_without_storing_numbers(self) -> None:
+        pages = [
+            (200, {"data": [{"id": "CN-other", "participants": [GROUP_A]}], "nextPageToken": "page-2"}),
+            (200, {"data": [{"id": "CN-group", "participants": [GROUP_C, GROUP_A, GROUP_B]}], "nextPageToken": None}),
+        ]
+        getter = self._getter(pages)
+        plan = leak_alert.build_plan(
+            member_thread(),
+            now=NOW,
+            house_threads=[member_thread()],
+            environ=_env(LEAK_ALERT_GROUP_CONVERSATION_ID="CN-group"),
+            dry_run=True,
+            conversations_get=getter,
+        )
+        assert plan is not None
+        group = next(entry for entry in plan.entries if entry["key"].startswith("group:"))
+        self.assertEqual(group["status"], "planned")
+        self.assertEqual(group["conversation_check"], "matched")
+        self.assertEqual(len(getter.calls), 2)  # type: ignore[attr-defined]
+        self.assertTrue(getter.calls[0].startswith("https://api.quo.com/v1/conversations?"))  # type: ignore[attr-defined]
+        self.assertIn("pageToken=page-2", getter.calls[1])  # type: ignore[attr-defined]
+        encoded = json.dumps(plan.entries)
+        for secret in (GROUP_A, GROUP_B, GROUP_C, "quo-test"):
+            self.assertNotIn(secret, encoded)
+
+    def test_mismatch_skips_and_live_plan_does_not_get(self) -> None:
+        def forbid(url: str, headers: dict):
+            raise AssertionError("conversation check must not run unless dry-run")
+
+        live = leak_alert.build_plan(
+            member_thread(),
+            now=NOW,
+            house_threads=[member_thread()],
+            environ=_env(LEAK_ALERT_GROUP_CONVERSATION_ID="CN-group"),
+            dry_run=False,
+            conversations_get=forbid,
+        )
+        assert live is not None
+        live_group = next(entry for entry in live.entries if entry["key"].startswith("group:"))
+        self.assertEqual(live_group["status"], "planned")
+        self.assertEqual(live_group["conversation_check"], "not_run")
+
+        def mismatch(url: str, headers: dict):
+            return 200, {"data": [{"id": "CN-group", "participants": [GROUP_A]}], "nextPageToken": None}
+
+        dry = leak_alert.build_plan(
+            member_thread(),
+            now=NOW,
+            house_threads=[member_thread()],
+            environ=_env(LEAK_ALERT_GROUP_CONVERSATION_ID="CN-group"),
+            dry_run=True,
+            conversations_get=mismatch,
+        )
+        assert dry is not None
+        group = next(entry for entry in dry.entries if entry["key"].startswith("group:"))
+        self.assertEqual(group["status"], "skipped")
+        self.assertEqual(group["reason"], "conversation_mismatch")
+        self.assertNotIn(GROUP_A, json.dumps(dry.entries))
+        state = {"alerts": {}}
+        leak_alert.persist_plan(dry, state, now=NOW)
+        self.assertNotIn(group["key"], state["alerts"])
+
+    def test_from_line_is_not_part_of_the_group_list(self) -> None:
+        plan = leak_alert.build_plan(
+            member_thread(),
+            now=NOW,
+            house_threads=[member_thread()],
+            environ=_env(QUO_FROM_NUMBER=GROUP_A),
+        )
+        assert plan is not None
+        group = next(entry for entry in plan.entries if entry["key"].startswith("group:"))
+        self.assertEqual(group["participant_count"], 2)
+        self.assertNotIn(GROUP_A, json.dumps(plan.entries))
 
 
 class WireTests(unittest.TestCase):
@@ -375,8 +479,10 @@ class WireTests(unittest.TestCase):
         self.assertIn("alerts", rows[0])
         self.assertTrue(stored["alerts"])
         leak_alert.assert_plan_has_no_numbers(json.dumps(stored))
-        self.assertNotIn(TENANT_A, json.dumps(rows[0]["alerts"]))
-        self.assertNotIn(ANG, json.dumps(rows[0]["alerts"]))
+        encoded = json.dumps(rows[0]["alerts"])
+        self.assertNotIn(TENANT_A, encoded)
+        self.assertNotIn(GROUP_A, encoded)
+        self.assertIn("group:chat-leana:m-leak", json.dumps(stored))
 
     def test_ci_does_not_plan_or_send(self) -> None:
         fake = FakeSend()
@@ -428,8 +534,9 @@ class WireTests(unittest.TestCase):
         self.assertIn("alerts", result.results[0])
         leak_alert.assert_plan_has_no_numbers(raw)
         self.assertIn("voice:chat-leana:m-leak:don", raw)
-        self.assertIn("ang:chat-leana:m-leak", raw)
+        self.assertIn("group:chat-leana:m-leak", raw)
         self.assertNotIn("joe:", raw)
+        self.assertNotIn("ang:", raw)
 
     def test_dry_run_plans_without_writing_state(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -450,8 +557,10 @@ class WireTests(unittest.TestCase):
                 )
         self.assertFalse(alert_path.exists())
         alerts = result.results[0]["alerts"]
-        ang = next(entry for entry in alerts if entry["key"].startswith("ang:"))
-        self.assertEqual(ang["status"], "planned")
+        group = next(entry for entry in alerts if entry["key"].startswith("group:"))
+        self.assertEqual(group["status"], "planned")
+        self.assertEqual(group["mode"], "group")
+        self.assertEqual(group["conversation_check"], "skipped")
         voices = [entry for entry in alerts if entry["kind"] == "voice"]
         self.assertEqual({entry["role"] for entry in voices}, {"don", "tom"})
         self.assertTrue(all(entry["status"] == "missing_credentials" for entry in voices))

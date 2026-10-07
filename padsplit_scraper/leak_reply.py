@@ -810,6 +810,7 @@ def process_leaks(
     alert_environ: Optional[Dict[str, str]] = None,
     profile_fetcher: Optional[Callable[[str], Any]] = None,
     session=None,
+    conversations_get: Optional[Callable[..., Any]] = None,
 ) -> List[Dict[str, Any]]:
     now = now or datetime.now(timezone.utc)
     if state is None:
@@ -876,6 +877,8 @@ def process_leaks(
                     house_threads=thread_list,
                     environ=alert_environ,
                     profile_fetcher=fetcher,
+                    dry_run=dry_run,
+                    conversations_get=conversations_get,
                 )
                 if plan is not None:
                     if alert_state is not None and alert_enabled and not dry_run:
@@ -962,6 +965,7 @@ def run(
     alert_state_path: Optional[Path] = None,
     alert_environ: Optional[Dict[str, str]] = None,
     profile_fetcher: Optional[Callable[[str], Any]] = None,
+    conversations_get: Optional[Callable[..., Any]] = None,
 ) -> RunResult:
     load_environment()
     current = now or datetime.now(timezone.utc)
@@ -1013,6 +1017,7 @@ def run(
         alert_environ=alert_environ,
         profile_fetcher=profile_fetcher,
         session=session,
+        conversations_get=conversations_get,
     )
     if leftover_compose_tabs is None and not dry_run:
         new_booking.save_leftover_compose_tabs(tabs, leftover_tabs_path)
