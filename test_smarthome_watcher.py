@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
+import importlib
 import inspect
+import io
+import os
+import sys
 import tempfile
 import unittest
+from contextlib import redirect_stderr
 from datetime import datetime
 from pathlib import Path
 from types import SimpleNamespace
@@ -188,6 +193,62 @@ class WatcherTests(unittest.TestCase):
         self.assertNotIn("设备数量超限", notes[0])
         self.assertNotIn("65027", notes[0])
         self.assertNotIn("SMARTHOME_PASSWORD", notes[0])
+
+
+class WatcherFirebaseImportTests(unittest.TestCase):
+    def test_imports_when_firebase_admin_unavailable(self) -> None:
+        blocked = [
+            name
+            for name in list(sys.modules)
+            if name == "firebase_admin" or name.startswith("firebase_admin.")
+        ]
+        saved_modules = {name: sys.modules.pop(name) for name in blocked}
+        notifier_name = "padsplit_scraper.discord_notifier"
+        watcher_name = "smarthome.watcher"
+        saved_notifier = sys.modules.pop(notifier_name, None)
+        saved_watcher = sys.modules.get(watcher_name)
+        sys.modules.pop(watcher_name, None)
+        sys.modules["firebase_admin"] = None
+        fresh = None
+        try:
+            fresh = importlib.import_module(watcher_name)
+            self.assertIsNotNone(fresh)
+            stderr = io.StringIO()
+            with patch.dict(
+                os.environ,
+                {"DISCORD_BOT_TOKEN": "token", "DISCORD_CHANNEL_ID": "1"},
+            ):
+                with patch("requests.post") as post:
+                    response = MagicMock()
+                    response.json.return_value = {"id": "m1"}
+                    post.return_value = response
+                    with redirect_stderr(stderr):
+                        fresh._notify("hello")
+            self.assertNotIn("Discord notify failed", stderr.getvalue())
+            post.assert_called_once()
+            self.assertIsNone(sys.modules.get("firebase_admin"))
+        finally:
+            sys.modules.pop("firebase_admin", None)
+            for name in list(sys.modules):
+                if name == "firebase_admin" or name.startswith("firebase_admin."):
+                    if name not in saved_modules:
+                        sys.modules.pop(name, None)
+            sys.modules.pop(notifier_name, None)
+            if saved_notifier is not None:
+                sys.modules[notifier_name] = saved_notifier
+            sys.modules.pop(watcher_name, None)
+            if saved_watcher is not None:
+                sys.modules[watcher_name] = saved_watcher
+            sys.modules.update(saved_modules)
+            import smarthome
+            import padsplit_scraper
+
+            if saved_watcher is not None:
+                smarthome.watcher = saved_watcher
+            elif fresh is not None and getattr(smarthome, "watcher", None) is fresh:
+                del smarthome.watcher
+            if saved_notifier is not None:
+                padsplit_scraper.discord_notifier = saved_notifier
 
 
 if __name__ == "__main__":

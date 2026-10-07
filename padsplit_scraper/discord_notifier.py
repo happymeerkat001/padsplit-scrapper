@@ -4,9 +4,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Dict, List, Optional
 
-import firebase_admin
 import requests
-from firebase_admin import credentials, firestore
 
 DEFAULT_TIMEOUT = (10, 30)
 DISCORD_API_BASE = "https://discord.com/api/v10"
@@ -57,7 +55,10 @@ def _build_digest(payload: Dict) -> str:
     return "\n".join(lines)
 
 
-def _init_firestore_app() -> firebase_admin.App:
+def _init_firestore_app() -> "firebase_admin.App":
+    import firebase_admin
+    from firebase_admin import credentials
+
     if firebase_admin._apps:
         return firebase_admin.get_app()
 
@@ -72,7 +73,9 @@ def _init_firestore_app() -> firebase_admin.App:
     raise RuntimeError("Missing FIREBASE_SERVICE_ACCOUNT_JSON or GOOGLE_APPLICATION_CREDENTIALS")
 
 
-def _load_ac_filter_dates(app: firebase_admin.App) -> List[Dict]:
+def _load_ac_filter_dates(app: "firebase_admin.App") -> List[Dict]:
+    from firebase_admin import firestore
+
     client = firestore.client(app=app)
     docs = client.collection("property_codes").stream()
     overdue: List[Dict] = []
