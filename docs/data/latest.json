@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-10-07T02:44:49Z",
+  "scraped_at": "2026-10-07T09:22:33Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MTc4MzUz",
@@ -44,9 +44,9 @@
       },
       "isCancelled": false,
       "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIwMTkyNjA=",
-        "created": "2026-10-07T02:41:38.579883",
-        "text": "Hey yes when I get home I will ",
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIwMTk0NTk=",
+        "created": "2026-10-07T03:06:21.321406",
+        "text": "",
         "deleted": null,
         "extra": null,
         "messageType": "TEXT",
@@ -56,7 +56,16 @@
           "lastName": "Ross",
           "displayName": null
         },
-        "attachments": [],
+        "attachments": [
+          {
+            "mediaType": "PICTURE",
+            "deleted": null
+          },
+          {
+            "mediaType": "PICTURE",
+            "deleted": null
+          }
+        ],
         "paymentExtensionStatus": null,
         "ticketStatus": null,
         "bookingStatus": null
@@ -67,6 +76,47 @@
         "isUnread": true
       },
       "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIwMTk0NTk=",
+          "text": "",
+          "created": "2026-10-07T03:06:21.321406",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjc0MzYwMA==",
+            "pk": 743600,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_743600_fdc599e2-a99c-4bde-bf30-a05fa3e79d20.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_743600_fdc599e2-a99c-4bde-bf30-a05fa3e79d20.jpg",
+            "firstName": "Lindzie",
+            "lastName": "Ross",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 681157
+          },
+          "attachments": [
+            {
+              "id": "TWVzc2VuZ2VyQXR0YWNobWVudFR5cGU6OTY2MjE1",
+              "deleted": null,
+              "mediaType": "PICTURE",
+              "location": "img/chat/message/attachments/message_12019459_8b96a928-b63e-4438-9e09-cf11f6dc8c77",
+              "filename": "1"
+            },
+            {
+              "id": "TWVzc2VuZ2VyQXR0YWNobWVudFR5cGU6OTY2MjE0",
+              "deleted": null,
+              "mediaType": "PICTURE",
+              "location": "img/chat/message/attachments/message_12019459_a3718923-f218-4bbc-86c7-244c95ac9f46",
+              "filename": "0"
+            }
+          ],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
         {
           "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIwMTkyNjA=",
           "text": "Hey yes when I get home I will ",
@@ -321,32 +371,6 @@
             "isActive": true,
             "displayName": null,
             "padmateProfileId": 681157
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE4Nzg5NjY=",
-          "text": "Hi, the city said they are detecting continuous water usage and that there's a leak. Can you check for us, please? ",
-          "created": "2026-09-30T18:48:31.152847",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Joe Manager",
-            "padmateProfileId": 257098
           },
           "attachments": [],
           "reactions": [],
@@ -10865,191 +10889,6 @@
         "is_on_payment_plan": false,
         "payment_plan_end_date": null,
         "payment_plan_reason_note": null
-      },
-      {
-        "id": 478661,
-        "status": "completed",
-        "comment": null,
-        "category": "room-turn",
-        "media": [],
-        "created": "2026-09-22T12:31:51.574984",
-        "modified": "2026-09-29T18:46:05.066627",
-        "room_name": "",
-        "room_number": 7,
-        "room_status": 1,
-        "room_code": "121212",
-        "location": "Room",
-        "details": "Room transfer",
-        "property_id": 24516,
-        "property_address": {
-          "id": 33032,
-          "street1": "5509 Burton Avenue",
-          "street2": "",
-          "city": "Fort Worth",
-          "state": "TX",
-          "zip": "76119",
-          "city_slug": "fort-worth-tx"
-        },
-        "reported_by": {
-          "id": 1268951,
-          "name": "Kenneth Jackson Ll",
-          "role_id": 0,
-          "picture": "img/profiles/user_1268951_751ce37c-e1f7-4f49-807e-883ef08043bc.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-09-29T18:45:59.247112",
-        "rating": null,
-        "extra_data": {
-          "user_id": 1268951,
-          "checklist": {},
-          "occupancy_id": 352399,
-          "move_out_date": "2026-09-22",
-          "move_out_quiz": {
-            "Do you have a physical key to your room?": "No, I don\u2019t have a key to my room"
-          }
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 3,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
-      },
-      {
-        "id": 479213,
-        "status": "completed",
-        "comment": null,
-        "category": "room-turn",
-        "media": [],
-        "created": "2026-09-23T12:30:25.955896",
-        "modified": "2026-09-29T18:45:44.815433",
-        "room_name": "",
-        "room_number": 6,
-        "room_status": 1,
-        "room_code": "313131",
-        "location": "Room",
-        "details": "Not enough room in fridge and bathrooms were always dirty",
-        "property_id": 24516,
-        "property_address": {
-          "id": 33032,
-          "street1": "5509 Burton Avenue",
-          "street2": "",
-          "city": "Fort Worth",
-          "state": "TX",
-          "zip": "76119",
-          "city_slug": "fort-worth-tx"
-        },
-        "reported_by": {
-          "id": 408554,
-          "name": "Marshall Williams",
-          "role_id": 0,
-          "picture": "img/profiles/user_408554_104b62b2-0ee6-4c87-ab6d-a6935014aa86.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-09-29T18:45:38.217476",
-        "rating": null,
-        "extra_data": {
-          "user_id": 408554,
-          "checklist": {},
-          "occupancy_id": 272451,
-          "move_out_date": "2026-09-23"
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
-      },
-      {
-        "id": 482089,
-        "status": "completed",
-        "comment": null,
-        "category": "unclassified",
-        "media": [],
-        "created": "2026-09-29T01:59:31.541785",
-        "modified": "2026-09-29T18:44:57.625530",
-        "room_name": "",
-        "room_number": 2,
-        "room_status": 1,
-        "room_code": "242424",
-        "location": "Doorlock",
-        "details": "The main door will not lock so the house is in secure anybody can just walk right in",
-        "property_id": 24516,
-        "property_address": {
-          "id": 33032,
-          "street1": "5509 Burton Avenue",
-          "street2": "",
-          "city": "Fort Worth",
-          "state": "TX",
-          "zip": "76119",
-          "city_slug": "fort-worth-tx"
-        },
-        "reported_by": {
-          "id": 552038,
-          "name": "Mike",
-          "role_id": 0,
-          "picture": "img/profiles/user_552038_3140b797-0af1-4958-a1f9-50e3016a0c88.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-09-29T18:44:57.617225",
-        "rating": null,
-        "extra_data": {
-          "checklist": {}
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
-      },
-      {
-        "id": 482090,
-        "status": "completed",
-        "comment": null,
-        "category": "unclassified",
-        "media": [],
-        "created": "2026-09-29T02:00:26.542591",
-        "modified": "2026-09-29T18:44:41.407479",
-        "room_name": "",
-        "room_number": 2,
-        "room_status": 1,
-        "room_code": "242424",
-        "location": "Bathroom, Downstairs",
-        "details": "The bathroom door off the kitchen will not stay closed even if locked it just opens right up",
-        "property_id": 24516,
-        "property_address": {
-          "id": 33032,
-          "street1": "5509 Burton Avenue",
-          "street2": "",
-          "city": "Fort Worth",
-          "state": "TX",
-          "zip": "76119",
-          "city_slug": "fort-worth-tx"
-        },
-        "reported_by": {
-          "id": 552038,
-          "name": "Mike",
-          "role_id": 0,
-          "picture": "img/profiles/user_552038_3140b797-0af1-4958-a1f9-50e3016a0c88.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-09-29T18:44:41.398510",
-        "rating": null,
-        "extra_data": {
-          "checklist": {}
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
       }
     ]
   },
@@ -11060,13 +10899,13 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-10-07T02:44:49Z",
-    "started_at": "2026-10-07T02:44:41Z",
-    "finished_at": "2026-10-07T02:45:01Z",
+    "run_scraped_at": "2026-10-07T09:22:33Z",
+    "started_at": "2026-10-07T09:22:23Z",
+    "finished_at": "2026-10-07T09:22:44Z",
     "host": "runnervm8df0l",
     "counts": {
       "messages": 52,
-      "tasks": 21,
+      "tasks": 17,
       "rooms": 62,
       "properties": 9,
       "earnings_properties": 0
@@ -11077,7 +10916,7 @@
     "sources": {
       "messages": {
         "state": "ok",
-        "scraped_at": "2026-10-07T02:44:49Z"
+        "scraped_at": "2026-10-07T09:22:33Z"
       },
       "stats": {
         "state": "degraded",
