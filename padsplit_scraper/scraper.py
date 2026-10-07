@@ -891,6 +891,31 @@ def _run_action_hooks(session, creds: Dict[str, str], messages: List[Dict[str, A
             sys.stderr.write(f"# {labels[module_name]} failed; continuing scrape: {exc}\n")
 
 
+def _emit_frontload_webhook(
+    session,
+    creds: Dict[str, str],
+    messages: List[Dict[str, Any]],
+    *,
+    rooms: Optional[List[Any]] = None,
+    occupancy: Optional[Dict[str, Any]] = None,
+) -> None:
+    """Booking/listing webhook. Failures stay off the scrape result."""
+    try:
+        try:
+            from padsplit_scraper.frontload_webhook import emit_for_scraper
+        except ModuleNotFoundError:
+            from frontload_webhook import emit_for_scraper  # type: ignore
+        emit_for_scraper(
+            messages,
+            rooms=rooms,
+            occupancy=occupancy,
+            session=session,
+            creds=creds,
+        )
+    except Exception as exc:
+        sys.stderr.write(f"# Frontload webhook failed; continuing scrape: {exc.__class__.__name__}\n")
+
+
 def _apply_isolated_output() -> Path:
     try:
         from padsplit_scraper import persist as persist_mod
@@ -1047,6 +1072,7 @@ def run(messages_only: bool = False, *, isolate_output: bool = False, policy=Non
             )
             _persist_latest_payload(payload, scraped_at=scraped_at, run_status=run_status, write_timestamped=True)
             sys.stderr.write(f"# Saved raw data to {out_path}\n")
+            _emit_frontload_webhook(session, creds, messages)
             return _ok_outcome(run_status)
 
         fetched_tasks = _run_phase("Fetching tasks...", "tasks", lambda: fetch_tasks(session, creds))
@@ -1054,6 +1080,7 @@ def run(messages_only: bool = False, *, isolate_output: bool = False, policy=Non
         tasks_for_kpis = fetched_tasks
         out_path = _persist_latest_payload(payload, scraped_at=scraped_at, write_timestamped=True)
 
+        occupancy_payload: Optional[Dict[str, Any]] = None
         try:
             occupancy_payload = compute_occupancy(messages, fetched_tasks, datetime.now(timezone.utc))
             _persist_occupancy_payload(occupancy_payload)
@@ -1061,10 +1088,12 @@ def run(messages_only: bool = False, *, isolate_output: bool = False, policy=Non
             sys.stderr.write(f"# Occupancy derivation failed; continuing scrape: {exc}\n")
 
         rooms: List[Any] = []
+        rooms_observed = False
         properties: List[Any] = []
         earnings_payload: Dict[str, Any] = {}
         try:
             rooms = _run_phase("Fetching room stats...", "room_stats", lambda: fetch_rooms(session, creds))
+            rooms_observed = True
             properties = _run_phase(
                 "Fetching property stats...",
                 "property_stats",
@@ -1142,6 +1171,13 @@ def run(messages_only: bool = False, *, isolate_output: bool = False, policy=Non
 
             sys.stderr.write(f"{exc}\n")
             sys.stderr.write(f"# Saved raw data to {out_path}\n")
+            _emit_frontload_webhook(
+                session,
+                creds,
+                messages,
+                rooms=rooms if rooms_observed else None,
+                occupancy=occupancy_payload,
+            )
             return _degraded_outcome(run_status)
 
         run_status = _this_run_health(
@@ -1178,6 +1214,13 @@ def run(messages_only: bool = False, *, isolate_output: bool = False, policy=Non
         _write_json(_monthly_history_path(), monthly_history_payload)
         upload_stats_to_firestore(stats_payload, monthly_history_payload)
         sys.stderr.write(f"# Saved raw data to {out_path}\n")
+        _emit_frontload_webhook(
+            session,
+            creds,
+            messages,
+            rooms=rooms,
+            occupancy=occupancy_payload,
+        )
         return _ok_outcome(run_status)
 
 
