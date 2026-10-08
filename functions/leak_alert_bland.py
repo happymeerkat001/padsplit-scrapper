@@ -16,6 +16,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 import json
+import logging
 import re
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
@@ -44,6 +45,8 @@ PENDING_COLLECTION = "leak_alert_pending"
 CALLS_COLLECTION = "leak_alert_calls"
 QUEUE_COLLECTION = "leak_alert_result_queue"
 TIMESTAMP_HEADERS = ("X-Webhook-Timestamp", "X-Bland-Timestamp")
+RETRY_FIELDS = ("analysis_schema", "tools")
+LOGGER = logging.getLogger("leak_alert_bland")
 
 _E164_RE = re.compile(r"\+\d{10,15}")
 _LONG_DIGITS_RE = re.compile(r"\d{4,}")
@@ -171,8 +174,30 @@ def safe_doc_id(value: str) -> str:
     return text[:700]
 
 
+def _hmac_matches(secret: str, material: bytes, provided: bytes) -> bool:
+    expected = hmac.new(secret.encode("utf-8"), material, hashlib.sha256).hexdigest().encode("ascii")
+    if len(provided) != len(expected):
+        return False
+    return hmac.compare_digest(expected, provided)
+
+
+def canonical_json_bytes(raw: bytes) -> Optional[bytes]:
+    """Compact JSON matching JSON.stringify(parsed body). None if raw is not JSON."""
+    try:
+        payload = json.loads((raw or b"").decode("utf-8"))
+    except (UnicodeError, ValueError):
+        return None
+    encoded = json.dumps(payload, separators=(",", ":"), ensure_ascii=False)
+    return encoded.encode("utf-8")
+
+
 def verify_signature(secret: str, raw: bytes, signature: Optional[str]) -> bool:
-    """Constant-time check of Bland's hex HMAC-SHA256 over the raw body."""
+    """HMAC-SHA256 hex over the raw body, then over compact re-serialized JSON.
+
+    Bland's published sample signs ``JSON.stringify(req.body)``, which can
+    differ from the raw bytes. Each compare is constant-time. A match logs
+    only the variant name (``raw`` or ``canonical``).
+    """
     if not secret or signature is None or not str(signature).strip():
         return False
     provided = str(signature).strip()
@@ -182,10 +207,42 @@ def verify_signature(secret: str, raw: bytes, signature: Optional[str]) -> bool:
         provided_bytes = provided.encode("ascii")
     except UnicodeEncodeError:
         return False
-    expected = hmac.new(secret.encode("utf-8"), raw or b"", hashlib.sha256).hexdigest().encode("ascii")
-    if len(provided_bytes) != len(expected):
-        return False
-    return hmac.compare_digest(expected, provided_bytes)
+    if _hmac_matches(secret, raw or b"", provided_bytes):
+        LOGGER.info("bland webhook signature matched variant=raw")
+        return True
+    canonical = canonical_json_bytes(raw or b"")
+    if canonical is not None and canonical != (raw or b"") and _hmac_matches(secret, canonical, provided_bytes):
+        LOGGER.info("bland webhook signature matched variant=canonical")
+        return True
+    return False
+
+
+def confirm_bearer(tool_bearer: str = "", webhook_secret: str = "") -> str:
+    """Tool bearer, or the account signing secret when the tool bearer is unset."""
+    chosen = (tool_bearer or "").strip()
+    if chosen:
+        return chosen
+    return (webhook_secret or "").strip()
+
+
+def rejected_call_fields(payload: Mapping[str, Any]) -> List[str]:
+    """Fields named by a Bland 400 body. Only analysis_schema and tools."""
+    try:
+        text = json.dumps(payload, ensure_ascii=False)
+    except (TypeError, ValueError):
+        return []
+    found: List[str] = []
+    for name in RETRY_FIELDS:
+        if name in text:
+            found.append(name)
+    return found
+
+
+def without_rejected_fields(body: Mapping[str, Any], fields: List[str]) -> Dict[str, Any]:
+    trimmed = dict(body)
+    for name in fields:
+        trimmed.pop(name, None)
+    return trimmed
 
 
 def bearer_matches(header: Optional[str], secret: str) -> bool:
@@ -561,8 +618,9 @@ def handle_webhook(
 ) -> HandleResult:
     """Verify, require a pending call, write the record, enqueue one Quo line.
 
-    ``result_log`` collects the would-send line for dry-run tests. This function
-    does not call Quo or Bland.
+    The signature is checked against the raw body and, if that fails, against
+    compact re-serialized JSON. ``result_log`` collects the would-send line for
+    dry-run tests. This function does not call Quo or Bland.
     """
     if signature is None or not str(signature).strip():
         return HandleResult(401, "missing_signature")

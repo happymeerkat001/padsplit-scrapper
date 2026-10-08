@@ -19,6 +19,7 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
+import logging
 import os
 import re
 import sys
@@ -50,6 +51,7 @@ FAILURE_RETRY = timedelta(hours=24)
 QUO_MESSAGES_URL = "https://api.quo.com/v1/messages"
 QUO_API_VERSION = "2026-03-30"
 CALL_ID_RE = re.compile(r"[A-Za-z0-9_-]{8,80}")
+LOGGER = logging.getLogger("leak_alert_bland")
 
 _IMPL_PATH = ROOT_DIR / "functions" / "leak_alert_bland.py"
 _spec = importlib.util.spec_from_file_location("leak_alert_bland_impl", _IMPL_PATH)
@@ -268,7 +270,10 @@ def place_plan_calls(
     dry = dry_run_enabled(environ)
     api_key = str(environ.get("BLAND_API_KEY") or "").strip()
     webhook_url = str(environ.get("LEAK_ALERT_BLAND_WEBHOOK_URL") or "").strip()
-    webhook_secret = str(environ.get("BLAND_WEBHOOK_SECRET") or "").strip()
+    tool_secret = _impl.confirm_bearer(
+        str(environ.get("LEAK_ALERT_TOOL_BEARER") or ""),
+        str(environ.get("BLAND_WEBHOOK_SECRET") or ""),
+    )
     citation = str(environ.get("LEAK_ALERT_BLAND_CITATION_SCHEMA_ID") or "").strip()
     for entry in plan.entries:
         if entry.get("kind") != "voice":
@@ -310,7 +315,7 @@ def place_plan_calls(
             incident_id=plan.incident,
             role=role,
             webhook_url=webhook_url,
-            webhook_secret=webhook_secret,
+            webhook_secret=tool_secret,
             citation_schema_id=citation,
         )
         send = poster or (lambda payload, key: default_bland_post(payload, key, environ=environ))
@@ -318,7 +323,21 @@ def place_plan_calls(
             status, payload = send(body, api_key)
         except Exception:
             status, payload = 0, {}
-        call_id = str(payload.get("call_id") or "") if isinstance(payload, dict) else ""
+        if not isinstance(payload, dict):
+            payload = {}
+        call_id = str(payload.get("call_id") or "")
+        if status == 400 and not call_id:
+            dropped = _impl.rejected_call_fields(payload)
+            retry_body = _impl.without_rejected_fields(body, dropped)
+            if dropped and retry_body != body:
+                LOGGER.info("bland call 400; retrying without %s", ",".join(dropped))
+                try:
+                    status, payload = send(retry_body, api_key)
+                except Exception:
+                    status, payload = 0, {}
+                if not isinstance(payload, dict):
+                    payload = {}
+                call_id = str(payload.get("call_id") or "")
         if status not in (200, 201) or not call_id:
             prior["status"] = "failed"
             prior["failed_at"] = _stamp(now)
