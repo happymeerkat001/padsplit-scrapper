@@ -9,6 +9,11 @@ Discord #ai-automations for Cart. No Amazon purchase in this scraper.
 High precision only: member messages, current leak language. Do not fire
 on host reminder blasts or historical “previous leak” chatter.
 
+A host shutoff note already on any current thread at that house suppresses
+a second pack. The note is the auto-reply marker, or the t5 catch-up pair
+("in case of a water leak" plus the water-key short), dated after the member
+report and inside the 36-hour lookback.
+
 LEAK_REPLY_ENABLE default off. GitHub Actions / CI must not send.
 Discord outbound never includes lock codes or digit door codes.
 """
@@ -598,11 +603,60 @@ def record_sent(state: Dict[str, Any], chat_id: str, *, now: datetime) -> None:
     threads[chat_id] = row
 
 
+def host_text_handles_leak(text: str) -> bool:
+    """Auto-reply marker, or Nest's t5 catch-up pair (phrase + water-key short)."""
+    raw = text or ""
+    if LEAK_PACK_MARKER in raw:
+        return True
+    lowered = raw.lower()
+    return "in case of a water leak" in lowered and "scryjpiyzcs" in lowered
+
+
+def same_house(left: Dict[str, Any], right: Dict[str, Any]) -> bool:
+    """True when both threads resolve to one house. Unknown streets do not match each other."""
+    street_left = lockout_reply.thread_street(left)
+    street_right = lockout_reply.thread_street(right)
+    hit_left = lockout_reply.match_house(street_left, "")
+    hit_right = lockout_reply.match_house(street_right, "")
+    if hit_left.slug and hit_right.slug:
+        return hit_left.slug == hit_right.slug
+    norm_left = lockout_reply.normalize_text(street_left).lower()
+    norm_right = lockout_reply.normalize_text(street_right).lower()
+    return bool(norm_left) and norm_left == norm_right
+
+
+def house_host_handled(
+    source: Dict[str, Any],
+    threads: Sequence[Dict[str, Any]],
+    report_at: datetime,
+    *,
+    now: datetime,
+    lookback: timedelta = LOOKBACK,
+) -> bool:
+    """Host shutoff note on any current thread at this house, after the member report, inside lookback."""
+    for thread in threads:
+        if not lockout_reply.current_occupant(thread, now):
+            continue
+        if not same_house(source, thread):
+            continue
+        for message in lockout_reply.iter_thread_messages(thread):
+            if not lockout_reply.is_host_message(message):
+                continue
+            created = lockout_reply.parse_dt(message.get("created"))
+            if created is None or created <= report_at or created > now:
+                continue
+            if (now - created) > lookback:
+                continue
+            if host_text_handles_leak(lockout_reply.message_text(message)):
+                return True
+    return False
+
+
 def host_already_sent_leak_pack(thread: Dict[str, Any]) -> bool:
     for message in lockout_reply.iter_thread_messages(thread):
         if not lockout_reply.is_host_message(message):
             continue
-        if LEAK_PACK_MARKER in lockout_reply.message_text(message):
+        if host_text_handles_leak(lockout_reply.message_text(message)):
             return True
     return False
 
@@ -637,6 +691,7 @@ def decide(
     now: datetime,
     state: Optional[Dict[str, Any]] = None,
     leak_body: Optional[str] = None,
+    house_threads: Optional[Sequence[Dict[str, Any]]] = None,
 ) -> Decision:
     chat_id = str(thread.get("id") or "")
     if not chat_id:
@@ -655,13 +710,6 @@ def decide(
             certainty=100,
             chat_id=chat_id,
         )
-    if host_already_sent_leak_pack(thread):
-        return Decision(
-            action="already_sent",
-            reason="host leak pack already on thread",
-            certainty=100,
-            chat_id=chat_id,
-        )
 
     leak_message = recent_member_leak(thread, now=now)
     if leak_message is None:
@@ -669,6 +717,19 @@ def decide(
             action="skip",
             reason="no recent member leak",
             certainty=0,
+            chat_id=chat_id,
+        )
+    report_at = lockout_reply.parse_dt(leak_message.get("created"))
+    if report_at is not None and house_host_handled(
+        thread,
+        list(house_threads) if house_threads is not None else [thread],
+        report_at,
+        now=now,
+    ):
+        return Decision(
+            action="already_sent",
+            reason="host leak pack already at house",
+            certainty=100,
             chat_id=chat_id,
         )
 
@@ -759,9 +820,16 @@ def process_leaks(
             ]
     results: List[Dict[str, Any]] = []
     body = leak_body if leak_body is not None else format_leak_body(fetch_doc=fetch_doc)
+    thread_list = list(threads)
 
-    for thread in threads:
-        decision = decide(thread, now=now, state=state, leak_body=body)
+    for thread in thread_list:
+        decision = decide(
+            thread,
+            now=now,
+            state=state,
+            leak_body=body,
+            house_threads=thread_list,
+        )
         row = {
             "chat_id": decision.chat_id,
             "action": decision.action,

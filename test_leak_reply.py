@@ -431,7 +431,124 @@ class FlowTests(unittest.TestCase):
             [member_thread(host_texts=[leak_reply.format_leak_body(leak_reply.BAKED_T5_TEXT)])],
         )
         self.assertEqual(rows[0]["action"], "already_sent")
+        self.assertEqual(rows[0]["reason"], "host leak pack already at house")
         self.assertEqual(fake.sends, [])
+
+    def test_t5_catchup_on_another_current_thread_at_house_skips(self) -> None:
+        fake = FakeSend()
+        catchup = (
+            "In case of a water leak, the water is shut off.\n"
+            "https://youtube.com/shorts/SCryjPiyZcs?si=example"
+        )
+        sibling = member_thread(
+            chat_id="chat-leana-3",
+            room=3,
+            text="heading out",
+            host_texts=[catchup],
+            host_created="2026-09-10T14:40:00Z",
+        )
+        rows, _ = run_process(fake, [member_thread(), sibling])
+        reporter = next(row for row in rows if row["chat_id"] == "chat-leana")
+        self.assertEqual(reporter["action"], "already_sent")
+        self.assertEqual(reporter["reason"], "host leak pack already at house")
+        self.assertEqual(fake.sends, [])
+
+    def test_marker_on_sibling_thread_skips(self) -> None:
+        fake = FakeSend()
+        sibling = member_thread(
+            chat_id="chat-leana-3",
+            room=3,
+            text="ok",
+            host_texts=["Thanks for reporting the water leak — shutoff done"],
+            host_created="2026-09-10T14:40:00Z",
+        )
+        rows, _ = run_process(fake, [member_thread(), sibling])
+        reporter = next(row for row in rows if row["chat_id"] == "chat-leana")
+        self.assertEqual(reporter["action"], "already_sent")
+        self.assertEqual(fake.sends, [])
+
+    def test_half_pair_other_house_prior_note_and_departed_thread_still_send(self) -> None:
+        fake = FakeSend()
+        phrase_only = member_thread(
+            chat_id="phrase-only",
+            host_texts=["In case of a water leak please shut the water off."],
+            host_created="2026-09-10T14:40:00Z",
+        )
+        short_only = member_thread(
+            chat_id="short-only",
+            host_texts=["How to use a water key https://youtube.com/shorts/SCryjPiyZcs"],
+            host_created="2026-09-10T14:40:00Z",
+        )
+        before_report = member_thread(
+            chat_id="before",
+            host_texts=[
+                "In case of a water leak\nhttps://youtube.com/shorts/SCryjPiyZcs"
+            ],
+            host_created="2026-09-10T14:00:00Z",
+        )
+        other_house = member_thread(
+            chat_id="sylvia",
+            street="2516 Sylvia Avenue",
+            host_texts=[
+                "In case of a water leak\nhttps://youtube.com/shorts/SCryjPiyZcs"
+            ],
+            host_created="2026-09-10T14:40:00Z",
+        )
+        # The Sylvia thread also has its own member leak, so it would send on its own.
+        # Pair it with a Leana reporter whose only host note is the other house.
+        departed = member_thread(
+            chat_id="departed",
+            room=4,
+            text="moved",
+            move_out="2026-08-01",
+            host_texts=[
+                "In case of a water leak\nhttps://youtube.com/shorts/SCryjPiyZcs"
+            ],
+            host_created="2026-09-10T14:40:00Z",
+        )
+        cases = [
+            [phrase_only],
+            [short_only],
+            [before_report],
+            [member_thread(), other_house],
+            [member_thread(), departed],
+        ]
+        for threads in cases:
+            fake = FakeSend()
+            rows, _ = run_process(fake, threads)
+            sent_ids = [row["chat_id"] for row in rows if row["action"] == "sent"]
+            self.assertTrue(sent_ids, msg=threads[0]["id"])
+            self.assertGreaterEqual(len(fake.sends), 1)
+
+    def test_host_note_outside_lookback_does_not_count(self) -> None:
+        report_at = NOW - timedelta(hours=40)
+        host_at = (NOW - timedelta(hours=37)).strftime("%Y-%m-%dT%H:%M:%SZ")
+        thread = member_thread(
+            created=report_at.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            host_texts=["In case of a water leak\nhttps://youtube.com/shorts/SCryjPiyZcs"],
+            host_created=host_at,
+        )
+        self.assertFalse(
+            leak_reply.house_host_handled(
+                thread,
+                [thread],
+                report_at,
+                now=NOW,
+            )
+        )
+        inside = (NOW - timedelta(hours=10)).strftime("%Y-%m-%dT%H:%M:%SZ")
+        handled = member_thread(
+            host_texts=["Thanks for reporting the water leak"],
+            host_created=inside,
+        )
+        self.assertTrue(
+            leak_reply.house_host_handled(
+                handled,
+                [handled],
+                NOW - timedelta(hours=12),
+                now=NOW,
+            )
+        )
 
     def test_leftover_drafts_hard_skip_no_send(self) -> None:
         leftover = [{"chat_id": "chat-leana", "kind": "draft"}]
