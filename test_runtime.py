@@ -112,6 +112,20 @@ class RuntimeFlagTests(unittest.TestCase):
     def test_host_identity_is_nonempty(self) -> None:
         self.assertTrue(runtime.host_identity())
 
+    def test_frontload_send_follows_collection_only_gate(self) -> None:
+        enabled = {
+            "CI": "",
+            "GITHUB_ACTIONS": "",
+            "PADSPLIT_ENABLE_ACTION_HOOKS": "1",
+            "FRONTLOAD_WEBHOOK_ENABLE": "1",
+        }
+        self.assertTrue(runtime.send_enabled("frontload", enabled))
+        collected = dict(enabled)
+        collected["PADSPLIT_COLLECTION_ONLY"] = "1"
+        self.assertFalse(runtime.send_enabled("frontload", collected))
+        self.assertFalse(runtime.send_enabled("frontload", {"CI": "", "GITHUB_ACTIONS": "", "FRONTLOAD_WEBHOOK_ENABLE": "1"}))
+        self.assertFalse(runtime.send_enabled("frontload", {**enabled, "CI": "true"}))
+
     def test_collection_policy_is_frozen_and_disallows_hooks(self) -> None:
         policy = runtime.COLLECTION_ONLY_POLICY
         self.assertTrue(policy.collection_only)

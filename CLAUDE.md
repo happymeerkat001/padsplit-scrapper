@@ -28,12 +28,16 @@ python3 thermostat/scraper.py
 # Spanish Moss back-door lock codes run from morning/afternoon (Mac only; CI no-op)
 # Lockout auto-reply runs from morning/afternoon + scraper (LOCKOUT_REPLY_ENABLE; CI no-op)
 # Leak auto-reply runs from morning/afternoon + scraper (LEAK_REPLY_ENABLE; CI no-op)
+# Frontload booking/listing webhook runs from the scraper (FRONTLOAD_WEBHOOK_ENABLE; default off, dry-run on).
+# Sends use runtime.send_enabled("frontload"): also needs PADSPLIT_ENABLE_ACTION_HOOKS and not collection-only.
+# Collection-only jobs skip and do not touch the ledger. Mac launchd owns live POST. CI must not POST.
 ```
 
 ## Tests
 
 ```bash
 python3 test_padsplit_scraper.py
+python3 test_frontload_webhook.py
 python3 test_padsplit_occupancy.py
 python3 test_stats_freshness.py
 python3 test_slack_task_digest.py
@@ -154,6 +158,10 @@ DISCORD_CHANNEL_ID=
 DISCORD_AUTOMATIONS_CHANNEL_ID= # optional #ai-automations; lockout drafts + leak WATER_KEY_ORDER, no digits
 LOCKOUT_REPLY_ENABLE=          # default off; Mac .env sets 1 to auto-SEND lockout door then lockbox
 LEAK_REPLY_ENABLE=             # default off; Mac .env sets 1 to auto-SEND water-leak shut-off pack + WATER_KEY_ORDER
+FRONTLOAD_WEBHOOK_URL=         # Grok Bot routine POST URL. Mac launchd owns live sends; CI must not POST
+FRONTLOAD_WEBHOOK_KEY=         # Grok Bot routine key. Header is Authorization: Bearer <key> (panel copies that full line). Never log
+FRONTLOAD_WEBHOOK_ENABLE=      # default off. Live/dry-run also require send_enabled (not CI, not collection-only, PADSPLIT_ENABLE_ACTION_HOOKS=1)
+FRONTLOAD_WEBHOOK_DRY_RUN=     # default on. Logs payload JSON to logs/frontload_webhook.jsonl instead of POST
 SIFELY_API_KEY=          # raw sk- key, no Bearer; missing = Need-you no-op
 SIFELY_LOCK_ID=          # optional Spanish Moss back-door lock id
 SIFELY_KEYBOARD_PWD_ID=  # optional tenant passcode id
