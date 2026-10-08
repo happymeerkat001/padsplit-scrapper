@@ -24,6 +24,7 @@ from typing import Any, Dict, List, Mapping, Optional
 BLAND_CALLS_URL = "https://api.bland.ai/v1/calls"
 BLAND_MAX_DURATION_MIN = 2
 VOICEMAIL_ACTION = "leave_message"
+VOICEMAIL_CLOSING = "Check the Quo group text for details."
 SUMMARY_PROMPT = (
     "One sentence: whether they confirmed they are going to the leak, "
     "and the ETA in minutes if they gave one. Do not include phone numbers."
@@ -268,6 +269,11 @@ def strip_phones(text: str) -> str:
     return " ".join(cleaned.split())
 
 
+def voicemail_message(script: str) -> str:
+    """Leave-message only. first_sentence and task stay the shared planner script."""
+    return f"{script.rstrip()} {VOICEMAIL_CLOSING}"
+
+
 def task_for(script: str) -> str:
     return (
         f"{script} "
@@ -328,7 +334,7 @@ def build_call_body(
         "max_duration": BLAND_MAX_DURATION_MIN,
         "block_interruptions": False,
         "record": False,
-        "voicemail": {"action": VOICEMAIL_ACTION, "message": script},
+        "voicemail": {"action": VOICEMAIL_ACTION, "message": voicemail_message(script)},
         "summary_prompt": SUMMARY_PROMPT,
         "analysis_schema": dict(ANALYSIS_SCHEMA),
         "dispositions": list(DISPOSITIONS),

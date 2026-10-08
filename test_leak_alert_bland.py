@@ -336,6 +336,7 @@ class PreviewTests(unittest.TestCase):
         self.assertIn("Water emergency at 100 Example Lane, room 2.", text)
         self.assertIn("Tenant has been told to shut off the water.", text)
         self.assertNotIn("The water is being shut off.", text)
+        self.assertEqual(text.count("Check the Quo group text for details."), 2)
         self.assertIn('"max_duration": 2', text)
         self.assertIn('"confirmed_going": "boolean"', text)
         self.assertIn('"eta_minutes": "number"', text)
@@ -448,7 +449,12 @@ class SenderTests(unittest.TestCase):
         don_body = calls[0][1] and calls[0][0]
         self.assertEqual(don_body["phone_number"], DON)
         self.assertEqual(don_body["max_duration"], 2)
-        self.assertEqual(don_body["first_sentence"], don_body["voicemail"]["message"])
+        self.assertEqual(
+            don_body["voicemail"]["message"],
+            don_body["first_sentence"] + " Check the Quo group text for details.",
+        )
+        self.assertNotIn("Check the Quo group text for details.", don_body["first_sentence"])
+        self.assertNotIn("Check the Quo group text for details.", don_body["task"])
         self.assertEqual(don_body["analysis_schema"], {"confirmed_going": "boolean", "eta_minutes": "number"})
         self.assertEqual(don_body["metadata"], {"incident_id": plan.incident, "role": "don"})
         self.assertNotIn("phone", json.dumps(don_body["metadata"]))
