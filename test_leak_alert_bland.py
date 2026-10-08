@@ -138,6 +138,48 @@ class SignatureTests(unittest.TestCase):
         self.assertEqual(result.error, "invalid_signature")
         self.assertIsNone(store.get_record(INCIDENT, "tom"))
 
+    def test_raw_signature_logs_variant_only(self) -> None:
+        payload = _payload("voicemail")
+        raw = _raw(payload)
+        signature = _sign(raw)
+        with self.assertLogs("leak_alert_bland", level="INFO") as logs:
+            self.assertTrue(bland.verify_signature(SECRET, raw, signature))
+        text = "\n".join(logs.output)
+        self.assertIn("variant=raw", text)
+        self.assertNotIn("variant=canonical", text)
+        self.assertNotIn(SECRET, text)
+        self.assertNotIn(signature, text)
+
+    def test_canonical_signature_accepts_pretty_body(self) -> None:
+        payload = _payload("voicemail", call_id="call-tom-canon")
+        raw = json.dumps(payload, indent=2).encode("utf-8")
+        canonical = json.dumps(payload, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+        self.assertNotEqual(raw, canonical)
+        signature = _sign(canonical)
+        store = _store_for(payload["call_id"])
+        with self.assertLogs("leak_alert_bland", level="INFO") as logs:
+            result = bland.handle_webhook(raw, signature, secret=SECRET, store=store, now=FRESH)
+        self.assertEqual(result.status, 200)
+        self.assertEqual(result.record["outcome"], "voicemail")
+        text = "\n".join(logs.output)
+        self.assertIn("variant=canonical", text)
+        self.assertNotIn(SECRET, text)
+        self.assertNotIn(signature, text)
+
+    def test_canonical_signature_keeps_non_ascii(self) -> None:
+        payload = _payload("voicemail", call_id="call-tom-cafe")
+        payload["summary"] = "Reached voicemail. café"
+        raw = json.dumps(payload, indent=2, ensure_ascii=False).encode("utf-8")
+        escaped = json.dumps(payload, separators=(",", ":"), ensure_ascii=True).encode("utf-8")
+        compact = json.dumps(payload, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+        self.assertNotEqual(escaped, compact)
+        store = _store_for(payload["call_id"])
+        rejected = bland.handle_webhook(raw, _sign(escaped), secret=SECRET, store=store, now=FRESH)
+        self.assertEqual(rejected.status, 401)
+        accepted = bland.handle_webhook(raw, _sign(compact), secret=SECRET, store=store, now=FRESH)
+        self.assertEqual(accepted.status, 200)
+        self.assertIn("café", accepted.record["summary"])
+
     def test_missing_signature_rejects(self) -> None:
         payload = _payload("voicemail")
         store = _store_for(payload["call_id"])
@@ -460,6 +502,7 @@ class SenderTests(unittest.TestCase):
         self.assertNotIn("phone", json.dumps(don_body["metadata"]))
         self.assertEqual(don_body["webhook"], "https://example.invalid/leak")
         self.assertEqual(don_body["tools"][0]["name"], "confirm_dispatch")
+        self.assertEqual(don_body["tools"][0]["headers"]["Authorization"], f"Bearer {SECRET}")
         self.assertEqual(calls[0][1], "bland-test")
         encoded_state = json.dumps(state)
         leak_alert.assert_plan_has_no_numbers(encoded_state)
@@ -476,6 +519,98 @@ class SenderTests(unittest.TestCase):
         )
         self.assertEqual([row["status"] for row in again], ["already_placed", "already_placed"])
         self.assertEqual(len(calls), 2)
+
+    def test_tool_bearer_overrides_signing_secret(self) -> None:
+        environ = _env(LEAK_ALERT_DRY_RUN="0", LEAK_ALERT_BLAND_WEBHOOK_URL="https://example.invalid/leak")
+        environ["BLAND_WEBHOOK_SECRET"] = SECRET
+        environ["LEAK_ALERT_TOOL_BEARER"] = "tool-bearer-test"
+        plan, state = self._plan(environ)
+        seen = []
+
+        def poster(body, api_key):
+            seen.append(body)
+            return 200, {"call_id": f"call-bearer-{body['metadata']['role']}1"}
+
+        notes = bland.place_plan_calls(plan, state, now=NOW, environ=environ, poster=poster)
+        self.assertEqual([row["status"] for row in notes], ["placed", "placed"])
+        header = seen[0]["tools"][0]["headers"]["Authorization"]
+        self.assertEqual(header, "Bearer tool-bearer-test")
+        self.assertNotIn(SECRET, header)
+        encoded = json.dumps(state)
+        self.assertNotIn("tool-bearer-test", encoded)
+        self.assertNotIn(SECRET, encoded)
+
+    def test_400_retries_once_without_named_field(self) -> None:
+        environ = _env(LEAK_ALERT_DRY_RUN="0", LEAK_ALERT_BLAND_WEBHOOK_URL="https://example.invalid/leak")
+        environ["BLAND_WEBHOOK_SECRET"] = SECRET
+        plan, state = self._plan(environ)
+        seen = []
+
+        def poster(body, api_key):
+            seen.append(body)
+            role = body["metadata"]["role"]
+            if body.get("analysis_schema"):
+                return 400, {"message": "analysis_schema is not a valid parameter"}
+            return 200, {"call_id": f"call-drop-{role}1"}
+
+        with self.assertLogs("leak_alert_bland", level="INFO") as logs:
+            notes = bland.place_plan_calls(plan, state, now=NOW, environ=environ, poster=poster)
+        self.assertEqual([row["status"] for row in notes], ["placed", "placed"])
+        self.assertEqual(len(seen), 4)
+        self.assertIn("analysis_schema", seen[0])
+        self.assertNotIn("analysis_schema", seen[1])
+        self.assertIn("tools", seen[1])
+        text = "\n".join(logs.output)
+        self.assertIn("retrying without analysis_schema", text)
+        self.assertNotIn(SECRET, text)
+        self.assertNotIn(DON, text)
+        self.assertNotIn(TOM, text)
+
+    def test_400_with_call_id_does_not_retry(self) -> None:
+        environ = _env(LEAK_ALERT_DRY_RUN="0")
+        plan, state = self._plan(environ)
+        seen = []
+
+        def poster(body, api_key):
+            seen.append(body)
+            return 400, {"call_id": "call-already-01", "message": "analysis_schema rejected"}
+
+        notes = bland.place_plan_calls(plan, state, now=NOW, environ=environ, poster=poster)
+        self.assertEqual(len(seen), 2)
+        self.assertTrue(all(row["status"] == "failed" for row in notes))
+        self.assertNotIn("call-already-01", json.dumps(state))
+
+    def test_400_without_named_field_does_not_retry(self) -> None:
+        environ = _env(LEAK_ALERT_DRY_RUN="0")
+        plan, state = self._plan(environ)
+        seen = []
+
+        def poster(body, api_key):
+            seen.append(1)
+            return 400, {"message": "invalid phone_number"}
+
+        with self.assertNoLogs("leak_alert_bland", level="INFO"):
+            notes = bland.place_plan_calls(plan, state, now=NOW, environ=environ, poster=poster)
+        self.assertEqual(seen, [1, 1])
+        self.assertTrue(all(row["status"] == "failed" for row in notes))
+
+    def test_400_second_response_is_not_retried_again(self) -> None:
+        environ = _env(LEAK_ALERT_DRY_RUN="0", LEAK_ALERT_BLAND_WEBHOOK_URL="https://example.invalid/leak")
+        environ["BLAND_WEBHOOK_SECRET"] = SECRET
+        plan, state = self._plan(environ)
+        seen = []
+
+        def poster(body, api_key):
+            seen.append(body)
+            if "analysis_schema" in body:
+                return 400, {"message": "analysis_schema rejected"}
+            return 400, {"message": "tools rejected"}
+
+        notes = bland.place_plan_calls(plan, state, now=NOW, environ=environ, poster=poster)
+        self.assertEqual(len(seen), 4)
+        self.assertNotIn("analysis_schema", seen[1])
+        self.assertIn("tools", seen[1])
+        self.assertTrue(all(row["status"] == "failed" for row in notes))
 
     def test_failure_is_not_retried_within_24h(self) -> None:
         environ = _env(LEAK_ALERT_DRY_RUN="0")

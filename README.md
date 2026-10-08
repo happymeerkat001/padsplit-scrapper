@@ -101,18 +101,42 @@ Go-live checklist (leave these off until Ang turns them on; CI must stay a no-op
 
 Bland calls are placed by `padsplit_scraper/leak_alert_bland.py`. `LEAK_ALERT_DRY_RUN` defaults on. Nothing calls Bland or Quo until enable is on and dry-run is explicitly `0`.
 
-Bland voice is Don and Tom only (`LEAK_ALERT_DON_E164`, `LEAK_ALERT_TOM_E164`). The live POST is `https://api.bland.ai/v1/calls` with `Authorization: Bearer <BLAND_API_KEY>` ([Send Call](https://docs.bland.ai/api-v1/post/calls)). `first_sentence` and `task` use the shared planner script. The voicemail `leave_message` is that script plus `Check the Quo group text for details.` `max_duration` is 2 minutes. The body also sends `summary_prompt`, `analysis_schema` (`confirmed_going` boolean, `eta_minutes` number), and `dispositions`. `metadata` is `incident_id` and `role` only. Phones are not logged. State key `voice:{incident}:{role}` dedupes. A failed place is not retried for 24 hours. The next Mac run polls `GET /v1/calls/{call_id}` when Firestore has no webhook record ([Call details](https://docs.bland.ai/api-v1/get/calls-id)).
+Bland voice is Don and Tom only (`LEAK_ALERT_DON_E164`, `LEAK_ALERT_TOM_E164`). The live POST is `https://api.bland.ai/v1/calls` with `Authorization: Bearer <BLAND_API_KEY>` ([Send Call](https://docs.bland.ai/api-v1/post/calls)). `first_sentence` and `task` use the shared planner script. The voicemail `leave_message` is that script plus `Check the Quo group text for details.` `max_duration` is 2 minutes. The body also sends `summary_prompt`, `analysis_schema` (`confirmed_going` boolean, `eta_minutes` number), and `dispositions`. `metadata` is `incident_id` and `role` only. Phones are not logged. State key `voice:{incident}:{role}` dedupes. A failed place is not retried for 24 hours. If Bland returns 400 and names `analysis_schema` or inline `tools`, and the body has no `call_id`, the sender logs the field name and retries that POST once without the named field. It does not retry when a `call_id` came back. The next Mac run polls `GET /v1/calls/{call_id}` when Firestore has no webhook record ([Call details](https://docs.bland.ai/api-v1/get/calls-id)).
 
-The Mac has no public inbound URL. Bland posts the finished call to a Firebase HTTPS function (deployable, not deployed):
+The Mac has no public inbound URL. Bland posts the finished call to a Firebase HTTPS function. Do not deploy from CI. Go-live, in order:
+
+1. Upgrade the Firebase project `padsplit-scrapper` to the Blaze plan. Cloud Functions will not deploy on the free plan.
+2. In the Bland Dev Portal open Account Settings → Keys and create or replace the webhook signing secret. Bland shows it once. That value is the account-level signing secret. Do not generate a different HMAC secret for this repo.
+3. Put that same value in the Mac `.env` as `BLAND_WEBHOOK_SECRET` and in Firebase:
 
 ```bash
 firebase functions:secrets:set BLAND_WEBHOOK_SECRET --project padsplit-scrapper
+```
+
+4. Optional tool bearer. `confirm_dispatch` would otherwise store the account signing secret inside the tool definition Bland keeps. Set a different `LEAK_ALERT_TOOL_BEARER` on the Mac and in Firebase. The function binds this name, so create it before deploy. If the runtime value is empty, the sender and `/confirm` fall back to `BLAND_WEBHOOK_SECRET`.
+
+```bash
+firebase functions:secrets:set LEAK_ALERT_TOOL_BEARER --project padsplit-scrapper
+```
+
+5. Deploy only this function:
+
+```bash
 firebase deploy --only functions:leak-alert:leak_alert_bland --project padsplit-scrapper
 ```
 
-URL shape: `https://us-central1-padsplit-scrapper.cloudfunctions.net/leak_alert_bland` (set this as `LEAK_ALERT_BLAND_WEBHOOK_URL`). Confirm tool path: the same URL plus `/confirm`. Bland signs the raw body with HMAC-SHA256 and sends the hex digest in `X-Webhook-Signature` ([Webhook signing](https://docs.bland.ai/tutorials/webhook-signing)). Create the secret in the Bland Dev Portal: Account Settings → Keys → Replace Secret (shown once). Put that value in `BLAND_WEBHOOK_SECRET` on the function and on the Mac. The per-call webhook is the API `webhook` field; the dashboard equivalent is Send Call → Advanced → webhook ([Post call webhooks](https://docs.bland.ai/tutorials/post-call-webhooks)). The function checks the signature with a constant-time compare, rejects timestamps older than 24 hours when Bland sends them, and rejects any `call_id` or `metadata.incident_id` that is not in `leak_alert_pending`. It writes `leak_alert_calls/{incident}/roles/{role}` (outcome, confirmed, eta_minutes, short summary, call_id; no phones and no full transcript) and enqueues `leak_alert_result_queue/{call_id}`. Firestore rules deny client access; only the admin SDK writes. Do not deploy from CI.
+6. Set `LEAK_ALERT_BLAND_WEBHOOK_URL` to the URL deploy prints. Shape: `https://us-central1-padsplit-scrapper.cloudfunctions.net/leak_alert_bland`. Confirm tool path is that URL plus `/confirm`. To re-test a finished call, use Bland's Resend Post Call Webhook API ([docs](https://docs.bland.ai/api-v1/post/postcall-webhooks-resend)). It resends the original post-call payload to the URL already stored for that call:
 
-`confirm_dispatch` is an inline custom tool on the call ([Create a Custom Tool](https://docs.bland.ai/api-v1/post/tools)). Bland can POST it mid-call to the `/confirm` path. Tool calls are not HMAC-signed; the tool sends `Authorization: Bearer <BLAND_WEBHOOK_SECRET>`, and the function compares that header in constant time. The tool is attached only when the webhook URL and secret are both set. You do not have to create it in the Bland dashboard.
+```bash
+curl -X POST https://api.bland.ai/v1/postcall/webhooks/resend \
+  -H "authorization: $BLAND_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"call_ids":["<call_id>"]}'
+```
+
+Bland signs `JSON.stringify(req.body)` ([Webhook signing](https://docs.bland.ai/tutorials/webhook-signing)), which is not always the raw bytes. The function tries HMAC-SHA256 hex of the raw body first, then of compact re-serialized JSON (`separators=(',', ':')`, non-ASCII left as characters). Each compare is constant-time. The log line is only `variant=raw` or `variant=canonical`. It rejects timestamps older than 24 hours when Bland sends them, and rejects any `call_id` or `metadata.incident_id` that is not in `leak_alert_pending`. It writes `leak_alert_calls/{incident}/roles/{role}` (outcome, confirmed, eta_minutes, short summary, call_id; no phones and no full transcript) and enqueues `leak_alert_result_queue/{call_id}`. Firestore rules deny client access; only the admin SDK writes.
+
+`confirm_dispatch` is an inline custom tool on the call ([Create a Custom Tool](https://docs.bland.ai/api-v1/post/tools)). Bland can POST it mid-call to the `/confirm` path. Tool calls are not HMAC-signed. The tool sends `Authorization: Bearer <LEAK_ALERT_TOOL_BEARER>` (or `BLAND_WEBHOOK_SECRET` when that bearer is unset), and the function compares that header in constant time. The tool is attached only when the webhook URL and a bearer are both set. You do not have to create it in the Bland dashboard.
 
 The call-result line is separate (`padsplit_scraper/leak_alert_bland.py`, `post_group_result_line`): `Don: going, ETA 20m`, `Don: not going`, `Tom: voicemail`, `Tom: no answer`. It needs `LEAK_ALERT_RESULT_POST_ENABLE` (default off) and dry-run off, and it is deduped per `call_id`. Dry-run appends the line with no numbers to `logs/leak_alert_result.jsonl`. State key for the group notice is `group:{incident}`.
 
@@ -133,7 +157,8 @@ LEAK_ALERT_DON_E164=
 LEAK_ALERT_TOM_E164=
 LEAK_ALERT_GROUP_E164S=
 BLAND_API_KEY=
-BLAND_WEBHOOK_SECRET=
+BLAND_WEBHOOK_SECRET=              # Bland account signing secret (Dev Portal → Keys). Not one we generate
+# LEAK_ALERT_TOOL_BEARER=         # optional confirm_dispatch bearer; falls back to BLAND_WEBHOOK_SECRET
 LEAK_ALERT_BLAND_WEBHOOK_URL=
 LEAK_ALERT_RESULT_POST_ENABLE=      # default off
 # LEAK_ALERT_BLAND_CITATION_SCHEMA_ID=  # optional enterprise citation schema
