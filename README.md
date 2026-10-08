@@ -77,7 +77,27 @@ Lockout auto-reply (`padsplit_scraper/lockout_reply.py`) detects member lockout 
 
 Water-leak auto-reply (`padsplit_scraper/leak_reply.py`) detects an **active** member water emergency only: pipe burst / pipe leak, water main, flooding, or water leaking from wall or ceiling. Bare `leak`/`leaking`, slow leaks, drips, seepage, and toilet-only cases do **not** fire (no curb-key / whole-house shutoff). Flooding still fires even with a toilet mention. SENDS a 1:1 adaptation of Firestore `templates/shared` **t5** (`n5` Water leak announcement) on that PadSplit thread, with Quo call/text added (t5 is house-wide and has no Quo). Live t5 is preferred; baked t5 is the fallback. Canonical water-key YouTube: `https://youtube.com/shorts/SCryjPiyZcs`. It also posts a `WATER_KEY_ORDER` event to Discord `#ai-automations` (digit-free except the leaking property ship-to) for Cart: house label, full street address, Orbit ASIN / `water curb key`. No Amazon purchase in this scraper. No Spanish Moss address override. Host reminder blasts and historical “previous leak” chatter do not fire. Default off until Mac `.env` sets `LEAK_REPLY_ENABLE=1`. CI must not send. Discord posts never include lock codes. Nest is interim-handling leak replies until enable is live — tell Nest to stop duplicates when this is turned on.
 
-Leak alert planner (`padsplit_scraper/leak_alert.py`) is dry-run only. `LEAK_ALERT_ENABLE` defaults off and CI must not send. Bland voice is planned for Don and Tom (`LEAK_ALERT_DON_E164`, `LEAK_ALERT_TOM_E164`). The Don, Tom, and Ang notice is one Quo group post, not a 1:1: `POST https://api.quo.com/v1/messages` with `to` set from `LEAK_ALERT_GROUP_E164S` (comma list of the group participants, excluding the from-line). If that list is unset, the plan records a skip. Quo v1 cannot post by conversation id. The send body is `content`, `from`, and `to` (max 10); there is no conversation id field ([Send a text message](https://www.quo.com/docs/mdx/api-reference/messages/send-a-text-message)). A group message is that `to` list ([changelog](https://www.quo.com/docs/changelog)). The same participant set is how `GET /v1/messages` loads the group thread ([List messages](https://www.quo.com/docs/mdx/api-reference/messages/list-messages)). Optional `LEAK_ALERT_GROUP_CONVERSATION_ID` is a dry-run check only: `GET /v1/conversations` confirms those participants match ([List conversations](https://www.quo.com/docs/mdx/api-reference/conversations/list-conversations)). Numbers are not written to the plan, state, logs, or Discord. State key is `group:{incident}`. Tenant texts stay private 1:1 posts. No code defaults for any number.
+Leak alert planner (`padsplit_scraper/leak_alert.py`) plans one incident. `LEAK_ALERT_ENABLE` defaults off and CI must not send. Bland voice is planned for Don and Tom (`LEAK_ALERT_DON_E164`, `LEAK_ALERT_TOM_E164`). The Don, Tom, and Ang notice is one Quo group post, not a 1:1: `POST https://api.quo.com/v1/messages` with `to` set from `LEAK_ALERT_GROUP_E164S` (comma list of the group participants, excluding the from-line). If that list is unset, the plan records a skip. Quo v1 cannot post by conversation id. The send body is `content`, `from`, and `to` (max 10); there is no conversation id field ([Send a text message](https://www.quo.com/docs/mdx/api-reference/messages/send-a-text-message)). A group message is that `to` list ([changelog](https://www.quo.com/docs/changelog)). The same participant set is how `GET /v1/messages` loads the group thread ([List messages](https://www.quo.com/docs/mdx/api-reference/messages/list-messages)). Optional `LEAK_ALERT_GROUP_CONVERSATION_ID` is a dry-run check only: `GET /v1/conversations` confirms those participants match ([List conversations](https://www.quo.com/docs/mdx/api-reference/conversations/list-conversations)). Numbers are not written to the plan, state, logs, or Discord. State keys are `group:{incident}` and `tenant:{incident}:{hash}`. Tenant texts stay private 1:1 posts. No code defaults for any number.
+
+Quo SMS for that plan lives in `padsplit_scraper/quo_sender.py`. It does not send on merge. Real HTTP requires every gate below. `LEAK_ALERT_DRY_RUN` defaults on (unset means dry-run). Header is `Authorization: <QUO_API_KEY>` with no Bearer, plus `Quo-Api-Version: 2026-03-30`. Body is `{content, from, to}` and is SMS only. 4xx is not retried. `0206400` (unapproved or unregistered) and `0204403` (daily cap) are marked failed and not retried. 429 and 5xx retry up to 3 attempts. Timeouts are not retried. Before POST the state key is set to `sending` and flushed with an atomic replace, so a crash cannot double-send (a dropped text is preferred over a second text). Phones are held in memory for the request and are not written to `logs/leak_alert_state.json` or logs.
+
+Preview (no HTTP, sample house, fictional numbers masked to the last two digits). Writes `logs/leak_alert_preview.txt` (gitignored):
+
+```bash
+python3 -m padsplit_scraper.quo_sender --preview
+```
+
+The voice call script is a hook (`preview_call_script`) for a later PR. This preview does not include one.
+
+Go-live checklist (leave these off until Ang turns them on; CI must stay a no-op):
+
+- `QUO_API_KEY` set on the Mac only (raw key, never logged, never committed)
+- `QUO_FROM_NUMBER` set to the Quo from-line
+- `LEAK_ALERT_GROUP_E164S` set to the group participants, excluding that from-line
+- `PADSPLIT_ENABLE_ACTION_HOOKS=1` and `PADSPLIT_COLLECTION_ONLY=0`
+- `LEAK_ALERT_ENABLE=1` (or `PADSPLIT_SEND_LEAK_ALERT=1`)
+- `LEAK_ALERT_DRY_RUN=0` (this is the switch that leaves dry-run; unset stays dry-run)
+- Confirm the preview copy, then run from the Mac launchd job, not GitHub Actions
 
 Write Obsidian daily digest:
 
@@ -117,6 +137,7 @@ python3 test_lock_codes.py
 python3 test_lockout_reply.py
 python3 test_leak_reply.py
 python3 test_leak_alert.py
+python3 test_quo_sender.py
 python3 test_codes_dashboard.py
 node test_codes_dashboard_render.mjs
 ```
