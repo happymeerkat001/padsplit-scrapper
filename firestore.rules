@@ -36,6 +36,15 @@ service cloud.firestore {
     match /stats/{document} {
       allow read, write: if request.auth.uid == 'TXSU0LOpmDWNBbbv0x3uHHBnZb12';
     }
+    match /leak_alert_calls/{incident}/roles/{role} {
+      allow read, write: if false;
+    }
+    match /leak_alert_pending/{callId} {
+      allow read, write: if false;
+    }
+    match /leak_alert_result_queue/{callId} {
+      allow read, write: if false;
+    }
     match /{document=**} {
       allow read, write: if false;
     }

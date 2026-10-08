@@ -28,6 +28,7 @@ python3 thermostat/scraper.py
 # Spanish Moss back-door lock codes run from morning/afternoon (Mac only; CI no-op)
 # Lockout auto-reply runs from morning/afternoon + scraper (LOCKOUT_REPLY_ENABLE; CI no-op)
 # Leak auto-reply runs from morning/afternoon + scraper (LEAK_REPLY_ENABLE; CI no-op)
+# Leak alert Bland calls stay off until LEAK_ALERT_ENABLE=1 and LEAK_ALERT_DRY_RUN=0 (CI no-op)
 # Frontload booking/listing webhook runs from the scraper (FRONTLOAD_WEBHOOK_ENABLE; default off, dry-run on).
 # Sends use runtime.send_enabled("frontload"): also needs PADSPLIT_ENABLE_ACTION_HOOKS and not collection-only.
 # Collection-only jobs skip and do not touch the ledger. Mac launchd owns live POST. CI must not POST.
@@ -62,6 +63,9 @@ python3 test_codes_history.py
 python3 test_codes_dashboard.py
 python3 test_lockout_reply.py
 python3 test_leak_reply.py
+python3 test_leak_alert.py
+python3 test_quo_sender.py
+python3 test_leak_alert_bland.py
 ```
 
 No build step or linter configuration; tests use direct Python execution.
@@ -158,6 +162,15 @@ DISCORD_CHANNEL_ID=
 DISCORD_AUTOMATIONS_CHANNEL_ID= # optional #ai-automations; lockout drafts + leak WATER_KEY_ORDER, no digits
 LOCKOUT_REPLY_ENABLE=          # default off; Mac .env sets 1 to auto-SEND lockout door then lockbox
 LEAK_REPLY_ENABLE=             # default off; Mac .env sets 1 to auto-SEND water-leak shut-off pack + WATER_KEY_ORDER
+LEAK_ALERT_ENABLE=             # default off. Live Bland also needs LEAK_ALERT_DRY_RUN=0
+LEAK_ALERT_DRY_RUN=            # default on. Set 0 to allow Bland POST and result Quo
+LEAK_ALERT_DON_E164=
+LEAK_ALERT_TOM_E164=
+LEAK_ALERT_GROUP_E164S=
+BLAND_API_KEY=
+BLAND_WEBHOOK_SECRET=
+LEAK_ALERT_BLAND_WEBHOOK_URL=
+LEAK_ALERT_RESULT_POST_ENABLE= # default off; one Quo group result line per call_id
 FRONTLOAD_WEBHOOK_URL=         # Grok Bot routine POST URL. Mac launchd owns live sends; CI must not POST
 FRONTLOAD_WEBHOOK_KEY=         # Grok Bot routine key. Header is Authorization: Bearer <key> (panel copies that full line). Never log
 FRONTLOAD_WEBHOOK_ENABLE=      # default off. Live/dry-run also require send_enabled (not CI, not collection-only, PADSPLIT_ENABLE_ACTION_HOOKS=1)

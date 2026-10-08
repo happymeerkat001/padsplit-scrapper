@@ -81,13 +81,13 @@ Leak alert planner (`padsplit_scraper/leak_alert.py`) plans one incident. `LEAK_
 
 Quo SMS for that plan lives in `padsplit_scraper/quo_sender.py`. It does not send on merge. Real HTTP requires every gate below. `LEAK_ALERT_DRY_RUN` defaults on (unset means dry-run). Header is `Authorization: <QUO_API_KEY>` with no Bearer, plus `Quo-Api-Version: 2026-03-30`. Body is `{content, from, to}` and is SMS only. 4xx is not retried. `0206400` (unapproved or unregistered) and `0204403` (daily cap) are marked failed and not retried. 429 and 5xx retry up to 3 attempts. Timeouts are not retried. Before POST the state key is set to `sending` and flushed with an atomic replace, so a crash cannot double-send (a dropped text is preferred over a second text). Phones are held in memory for the request and are not written to `logs/leak_alert_state.json` or logs.
 
-Preview (no HTTP, sample house, fictional numbers masked to the last two digits). Writes `logs/leak_alert_preview.txt` (gitignored):
+Preview the Quo texts (no HTTP, sample house, fictional numbers masked to the last two digits). Writes `logs/leak_alert_preview.txt` (gitignored):
 
 ```bash
 python3 -m padsplit_scraper.quo_sender --preview
 ```
 
-The voice call script is a hook (`preview_call_script`) for a later PR. This preview does not include one.
+That preview's `call_script` line is a hook (`preview_call_script`) and is not the Bland body. The exact Bland POST is below.
 
 Go-live checklist (leave these off until Ang turns them on; CI must stay a no-op):
 
@@ -98,6 +98,46 @@ Go-live checklist (leave these off until Ang turns them on; CI must stay a no-op
 - `LEAK_ALERT_ENABLE=1` (or `PADSPLIT_SEND_LEAK_ALERT=1`)
 - `LEAK_ALERT_DRY_RUN=0` (this is the switch that leaves dry-run; unset stays dry-run)
 - Confirm the preview copy, then run from the Mac launchd job, not GitHub Actions
+
+Bland calls are placed by `padsplit_scraper/leak_alert_bland.py`. `LEAK_ALERT_DRY_RUN` defaults on. Nothing calls Bland or Quo until enable is on and dry-run is explicitly `0`.
+
+Bland voice is Don and Tom only (`LEAK_ALERT_DON_E164`, `LEAK_ALERT_TOM_E164`). The live POST is `https://api.bland.ai/v1/calls` with `Authorization: Bearer <BLAND_API_KEY>` ([Send Call](https://docs.bland.ai/api-v1/post/calls)). `first_sentence` and `task` use the shared planner script. The voicemail `leave_message` is that script plus `Check the Quo group text for details.` `max_duration` is 2 minutes. The body also sends `summary_prompt`, `analysis_schema` (`confirmed_going` boolean, `eta_minutes` number), and `dispositions`. `metadata` is `incident_id` and `role` only. Phones are not logged. State key `voice:{incident}:{role}` dedupes. A failed place is not retried for 24 hours. The next Mac run polls `GET /v1/calls/{call_id}` when Firestore has no webhook record ([Call details](https://docs.bland.ai/api-v1/get/calls-id)).
+
+The Mac has no public inbound URL. Bland posts the finished call to a Firebase HTTPS function (deployable, not deployed):
+
+```bash
+firebase functions:secrets:set BLAND_WEBHOOK_SECRET --project padsplit-scrapper
+firebase deploy --only functions:leak-alert:leak_alert_bland --project padsplit-scrapper
+```
+
+URL shape: `https://us-central1-padsplit-scrapper.cloudfunctions.net/leak_alert_bland` (set this as `LEAK_ALERT_BLAND_WEBHOOK_URL`). Confirm tool path: the same URL plus `/confirm`. Bland signs the raw body with HMAC-SHA256 and sends the hex digest in `X-Webhook-Signature` ([Webhook signing](https://docs.bland.ai/tutorials/webhook-signing)). Create the secret in the Bland Dev Portal: Account Settings → Keys → Replace Secret (shown once). Put that value in `BLAND_WEBHOOK_SECRET` on the function and on the Mac. The per-call webhook is the API `webhook` field; the dashboard equivalent is Send Call → Advanced → webhook ([Post call webhooks](https://docs.bland.ai/tutorials/post-call-webhooks)). The function checks the signature with a constant-time compare, rejects timestamps older than 24 hours when Bland sends them, and rejects any `call_id` or `metadata.incident_id` that is not in `leak_alert_pending`. It writes `leak_alert_calls/{incident}/roles/{role}` (outcome, confirmed, eta_minutes, short summary, call_id; no phones and no full transcript) and enqueues `leak_alert_result_queue/{call_id}`. Firestore rules deny client access; only the admin SDK writes. Do not deploy from CI.
+
+`confirm_dispatch` is an inline custom tool on the call ([Create a Custom Tool](https://docs.bland.ai/api-v1/post/tools)). Bland can POST it mid-call to the `/confirm` path. Tool calls are not HMAC-signed; the tool sends `Authorization: Bearer <BLAND_WEBHOOK_SECRET>`, and the function compares that header in constant time. The tool is attached only when the webhook URL and secret are both set. You do not have to create it in the Bland dashboard.
+
+The call-result line is separate (`padsplit_scraper/leak_alert_bland.py`, `post_group_result_line`): `Don: going, ETA 20m`, `Don: not going`, `Tom: voicemail`, `Tom: no answer`. It needs `LEAK_ALERT_RESULT_POST_ENABLE` (default off) and dry-run off, and it is deduped per `call_id`. Dry-run appends the line with no numbers to `logs/leak_alert_result.jsonl`. State key for the group notice is `group:{incident}`.
+
+Preview the exact Bland body and the result lines without calling anyone (fake numbers, masked to the last two digits):
+
+```bash
+python -m padsplit_scraper.leak_alert_bland --preview
+```
+
+That writes `logs/leak_alert_bland_preview.txt`.
+
+Env:
+
+```
+LEAK_ALERT_ENABLE=                  # default off. Alias PADSPLIT_SEND_LEAK_ALERT
+LEAK_ALERT_DRY_RUN=                 # default on. Set 0 for live Bland/Quo HTTP
+LEAK_ALERT_DON_E164=
+LEAK_ALERT_TOM_E164=
+LEAK_ALERT_GROUP_E164S=
+BLAND_API_KEY=
+BLAND_WEBHOOK_SECRET=
+LEAK_ALERT_BLAND_WEBHOOK_URL=
+LEAK_ALERT_RESULT_POST_ENABLE=      # default off
+# LEAK_ALERT_BLAND_CITATION_SCHEMA_ID=  # optional enterprise citation schema
+```
 
 Write Obsidian daily digest:
 
@@ -138,6 +178,7 @@ python3 test_lockout_reply.py
 python3 test_leak_reply.py
 python3 test_leak_alert.py
 python3 test_quo_sender.py
+python3 test_leak_alert_bland.py
 python3 test_codes_dashboard.py
 node test_codes_dashboard_render.mjs
 ```
