@@ -334,6 +334,8 @@ class PreviewTests(unittest.TestCase):
         self.assertIn("POST https://api.bland.ai/v1/calls", text)
         self.assertIn('"first_sentence"', text)
         self.assertIn("Water emergency at 100 Example Lane, room 2.", text)
+        self.assertIn("Tenant has been told to shut off the water.", text)
+        self.assertNotIn("The water is being shut off.", text)
         self.assertIn('"max_duration": 2', text)
         self.assertIn('"confirmed_going": "boolean"', text)
         self.assertIn('"eta_minutes": "number"', text)
@@ -505,7 +507,7 @@ class SenderTests(unittest.TestCase):
         environ = _env(LEAK_ALERT_DRY_RUN="0")
         body = bland.build_call_body(
             phone_number=DON,
-            script="Water emergency at 100 Example Lane, room 2. Category pipe. The water is being shut off. This is an automated notice.",
+            script="Water emergency at 100 Example Lane, room 2. Category pipe. Tenant has been told to shut off the water. This is an automated notice.",
             incident_id="chat-leana:m-leak",
             role="don",
             webhook_url="https://example.invalid/leak",
