@@ -13,6 +13,7 @@ import requests
 import padsplit_scraper.persist as persist
 import padsplit_scraper.scraper as scraper
 from padsplit_scraper import frontload_webhook as hook
+from padsplit_scraper import runtime
 
 
 NOW = datetime(2026, 10, 7, 14, 32, tzinfo=timezone.utc)
@@ -44,6 +45,8 @@ def env(**overrides: str) -> dict:
     base = {
         "CI": "",
         "GITHUB_ACTIONS": "",
+        "PADSPLIT_ENABLE_ACTION_HOOKS": "1",
+        "PADSPLIT_COLLECTION_ONLY": "",
         "FRONTLOAD_WEBHOOK_ENABLE": "1",
         "FRONTLOAD_WEBHOOK_DRY_RUN": "1",
         "FRONTLOAD_WEBHOOK_URL": "https://webhook.example/frontload",
@@ -171,7 +174,12 @@ class FrontloadWebhookTests(unittest.TestCase):
     def test_defaults_are_off_and_dry_run(self) -> None:
         self.assertFalse(hook.webhook_enabled({"CI": ""}))
         self.assertTrue(hook.dry_run_enabled({"CI": ""}))
-        result = self.emit(environ={"CI": "", "GITHUB_ACTIONS": ""})
+        blocked = self.emit(environ={"CI": "", "GITHUB_ACTIONS": ""})
+        self.assertEqual(blocked["action"], "collection_skip")
+        self.assertFalse(self.state.exists())
+        result = self.emit(
+            environ={"CI": "", "GITHUB_ACTIONS": "", "PADSPLIT_ENABLE_ACTION_HOOKS": "1"}
+        )
         self.assertEqual(result["action"], "disabled")
         self.assertFalse(self.state.exists())
 
@@ -407,6 +415,173 @@ class FrontloadWebhookTests(unittest.TestCase):
         self.assertEqual(calls["n"], 1)
         self.assertEqual(again["events"], [])
 
+    def test_collection_only_does_not_send_or_write_the_ledger(self) -> None:
+        live = env(FRONTLOAD_WEBHOOK_DRY_RUN="0", PADSPLIT_COLLECTION_ONLY="1")
+        self.assertFalse(runtime.send_enabled("frontload", live))
+        result = self.emit(
+            rooms=[listing()],
+            environ=live,
+            post_fn=self._fail_if_called,
+        )
+        self.assertEqual(result["action"], "collection_skip")
+        self.assertFalse(self.state.exists())
+        self.assertEqual(self.posts, [])
+
+        allowed = env(FRONTLOAD_WEBHOOK_DRY_RUN="0")
+        self.assertTrue(runtime.send_enabled("frontload", allowed))
+        forced = self.emit(
+            rooms=[listing()],
+            environ=allowed,
+            policy=runtime.COLLECTION_ONLY_POLICY,
+            post_fn=self._fail_if_called,
+        )
+        self.assertEqual(forced["action"], "collection_skip")
+        self.assertFalse(self.state.exists())
+
+    def test_rejected_4xx_is_failed_and_not_retried(self) -> None:
+        live = env(FRONTLOAD_WEBHOOK_DRY_RUN="0")
+        self.emit(messages=[thread(booking_id="seed")], environ=live)
+        calls = {"n": 0}
+
+        def reject(url, *, json, headers, timeout):
+            calls["n"] += 1
+            return Response(422)
+
+        first = self.emit(
+            messages=[thread(booking_id="nope")],
+            environ=live,
+            post_fn=reject,
+            sleep_fn=self.sleeps.append,
+        )
+        self.assertEqual(first["events"], [])
+        self.assertEqual(calls["n"], 1)
+        self.assertEqual(self.sleeps, [])
+        saved = json.loads(self.state.read_text())
+        self.assertEqual(saved["pending"], [])
+        self.assertEqual(len(saved["failed"]), 1)
+        record = saved["failed"][0]
+        self.assertEqual(set(record.keys()), {"at", "event_id", "status_code"})
+        self.assertEqual(record["status_code"], 422)
+        self.assertTrue(str(record["at"]).endswith("+00:00"))
+        blob = json.dumps(saved["failed"])
+        for secret in FORBIDDEN:
+            self.assertNotIn(secret, blob)
+        self.assertNotIn("3414 Pebbleshores", blob)
+
+        again = self.emit(
+            messages=[thread(booking_id="nope")],
+            environ=live,
+            post_fn=reject,
+        )
+        self.assertEqual(calls["n"], 1)
+        self.assertEqual(again["events"], [])
+
+    def test_pending_4xx_leaves_the_queue(self) -> None:
+        live = env(FRONTLOAD_WEBHOOK_DRY_RUN="0")
+        self.emit(messages=[thread(booking_id="seed")], environ=live)
+
+        def fail(url, *, json, headers, timeout):
+            return Response(503)
+
+        self.emit(
+            messages=[thread(booking_id="later-reject")],
+            environ=live,
+            post_fn=fail,
+            sleep_fn=self.sleeps.append,
+        )
+        self.assertEqual(len(json.loads(self.state.read_text())["pending"]), 1)
+
+        def reject(url, *, json, headers, timeout):
+            self.posts.append("reject")
+            return Response(400)
+
+        rejected = self.emit(
+            messages=[thread(booking_id="later-reject")],
+            environ=live,
+            post_fn=reject,
+        )
+        self.assertEqual(rejected["events"], [])
+        self.assertEqual(self.posts, ["reject"])
+        saved = json.loads(self.state.read_text())
+        self.assertEqual(saved["pending"], [])
+        self.assertEqual(saved["failed"][0]["status_code"], 400)
+        self.assertNotIn("payload", saved["failed"][0])
+
+        def boom(url, *, json, headers, timeout):
+            raise AssertionError("failed event was retried")
+
+        self.emit(
+            messages=[thread(booking_id="later-reject")],
+            environ=live,
+            post_fn=boom,
+        )
+
+    def test_retry_cap_across_runs_marks_failed(self) -> None:
+        live = env(FRONTLOAD_WEBHOOK_DRY_RUN="0")
+        self.emit(messages=[thread(booking_id="seed")], environ=live)
+        calls = {"n": 0}
+
+        def fail(url, *, json, headers, timeout):
+            calls["n"] += 1
+            return Response(503)
+
+        for _ in range(hook.MAX_PENDING_ATTEMPTS):
+            self.emit(
+                messages=[thread(booking_id="capped")],
+                environ=live,
+                post_fn=fail,
+                sleep_fn=self.sleeps.append,
+            )
+        saved = json.loads(self.state.read_text())
+        self.assertEqual(saved["pending"], [])
+        self.assertEqual(saved["failed"][0]["status_code"], 503)
+        self.assertEqual(set(saved["failed"][0].keys()), {"at", "event_id", "status_code"})
+        posted = calls["n"]
+
+        self.emit(
+            messages=[thread(booking_id="capped")],
+            environ=live,
+            post_fn=fail,
+            sleep_fn=self.sleeps.append,
+        )
+        self.assertEqual(calls["n"], posted)
+
+    def test_price_round_trip_emits_twice_and_same_diff_dedupes(self) -> None:
+        self.emit(rooms=[listing(price=100, status="occupied")])
+        first = self.emit(rooms=[listing(price=200, status="occupied")])
+        second = self.emit(rooms=[listing(price=100, status="occupied")])
+        first_ids = [event["event_id"] for event in first["events"] if event["event_type"] == "listing_edit"]
+        second_ids = [event["event_id"] for event in second["events"] if event["event_type"] == "listing_edit"]
+        self.assertEqual(len(first_ids), 1)
+        self.assertEqual(len(second_ids), 1)
+        self.assertNotEqual(first_ids[0], second_ids[0])
+        quiet = self.emit(rooms=[listing(price=100, status="occupied")])
+        self.assertEqual([event for event in quiet["events"] if event["event_type"] == "listing_edit"], [])
+
+        previous = {
+            "bookings": {},
+            "occupancy": {},
+            "message_move_ins": {},
+            "listings": {"1": {"base_price": 100, "promo_pct": None, "promo_weeks": None, "new_price": None, "detailed_status": "occupied", "house": "3414 Pebbleshores Drive", "room": "2", "move_in_date": None}},
+        }
+        current = {
+            "bookings": {},
+            "occupancy": {},
+            "message_move_ins": {},
+            "listings": {"1": {"base_price": 200, "promo_pct": None, "promo_weeks": None, "new_price": None, "detailed_status": "occupied", "house": "3414 Pebbleshores Drive", "room": "2", "move_in_date": None}},
+        }
+        morning = hook.diff_projection(
+            previous, current, observed_at="2026-10-08T09:00:00+00:00", listings_refreshed=True, occupancy_refreshed=False
+        )
+        afternoon = hook.diff_projection(
+            previous, current, observed_at="2026-10-08T16:00:00+00:00", listings_refreshed=True, occupancy_refreshed=False
+        )
+        self.assertEqual(morning[0]["event_id"], afternoon[0]["event_id"])
+        next_day = hook.diff_projection(
+            previous, current, observed_at="2026-10-09T09:00:00+00:00", listings_refreshed=True, occupancy_refreshed=False
+        )
+        self.assertNotEqual(morning[0]["event_id"], next_day[0]["event_id"])
+
     def test_missing_url_does_not_raise(self) -> None:
         quiet = env(FRONTLOAD_WEBHOOK_DRY_RUN="0", FRONTLOAD_WEBHOOK_URL="")
         self.emit(messages=[thread(booking_id="seed")], environ=quiet)
@@ -524,6 +699,46 @@ class ScraperHookTests(unittest.TestCase):
         self.assertEqual(exit_code, 0)
         self.assertIsNone(seen["rooms"])
         self.assertIsNotNone(seen["occupancy"])
+
+    def test_collection_policy_from_scraper_does_not_post(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_dir = Path(tmpdir) / "output"
+            docs_data_dir = Path(tmpdir) / "docs" / "data"
+            state_path = Path(tmpdir) / "frontload_state.json"
+            log_path = Path(tmpdir) / "frontload.jsonl"
+
+            def boom(*args, **kwargs):
+                raise AssertionError("collection-only job posted")
+
+            live = env(FRONTLOAD_WEBHOOK_DRY_RUN="0")
+            with (
+                patch.dict("os.environ", live, clear=False),
+                patch.object(persist, "OUTPUT_DIR", output_dir),
+                patch.object(persist, "DOCS_DATA_DIR", docs_data_dir),
+                patch.object(hook, "STATE_PATH", state_path),
+                patch.object(hook, "DRY_RUN_LOG_PATH", log_path),
+                patch.object(hook, "post_payload", boom),
+                patch.object(scraper, "load_credentials", return_value={"email": "user", "password": "pw"}),
+                patch.object(scraper, "create_session", return_value=DummySession()),
+                patch.object(scraper, "login"),
+                patch.object(
+                    scraper,
+                    "fetch_messages",
+                    return_value=[{"id": "chat-1", "lastMessage": {"created": "2026-10-07T12:00:00+00:00"}}],
+                ),
+                patch.object(scraper, "fetch_thread_messages", return_value=[]),
+                patch.object(scraper, "fetch_tasks", return_value={}),
+                patch.object(scraper, "fetch_rooms", return_value=[{"id": 1, "room_number": 2, "base_price": 10}]),
+                patch.object(scraper, "fetch_properties_stats", return_value=[]),
+                patch.object(scraper, "fetch_earnings", return_value={"results": []}),
+                patch.object(scraper, "compute_kpis", return_value={"score": 1}),
+                patch.object(scraper, "fetch_performance_history", return_value={}),
+                patch.object(scraper, "upload_stats_to_firestore"),
+            ):
+                outcome = scraper.run(policy=runtime.COLLECTION_ONLY_POLICY)
+            self.assertEqual(outcome.process_exit_code, 0)
+            self.assertFalse(state_path.exists())
+            self.assertFalse(log_path.exists())
 
 
 if __name__ == "__main__":

@@ -27,10 +27,22 @@ listed weekly rate). There is no separate intro/target field on the room.
 observed_at is timezone-aware ISO-8601 (offset, not a naive clock).
 
 event_id is a stable sha256 prefix. new_booking and cancel key on booking id.
-move_in keys on house, room, and move-in date. listing_edit keys on room id
-plus the new price, promo, and status. Sent ids live in the same gitignored
+move_in keys on house, room, and move-in date. listing_edit keys on the
+transition (previous price/promo/status to the new values) plus the observed
+date, so a later return to an earlier price emits again, while a rerun of the
+same diff on that date stays one id. Sent ids live in the same gitignored
 state file so a rerun does not send twice. A dry-run log records the id the
 same way a successful POST does, so turning dry-run off does not replay it.
+
+Sends go through ``runtime.send_enabled("frontload")``: not CI, not
+collection-only, ``PADSPLIT_ENABLE_ACTION_HOOKS`` on, and
+``FRONTLOAD_WEBHOOK_ENABLE`` on. An explicit collection-only policy skips
+before any ledger write. Recording the shared projection from that job would
+drop the delta before a permitted sender runs, so the safer path is to skip.
+
+A non-retryable 4xx is stored under ``failed`` with event_id, status code,
+and timestamp only, then dropped from pending. 429/5xx stay pending. After
+5 failed deliveries across scrapes they move to ``failed`` too.
 
 Grok Bot routine webhooks expect header ``Authorization: Bearer <key>``.
 The routine panel copies that full header line (POST URL, key, and header).
@@ -131,6 +143,7 @@ MOVE_IN_MESSAGE_TYPES = {"MOVE_IN", "APPROVE_MOVE_IN_REQUEST"}
 POST_TIMEOUT = (5, 20)
 MAX_ATTEMPTS = 3
 BACKOFF_SECONDS = (0.5, 1.5)
+MAX_PENDING_ATTEMPTS = 5
 SENT_ID_CAP = 5000
 
 PostFn = Callable[..., Any]
@@ -759,12 +772,17 @@ def _diff_listings(
                 event_id=make_event_id(
                     "listing_edit",
                     room_id,
-                    target,
-                    intro,
+                    old.get("base_price"),
+                    row.get("base_price"),
+                    old.get("promo_pct"),
                     row.get("promo_pct"),
+                    old.get("promo_weeks"),
                     row.get("promo_weeks"),
+                    old.get("new_price"),
                     row.get("new_price"),
+                    old.get("detailed_status"),
                     row.get("detailed_status"),
+                    observed_at[:10],
                 ),
             )
         )
@@ -789,19 +807,31 @@ def _dedupe(events: Sequence[Dict[str, Any]]) -> List[Dict[str, Any]]:
 
 def _load_state(path: Path) -> Dict[str, Any]:
     if not path.exists():
-        return {"version": 1, "seeded": False, "projection": _empty_projection(), "sent_event_ids": [], "pending": []}
+        return _empty_state()
     try:
         payload = json.loads(path.read_text())
     except (OSError, ValueError):
-        return {"version": 1, "seeded": False, "projection": _empty_projection(), "sent_event_ids": [], "pending": []}
+        return _empty_state()
     if not isinstance(payload, dict):
-        return {"version": 1, "seeded": False, "projection": _empty_projection(), "sent_event_ids": [], "pending": []}
+        return _empty_state()
     payload.setdefault("version", 1)
     payload.setdefault("seeded", False)
     payload.setdefault("projection", _empty_projection())
     payload.setdefault("sent_event_ids", [])
     payload.setdefault("pending", [])
+    payload.setdefault("failed", [])
     return payload
+
+
+def _empty_state() -> Dict[str, Any]:
+    return {
+        "version": 1,
+        "seeded": False,
+        "projection": _empty_projection(),
+        "sent_event_ids": [],
+        "pending": [],
+        "failed": [],
+    }
 
 
 def _save_state(path: Path, state: Dict[str, Any]) -> None:
@@ -809,6 +839,9 @@ def _save_state(path: Path, state: Dict[str, Any]) -> None:
     sent = list(state.get("sent_event_ids") or [])
     if len(sent) > SENT_ID_CAP:
         state["sent_event_ids"] = sent[-SENT_ID_CAP:]
+    failed = list(state.get("failed") or [])
+    if len(failed) > SENT_ID_CAP:
+        state["failed"] = failed[-SENT_ID_CAP:]
     tmp = path.with_suffix(path.suffix + ".tmp")
     tmp.write_text(json.dumps(state, indent=2, sort_keys=True))
     tmp.replace(path)
@@ -827,15 +860,15 @@ def post_payload(
     *,
     post_fn: Optional[PostFn] = None,
     sleep_fn: Optional[SleepFn] = None,
-) -> str:
-    """Return ``ok``, ``retry``, or ``reject``. Never raises."""
+) -> tuple:
+    """Return ``(ok|retry|reject, status_code)``. Never raises."""
     poster = post_fn or _default_post
     sleeper = sleep_fn or time.sleep
     headers = {
         "Content-Type": "application/json",
         AUTH_HEADER: authorization_value(key),
     }
-    last = "retry"
+    last_status: Optional[int] = None
     for attempt in range(MAX_ATTEMPTS):
         if attempt:
             try:
@@ -845,20 +878,20 @@ def post_payload(
         try:
             response = poster(url, json=payload, headers=headers, timeout=POST_TIMEOUT)
         except Exception as exc:
-            last = "retry"
+            last_status = None
             sys.stderr.write(
                 f"# Frontload webhook POST failed {payload.get('event_id')} {exc.__class__.__name__}\n"
             )
             continue
         status = getattr(response, "status_code", None)
+        last_status = status if isinstance(status, int) else None
         if isinstance(status, int) and 200 <= status < 300:
-            return "ok"
+            return "ok", status
         if isinstance(status, int) and 400 <= status < 500 and status != 429:
             sys.stderr.write(f"# Frontload webhook POST rejected {payload.get('event_id')} HTTP {status}\n")
-            return "reject"
-        last = "retry"
+            return "reject", status
         sys.stderr.write(f"# Frontload webhook POST failed {payload.get('event_id')} HTTP {status}\n")
-    return last
+    return "retry", last_status
 
 
 def _default_post(url: str, *, json: Dict[str, Any], headers: Dict[str, str], timeout: Any) -> Any:
@@ -872,11 +905,25 @@ def _mark_sent(state: Dict[str, Any], event_id: str) -> None:
     state["pending"] = [row for row in state.get("pending") or [] if row.get("event_id") != event_id]
 
 
-def _queue_pending(state: Dict[str, Any], payload: Dict[str, Any]) -> None:
+def _queue_pending(state: Dict[str, Any], payload: Dict[str, Any], attempts: int) -> None:
     event_id = payload.get("event_id")
     pending = [row for row in state.get("pending") or [] if row.get("event_id") != event_id]
-    pending.append({"event_id": event_id, "payload": payload})
+    pending.append({"event_id": event_id, "payload": payload, "attempts": attempts})
     state["pending"] = pending
+
+
+def _mark_failed(
+    state: Dict[str, Any],
+    event_id: str,
+    *,
+    status_code: Optional[int],
+    at: str,
+) -> None:
+    """Stop retrying. Store status and time only — never the payload."""
+    state["pending"] = [row for row in state.get("pending") or [] if row.get("event_id") != event_id]
+    failed = [row for row in state.get("failed") or [] if isinstance(row, dict) and row.get("event_id") != event_id]
+    failed.append({"event_id": event_id, "status_code": status_code, "at": at})
+    state["failed"] = failed
 
 
 def emit_for_scraper(
@@ -893,6 +940,7 @@ def emit_for_scraper(
     post_fn: Optional[PostFn] = None,
     sleep_fn: Optional[SleepFn] = None,
     fetch_pending_fn: Optional[Callable[..., Any]] = None,
+    policy: Any = None,
 ) -> Dict[str, Any]:
     """Detect and emit. Returns a result dict. Does not raise."""
     try:
@@ -909,6 +957,7 @@ def emit_for_scraper(
             post_fn=post_fn,
             sleep_fn=sleep_fn,
             fetch_pending_fn=fetch_pending_fn,
+            policy=policy,
         )
     except Exception as exc:
         sys.stderr.write(f"# Frontload webhook failed; continuing scrape: {exc.__class__.__name__}\n")
@@ -929,13 +978,12 @@ def _emit(
     post_fn: Optional[PostFn],
     sleep_fn: Optional[SleepFn],
     fetch_pending_fn: Optional[Callable[..., Any]],
+    policy: Any,
 ) -> Dict[str, Any]:
     env = os.environ if environ is None else environ
-    if _ci(environ):
-        sys.stderr.write("# Frontload webhook skipped (CI does not own sending; Mac launchd does)\n")
-        return {"action": "ci_skip", "events": []}
-    if not webhook_enabled(env):
-        return {"action": "disabled", "events": []}
+    blocked = _send_block(env, policy)
+    if blocked is not None:
+        return blocked
 
     dry_run = dry_run_enabled(env)
     url = str(env.get(URL_ENV) or "").strip()
@@ -962,19 +1010,34 @@ def _emit(
         occupancy_refreshed=built.get("occupancy") is not None,
     )
     sent = set(state.get("sent_event_ids") or [])
+    failed_ids = {
+        row.get("event_id")
+        for row in state.get("failed") or []
+        if isinstance(row, dict) and row.get("event_id")
+    }
     pending_payloads = []
+    attempt_of: Dict[str, int] = {}
     for row in state.get("pending") or []:
-        payload = row.get("payload") if isinstance(row, dict) else None
-        if isinstance(payload, dict) and payload.get("event_id") and payload["event_id"] not in sent:
-            pending_payloads.append({key: payload.get(key) for key in PAYLOAD_KEYS})
+        if not isinstance(row, dict):
+            continue
+        payload = row.get("payload")
+        event_id = row.get("event_id")
+        if not isinstance(payload, dict) or not event_id or event_id in sent or event_id in failed_ids:
+            continue
+        pending_payloads.append({key: payload.get(key) for key in PAYLOAD_KEYS})
+        attempt_of[str(event_id)] = int(row.get("attempts") or 0)
     events = _dedupe([*pending_payloads, *fresh])
-    events = [event for event in events if event.get("event_id") not in sent]
+    events = [
+        event
+        for event in events
+        if event.get("event_id") not in sent and event.get("event_id") not in failed_ids
+    ]
 
     delivered: List[Dict[str, Any]] = []
     failed = 0
     state["projection"] = current
     for event in events:
-        outcome = _deliver(
+        outcome, status = _deliver(
             event,
             dry_run=dry_run,
             url=url,
@@ -983,11 +1046,20 @@ def _emit(
             post_fn=post_fn,
             sleep_fn=sleep_fn,
         )
+        event_id = str(event.get("event_id") or "")
         if outcome == "ok":
-            _mark_sent(state, event["event_id"])
+            _mark_sent(state, event_id)
             delivered.append(event)
+        elif outcome == "reject":
+            _mark_failed(state, event_id, status_code=status, at=observed)
+            failed += 1
         elif outcome == "retry":
-            _queue_pending(state, event)
+            attempts = int(attempt_of.get(event_id, 0)) + 1
+            if attempts >= MAX_PENDING_ATTEMPTS:
+                _mark_failed(state, event_id, status_code=status, at=observed)
+            else:
+                _queue_pending(state, event, attempts)
+                attempt_of[event_id] = attempts
             failed += 1
         _save_state(state_path, state)
 
@@ -1015,6 +1087,22 @@ def _fetch_pending(
     return list(inbox) if isinstance(inbox, list) else None
 
 
+def _send_block(env: Mapping[str, str], policy: Any) -> Optional[Dict[str, Any]]:
+    """Return a skip result when this run must not send or touch the ledger."""
+    if policy is not None and not bool(getattr(policy, "allow_hooks", False)):
+        sys.stderr.write("# Frontload webhook skipped (collection-only policy; not sending)\n")
+        return {"action": "collection_skip", "events": []}
+    if _ci(env):
+        sys.stderr.write("# Frontload webhook skipped (CI does not own sending; Mac launchd does)\n")
+        return {"action": "ci_skip", "events": []}
+    if runtime.collection_only(env):
+        sys.stderr.write("# Frontload webhook skipped (collection-only; not sending)\n")
+        return {"action": "collection_skip", "events": []}
+    if not runtime.send_enabled("frontload", env):
+        return {"action": "disabled", "events": []}
+    return None
+
+
 def _deliver(
     event: Dict[str, Any],
     *,
@@ -1024,7 +1112,7 @@ def _deliver(
     dry_run_log_path: Path,
     post_fn: Optional[PostFn],
     sleep_fn: Optional[SleepFn],
-) -> str:
+) -> tuple:
     if dry_run:
         try:
             _append_dry_run(dry_run_log_path, event)
@@ -1032,13 +1120,13 @@ def _deliver(
             sys.stderr.write(
                 f"# Frontload webhook dry-run log failed {event.get('event_id')} {exc.__class__.__name__}\n"
             )
-            return "retry"
+            return "retry", None
         sys.stderr.write(f"# Frontload webhook dry-run {event.get('event_type')} {event.get('event_id')}\n")
-        return "ok"
+        return "ok", None
     if not url or not key:
         sys.stderr.write(f"# Frontload webhook missing URL or key; will retry {event.get('event_id')}\n")
-        return "retry"
-    outcome = post_payload(url, key, event, post_fn=post_fn, sleep_fn=sleep_fn)
+        return "retry", None
+    outcome, status = post_payload(url, key, event, post_fn=post_fn, sleep_fn=sleep_fn)
     if outcome == "ok":
         sys.stderr.write(f"# Frontload webhook sent {event.get('event_type')} {event.get('event_id')}\n")
-    return outcome
+    return outcome, status

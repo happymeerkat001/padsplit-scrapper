@@ -29,7 +29,8 @@ python3 thermostat/scraper.py
 # Lockout auto-reply runs from morning/afternoon + scraper (LOCKOUT_REPLY_ENABLE; CI no-op)
 # Leak auto-reply runs from morning/afternoon + scraper (LEAK_REPLY_ENABLE; CI no-op)
 # Frontload booking/listing webhook runs from the scraper (FRONTLOAD_WEBHOOK_ENABLE; default off, dry-run on).
-# Mac launchd owns live POST (logs/ ledger persists). GitHub Actions cron must not POST.
+# Sends use runtime.send_enabled("frontload"): also needs PADSPLIT_ENABLE_ACTION_HOOKS and not collection-only.
+# Collection-only jobs skip and do not touch the ledger. Mac launchd owns live POST. CI must not POST.
 ```
 
 ## Tests
@@ -159,7 +160,7 @@ LOCKOUT_REPLY_ENABLE=          # default off; Mac .env sets 1 to auto-SEND locko
 LEAK_REPLY_ENABLE=             # default off; Mac .env sets 1 to auto-SEND water-leak shut-off pack + WATER_KEY_ORDER
 FRONTLOAD_WEBHOOK_URL=         # Grok Bot routine POST URL. Mac launchd owns live sends; CI must not POST
 FRONTLOAD_WEBHOOK_KEY=         # Grok Bot routine key. Header is Authorization: Bearer <key> (panel copies that full line). Never log
-FRONTLOAD_WEBHOOK_ENABLE=      # default off. Independent of PADSPLIT_ENABLE_ACTION_HOOKS
+FRONTLOAD_WEBHOOK_ENABLE=      # default off. Live/dry-run also require send_enabled (not CI, not collection-only, PADSPLIT_ENABLE_ACTION_HOOKS=1)
 FRONTLOAD_WEBHOOK_DRY_RUN=     # default on. Logs payload JSON to logs/frontload_webhook.jsonl instead of POST
 SIFELY_API_KEY=          # raw sk- key, no Bearer; missing = Need-you no-op
 SIFELY_LOCK_ID=          # optional Spanish Moss back-door lock id

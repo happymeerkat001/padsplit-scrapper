@@ -898,8 +898,14 @@ def _emit_frontload_webhook(
     *,
     rooms: Optional[List[Any]] = None,
     occupancy: Optional[Dict[str, Any]] = None,
+    policy=None,
 ) -> None:
-    """Booking/listing webhook. Failures stay off the scrape result."""
+    """Booking/listing webhook. Failures stay off the scrape result.
+
+    An explicit collection-only policy is passed through. The emitter does
+    not send, and does not touch the shared ledger, unless
+    ``runtime.send_enabled("frontload")`` is true.
+    """
     try:
         try:
             from padsplit_scraper.frontload_webhook import emit_for_scraper
@@ -911,6 +917,7 @@ def _emit_frontload_webhook(
             occupancy=occupancy,
             session=session,
             creds=creds,
+            policy=policy,
         )
     except Exception as exc:
         sys.stderr.write(f"# Frontload webhook failed; continuing scrape: {exc.__class__.__name__}\n")
@@ -1072,7 +1079,7 @@ def run(messages_only: bool = False, *, isolate_output: bool = False, policy=Non
             )
             _persist_latest_payload(payload, scraped_at=scraped_at, run_status=run_status, write_timestamped=True)
             sys.stderr.write(f"# Saved raw data to {out_path}\n")
-            _emit_frontload_webhook(session, creds, messages)
+            _emit_frontload_webhook(session, creds, messages, policy=policy)
             return _ok_outcome(run_status)
 
         fetched_tasks = _run_phase("Fetching tasks...", "tasks", lambda: fetch_tasks(session, creds))
@@ -1177,6 +1184,7 @@ def run(messages_only: bool = False, *, isolate_output: bool = False, policy=Non
                 messages,
                 rooms=rooms if rooms_observed else None,
                 occupancy=occupancy_payload,
+                policy=policy,
             )
             return _degraded_outcome(run_status)
 
@@ -1220,6 +1228,7 @@ def run(messages_only: bool = False, *, isolate_output: bool = False, policy=Non
             messages,
             rooms=rooms,
             occupancy=occupancy_payload,
+            policy=policy,
         )
         return _ok_outcome(run_status)
 
