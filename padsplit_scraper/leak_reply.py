@@ -883,6 +883,28 @@ def process_leaks(
                 if plan is not None:
                     if alert_state is not None and alert_enabled and not dry_run:
                         row["alerts"] = leak_alert.persist_plan(plan, alert_state, now=now)
+                        # Quo SMS: no HTTP unless send_enabled and LEAK_ALERT_DRY_RUN is off.
+                        try:
+                            from padsplit_scraper import quo_sender
+                        except ModuleNotFoundError:
+                            import quo_sender  # type: ignore
+                        outcomes = quo_sender.maybe_deliver(
+                            plan,
+                            state=alert_state,
+                            state_path=alert_state_path,
+                            now=now,
+                            environ=alert_environ,
+                            thread=thread,
+                            house_threads=thread_list,
+                            profile_fetcher=fetcher,
+                        )
+                        by_key = {item["key"]: item for item in outcomes}
+                        for entry in row["alerts"]:
+                            outcome = by_key.get(entry.get("key"))
+                            if outcome and outcome.get("status") in {"sent", "failed"}:
+                                entry["status"] = outcome["status"]
+                                if outcome.get("reason"):
+                                    entry["reason"] = outcome["reason"]
                     else:
                         row["alerts"] = plan.entries
             except Exception as exc:
