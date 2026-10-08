@@ -129,24 +129,53 @@ def _water_key_url() -> str:
     return str(leak_reply.WATER_KEY_YOUTUBE_URL)
 
 
-def outbound_tenant_text(body: str) -> str:
-    """Planner tenant copy plus the house shutoff steps. No codes, names, or amounts."""
-    text = (body or "").strip()
-    parts = [text] if text else []
-    lowered = text.lower()
-    if "shut-off box" not in lowered and "shut off box" not in lowered:
-        parts.append(
-            "The water shut-off box is between the water meter and the house. "
-            "Use the water key to turn the water OFF immediately."
-        )
-    if "service alert" not in lowered:
-        parts.append("This is a service alert about a leak at your house.")
+def tenant_sms(house: str, room: str, *, ask_photos: bool) -> str:
+    """Quo tenant SMS. Own copy; not the PadSplit member reply or the group text."""
+    house_label = (house or "").strip() or "the house"
+    room_label = (room or "").strip()
+    if room_label:
+        opener = f"{house_label} room {room_label} leak: turn the water OFF now."
+    else:
+        opener = f"{house_label} leak: turn the water OFF now."
     youtube = _water_key_url()
-    if youtube and youtube not in text:
-        parts.append(f"How to use a water key:\n{youtube}")
-    outbound = "\n\n".join(part for part in parts if part).strip()
+    first = (
+        f"{opener} The shut-off box is between the water meter and the house. "
+        f"Use the water key to turn it off. (How-to: {youtube})"
+    )
+    second = "Once it's off, turn it on only briefly for drinking water."
+    if ask_photos:
+        second += " Please reply with photos of the leak."
+    outbound = "\n\n".join(
+        [
+            first,
+            second,
+            "This is a service alert about a leak at your house.",
+            "Reply STOP to opt out.",
+        ]
+    )
     _assert_safe_copy(outbound)
     return outbound
+
+
+def _house_room_from_planner_body(body: str) -> tuple[str, str]:
+    """House and room from the planner tenant line. Empty room when it has none."""
+    marker = ": water is shut off for a leak."
+    head = body or ""
+    if marker not in head:
+        return "the house", ""
+    head = head.split(marker, 1)[0].strip()
+    match = re.match(r"^(.*) room (\S+)$", head)
+    if not match:
+        return head or "the house", ""
+    return match.group(1).strip() or "the house", match.group(2).strip()
+
+
+def outbound_tenant_text(body: str, *, ask_photos: Optional[bool] = None) -> str:
+    """Build the Quo tenant SMS from a planner body. Does not edit that planner copy."""
+    house, room = _house_room_from_planner_body(body)
+    if ask_photos is None:
+        ask_photos = "photos" in (body or "").lower()
+    return tenant_sms(house, room, ask_photos=ask_photos)
 
 
 def _assert_safe_copy(text: str) -> None:
@@ -196,9 +225,7 @@ def render_preview(environ: Optional[Mapping[str, str]] = None) -> str:
     """Exact group and tenant texts for a fake incident. Numbers are masked."""
     env = os.environ if environ is None else environ
     group_text = leak_alert.fixed_script(PREVIEW_HOUSE, PREVIEW_ROOM, PREVIEW_CATEGORY)
-    tenant_text = outbound_tenant_text(
-        leak_alert.tenant_body(PREVIEW_HOUSE, PREVIEW_ROOM, ask_photos=True)
-    )
+    tenant_text = tenant_sms(PREVIEW_HOUSE, PREVIEW_ROOM, ask_photos=True)
     lines = [
         "leak alert Quo preview",
         "incident: sample-house:sample-leak",
@@ -537,7 +564,10 @@ def build_outbounds(
         items.append(
             Outbound(
                 key=key,
-                content=outbound_tenant_text(str(entry.get("body") or entry.get("content") or "")),
+                content=outbound_tenant_text(
+                    str(entry.get("body") or entry.get("content") or ""),
+                    ask_photos=entry.get("ask_photos") if isinstance(entry.get("ask_photos"), bool) else None,
+                ),
                 to=[number] if number else [],
                 kind="tenant_text",
                 mode="private_1to1",

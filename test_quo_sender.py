@@ -170,19 +170,52 @@ class PreviewTests(unittest.TestCase):
         }
         text = quo_sender.render_preview(env)
         group = leak_alert.fixed_script("Sample House", "2", "water")
-        tenant = quo_sender.outbound_tenant_text(
+        tenant = quo_sender.tenant_sms("Sample House", "2", ask_photos=True)
+        self.assertEqual(
+            group,
+            "Water emergency at Sample House, room 2. Category water. "
+            "Tenant has been told to shut off the water. This is an automated notice.",
+        )
+        self.assertEqual(
+            tenant,
+            "Sample House room 2 leak: turn the water OFF now. "
+            "The shut-off box is between the water meter and the house. "
+            "Use the water key to turn it off. "
+            "(How-to: https://youtube.com/shorts/SCryjPiyZcs)\n"
+            "\n"
+            "Once it's off, turn it on only briefly for drinking water. "
+            "Please reply with photos of the leak.\n"
+            "\n"
+            "This is a service alert about a leak at your house.\n"
+            "\n"
+            "Reply STOP to opt out.",
+        )
+        self.assertTrue(tenant.endswith("Reply STOP to opt out."))
+        no_photo = quo_sender.tenant_sms("Sample House", "2", ask_photos=False)
+        self.assertNotIn("photos", no_photo.lower())
+        self.assertIn("Once it's off, turn it on only briefly for drinking water.", no_photo)
+        self.assertTrue(no_photo.endswith("Reply STOP to opt out."))
+        from_planner = quo_sender.outbound_tenant_text(
             leak_alert.tenant_body("Sample House", "2", ask_photos=True)
+        )
+        self.assertEqual(from_planner, tenant)
+        self.assertEqual(
+            quo_sender.outbound_tenant_text(
+                leak_alert.tenant_body("Sample House", "2", ask_photos=False)
+            ),
+            no_photo,
         )
         self.assertIn(group, text)
         self.assertIn(tenant, text)
-        self.assertIn("water is shut off for a leak", tenant)
-        self.assertIn("Turn it on only briefly for drinking water, then leave it off.", tenant)
-        self.assertIn("Please reply with photos of the leak.", tenant)
-        self.assertIn("The water shut-off box is between the water meter and the house.", tenant)
-        self.assertIn("Use the water key to turn the water OFF immediately.", tenant)
-        self.assertIn("This is a service alert about a leak at your house.", tenant)
-        self.assertIn("https://youtube.com/shorts/SCryjPiyZcs", tenant)
-        self.assertNotIn("Reply STOP", text)
+        self.assertNotIn("The water is being shut off.", group)
+        self.assertNotIn("Reply STOP", group)
+        self.assertNotIn("turn the water OFF now", group)
+        self.assertIn("Use the water key to turn OFF the water immediately", leak_reply.BAKED_T5_TEXT)
+        self.assertNotIn("Reply STOP", leak_reply.BAKED_T5_TEXT)
+        self.assertIn(
+            "water is shut off for a leak",
+            leak_alert.tenant_body("Sample House", "2", ask_photos=False),
+        )
         self.assertNotIn("lock code", text.lower())
         self.assertNotIn("wifi", text.lower())
         self.assertIn("group from: ***00", text)
@@ -273,9 +306,14 @@ class SendTests(unittest.TestCase):
         )
         self.assertEqual(tenant["payload"]["to"], [TENANT])
         self.assertNotIn(FROM, tenant["payload"]["to"])
-        self.assertIn("service alert", tenant["payload"]["content"])
-        self.assertIn("shut-off box", tenant["payload"]["content"])
-        self.assertNotIn("Reply STOP", tenant["payload"]["content"])
+        self.assertEqual(
+            tenant["payload"]["content"],
+            quo_sender.tenant_sms("Sample House", "2", ask_photos=True),
+        )
+        self.assertTrue(tenant["payload"]["content"].endswith("Reply STOP to opt out."))
+        self.assertNotIn("Reply STOP", group["payload"]["content"])
+        self.assertIn("Tenant has been told to shut off the water.", group["payload"]["content"])
+        self.assertNotIn("The water is being shut off.", group["payload"]["content"])
         self.assertNotIn("voice", json.dumps([call["payload"]["content"] for call in poster.calls]).lower() or "bland")
         for secret in (FROM, GROUP_A, GROUP_B, TENANT, "quo-test"):
             self.assertNotIn(secret, raw)
@@ -592,7 +630,12 @@ class HookTests(unittest.TestCase):
         self.assertEqual(call["payload"]["from"], FROM)
         self.assertEqual(call["payload"]["to"], [GROUP_A, GROUP_B])
         self.assertNotIn(FROM, call["payload"]["to"])
-        self.assertIn("The water is being shut off.", call["payload"]["content"])
+        self.assertEqual(
+            call["payload"]["content"],
+            "Water emergency at the house, room 2. Category wall_ceiling. "
+            "Tenant has been told to shut off the water. This is an automated notice.",
+        )
+        self.assertNotIn("Reply STOP", call["payload"]["content"])
         stored = json.loads(raw)
         group = stored["alerts"]["group:chat-leana:m-leak"]
         self.assertEqual(group["status"], "sent")

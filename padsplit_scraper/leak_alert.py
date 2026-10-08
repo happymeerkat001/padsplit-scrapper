@@ -140,7 +140,7 @@ def fixed_script(house: str, room: str, category: str) -> str:
     return (
         f"Water emergency at {house_label}, room {room_label}. "
         f"Category {category}. "
-        "The water is being shut off. "
+        "Tenant has been told to shut off the water. "
         "This is an automated notice."
     )
 
