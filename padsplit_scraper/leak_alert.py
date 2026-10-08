@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Dry-run planner for leak alerts. This module does not place calls or send texts.
+"""Planner for leak alerts. This module does not place calls or send texts.
+
+Live Bland calls, the webhook record, and the Quo result line are in
+padsplit_scraper/leak_alert_bland.py. LEAK_ALERT_ENABLE defaults off and
+LEAK_ALERT_DRY_RUN defaults on, so nothing is called until both gates open.
 
 Voice entries are shaped for Bland (fixed script, max_duration 1 minute,
 voicemail leave_message) for Don and Tom only. Don, Tom, and Ang share one

@@ -811,6 +811,10 @@ def process_leaks(
     profile_fetcher: Optional[Callable[[str], Any]] = None,
     session=None,
     conversations_get: Optional[Callable[..., Any]] = None,
+    bland_post: Optional[Callable[..., Any]] = None,
+    bland_get: Optional[Callable[..., Any]] = None,
+    quo_post: Optional[Callable[..., Any]] = None,
+    call_store: Any = None,
 ) -> List[Dict[str, Any]]:
     now = now or datetime.now(timezone.utc)
     if state is None:
@@ -826,6 +830,7 @@ def process_leaks(
                 }
             ]
     results: List[Dict[str, Any]] = []
+    voice_plans: List[Any] = []
     body = leak_body if leak_body is not None else format_leak_body(fetch_doc=fetch_doc)
     thread_list = list(threads)
     alert_state: Optional[Dict[str, Any]] = None
@@ -905,6 +910,7 @@ def process_leaks(
                                 entry["status"] = outcome["status"]
                                 if outcome.get("reason"):
                                     entry["reason"] = outcome["reason"]
+                        voice_plans.append(plan)
                     else:
                         row["alerts"] = plan.entries
             except Exception as exc:
@@ -961,8 +967,23 @@ def process_leaks(
     if alert_state is not None and alert_enabled and not dry_run:
         try:
             from padsplit_scraper import leak_alert
+            from padsplit_scraper import leak_alert_bland
         except ModuleNotFoundError:
             import leak_alert  # type: ignore
+            import leak_alert_bland  # type: ignore
+        try:
+            leak_alert_bland.advance_plans(
+                voice_plans,
+                alert_state,
+                now=now,
+                environ=alert_environ if alert_environ is not None else os.environ,
+                poster=bland_post,
+                getter=bland_get,
+                quo_post=quo_post,
+                store=call_store,
+            )
+        except Exception as exc:
+            _log(f"alert voice failed; continuing: {type(exc).__name__}")
         leak_alert.save_state(alert_state, alert_state_path)
     return results
 
@@ -988,6 +1009,10 @@ def run(
     alert_environ: Optional[Dict[str, str]] = None,
     profile_fetcher: Optional[Callable[[str], Any]] = None,
     conversations_get: Optional[Callable[..., Any]] = None,
+    bland_post: Optional[Callable[..., Any]] = None,
+    bland_get: Optional[Callable[..., Any]] = None,
+    quo_post: Optional[Callable[..., Any]] = None,
+    call_store: Any = None,
 ) -> RunResult:
     load_environment()
     current = now or datetime.now(timezone.utc)
@@ -1040,6 +1065,10 @@ def run(
         profile_fetcher=profile_fetcher,
         session=session,
         conversations_get=conversations_get,
+        bland_post=bland_post,
+        bland_get=bland_get,
+        quo_post=quo_post,
+        call_store=call_store,
     )
     if leftover_compose_tabs is None and not dry_run:
         new_booking.save_leftover_compose_tabs(tabs, leftover_tabs_path)
