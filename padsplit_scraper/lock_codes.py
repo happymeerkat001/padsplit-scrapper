@@ -139,13 +139,26 @@ def running_in_ci() -> bool:
 
 
 def live_actions_enabled() -> bool:
-    """Mac morning/afternoon only. GitHub Actions / CI must not rotate or post."""
-    if running_in_ci():
-        return False
-    flag = (os.getenv("LOCK_CODES_ENABLE") or "").strip().lower()
-    if flag in {"0", "false", "no"}:
-        return False
-    return True
+    """Default off. Ang must set LOCK_CODES_ENABLE=1 (and action hooks) to rotate.
+
+    Previously this returned true whenever LOCK_CODES_ENABLE was unset.
+    It now uses runtime.send_enabled("lock_codes"), same as every other
+    outbound action. CI and collection-only stay off.
+    """
+    try:
+        from padsplit_scraper import runtime
+    except ModuleNotFoundError:
+        import runtime  # type: ignore
+
+    return runtime.send_enabled("lock_codes")
+
+
+def vacant_room_default() -> str:
+    """Vacancy reset code from the environment. Unset means fail closed.
+
+    There is no shared hard-coded default in this module.
+    """
+    return (os.getenv("SIFELY_VACANT_ROOM_DEFAULT") or "").strip()
 
 
 def sifely_api_key() -> str:
@@ -449,29 +462,14 @@ def sifely_request(
 
 
 def list_locks(api_key: str, *, session: Optional[requests.Session] = None) -> List[Dict[str, Any]]:
-    payload = sifely_request(
-        "POST",
-        SIFELY_LOCK_LIST_PATH,
-        api_key=api_key,
-        params={"pageNo": "1", "pageSize": "20"},
-        session=session,
-    )
-    rows = payload.get("list") if isinstance(payload, dict) else payload
-    if not isinstance(rows, list):
-        return []
-    clean: List[Dict[str, Any]] = []
-    for item in rows:
-        if not isinstance(item, dict):
-            continue
-        # Drop PIN-bearing fields such as noKeyPwd. Never persist them.
-        clean.append(
-            {
-                "lockId": item.get("lockId"),
-                "lockAlias": item.get("lockAlias"),
-                "lockName": item.get("lockName"),
-            }
-        )
-    return clean
+    """Every lock, not just the first page of 20. Shared with sifely_client."""
+    try:
+        from padsplit_scraper.sifely_client import SifelyClient
+    except ModuleNotFoundError:
+        from sifely_client import SifelyClient  # type: ignore
+
+    client = SifelyClient(api_key, session=session)
+    return client.list_locks(use_cache=False)
 
 
 def list_passcodes(
@@ -675,6 +673,183 @@ def update_codes_page(code: str) -> bool:
     return True
 
 
+def _rotate_blocked(
+    rooms: Sequence[Dict[str, Any]],
+    directory: Any,
+    now: datetime,
+    poster: Callable[[str], Any],
+) -> List[str]:
+    """Refuse a vacancy rotate unless every pending room is clear live."""
+    try:
+        from padsplit_scraper.room_interlock import (
+            Allowed,
+            assert_room_action_allowed,
+            refusal_discord,
+        )
+    except ModuleNotFoundError:
+        from room_interlock import Allowed, assert_room_action_allowed, refusal_discord  # type: ignore
+
+    flags: List[str] = []
+    for room in rooms:
+        verdict = assert_room_action_allowed(
+            PROPERTY_SLUG,
+            str(room.get("room_number") or ""),
+            "rotate",
+            directory=directory,
+            now=now,
+            property_id=str(room.get("property_id") or ""),
+        )
+        if isinstance(verdict, Allowed):
+            continue
+        text = refusal_discord("rotate", PROPERTY_SLUG, str(room.get("room_number") or ""))
+        flags.append(text)
+        try:
+            poster(text)
+        except Exception:
+            _log("interlock discord flag skipped")
+    return flags
+
+
+def _change_notices_enabled() -> bool:
+    try:
+        from padsplit_scraper import code_change_notify
+    except ModuleNotFoundError:
+        import code_change_notify  # type: ignore
+    return bool(code_change_notify._enabled_flag(os.environ))
+
+
+def _note_human_passcode_changes(
+    passcodes: Sequence[Dict[str, Any]],
+    previous_hashes: Dict[str, str],
+    threads: Sequence[Dict[str, Any]],
+    directory: Any,
+    now: datetime,
+) -> None:
+    """A hash change on the Spanish Moss back door is a real code change."""
+    for item in passcodes:
+        pwd_id = str(item.get("keyboardPwdId") or item.get("id") or "")
+        code = item.get("keyboardPwd")
+        if not pwd_id or not isinstance(code, str) or not code.strip():
+            continue
+        prior = previous_hashes.get(pwd_id)
+        if not prior or prior == hash_passcode(code):
+            continue
+        _observe_code_change(
+            slug=PROPERTY_SLUG,
+            role="back",
+            room="",
+            code=code.strip(),
+            lock_id=str(item.get("lockId") or ""),
+            threads=threads,
+            directory=directory,
+            now=now,
+            source="sifely_observed",
+        )
+
+
+def _observe_code_change(
+    *,
+    slug: str,
+    role: str,
+    room: str,
+    code: str,
+    lock_id: str,
+    threads: Sequence[Dict[str, Any]],
+    directory: Any,
+    now: datetime,
+    source: str,
+) -> None:
+    if not code:
+        return
+    try:
+        from padsplit_scraper import code_change_notify
+    except ModuleNotFoundError:
+        import code_change_notify  # type: ignore
+    try:
+        code_change_notify.observe_change(
+            slug=slug,
+            role=role,
+            room=room,
+            code=code,
+            lock_id=lock_id,
+            threads=threads,
+            directory=directory,
+            now=now,
+            source=source,
+        )
+    except Exception:
+        _log("code notice observe skipped")
+
+
+def reset_vacant_room_code(
+    *,
+    lock_id: Any,
+    keyboard_pwd_id: Any,
+    house: str,
+    room: str,
+    directory: Any,
+    now: datetime,
+    property_id: str = "",
+    session: Optional[requests.Session] = None,
+    threads: Optional[Sequence[Dict[str, Any]]] = None,
+) -> bool:
+    """Set one room lock from SIFELY_VACANT_ROOM_DEFAULT. Unset fails closed."""
+    code = vacant_room_default()
+    if not code:
+        _log("vacancy reset fail closed; SIFELY_VACANT_ROOM_DEFAULT unset")
+        return False
+    try:
+        from padsplit_scraper import code_gates
+        from padsplit_scraper.room_interlock import Allowed, assert_room_action_allowed, refusal_discord
+    except ModuleNotFoundError:
+        import code_gates  # type: ignore
+        from room_interlock import Allowed, assert_room_action_allowed, refusal_discord  # type: ignore
+    if not code_gates.house_allowed(house):
+        _log("vacancy reset skipped; house is outside the test allowlist")
+        return False
+    verdict = assert_room_action_allowed(
+        house,
+        room,
+        "reset",
+        directory=directory,
+        now=now,
+        property_id=property_id,
+    )
+    if not isinstance(verdict, Allowed):
+        _log(f"vacancy reset refused ({verdict.reason})")
+        try:
+            post_ops_discord(refusal_discord("reset", house, room))
+        except Exception:
+            _log("interlock discord flag skipped")
+        return False
+    if not live_actions_enabled():
+        _log("vacancy reset dry-run")
+        return False
+    api_key = sifely_api_key()
+    if not api_key:
+        _log("vacancy reset fail closed; missing SIFELY_API_KEY")
+        return False
+    change_passcode(
+        api_key,
+        lock_id=lock_id,
+        keyboard_pwd_id=keyboard_pwd_id,
+        new_code=code,
+        session=session,
+    )
+    _observe_code_change(
+        slug=house,
+        role="room",
+        room=room,
+        code=code,
+        lock_id=str(lock_id or ""),
+        threads=list(threads or []),
+        directory=directory,
+        now=now,
+        source="vacancy_reset",
+    )
+    return True
+
+
 def _log(message: str) -> None:
     sys.stderr.write(f"[lock-codes] {redact_for_log(message)}\n")
 
@@ -723,6 +898,8 @@ def run(
     notify_members: Optional[Callable[[str], int]] = None,
     generate_code: Optional[Callable[[], str]] = None,
     state_path: Path = STATE_PATH,
+    member_directory: Any = None,
+    post_automations: Optional[Callable[[str], Any]] = None,
 ) -> RunResult:
     load_environment()
     current = now or datetime.now(timezone.utc)
@@ -740,6 +917,7 @@ def run(
     lock: Optional[Dict[str, Any]] = None
     keyboard_pwd_id: Optional[str] = None
     current_hashes: Dict[str, str] = {}
+    observed_passcodes: List[Dict[str, Any]] = []
 
     if api_key and not running_in_ci():
         try:
@@ -749,6 +927,13 @@ def run(
                 passcodes = list_passcodes(api_key, lock.get("lockId"), session=sifely_session)
                 keyboard_pwd_id = resolve_keyboard_pwd_id(passcodes)
                 current_hashes = passcode_hashes_from_list(passcodes)
+                observed_passcodes = []
+                for item in passcodes:
+                    if not isinstance(item, dict):
+                        continue
+                    copied = dict(item)
+                    copied.setdefault("lockId", lock.get("lockId"))
+                    observed_passcodes.append(copied)
                 human_change = detect_human_change(
                     current_hashes,
                     state.get("passcode_hashes") or {},
@@ -806,6 +991,13 @@ def run(
         if not dry_run:
             poster(text)
         result.discord_posts.append(text)
+        _note_human_passcode_changes(
+            observed_passcodes,
+            state.get("passcode_hashes") or {},
+            messages,
+            member_directory,
+            current,
+        )
         if current_hashes:
             state["passcode_hashes"] = current_hashes
         _mark_vacancies_handled(state, pending_rooms)
@@ -817,6 +1009,12 @@ def run(
     if plan.rotate_via_api:
         if lock is None or not keyboard_pwd_id:
             _log("Need you: could not resolve Spanish Moss back-door lock or passcode id")
+            return result
+        blocked = _rotate_blocked(pending_rooms, member_directory, current, post_automations or poster)
+        if blocked:
+            result.action = "interlock_refused"
+            result.reason = "PadSplit still shows an occupant"
+            result.discord_posts.extend(blocked)
             return result
         working_code = new_code_fn()
         if not dry_run:
@@ -831,6 +1029,17 @@ def run(
             except SifelyUnavailable as exc:
                 _log(f"rotate failed; will wait for #new-tenants fallback: {exc}")
                 return result
+        _observe_code_change(
+            slug=PROPERTY_SLUG,
+            role="back",
+            room="",
+            code=working_code,
+            lock_id=str((lock or {}).get("lockId") or ""),
+            threads=messages,
+            directory=member_directory,
+            now=current,
+            source="rotate",
+        )
         state["last_auto_rotate_hash"] = hash_passcode(working_code)
         if keyboard_pwd_id:
             hashes = dict(state.get("passcode_hashes") or {})
@@ -850,7 +1059,7 @@ def run(
 
     if working_code and plan.update_digest:
         result.digest_updated = bool(digest_fn(working_code))
-    if working_code and plan.notify_padsplit:
+    if working_code and plan.notify_padsplit and not _change_notices_enabled():
         result.padsplit_notified = int(member_fn(working_code))
 
     if plan.discord_kind == "rotated":

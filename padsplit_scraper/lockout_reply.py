@@ -1359,6 +1359,36 @@ def fetch_property_codes(slug: str) -> Dict[str, Any]:
     return data if isinstance(data, dict) else {}
 
 
+def _lockout_rotate_allowed(
+    *,
+    directory: Any,
+    room: str,
+    now: datetime,
+    property_id: str,
+) -> bool:
+    """A lockout message must not rotate the shared door while the room is occupied."""
+    try:
+        from padsplit_scraper.room_interlock import Allowed, assert_room_action_allowed, refusal_discord
+    except ModuleNotFoundError:
+        from room_interlock import Allowed, assert_room_action_allowed, refusal_discord  # type: ignore
+
+    verdict = assert_room_action_allowed(
+        "spanish_moss",
+        room,
+        "lockout",
+        directory=directory,
+        now=now,
+        property_id=property_id,
+    )
+    if isinstance(verdict, Allowed):
+        return True
+    try:
+        post_automations_discord(refusal_discord("lockout", "spanish_moss", room))
+    except Exception:
+        _log("interlock discord flag skipped")
+    return False
+
+
 def obtain_spanish_moss_back(
     *,
     sifely_session=None,
@@ -1366,6 +1396,10 @@ def obtain_spanish_moss_back(
     processed_share_ids: Optional[Sequence[str]] = None,
     rotate_if_needed: bool = True,
     generate_code: Optional[Callable[[], str]] = None,
+    directory: Any = None,
+    room: str = "",
+    now: Optional[datetime] = None,
+    property_id: str = "",
 ) -> Tuple[str, str]:
     """Return (code, source). Code stays in memory. Never log it.
 
@@ -1399,6 +1433,14 @@ def obtain_spanish_moss_back(
             return current, "sifely_current"
         if not rotate_if_needed or not pwd_id:
             raise lock_codes.SifelyUnavailable("no current Spanish Moss passcode")
+        if not _lockout_rotate_allowed(
+            directory=directory,
+            room=room,
+            now=now or datetime.now(timezone.utc),
+            property_id=property_id,
+        ):
+            _log("interlock refused spanish moss rotate")
+            return "", "interlock_refused"
         new_code = (generate_code or lock_codes.generate_passcode)()
         lock_codes.change_passcode(
             api_key,
@@ -1411,6 +1453,17 @@ def obtain_spanish_moss_back(
             lock_codes.update_codes_page(new_code)
         except Exception as exc:
             _log(f"codes page update after rotate failed; continuing: {exc}")
+        lock_codes._observe_code_change(
+            slug="spanish_moss",
+            role="back",
+            room="",
+            code=new_code,
+            lock_id=str(lock.get("lockId") or ""),
+            threads=[],
+            directory=directory,
+            now=now or datetime.now(timezone.utc),
+            source="lockout_rotate",
+        )
         return new_code, "sifely_rotated"
     except lock_codes.SifelyUnavailable as exc:
         _log(f"Sifely path unavailable: {exc}")
@@ -1837,9 +1890,16 @@ def process_lockouts(
                 allow_default_sifely = send_enabled and not dry_run
                 if sifely_fn is not None or allow_default_sifely:
                     if sifely_cache is None:
-                        getter = sifely_fn or obtain_spanish_moss_back
                         try:
-                            sifely_cache = getter()
+                            if sifely_fn is not None:
+                                sifely_cache = sifely_fn()
+                            else:
+                                sifely_cache = obtain_spanish_moss_back(
+                                    directory=directory,
+                                    room=thread_room(thread),
+                                    now=now,
+                                    property_id=_explicit_property_id(thread),
+                                )
                         except Exception as exc:
                             _log(f"Sifely obtain failed: {exc}")
                             sifely_cache = ("", "missing")

@@ -38,6 +38,13 @@ def green_hill_room(*, vacant: bool = True, photos: int = 2) -> dict:
     }
 
 
+class _ClearMembers:
+    """Live lookup with nobody in the room, so a vacancy rotate is allowed."""
+
+    def members_for(self, property_id: str) -> list:
+        return []
+
+
 def moss_member_thread() -> dict:
     return {
         "id": "chat-spanish-moss",
@@ -366,6 +373,7 @@ class RunFlowTests(unittest.TestCase):
                     notify_members=lambda code: padsplit.append(code) or 1,
                     generate_code=lambda: PLACEHOLDER,
                     state_path=state_path,
+                    member_directory=_ClearMembers(),
                 )
         self.assertEqual(result.action, "auto_rotate")
         self.assertEqual(digest, [PLACEHOLDER])
