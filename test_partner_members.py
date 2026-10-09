@@ -26,6 +26,9 @@ def _raw_member(**overrides) -> dict:
         "move_out_date": None,
         "is_terminated": False,
         "occupancy_status": "active",
+        "finance_status": "current",
+        "is_on_payment_plan": False,
+        "payment_plan_end_date": "2026-12-31",
         "first_name": PII_NAME,
         "last_name": "Example",
         "name": PII_NAME,
@@ -55,12 +58,30 @@ class ParseTests(unittest.TestCase):
                 "move_out_date",
                 "is_terminated",
                 "occupancy_status",
+                "finance_status",
+                "is_on_payment_plan",
+                "payment_plan_end_date",
             },
         )
         self.assertEqual(parsed["occupancy_id"], "555")
         self.assertEqual(parsed["room_number"], "2")
         self.assertIs(parsed["is_terminated"], False)
         self.assertEqual(parsed["occupancy_status"], "active")
+        self.assertEqual(parsed["finance_status"], "current")
+        self.assertIs(parsed["is_on_payment_plan"], False)
+        self.assertEqual(parsed["payment_plan_end_date"], "2026-12-31")
+
+    def test_balance_is_only_on_the_eviction_row(self) -> None:
+        raw = _raw_member(finance_status="Behind", is_on_payment_plan=True)
+        public = partner_members.parse_member_row(raw)
+        eviction = partner_members.eviction_member_row(raw)
+        self.assertNotIn("balance", public)
+        self.assertNotIn(PII_BALANCE, str(public))
+        self.assertNotIn(PII_NAME, str(eviction))
+        self.assertEqual(eviction["balance"], PII_BALANCE)
+        self.assertEqual(eviction["finance_status"], "Behind")
+        self.assertIs(eviction["is_on_payment_plan"], True)
+        self.assertNotIn("first_name", eviction)
 
     def test_property_index_drops_names_and_money(self) -> None:
         ref = partner_members.parse_property_ref(
@@ -74,6 +95,26 @@ class ParseTests(unittest.TestCase):
         self.assertEqual(ref, {"id": "11", "street": "6623 Leana Avenue"})
         self.assertNotIn(PII_NAME, str(ref))
         self.assertNotIn(PII_BALANCE, str(ref))
+        self.assertEqual(partner_members.house_address(ref), "6623 Leana Avenue")
+
+    def test_property_address_keeps_street_city_without_owner_name(self) -> None:
+        ref = partner_members.parse_property_ref(
+            {
+                "id": 11,
+                "name": PII_NAME,
+                "address": {
+                    "street1": "100 Example Lane",
+                    "city": "Dallas",
+                    "state": "TX",
+                    "zip": "75201",
+                },
+            }
+        )
+        self.assertEqual(
+            partner_members.house_address(ref),
+            "100 Example Lane, Dallas, TX 75201",
+        )
+        self.assertNotIn(PII_NAME, str(ref))
 
 
 class FetchTests(unittest.TestCase):
@@ -113,6 +154,13 @@ class FetchTests(unittest.TestCase):
         self.assertNotIn(PII_BALANCE, blob)
         self.assertNotIn(PII_SCORE, blob)
         self.assertIs(first[2]["is_terminated"], True)
+        self.assertNotIn("balance", first[0])
+
+        eviction_rows = partner_members.fetch_eviction_members(
+            object(), {}, "9001", request_fn=request_fn
+        )
+        self.assertEqual(eviction_rows[0]["balance"], PII_BALANCE)
+        self.assertNotIn(PII_NAME, str({k: v for k, v in eviction_rows[0].items() if k != "balance"}))
 
     def test_http_error_and_auth_error_have_no_body(self) -> None:
         def response(status):
@@ -219,14 +267,23 @@ class ProbeTests(unittest.TestCase):
         text = partner_members.format_probe(summary)
         self.assertIn("pages: 1", text)
         self.assertIn("rows: 1", text)
-        self.assertIn("is_terminated", text)
-        self.assertIn("first_name", text)
-        self.assertIn("balance", text)
+        for name in (
+            "is_terminated",
+            "first_name",
+            "balance",
+            "finance_status",
+            "is_on_payment_plan",
+            "payment_plan_end_date",
+        ):
+            self.assertIn(name, text)
         self.assertNotIn(PII_NAME, text)
         self.assertNotIn(PII_BALANCE, text)
         self.assertNotIn(PII_SCORE, text)
         self.assertNotIn("occ-probe-token", text)
+        self.assertNotIn("2026-12-31", text)
+        self.assertNotIn("current", text)
         self.assertNotIn("results", str(summary.get("rows")))
+        self.assertNotIn("balance", summary)  # summary has no balance value key from rows
 
     def test_probe_cli_prints_summary_only(self) -> None:
         summary = {

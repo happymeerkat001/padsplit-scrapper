@@ -8,10 +8,14 @@ occupancy_status filters) comes from the site JS and is not verified at
 runtime. This module does not send finance_status. Probe before relying on
 the field names.
 
-Returned rows keep only status fields: occupancy_id, room_number, move
-dates, is_terminated, and occupancy_status when that key is present.
-Names, balance, member_score, and other money fields are dropped at parse
-time and are never logged.
+Returned rows keep status fields: occupancy_id, room_number, move dates,
+is_terminated, occupancy_status, finance_status, is_on_payment_plan, and
+payment_plan_end_date. Names are dropped at parse time and are never logged.
+
+Balance is not on those rows. ``eviction_member_row`` / ``fetch_eviction_members``
+keep it for ``padsplit_scraper.evictions`` only. Do not write that value to
+latest.json, docs/, Firestore, Discord text, or logs. The probe prints field
+names and counts only.
 """
 
 from __future__ import annotations
@@ -57,6 +61,14 @@ _MOVE_IN_KEYS = ("move_in_date", "moveInDate", "move_in")
 _MOVE_OUT_KEYS = ("move_out_date", "moveOutDate", "move_out")
 _TERMINATED_KEYS = ("is_terminated", "isTerminated")
 _STATUS_KEYS = ("occupancy_status", "occupancyStatus", "status")
+_FINANCE_STATUS_KEYS = ("finance_status", "financeStatus")
+_PAYMENT_PLAN_KEYS = ("is_on_payment_plan", "isOnPaymentPlan")
+_PAYMENT_PLAN_END_KEYS = (
+    "payment_plan_end_date",
+    "paymentPlanEndDate",
+    "payment_plan_end",
+)
+_BALANCE_KEYS = ("balance", "balance_due", "balanceDue")
 
 
 class MembersRequestError(Exception):
@@ -125,6 +137,36 @@ def _status_text(raw: Dict[str, Any]) -> Optional[str]:
     return None
 
 
+def _finance_status_text(raw: Dict[str, Any]) -> Optional[str]:
+    for key in _FINANCE_STATUS_KEYS:
+        value = raw.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return None
+
+
+def _payment_plan_value(raw: Dict[str, Any]) -> Optional[bool]:
+    for key in _PAYMENT_PLAN_KEYS:
+        if key in raw:
+            return _parse_bool(raw.get(key))
+    return None
+
+
+def _balance_text(raw: Dict[str, Any]) -> Optional[str]:
+    """Copy a balance string. Callers must not log or post the result."""
+    for key in _BALANCE_KEYS:
+        if key not in raw:
+            continue
+        value = raw.get(key)
+        if value in (None, "") or isinstance(value, bool):
+            continue
+        if isinstance(value, (int, float)):
+            return f"{value:.2f}"
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return None
+
+
 def _room_text(raw: Dict[str, Any]) -> str:
     room = _first(raw, _ROOM_KEYS)
     if room in (None, "") and isinstance(raw.get("room"), dict):
@@ -135,7 +177,7 @@ def _room_text(raw: Dict[str, Any]) -> str:
 
 
 def parse_member_row(raw: Dict[str, Any]) -> Dict[str, Any]:
-    """Copy status fields only. Names and money never leave this function."""
+    """Copy status fields only. Names and balance never leave this function."""
     occupancy_id = _first(raw, _OCCUPANCY_ID_KEYS)
     if occupancy_id in (None, ""):
         occupancy_id = raw.get("id")
@@ -146,7 +188,21 @@ def parse_member_row(raw: Dict[str, Any]) -> Dict[str, Any]:
         "move_out_date": _date_text(_first(raw, _MOVE_OUT_KEYS)),
         "is_terminated": _terminated_value(raw),
         "occupancy_status": _status_text(raw),
+        "finance_status": _finance_status_text(raw),
+        "is_on_payment_plan": _payment_plan_value(raw),
+        "payment_plan_end_date": _date_text(_first(raw, _PAYMENT_PLAN_END_KEYS)),
     }
+
+
+def eviction_member_row(raw: Dict[str, Any]) -> Dict[str, Any]:
+    """Status row plus balance, for the evictions module only.
+
+    Do not log this row, write it to latest.json / docs/ / Firestore, or put
+    balance in Discord text.
+    """
+    row = parse_member_row(raw)
+    row["balance"] = _balance_text(raw)
+    return row
 
 
 def parse_property_ref(raw: Dict[str, Any]) -> Optional[Dict[str, str]]:
@@ -160,13 +216,40 @@ def parse_property_ref(raw: Dict[str, Any]) -> Optional[Dict[str, str]]:
         return None
     address = raw.get("address")
     street = ""
+    city = ""
+    state = ""
+    postal = ""
     if isinstance(address, dict):
         street = str(address.get("street1") or address.get("full_street") or "").strip()
+        city = str(address.get("city") or "").strip()
+        state = str(address.get("state") or address.get("region") or "").strip()
+        postal = str(address.get("zip") or address.get("postal_code") or "").strip()
     elif isinstance(address, str):
         street = address.strip()
     if not street:
         street = str(raw.get("full_street") or "").strip()
-    return {"id": str(property_id).strip(), "street": street}
+    ref: Dict[str, str] = {"id": str(property_id).strip(), "street": street}
+    if city:
+        ref["city"] = city
+    if state:
+        ref["state"] = state
+    if postal:
+        ref["zip"] = postal
+    return ref
+
+
+def house_address(ref: Dict[str, Any]) -> str:
+    """Property street line. Owner names are not part of this string."""
+    street = str(ref.get("street") or "").strip()
+    city = str(ref.get("city") or "").strip()
+    state = str(ref.get("state") or "").strip()
+    postal = str(ref.get("zip") or "").strip()
+    locality = ", ".join(part for part in (city, state) if part)
+    if postal:
+        locality = f"{locality} {postal}".strip()
+    if street and locality:
+        return f"{street}, {locality}"
+    return street or locality
 
 
 def _auth_failure(exc: BaseException) -> bool:
@@ -255,11 +338,14 @@ def fetch_member_pages(
     *,
     request_fn: Optional[RequestFn] = None,
     page_size: int = DEFAULT_PAGE_SIZE,
+    include_balance: bool = False,
 ) -> Tuple[List[Dict[str, Any]], List[str], List[str], int]:
     """Every parsed row for one property, plus raw field names and page count.
 
     Field-name lists are for the probe. They are names only. Parsed rows do
-    not include names or money. A truncated page walk fails closed.
+    not include names. Balance is included only when ``include_balance`` is
+    set, and that path is for the evictions module. A truncated page walk
+    fails closed.
     """
     key = str(property_id).strip()
     if not key:
@@ -281,9 +367,10 @@ def fetch_member_pages(
         response_fields.update(page_fields)
         if not raw_rows:
             break
+        parser = eviction_member_row if include_balance else parse_member_row
         for raw in raw_rows:
             row_fields.update(str(name) for name in raw.keys())
-            parsed.append(parse_member_row(raw))
+            parsed.append(parser(raw))
         if not has_next:
             break
         page += 1
@@ -301,13 +388,38 @@ def fetch_property_members(
     request_fn: Optional[RequestFn] = None,
     page_size: int = DEFAULT_PAGE_SIZE,
 ) -> List[Dict[str, Any]]:
-    """All parsed member rows for one property. No names or money."""
+    """All parsed member rows for one property. No names or balance."""
     rows, _row_fields, _response_fields, _pages = fetch_member_pages(
         session,
         creds,
         property_id,
         request_fn=request_fn,
         page_size=page_size,
+        include_balance=False,
+    )
+    return rows
+
+
+def fetch_eviction_members(
+    session: Any,
+    creds: Optional[Dict[str, str]],
+    property_id: str,
+    *,
+    request_fn: Optional[RequestFn] = None,
+    page_size: int = DEFAULT_PAGE_SIZE,
+) -> List[Dict[str, Any]]:
+    """Member rows including balance. Only the evictions module should call this.
+
+    Do not log the returned rows or write them to latest.json, docs/, Firestore,
+    or Discord.
+    """
+    rows, _row_fields, _response_fields, _pages = fetch_member_pages(
+        session,
+        creds,
+        property_id,
+        request_fn=request_fn,
+        page_size=page_size,
+        include_balance=True,
     )
     return rows
 
@@ -344,7 +456,7 @@ def probe_property(
     request_fn: Optional[RequestFn] = None,
     page_size: int = DEFAULT_PAGE_SIZE,
 ) -> Dict[str, Any]:
-    """Counts and field names only. No row values."""
+    """Counts and field names only. No row values, including balance."""
     _rows, row_fields, response_fields, pages = fetch_member_pages(
         session,
         creds,
