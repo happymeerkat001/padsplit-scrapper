@@ -10,7 +10,7 @@ import io
 import os
 import re
 import unittest
-from contextlib import redirect_stderr
+from contextlib import redirect_stderr, redirect_stdout
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import patch
@@ -364,12 +364,18 @@ class ClassifierTests(unittest.TestCase):
         self.assertTrue(fallback.ambiguous)
         self.assertEqual(fallback.mentioned_room, "")
         self.assertTrue(calls)
+        self.assertEqual(calls[0]["model"], "typesafe-ai/jev")
+        self.assertIsInstance(calls[0]["state"], str)
         self.assertEqual(calls[0]["providerOptions"]["gateway"]["zeroDataRetention"], True)
         self.assertEqual(calls[0]["providerOptions"]["gateway"]["disallowPromptTraining"], True)
-        self.assertNotIn("9", calls[0]["state"]["message"])
+        self.assertNotIn("9", calls[0]["state"])
 
     def test_jev_cannot_choose_a_room(self) -> None:
+        sent = {}
+
         def post(payload, timeout):
+            sent["payload"] = payload
+            sent["timeout"] = timeout
             return {
                 "answers": {
                     "is_code_request": {"type": "boolean", "probability": 0.99},
@@ -388,7 +394,128 @@ class ClassifierTests(unittest.TestCase):
         refined = jev.refine("what's my code for room 2", fast)
         self.assertEqual(refined.mentioned_room, "2")
         self.assertEqual(refined.kind, "room")
-        self.assertNotIn("room", jev_payload_keys(post))
+        self.assertNotIn("9", sent["payload"]["state"])
+        self.assertEqual(sent["timeout"], code_request.JEV_TIMEOUT_S)
+
+    def test_unclear_messages_call_jev_and_failures_log_a_reason(self) -> None:
+        calls = []
+
+        def post(payload, timeout):
+            calls.append(payload)
+            self.assertEqual(timeout, code_request.JEV_TIMEOUT_S)
+            return {
+                "answers": {
+                    "is_code_request": {"type": "boolean", "probability": 0.91},
+                    "kind": {
+                        "type": "choice",
+                        "choice": "door",
+                        "probabilities": {"door": 0.91, "room": 0, "lockbox": 0, "wifi": 0, "unknown": 0},
+                    },
+                }
+            }
+
+        env = enable_env(JEV_CODE_CLASSIFY_ENABLE="1", AI_GATEWAY_API_KEY="secret")
+        jev = code_request.JevClassifier(post=post, environ=env)
+        for phrase in ("hey is there a way in", "yo can u send it again"):
+            with self.subTest(phrase=phrase):
+                got = code_request.classify(phrase, jev)
+                self.assertTrue(got.is_code_request)
+                self.assertEqual(got.kind, "door")
+                self.assertEqual(got.mentioned_room, "")
+        self.assertEqual(len(calls), 2)
+        self.assertEqual(calls[0]["model"], "typesafe-ai/jev")
+        self.assertIsInstance(calls[0]["state"], str)
+
+        def explode(payload, timeout):
+            raise TimeoutError("way in " + payload["state"])
+
+        noisy = code_request.JevClassifier(post=explode, environ=env)
+        logs = io.StringIO()
+        with redirect_stderr(logs):
+            missed = code_request.classify("hey is there a way in", noisy)
+        self.assertFalse(missed.is_code_request)
+        self.assertIn("timeout", logs.getvalue())
+        self.assertNotIn("way in", logs.getvalue())
+        self.assertNotIn("hey", logs.getvalue())
+
+        quiet = len(calls)
+        code_request.classify("my rent is late", jev)
+        code_request.classify("thanks!", jev)
+        code_request.classify("the toilet is leaking", jev)
+        self.assertEqual(len(calls), quiet)
+
+    def test_evaluate_post_matches_the_gateway(self) -> None:
+        captured = {}
+
+        class Resp:
+            status_code = 200
+
+            def json(self):
+                return {
+                    "answers": {
+                        "is_code_request": {"type": "boolean", "probability": 0.8},
+                        "kind": {"type": "choice", "choice": "door", "probabilities": {"door": 0.8}},
+                    }
+                }
+
+        def fake_post(url, headers=None, json=None, timeout=None):
+            captured["url"] = url
+            captured["headers"] = headers
+            captured["json"] = json
+            captured["timeout"] = timeout
+            return Resp()
+
+        with patch("requests.post", fake_post):
+            body = code_request._default_post(
+                code_request.jev_payload("is there a way in"),
+                code_request.JEV_TIMEOUT_S,
+                {"AI_GATEWAY_API_KEY": "test-key"},
+            )
+        self.assertEqual(captured["url"], "https://ai-gateway.vercel.sh/v1/evaluate")
+        self.assertEqual(captured["headers"]["Authorization"], "Bearer test-key")
+        self.assertNotIn("Bearer", captured["json"]["model"])
+        self.assertEqual(captured["json"]["model"], "typesafe-ai/jev")
+        self.assertEqual(captured["json"]["state"], "is there a way in")
+        self.assertEqual(captured["json"]["questions"]["is_code_request"]["type"], "boolean")
+        self.assertEqual(captured["json"]["questions"]["kind"]["type"], "choice")
+        self.assertTrue(captured["json"]["providerOptions"]["gateway"]["zeroDataRetention"])
+        self.assertTrue(captured["json"]["providerOptions"]["gateway"]["disallowPromptTraining"])
+        self.assertEqual(captured["timeout"], code_request.JEV_TIMEOUT_S)
+        self.assertEqual(body["answers"]["kind"]["choice"], "door")
+
+    def test_jev_smoke_prints_flags_without_the_key(self) -> None:
+        def fake_post(url, headers=None, json=None, timeout=None):
+            self.assertEqual(url, code_request.JEV_URL)
+            self.assertEqual(timeout, code_request.JEV_TIMEOUT_S)
+
+            class Resp:
+                status_code = 200
+
+                def json(self):
+                    return {
+                        "answers": {
+                            "is_code_request": {"probability": 0.77},
+                            "kind": {"choice": "door", "probabilities": {"door": 0.77}},
+                        }
+                    }
+
+            return Resp()
+
+        out = io.StringIO()
+        with patch("requests.post", fake_post), patch.dict(os.environ, {"AI_GATEWAY_API_KEY": ""}, clear=False), redirect_stdout(out):
+            code = code_request.main(["--jev-smoke"])
+        self.assertEqual(code, 2)
+        self.assertIn("missing AI_GATEWAY_API_KEY", out.getvalue())
+
+        out = io.StringIO()
+        env = {"AI_GATEWAY_API_KEY": "test-key", "JEV_CODE_CLASSIFY_ENABLE": "1"}
+        with patch("requests.post", fake_post), patch.dict(os.environ, env, clear=False), redirect_stdout(out):
+            code = code_request.jev_smoke(env)
+        text = out.getvalue()
+        self.assertEqual(code, 0)
+        self.assertIn("is_code_request=True", text)
+        self.assertIn("kind=door", text)
+        self.assertNotIn("test-key", text)
 
     def test_disabled_even_when_collection_only(self) -> None:
         def post(payload, timeout):
@@ -402,10 +529,6 @@ class ClassifierTests(unittest.TestCase):
         }
         jev = code_request.JevClassifier(post=post, environ=env)
         self.assertFalse(jev.enabled())
-
-
-def jev_payload_keys(post) -> set:
-    return set()
 
 
 class ReplyResolutionTests(unittest.TestCase):

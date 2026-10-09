@@ -1,10 +1,15 @@
 """Deterministic code-request classifier plus an optional Jev audit.
 
-Wifi requests are classified and never answered. Jev runs only when the
-fast path is ambiguous, and as a non-blocking audit. It never chooses a
-room. The gate JEV_CODE_CLASSIFY_ENABLE defaults off and also needs
-AI_GATEWAY_API_KEY. Timeout is 3 seconds. Any error keeps the
-deterministic result.
+Wifi requests are classified and never answered. Jev runs when the fast
+path is ambiguous, or when it is not a request but the text is
+code-adjacent (a way in, send it again). The call waits at most 3
+seconds, then keeps the fast-path result. It never chooses a room.
+
+The HTTP call matches AI SDK experimental_evaluate: POST
+https://ai-gateway.vercel.sh/v1/evaluate with model typesafe-ai/jev.
+Chat completions cannot run this model. The gate
+JEV_CODE_CLASSIFY_ENABLE defaults off and also needs AI_GATEWAY_API_KEY.
+CI and collection-only do not call. Failures log a reason only.
 
 Jev receives message text with digits stripped and no names. The request
 asks for zero data retention and no prompt training.
@@ -12,12 +17,16 @@ asks for zero data retention and no prompt training.
 
 from __future__ import annotations
 
+import argparse
 import os
 import re
+import sys
 import threading
 import unicodedata
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import TimeoutError as FuturesTimeout
 from dataclasses import dataclass, replace
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, Optional, Sequence
 
 try:
     from padsplit_scraper import lockout_reply
@@ -31,6 +40,7 @@ JEV_MODEL = "typesafe-ai/jev"
 JEV_URL = "https://ai-gateway.vercel.sh/v1/evaluate"
 JEV_TIMEOUT_S = 3
 _CONFIDENT = 0.6
+_SMOKE_TEXT = "is there a way in"
 
 _WIFI_RE = re.compile(r"(?i)\bwi[\s-]?fi\b|\bwireless\b|\binternet\s+password\b")
 _LOCKBOX_RE = re.compile(r"(?i)\block\s*box\b|\blockbox\b")
@@ -77,6 +87,22 @@ _NOT_REQUEST_RE = re.compile(
     r")"
 )
 _THANKS_ONLY_RE = re.compile(r"(?i)^\s*thanks?!?\s*[!.]*\s*$|^\s*thank\s+you\b[!.]*\s*$")
+# Not a fast-path hit, but close enough that Jev should look: "way in", "send it again".
+_CODE_ADJACENT_RE = re.compile(
+    r"(?i)("
+    r"\bway\s+in\b"
+    r"|\b(?:get|come|let)\s+(?:me\s+)?in\b"
+    r"|\bsend\s+it\b"
+    r"|\bdoor\b"
+    r"|\block\b"
+    r"|\bkeypad\b"
+    r"|\bkeys?\b"
+    r"|\bcod(?:e|igo)?\b"
+    r"|\bcoed\b"
+    r"|\bentrar\b"
+    r"|\bafuera\b"
+    r")"
+)
 _DIGIT_RE = re.compile(r"\d+")
 _APOSTROPHE_RE = re.compile(r"[''`´’]")
 
@@ -145,11 +171,27 @@ def classify_fast(text: str) -> CodeRequest:
     return CodeRequest(False, "unknown", mentioned, False, lockout=False)
 
 
+def code_adjacent(text: str) -> bool:
+    """True when a non-request still talks about entry, a lock, or sending it."""
+    return bool(_CODE_ADJACENT_RE.search(_fold(text)))
+
+
+def should_consult_jev(fast: CodeRequest, text: str) -> bool:
+    """Ambiguous asks, or a miss that is still about getting in."""
+    if fast.ambiguous:
+        return True
+    return (not fast.is_code_request) and code_adjacent(text)
+
+
 def _questions() -> Dict[str, Any]:
     return {
         "is_code_request": {
             "type": "boolean",
-            "instructions": "Is the sender asking for a door, room, or lockbox entry code?",
+            "instructions": "Is the sender asking for a door, room, or lockbox entry code, or for a way in?",
+            "criteria": {
+                "true": "They want an entry code, a door opened, or the last code sent again.",
+                "false": "They are not asking for an entry code.",
+            },
         },
         "kind": {
             "type": "choice",
@@ -166,9 +208,10 @@ def _questions() -> Dict[str, Any]:
 
 
 def jev_payload(text: str) -> Dict[str, Any]:
+    """Same body experimental_evaluate posts to /v1/evaluate. state is a string."""
     return {
         "model": JEV_MODEL,
-        "state": {"message": strip_for_jev(text)},
+        "state": strip_for_jev(text),
         "questions": _questions(),
         "providerOptions": {
             "gateway": {
@@ -179,15 +222,55 @@ def jev_payload(text: str) -> Dict[str, Any]:
     }
 
 
+class JevError(Exception):
+    """Safe failure. reason is a short token and never includes message text."""
+
+    def __init__(self, reason: str) -> None:
+        self.reason = reason
+        super().__init__(reason)
+
+
+def _log_jev(reason: str) -> None:
+    sys.stderr.write(f"[code-request] jev skipped: {reason}\n")
+
+
+def _safe_reason(exc: BaseException) -> str:
+    if isinstance(exc, JevError):
+        return exc.reason
+    if "timeout" in type(exc).__name__.lower():
+        return "timeout"
+    status = getattr(getattr(exc, "response", None), "status_code", None)
+    if isinstance(status, int):
+        return f"http {status}"
+    return "request failed"
+
+
+def _env(environ: Optional[os._Environ[str]]) -> os._Environ[str]:
+    return environ if environ is not None else os.environ
+
+
+def _blocked_reason(environ: Optional[os._Environ[str]]) -> Optional[str]:
+    """None when Jev may run. A reason when the flag is on but another gate blocks.
+
+    An unset flag stays silent. That is the default-off path.
+    """
+    env = _env(environ)
+    if runtime.flag_value(env.get("JEV_CODE_CLASSIFY_ENABLE")) is not True:
+        return None
+    if not (env.get("AI_GATEWAY_API_KEY") or "").strip():
+        return "missing AI_GATEWAY_API_KEY"
+    if runtime.running_in_ci(env):
+        return "ci"
+    if runtime.collection_only(env):
+        return "collection-only"
+    return None
+
+
 def _enabled(environ: Optional[os._Environ[str]]) -> bool:
-    env = environ if environ is not None else os.environ
+    env = _env(environ)
     if runtime.flag_value(env.get("JEV_CODE_CLASSIFY_ENABLE")) is not True:
         return False
-    if not (env.get("AI_GATEWAY_API_KEY") or "").strip():
-        return False
-    if runtime.running_in_ci(env) or runtime.collection_only(env):
-        return False
-    return True
+    return _blocked_reason(env) is None
 
 
 def _parse_jev(payload: Any, mentioned_room: str) -> Optional[CodeRequest]:
@@ -251,30 +334,39 @@ class JevClassifier:
         return _default_post(payload, self.timeout, self.environ)
 
     def refine(self, text: str, deterministic: CodeRequest) -> CodeRequest:
-        """Use Jev only for ambiguous fast-path results. Never changes the room."""
-        if not deterministic.ambiguous or not self.enabled():
+        """Wait at most 3 seconds. Never changes the room. On failure, keep the fast path."""
+        if not should_consult_jev(deterministic, text):
+            return deterministic
+        if not self.enabled():
+            reason = _blocked_reason(self.environ)
+            if reason:
+                _log_jev(reason)
             return deterministic
         try:
             payload = self._evaluate(text)
-        except Exception:
+        except Exception as exc:
+            _log_jev(_safe_reason(exc))
             return deterministic
         parsed = _parse_jev(payload, deterministic.mentioned_room)
         if parsed is None:
+            _log_jev("unparsed response")
             return deterministic
         return replace(parsed, mentioned_room=deterministic.mentioned_room, lockout=deterministic.lockout)
 
     def audit_async(self, text: str, deterministic: CodeRequest) -> Optional[threading.Thread]:
         """Count agreement. Does not block the reply and does not pick a room."""
-        if not self.enabled() or deterministic.ambiguous:
+        if not self.enabled() or not deterministic.is_code_request or deterministic.ambiguous:
             return None
 
         def work() -> None:
             try:
                 payload = self._evaluate(text)
-            except Exception:
+            except Exception as exc:
+                _log_jev(_safe_reason(exc))
                 return
             parsed = _parse_jev(payload, deterministic.mentioned_room)
             if parsed is None:
+                _log_jev("unparsed response")
                 return
             if parsed.kind == deterministic.kind and parsed.is_code_request == deterministic.is_code_request:
                 self.agree += 1
@@ -290,25 +382,92 @@ def classify(text: str, jev: Optional[JevClassifier] = None) -> CodeRequest:
     deterministic = classify_fast(text)
     if jev is None:
         return deterministic
-    if deterministic.ambiguous:
+    if should_consult_jev(deterministic, text):
         return jev.refine(text, deterministic)
-    jev.audit_async(text, deterministic)
+    if deterministic.is_code_request:
+        jev.audit_async(text, deterministic)
     return deterministic
 
 
 def _default_post(payload: Dict[str, Any], timeout: float, environ: Optional[os._Environ[str]]) -> Any:
+    """POST /v1/evaluate. The wall clock stops at timeout even if the socket lingers."""
     import requests
 
-    env = environ if environ is not None else os.environ
+    env = _env(environ)
     key = (env.get("AI_GATEWAY_API_KEY") or "").strip()
-    response = requests.post(
-        JEV_URL,
-        headers={
-            "Authorization": f"Bearer {key}",
-            "Content-Type": "application/json",
-        },
-        json=payload,
-        timeout=timeout,
+    if not key:
+        raise JevError("missing AI_GATEWAY_API_KEY")
+
+    def once() -> Any:
+        try:
+            response = requests.post(
+                JEV_URL,
+                headers={
+                    "Authorization": f"Bearer {key}",
+                    "Content-Type": "application/json",
+                },
+                json=payload,
+                timeout=timeout,
+            )
+        except requests.Timeout as exc:
+            raise JevError("timeout") from exc
+        except requests.RequestException as exc:
+            raise JevError("request failed") from exc
+        status = int(getattr(response, "status_code", 0) or 0)
+        if status >= 400:
+            raise JevError(f"http {status}")
+        try:
+            return response.json()
+        except ValueError as exc:
+            raise JevError("non-json") from exc
+
+    pool = ThreadPoolExecutor(max_workers=1)
+    try:
+        return pool.submit(once).result(timeout=timeout)
+    except FuturesTimeout as exc:
+        raise JevError("timeout") from exc
+    finally:
+        pool.shutdown(wait=False, cancel_futures=True)
+
+
+def jev_smoke(environ: Optional[os._Environ[str]] = None) -> int:
+    """One harmless evaluate call. Prints the parsed flags, never the key or the text."""
+    env = _env(environ)
+    if not (env.get("AI_GATEWAY_API_KEY") or "").strip():
+        sys.stdout.write("jev smoke: missing AI_GATEWAY_API_KEY\n")
+        return 2
+    try:
+        payload = _default_post(jev_payload(_SMOKE_TEXT), JEV_TIMEOUT_S, env)
+    except Exception as exc:
+        sys.stdout.write(f"jev smoke: failed ({_safe_reason(exc)})\n")
+        return 1
+    parsed = _parse_jev(payload, "")
+    if parsed is None:
+        sys.stdout.write("jev smoke: unparsed\n")
+        return 1
+    sys.stdout.write(
+        "jev smoke: "
+        f"is_code_request={parsed.is_code_request} "
+        f"kind={parsed.kind} "
+        f"ambiguous={parsed.ambiguous} "
+        f"lockout={parsed.lockout}\n"
     )
-    response.raise_for_status()
-    return response.json()
+    return 0
+
+
+def main(argv: Optional[Sequence[str]] = None) -> int:
+    parser = argparse.ArgumentParser(description="Code-request classifier")
+    parser.add_argument(
+        "--jev-smoke",
+        action="store_true",
+        help="Send one harmless evaluate request and print the parsed flags",
+    )
+    args = parser.parse_args(list(argv) if argv is not None else None)
+    if not args.jev_smoke:
+        parser.print_help(sys.stderr)
+        return 2
+    return jev_smoke()
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

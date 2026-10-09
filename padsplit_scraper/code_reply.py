@@ -707,24 +707,24 @@ def _newest_request(
     max_age: timedelta,
     jev: Optional[code_request.JevClassifier],
 ) -> Optional[tuple[Dict[str, Any], code_request.CodeRequest]]:
-    newest: Optional[Dict[str, Any]] = None
-    newest_at: Optional[datetime] = None
+    found: List[tuple[datetime, Dict[str, Any]]] = []
     for message in lockout_reply.iter_thread_messages(thread):
         if message.get("deleted") or not lockout_reply.is_member_message(thread, message):
             continue
         created = lockout_reply.parse_dt(message.get("created"))
         if created is None or (now - created) > lockout_reply.LOOKBACK:
             continue
-        fast = code_request.classify_fast(lockout_reply.message_text(message))
-        if not fast.is_code_request:
+        text = lockout_reply.message_text(message)
+        fast = code_request.classify_fast(text)
+        consult = jev is not None and code_request.should_consult_jev(fast, text)
+        if not fast.is_code_request and not consult:
             continue
-        if newest_at is None or created > newest_at:
-            newest = message
-            newest_at = created
-    if newest is None:
-        return None
-    request = code_request.classify(lockout_reply.message_text(newest), jev)
-    return newest, request
+        found.append((created, message))
+    for _created, message in sorted(found, key=lambda item: item[0], reverse=True):
+        request = code_request.classify(lockout_reply.message_text(message), jev)
+        if request.is_code_request:
+            return message, request
+    return None
 
 
 @dataclass
