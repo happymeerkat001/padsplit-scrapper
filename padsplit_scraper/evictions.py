@@ -45,6 +45,16 @@ DEFAULT_SLACK_DAYS = 2
 ENTITY = "Li Real Estate LLC / Liaison Ventures Management"
 SIGNER = "[Authorized signer]"
 MANUAL_LINE = "package attached; mailing and county filing are manual."
+INTERNAL_HEADER = "INTERNAL - not for tenant"
+REVIEWER_NOTES = (
+    "Draft package for review. This form is a Texas-style placeholder. "
+    "Confirm the wording before any mailing. This software does not mail this notice "
+    "and does not file with the county.",
+    "That vacate date is three days after the date of this notice, plus the configured "
+    "mailing slack. Count the date of this notice as the mail date only after a person "
+    "actually mails it.",
+    "Mailing and county filing are manual.",
+)
 
 # Higher rank is worse. A new package is posted only when the rank rises.
 STATUS_RANK = {
@@ -199,6 +209,27 @@ def _dropped_secrets(member: Dict[str, Any]) -> List[str]:
     return secrets
 
 
+def format_balance(value: Any) -> str:
+    """Currency for the PDF. Empty stays 'not on file'. Unparsed text is kept."""
+    if value in (None, ""):
+        return "not on file"
+    text = str(value).strip()
+    if not text or text.lower() == "not on file":
+        return "not on file"
+    cleaned = text.replace("$", "").replace(",", "").strip()
+    negative = cleaned.startswith("-")
+    if negative:
+        cleaned = cleaned[1:].strip()
+    try:
+        amount = float(cleaned)
+    except ValueError:
+        return text
+    if negative:
+        amount = -amount
+    sign = "-" if amount < 0 else ""
+    return f"{sign}${abs(amount):,.2f}"
+
+
 def build_case(
     member: Dict[str, Any],
     *,
@@ -214,8 +245,6 @@ def build_case(
         return None
     house = str(member.get("house_address") or member.get("house") or "").strip() or "unknown house"
     room = str(member.get("room_number") or member.get("room") or "").strip() or "unknown"
-    balance = member.get("balance")
-    balance_text = "" if balance in (None, "") else str(balance).strip()
     move_in = member.get("move_in_date")
     move_in_text = "" if move_in in (None, "") else str(move_in).strip()
     return Case(
@@ -223,7 +252,7 @@ def build_case(
         house=house,
         room=room,
         status=status,
-        balance=balance_text or "not on file",
+        balance=format_balance(member.get("balance")),
         move_in_date=move_in_text or "not on file",
         notice_date=notice.isoformat(),
         vacate_date=vacate_on(notice, slack).isoformat(),
@@ -264,6 +293,8 @@ def ledger_text(case: Case, slack: int) -> str:
     notice = date.fromisoformat(case.notice_date)
     three_day = (notice + timedelta(days=NOTICE_DAYS)).isoformat()
     lines = [
+        INTERNAL_HEADER,
+        "",
         "Case ledger and timeline",
         f"House: {case.house}",
         f"Room: {case.room}",
@@ -278,8 +309,10 @@ def ledger_text(case: Case, slack: int) -> str:
         "Payment plan: no",
         f"Entity: {ENTITY}",
         f"Signer: {SIGNER}",
-        "Mailing and county filing are manual.",
         "Timeline: move-in, then this notice date, then the vacate date.",
+        "",
+        "Reviewer notes:",
+        *REVIEWER_NOTES,
     ]
     return "\n".join(lines) + "\n"
 

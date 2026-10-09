@@ -72,8 +72,18 @@ def member(**overrides: object) -> dict:
     return row
 
 
-def pdf_text(data: bytes) -> str:
-    chunks = []
+def _stream_text(raw_stream: str) -> str:
+    parts = re.findall(r"\((?:\\.|[^\\)])*\)", raw_stream)
+    texts = []
+    for part in parts:
+        inner = part[1:-1]
+        inner = inner.replace(r"\(", "(").replace(r"\)", ")").replace(r"\\", "\\")
+        texts.append(inner)
+    return "\n".join(texts)
+
+
+def pdf_pages(data: bytes) -> list:
+    pages = []
     text = data.decode("latin1")
     for match in re.finditer(r"stream\n(.*?)endstream", text, re.S):
         raw = match.group(1).strip().encode("latin1")
@@ -83,15 +93,30 @@ def pdf_text(data: bytes) -> str:
             raw = zlib.decompress(raw)
         except zlib.error:
             pass
-        chunks.append(raw.decode("latin1", errors="ignore"))
-    blob = "\n".join(chunks)
-    parts = re.findall(r"\((?:\\.|[^\\)])*\)", blob)
-    texts = []
-    for part in parts:
-        inner = part[1:-1]
-        inner = inner.replace(r"\(", "(").replace(r"\)", ")").replace(r"\\", "\\")
-        texts.append(inner)
-    return "\n".join(texts)
+        decoded = raw.decode("latin1", errors="ignore")
+        if "Tj" not in decoded:
+            continue
+        pages.append(_stream_text(decoded))
+    return pages
+
+
+def pdf_text(data: bytes) -> str:
+    return "\n".join(pdf_pages(data))
+
+
+def flat(text: str) -> str:
+    return " ".join(text.split())
+
+
+def assert_tenant_page(test: unittest.TestCase, page: str) -> None:
+    joined = flat(page)
+    test.assertNotIn(evictions.INTERNAL_HEADER, joined)
+    for note in evictions.REVIEWER_NOTES:
+        test.assertNotIn(flat(note), joined)
+    test.assertNotIn("Draft package for review", joined)
+    test.assertNotIn("Texas-style placeholder", joined)
+    test.assertNotIn("configured mailing slack", joined)
+    test.assertNotIn("Mailing and county filing are manual.", joined)
 
 
 class EvictionDecisionTests(unittest.TestCase):
@@ -167,6 +192,21 @@ class EvictionDecisionTests(unittest.TestCase):
         self.assertEqual(evictions.vacate_on(notice, 0).isoformat(), "2026-10-12")
         self.assertEqual(evictions.slack_days({}), 2)
 
+    def test_balance_is_currency(self) -> None:
+        self.assertEqual(evictions.format_balance("250.00"), "$250.00")
+        self.assertEqual(evictions.format_balance(BALANCE), "$99,123.45")
+        self.assertEqual(evictions.format_balance("$250"), "$250.00")
+        self.assertEqual(evictions.format_balance(None), "not on file")
+        case = evictions.build_case(
+            member(),
+            triggers=evictions.DEFAULT_TRIGGERS,
+            notice=evictions.notice_on(NOW),
+            slack=2,
+        )
+        self.assertIsNotNone(case)
+        assert case is not None
+        self.assertEqual(case.balance, "$99,123.45")
+
 
 class EvictionRunTests(unittest.TestCase):
     def _paths(self, tmp: str) -> dict:
@@ -206,20 +246,32 @@ class EvictionRunTests(unittest.TestCase):
             self.assertNotIn(NAME, text)
             self.assertNotIn(LOCK_CODE, text)
             self.assertNotIn(MESSAGE, text)
-            extracted = pdf_text(blob)
-            self.assertIn(HOUSE, extracted)
-            self.assertIn(ROOM, extracted)
-            self.assertIn("2026-10-09", extracted)
-            self.assertIn("2026-10-14", extracted)
-            self.assertIn(BALANCE, extracted)
-            self.assertIn("2024-03-01", extracted)
-            self.assertIn(evictions.ENTITY, extracted)
-            self.assertIn(evictions.SIGNER, extracted)
-            self.assertIn("Case ledger and timeline", extracted)
-            self.assertNotIn(NAME, extracted)
-            self.assertNotIn(LOCK_CODE, extracted)
-            self.assertNotIn(MESSAGE, extracted)
-            self.assertNotIn("214-555-0199", extracted)
+            pages = pdf_pages(blob)
+            self.assertEqual(len(pages), 2)
+            notice, ledger = pages
+            assert_tenant_page(self, notice)
+            self.assertIn(HOUSE, notice)
+            self.assertIn("Room 2", notice)
+            self.assertIn("2026-10-09", notice)
+            self.assertIn("2026-10-14", notice)
+            self.assertIn("$99,123.45", notice)
+            self.assertIn("2024-03-01", notice)
+            self.assertIn(evictions.ENTITY, notice)
+            self.assertIn(evictions.SIGNER, notice)
+            self.assertNotIn(BALANCE, notice)
+            ledger_flat = flat(ledger)
+            self.assertIn(evictions.INTERNAL_HEADER, ledger_flat)
+            self.assertIn("Case ledger and timeline", ledger_flat)
+            self.assertIn("$99,123.45", ledger_flat)
+            for note in evictions.REVIEWER_NOTES:
+                self.assertIn(flat(note), ledger_flat)
+            combined = flat(notice + " " + ledger)
+            self.assertNotIn(NAME, combined)
+            self.assertNotIn(LOCK_CODE, combined)
+            self.assertNotIn(MESSAGE, combined)
+            self.assertNotIn("214-555-0199", combined)
+            self.assertNotIn("$99,123.45", text)
+            self.assertNotIn(BALANCE, text)
 
     def test_dedupe_and_worsen(self) -> None:
         calls = []
@@ -279,7 +331,13 @@ class EvictionRunTests(unittest.TestCase):
             self.assertNotIn(MESSAGE, log)
             pdfs = list(paths["output_dir"].glob("*.pdf"))
             self.assertEqual(len(pdfs), 1)
-            self.assertIn(BALANCE, pdf_text(pdfs[0].read_bytes()))
+            pages = pdf_pages(pdfs[0].read_bytes())
+            self.assertEqual(len(pages), 2)
+            assert_tenant_page(self, pages[0])
+            self.assertIn("$99,123.45", pages[0])
+            self.assertIn(evictions.INTERNAL_HEADER, flat(pages[1]))
+            self.assertNotIn("$99,123.45", log)
+            self.assertNotIn(BALANCE, log)
             again = evictions.process([member()], environ=dry_env(), now=NOW, post_fn=post, **paths)
             self.assertEqual(again.action, "noop")
             self.assertEqual(len(paths["dry_log_path"].read_text().splitlines()), 1)
@@ -339,12 +397,17 @@ class EvictionRunTests(unittest.TestCase):
         payload = json.loads(seen["data"]["payload_json"])
         self.assertIn(evictions.MANUAL_LINE, payload["content"])
         self.assertNotIn(BALANCE, payload["content"])
+        self.assertNotIn("$99,123.45", payload["content"])
         self.assertNotIn(NAME, payload["content"])
         self.assertNotIn(LOCK_CODE, json.dumps(seen["data"]))
         filename, blob, mime = seen["files"]["files[0]"]
         self.assertEqual(filename, "notice-to-vacate.pdf")
         self.assertEqual(mime, "application/pdf")
-        self.assertIn(BALANCE, pdf_text(blob))
+        pages = pdf_pages(blob)
+        self.assertEqual(len(pages), 2)
+        assert_tenant_page(self, pages[0])
+        self.assertIn("$99,123.45", pages[0])
+        self.assertIn(evictions.INTERNAL_HEADER, pages[1])
         self.assertNotIn("https://discord.example/webhook", seen["url"])
 
     def test_members_fetch_failure_skips_without_discord(self) -> None:
@@ -444,13 +507,21 @@ class EvictionRunTests(unittest.TestCase):
                 "package attached; mailing and county filing are manual.",
             )
             pdf = Path(tmp) / "preview-notice.pdf"
-            extracted = pdf_text(pdf.read_bytes())
-            self.assertIn("TEST 100 Example Lane", extracted)
-            self.assertIn("250.00", extracted)
-            self.assertIn(evictions.ENTITY, extracted)
-            self.assertNotIn("Hidden Preview Name", extracted)
-            self.assertNotIn("949381", extracted)
-            self.assertNotIn("member message must not leak", extracted)
+            pages = pdf_pages(pdf.read_bytes())
+            self.assertEqual(len(pages), 2)
+            assert_tenant_page(self, pages[0])
+            self.assertIn("TEST 100 Example Lane", pages[0])
+            self.assertIn("$250.00", pages[0])
+            self.assertNotIn("250.00", pages[0].replace("$250.00", ""))
+            self.assertIn(evictions.ENTITY, pages[0])
+            self.assertIn(evictions.SIGNER, pages[0])
+            self.assertIn(evictions.INTERNAL_HEADER, flat(pages[1]))
+            for note in evictions.REVIEWER_NOTES:
+                self.assertIn(flat(note), flat(pages[1]))
+            combined = flat(pages[0] + " " + pages[1])
+            self.assertNotIn("Hidden Preview Name", combined)
+            self.assertNotIn("949381", combined)
+            self.assertNotIn("member message must not leak", combined)
             self.assertEqual(code, 0)
             posted = stdout.getvalue().strip()
             self.assertIn("package attached; mailing and county filing are manual.", posted)
@@ -462,6 +533,9 @@ class EvictionRunTests(unittest.TestCase):
         self.assertIn(evictions.ENTITY, template)
         self.assertIn(evictions.SIGNER, template)
         self.assertNotIn("phone", template.lower())
+        self.assertNotIn("Draft package", template)
+        self.assertNotIn("Mailing and county filing are manual.", template)
+        self.assertNotIn(evictions.INTERNAL_HEADER, template)
         self.assertNotRegex(template, r"\d{3}[-.)]\d{3}")
         morning = (ROOT / "run_morning.sh").read_text()
         self.assertLess(morning.index("scraper.py"), morning.index("evictions.py"))
