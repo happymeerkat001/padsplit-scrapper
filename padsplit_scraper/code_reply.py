@@ -320,6 +320,14 @@ def roles_for(kind: str, resolution: RoomResolution) -> List[str]:
         return []
     if kind == "door":
         return ["front", "back"] if resolution.send_door_codes else []
+    # Ambiguous ask: this member's room code and the front door only.
+    if kind == "unknown":
+        roles: List[str] = []
+        if resolution.send_room_code:
+            roles.append("room")
+        if resolution.send_door_codes:
+            roles.append("front")
+        return roles
     return []
 
 
@@ -491,15 +499,9 @@ def process_code_requests(
             row["reason"] = "wifi is out of scope"
             results.append(row)
             continue
-        if not request.is_code_request or request.kind == "unknown":
-            row["action"] = "needs_tap" if request.ambiguous else "skip"
-            row["reason"] = "ambiguous code request" if request.ambiguous else "not a code request"
-            if request.ambiguous and post_discord is not None:
-                house = house_from_thread(thread, directory)
-                if house:
-                    text = needs_tap_text(house[0], lockout_reply.thread_room(thread) or "")
-                    post_discord(text)
-                    row["discord"] = text
+        if not request.is_code_request:
+            row["action"] = "skip"
+            row["reason"] = "not a code request"
             results.append(row)
             continue
         if not chat_id or not message_id:

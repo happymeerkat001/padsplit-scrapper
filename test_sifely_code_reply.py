@@ -290,7 +290,52 @@ class SifelyClientTests(unittest.TestCase):
         self.assertIn(2.0, clock.slept)
 
 
+# phrase, is_code_request, kind, ambiguous, lockout
+FAST_PHRASES = [
+    ("whats the code", True, "unknown", True, False),
+    ("send me the code pls", True, "unknown", True, False),
+    ("code?", True, "unknown", True, False),
+    ("the code isn't working", True, "door", False, True),
+    ("the code isnt working", True, "door", False, True),
+    ("keypad not working", True, "door", False, True),
+    ("lock is not working", True, "door", False, True),
+    ("the lock is dead", True, "door", False, True),
+    ("battery died on the lock", True, "door", False, True),
+    ("help I can't open my door", True, "door", False, True),
+    ("I cant open my door", True, "door", False, True),
+    ("I lost my key", True, "unknown", True, False),
+    ("cual es el codigo", True, "unknown", True, False),
+    ("cuál es el código", True, "unknown", True, False),
+    ("no puedo entrar", True, "door", False, True),
+    ("se me olvido el codigo", True, "unknown", True, False),
+    ("se me olvidó el código", True, "unknown", True, False),
+    ("estoy afuera y no puedo entrar", True, "door", False, True),
+    ("whats the cod", True, "unknown", True, False),
+    ("send the coed pls", True, "unknown", True, False),
+    ("lockd out", True, "door", False, True),
+    ("loked out", True, "door", False, True),
+    ("cant get inn", True, "door", False, True),
+    ("what's my code", True, "unknown", True, False),
+    ("new code please", True, "unknown", True, False),
+    ("I forgot my code", True, "unknown", True, False),
+    ("what is the wifi password", True, "wifi", False, False),
+    ("my rent is late", False, "unknown", False, False),
+    ("the toilet is leaking", False, "unknown", False, False),
+    ("thanks!", False, "unknown", False, False),
+    ("who changed the code?", False, "unknown", False, False),
+]
+
+
 class ClassifierTests(unittest.TestCase):
+    def test_phrase_table(self) -> None:
+        for phrase, is_request, kind, ambiguous, lockout in FAST_PHRASES:
+            with self.subTest(phrase=phrase):
+                got = code_request.classify_fast(phrase)
+                self.assertEqual(got.is_code_request, is_request)
+                self.assertEqual(got.kind, kind)
+                self.assertEqual(got.ambiguous, ambiguous)
+                self.assertEqual(got.lockout, lockout)
+
     def test_lockout_is_a_door_request_and_wifi_is_not_answered(self) -> None:
         door = code_request.classify_fast("I'm locked out and can't get in")
         self.assertTrue(door.is_code_request)
@@ -364,6 +409,60 @@ def jev_payload_keys(post) -> set:
 
 
 class ReplyResolutionTests(unittest.TestCase):
+    def test_ambiguous_ask_sends_own_room_and_front_door(self) -> None:
+        for phrase in ("what's my code", "new code please", "I forgot my code", "whats the code"):
+            with self.subTest(phrase=phrase):
+                sent = []
+                rows = process(
+                    [thread(phrase)],
+                    directory=Directory([live_row()]),
+                    send_fn=lambda chat, body: sent.append(body),
+                    send_enabled=True,
+                    dry_run=False,
+                )
+                self.assertEqual(rows[0]["action"], "sent")
+                self.assertIn(FAKE_A, sent[0])
+                self.assertIn(FAKE_B, sent[0])
+                self.assertEqual(sent[0].count(FAKE_A), 1)
+                self.assertEqual(sent[0].count(FAKE_B), 1)
+
+    def test_ambiguous_other_room_does_not_send_that_room(self) -> None:
+        sent = []
+        rows = process(
+            [thread("whats the code for room 9")],
+            directory=Directory([live_row()]),
+            send_fn=lambda chat, body: sent.append(body),
+            send_enabled=True,
+            dry_run=False,
+        )
+        self.assertEqual(rows[0]["action"], "sent")
+        self.assertIn(FAKE_A, sent[0])
+        self.assertNotIn(FAKE_B, sent[0])
+
+    def test_wifi_password_is_not_sent_on_this_path(self) -> None:
+        sent = []
+        rows = process(
+            [thread("what is the wifi password")],
+            directory=Directory([live_row()]),
+            send_fn=lambda chat, body: sent.append(body),
+            send_enabled=True,
+            dry_run=False,
+        )
+        self.assertEqual(rows[0]["action"], "skip_wifi")
+        self.assertEqual(sent, [])
+
+    def test_who_changed_the_code_is_not_a_request(self) -> None:
+        sent = []
+        rows = process(
+            [thread("who changed the code?")],
+            directory=Directory([live_row()]),
+            send_fn=lambda chat, body: sent.append(body),
+            send_enabled=True,
+            dry_run=False,
+        )
+        self.assertEqual(rows, [])
+        self.assertEqual(sent, [])
+
     def test_text_claimed_room_does_not_send_that_room_code(self) -> None:
         sent = []
         flags = []

@@ -15,6 +15,7 @@ from __future__ import annotations
 import os
 import re
 import threading
+import unicodedata
 from dataclasses import dataclass, replace
 from typing import Any, Callable, Dict, Optional
 
@@ -35,16 +36,49 @@ _WIFI_RE = re.compile(r"(?i)\bwi[\s-]?fi\b|\bwireless\b|\binternet\s+password\b"
 _LOCKBOX_RE = re.compile(r"(?i)\block\s*box\b|\blockbox\b")
 _ROOM_RE = re.compile(r"(?i)\broom\s+code\b|\bbedroom\s+code\b|\bmy\s+room\s+code\b")
 _DOOR_RE = re.compile(r"(?i)\bdoor\s+code\b|\bfront\s+door\b|\bback\s+door\b|\bbuilding\s+code\b")
-_GENERIC_RE = re.compile(
+# Typo forms (cod, coed) sit beside code/codigo. Apostrophes are removed before matching.
+_CODE_WORD = r"(?:codes?|codigos?|coed|cod)"
+_CODE_ASK_RE = re.compile(
+    rf"(?i)("
+    rf"\b(?:what|whats|wat|wats|cual|cuales)\b.{{0,40}}\b{_CODE_WORD}\b"
+    rf"|\b(?:send|give|text|share|need|get|pass)\b.{{0,40}}\b{_CODE_WORD}\b"
+    rf"|\b(?:forgot|forget|forgotten|olvido|olvide)\b.{{0,40}}\b{_CODE_WORD}\b"
+    rf"|\bse\s+me\s+olvido\b"
+    rf"|\blost\b.{{0,24}}\b(?:my\s+)?(?:key|keys)\b"
+    rf"|\bnew\s+{_CODE_WORD}\b"
+    rf"|\b{_CODE_WORD}\s*(?:pls|please)\b"
+    rf"|\b{_CODE_WORD}\s*\?"
+    rf"|^\s*{_CODE_WORD}\s*\??\s*$"
+    rf"|\b(?:the|my|el|un|our)\s+{_CODE_WORD}\b"
+    rf")"
+)
+# A failed lock, keypad, battery, or an inability to open the door is a lockout.
+_ENTRY_FAIL_RE = re.compile(
     r"(?i)("
-    r"\bwhat(?:['’]s| is)\s+my\s+code\b"
-    r"|\bforgot\s+(?:my\s+)?code\b"
-    r"|\bnew\s+code\b"
-    r"|\bcode\s+not\s+working\b"
-    r"|\bneed\s+(?:my\s+)?(?:door\s+|room\s+|lockbox\s+)?code\b"
+    r"\blockd\s*out\b"
+    r"|\bloked\s*out\b"
+    r"|\blocked\s*out\b"
+    r"|\blockout\b"
+    r"|\bcan(?:t|not)\s+get\s+inn?\b"
+    r"|\bcan(?:t|not)\s+open\b"
+    r"|\bno\s+puedo\s+entrar\b"
+    r"|\bestoy\s+afuera\b"
+    r"|\b(?:code|cod|coed|codigo|keypad|lock|door)\b.{0,40}\b(?:isnt|not|doesnt|dont|wont|dead|died|broken)\b"
+    r"|\bbattery\b.{0,40}\b(?:lock|keypad|door)\b"
+    r"|\b(?:lock|keypad|door)\b.{0,40}\bbattery\b"
     r")"
 )
+# "who changed the code?" is not a request for the code.
+_NOT_REQUEST_RE = re.compile(
+    r"(?i)("
+    r"\bwho\s+(?:changed|reset|updated|set|gave|has|did)\b"
+    r"|\bwhy\s+(?:did|was|is|would)\b.{0,40}\b(?:code|codigo|cod|coed|lock)\b"
+    r"|\bwhen\s+(?:did|was)\b.{0,40}\b(?:code|codigo)\b.{0,20}\bchang"
+    r")"
+)
+_THANKS_ONLY_RE = re.compile(r"(?i)^\s*thanks?!?\s*[!.]*\s*$|^\s*thank\s+you\b[!.]*\s*$")
 _DIGIT_RE = re.compile(r"\d+")
+_APOSTROPHE_RE = re.compile(r"[''`´’]")
 
 
 @dataclass(frozen=True)
@@ -62,16 +96,33 @@ def strip_for_jev(text: str) -> str:
     return " ".join(cleaned.split())
 
 
+def _fold(text: str) -> str:
+    """Lowercase, strip accents, and drop apostrophes so isn't and isnt match."""
+    normalized = unicodedata.normalize("NFKD", text or "")
+    without_marks = "".join(ch for ch in normalized if not unicodedata.combining(ch))
+    return _APOSTROPHE_RE.sub("", without_marks)
+
+
 def classify_fast(text: str) -> CodeRequest:
-    """Keyword path. Lockout phrases are a door subtype."""
+    """Keyword path. Any code ask or lockout is a request. Lock failures are lockouts.
+
+    A bare ask ("what's my code", "code?", "I forgot my code") stays ambiguous
+    so the reply can send this member's room code and the front door when Jev
+    is off. Wifi is classified and is not answered on this path.
+    """
     body = text or ""
+    folded = _fold(body)
     mentioned = lockout_reply.mentioned_room(body)
-    lockout = lockout_reply.detect_lockout(body) or lockout_reply.detect_door_fail_followup(body)
-    wifi = bool(_WIFI_RE.search(body))
-    lockbox = bool(_LOCKBOX_RE.search(body))
-    room = bool(_ROOM_RE.search(body))
-    door = bool(_DOOR_RE.search(body)) or lockout
-    generic = bool(_GENERIC_RE.search(body))
+    if _THANKS_ONLY_RE.search(folded) or _NOT_REQUEST_RE.search(folded):
+        return CodeRequest(False, "unknown", mentioned, False, lockout=False)
+    wifi = bool(_WIFI_RE.search(folded))
+    lockbox = bool(_LOCKBOX_RE.search(folded))
+    room = bool(_ROOM_RE.search(folded))
+    legacy_lockout = lockout_reply.detect_lockout(body) or lockout_reply.detect_door_fail_followup(body)
+    entry_fail = bool(_ENTRY_FAIL_RE.search(folded))
+    lockout = legacy_lockout or entry_fail
+    door = bool(_DOOR_RE.search(folded)) or lockout
+    generic = bool(_CODE_ASK_RE.search(folded))
     kinds = []
     if door:
         kinds.append("door")
@@ -81,10 +132,10 @@ def classify_fast(text: str) -> CodeRequest:
         kinds.append("lockbox")
     if wifi:
         kinds.append("wifi")
-    if wifi and len(kinds) > 1:
-        return CodeRequest(True, "unknown", mentioned, True, lockout=lockout)
-    if wifi and not door and not room and not lockbox:
+    if wifi and not door and not room and not lockbox and not generic:
         return CodeRequest(True, "wifi", mentioned, False, lockout=False)
+    if wifi and (generic or len(kinds) > 1):
+        return CodeRequest(True, "unknown", mentioned, True, lockout=lockout)
     if len(kinds) == 1:
         return CodeRequest(True, kinds[0], mentioned, False, lockout=lockout and kinds[0] == "door")
     if len(kinds) > 1:
