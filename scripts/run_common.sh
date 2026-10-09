@@ -82,10 +82,20 @@ padsplit_bootstrap() {
     echo "[$(date)] python3 not found; set PADSPLIT_PYTHON or create venv/bin/python3" >&2
     exit 1
   fi
-  _tmp=${TMPDIR:-/tmp}
-  _tmp=${_tmp%/}
-  LOCK_DIR=$_tmp/$lock_name
+  LOCK_DIR=$(padsplit_lock_parent)/$lock_name
   export WORKSPACE PYTHON LOCK_DIR
+}
+
+# Darwin keeps /private/tmp so launchd and a manual Terminal run share locks.
+# PADSPLIT_LOCK_DIR overrides on every OS. Other hosts use ${TMPDIR:-/tmp}.
+padsplit_lock_parent() {
+  if padsplit_is_macos && [ -z "${PADSPLIT_LOCK_DIR:-}" ]; then
+    printf '%s\n' /private/tmp
+    return 0
+  fi
+  _lock_parent=${PADSPLIT_LOCK_DIR:-${TMPDIR:-/tmp}}
+  _lock_parent=${_lock_parent%/}
+  printf '%s\n' "$_lock_parent"
 }
 
 padsplit_no_push() {

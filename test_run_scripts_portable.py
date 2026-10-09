@@ -45,6 +45,14 @@ fi
 exec /usr/bin/uname "$@"
 """
 
+UNAME_LINUX = """#!/bin/sh
+if [ "$1" = "-s" ]; then
+  printf '%s\\n' Linux
+  exit 0
+fi
+exec /usr/bin/uname "$@"
+"""
+
 PYTHON_STUB = """#!/usr/bin/env python3
 import os
 import sys
@@ -60,6 +68,7 @@ with log.open("a", encoding="utf-8") as handle:
         "PADSPLIT_EXPORTED",
         "FIELD_MMS_SKIP_GOOGLE_VOICE",
         "FIELD_MMS_SKIP_MESSAGES",
+        "LOCK_DIR",
     ):
         handle.write(f"ENV {key}=" + os.environ.get(key, "") + "\\n")
 """
@@ -87,8 +96,8 @@ class RunScriptPortableTests(unittest.TestCase):
             self.assertIn("scripts/run_common.sh", text)
         common = (ROOT / "scripts" / "run_common.sh").read_text()
         self.assertNotIn("/Users/leon", common)
-        self.assertNotIn("/private/tmp", common)
-        self.assertIn("${TMPDIR:-/tmp}", common)
+        self.assertIn("/private/tmp", common)
+        self.assertIn("${PADSPLIT_LOCK_DIR:-${TMPDIR:-/tmp}}", common)
         self.assertIn("PADSPLIT_ENV_FILE", common)
         self.assertIn("PADSPLIT_PYTHON", common)
         self.assertIn("PADSPLIT_WORKSPACE", common)
@@ -158,6 +167,62 @@ class RunScriptPortableTests(unittest.TestCase):
         self.assertIn(" push\n", result.git_log)
         self.assertNotIn("PADSPLIT_NO_PUSH=1; skipping git", result.stdout)
         self.assertIn("thermostat/scraper.py", result.py_log)
+
+    def test_lock_parent_is_private_tmp_on_darwin_only(self) -> None:
+        for shell in _shells():
+            with self.subTest(shell=shell):
+                self.assertEqual(
+                    self._lock_parent(shell, uname_stub=UNAME_DARWIN, tmpdir="/var/tmp/session"),
+                    "/private/tmp",
+                )
+                self.assertEqual(
+                    self._lock_parent(
+                        shell,
+                        uname_stub=UNAME_DARWIN,
+                        tmpdir="/var/tmp/session",
+                        lock_dir="/custom/locks/",
+                    ),
+                    "/custom/locks",
+                )
+                self.assertEqual(
+                    self._lock_parent(shell, uname_stub=UNAME_LINUX, tmpdir="/var/tmp/session/"),
+                    "/var/tmp/session",
+                )
+                self.assertEqual(
+                    self._lock_parent(shell, uname_stub=UNAME_LINUX, tmpdir=""),
+                    "/tmp",
+                )
+                self.assertEqual(
+                    self._lock_parent(
+                        shell,
+                        uname_stub=UNAME_LINUX,
+                        tmpdir="/var/tmp/session",
+                        lock_dir="/custom/locks",
+                    ),
+                    "/custom/locks",
+                )
+
+    def test_lock_dir_override_is_used_by_the_morning_script(self) -> None:
+        with tempfile.TemporaryDirectory() as override:
+            linux = self._run(
+                "run_morning.sh",
+                [],
+                no_push_in_file=True,
+                lock_parent=override,
+            )
+            self.assertEqual(linux.returncode, 0, linux.stderr)
+            self.assertIn(f"ENV LOCK_DIR={override}/padsplit-scraper-morning.lock\n", linux.py_log)
+            self.assertFalse(linux.lock_left)
+            darwin = self._run(
+                "run_morning.sh",
+                ["uname"],
+                no_push_in_file=True,
+                lock_parent=override,
+            )
+            self.assertEqual(darwin.returncode, 0, darwin.stderr)
+            self.assertIn(f"ENV LOCK_DIR={override}/padsplit-scraper-morning.lock\n", darwin.py_log)
+            self.assertNotIn("/private/tmp", darwin.py_log)
+            self.assertFalse(darwin.lock_left)
 
     def test_darwin_obsidian_respects_vault_path(self) -> None:
         missing = self._run(
@@ -229,6 +294,8 @@ class RunScriptPortableTests(unittest.TestCase):
         self.assertIn("ENV PADSPLIT_FROM_FILE=from-file", morning.py_log)
         self.assertIn("ENV PADSPLIT_ALREADY=from-env", morning.py_log)
         self.assertIn("ENV PADSPLIT_EXPORTED=exported-value", morning.py_log)
+        self.assertIn(f"ENV LOCK_DIR={morning.lock_dir}\n", morning.py_log)
+        self.assertNotIn("/private/tmp", morning.py_log)
         self.assertFalse(morning.lock_left)
 
         afternoon = self._run("run_afternoon.sh", [], no_push_in_file=True, shell=shell)
@@ -266,6 +333,7 @@ class RunScriptPortableTests(unittest.TestCase):
         no_push_in_file: bool,
         shell: str | None = None,
         extra_env: dict[str, str] | None = None,
+        lock_parent: str | None = None,
     ) -> "_RunResult":
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -300,6 +368,7 @@ class RunScriptPortableTests(unittest.TestCase):
                 "FIELD_MMS_CHROME_USER_DATA_DIR",
                 "PADSPLIT_MESSAGES_APP",
                 "OBSIDIAN_DAILY_NOTES_DIR",
+                "PADSPLIT_LOCK_DIR",
             ):
                 env.pop(key, None)
             env.update(
@@ -322,6 +391,17 @@ class RunScriptPortableTests(unittest.TestCase):
                         env.pop(key, None)
                     else:
                         env[key] = value
+            darwin = "uname" in extra_bins
+            requested = lock_parent if lock_parent is not None else env.get("PADSPLIT_LOCK_DIR")
+            if requested is None and darwin:
+                # Keep Darwin-uname script runs off the real /private/tmp.
+                requested = str(root / "locks")
+            if requested:
+                env["PADSPLIT_LOCK_DIR"] = requested
+                Path(requested).mkdir(parents=True, exist_ok=True)
+                lock_root = Path(requested)
+            else:
+                lock_root = Path(env["TMPDIR"])
             script = ROOT / script_name
             if shell is None:
                 cmd = [str(script)]
@@ -347,8 +427,44 @@ class RunScriptPortableTests(unittest.TestCase):
                 stderr=completed.stderr,
                 py_log=py_log.read_text() if py_log.exists() else "",
                 git_log=git_log.read_text() if git_log.exists() else "",
-                lock_dir=root / "tmp" / lock_names[script_name],
+                lock_dir=lock_root / lock_names[script_name],
             )
+
+    def _lock_parent(
+        self,
+        shell: str,
+        *,
+        uname_stub: str,
+        tmpdir: str,
+        lock_dir: str = "",
+    ) -> str:
+        with tempfile.TemporaryDirectory() as tmp:
+            bindir = Path(tmp) / "bin"
+            bindir.mkdir()
+            _write_exe(bindir / "uname", uname_stub)
+            env = os.environ.copy()
+            env.pop("PADSPLIT_LOCK_DIR", None)
+            if tmpdir == "":
+                env.pop("TMPDIR", None)
+            else:
+                env["TMPDIR"] = tmpdir
+            if lock_dir:
+                env["PADSPLIT_LOCK_DIR"] = lock_dir
+            env["PATH"] = f"{bindir}:/usr/bin:/bin"
+            script = (
+                "set -euo pipefail\n"
+                f'. "{ROOT}/scripts/run_common.sh"\n'
+                "padsplit_lock_parent\n"
+            )
+            completed = subprocess.run(
+                [shell, "-c", script],
+                env=env,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        return completed.stdout.strip()
 
 
 class _RunResult:
@@ -367,6 +483,7 @@ class _RunResult:
         self.stderr = stderr
         self.py_log = py_log
         self.git_log = git_log
+        self.lock_dir = lock_dir
         self.lock_left = lock_dir.exists()
 
 

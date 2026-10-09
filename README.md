@@ -400,6 +400,7 @@ Mac defaults, when the overrides below are unset:
 - `PADSPLIT_NO_PUSH` unset: morning and afternoon still `git pull --rebase` before the scrape, then commit the same rolling JSON files and `git push`.
 - Obsidian still runs when `uname` is Darwin and `OBSIDIAN_DAILY_NOTES_DIR` is an existing directory.
 - Field MMS still falls through to Google Voice and Messages.app on Darwin when the Chrome profile directory exists and Messages.app is installed. Quo stays the first transport.
+- Lock files stay in `/private/tmp` (same names as today), so a launchd run and a manual Terminal run still share one lock.
 
 Overrides:
 
@@ -409,7 +410,7 @@ Overrides:
 | `PADSPLIT_PYTHON` | Python interpreter. Default: venv detection above. |
 | `PADSPLIT_ENV_FILE` | Env file to load. Example: `/etc/padsplit/.env`. Default: `$PADSPLIT_WORKSPACE/.env`. |
 | `PADSPLIT_NO_PUSH` | `1` skips git pull, commit, and push, and logs the file list that would have been committed. |
-| `TMPDIR` | Lock directory parent. Default: `/tmp`. |
+| `PADSPLIT_LOCK_DIR` | Lock directory parent on every OS. Unset on macOS: `/private/tmp`. Unset on Linux: `${TMPDIR:-/tmp}`. |
 
 `PADSPLIT_NO_PUSH` does not turn sends on or off. Sends stay on their existing flags, so the switches combine:
 
@@ -449,4 +450,4 @@ sudo systemctl enable --now \
   padsplit-smarthome-watcher.timer
 ```
 
-Lock files are `${TMPDIR:-/tmp}/padsplit-*.lock`. On a Mac login session `TMPDIR` is usually the per-user temp directory, so the lock path is no longer `/private/tmp`. The lock names are unchanged.
+Lock files on macOS are `/private/tmp/padsplit-*.lock`, including when `TMPDIR` is the per-user temp directory. Launchd and Terminal therefore still block each other. On Linux the parent is `${PADSPLIT_LOCK_DIR:-${TMPDIR:-/tmp}}`. Set `PADSPLIT_LOCK_DIR` to use one directory on both.
