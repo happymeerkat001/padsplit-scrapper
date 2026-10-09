@@ -432,11 +432,11 @@ class PadSplitOccupancyTests(unittest.TestCase):
         lists = occupancy.operator_lists(rooms, NOW.date())
         self.assertEqual(lists["incoming"], [])
 
-    def test_live_occupancy_json_broken_crest_rm3_and_incoming(self) -> None:
+    def test_fixture_occupancy_json_broken_crest_rm3_and_incoming(self) -> None:
         from pathlib import Path
         import json
 
-        path = Path(__file__).resolve().parent / "docs" / "data" / "occupancy.json"
+        path = Path(__file__).resolve().parent / "test_fixtures" / "occupancy_broken_crest_rm3.json"
         payload = json.loads(path.read_text())
         row = find_room(payload, address_contains="1025 Broken Crest", room_number=3)
         assert_allowlist(self, row)
