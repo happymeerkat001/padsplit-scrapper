@@ -1,0 +1,18 @@
+# Example unit. /opt/padsplit is a placeholder checkout. No secrets, no hostnames.
+# Quo send stays off unless FIELD_MMS_ENABLE is set. Google Voice and Messages.app
+# are skipped on Linux. Shadow: PADSPLIT_NO_PUSH=1 and leave every *_ENABLE unset.
+[Unit]
+Description=PadSplit field MMS morning blast
+After=network-online.target
+Wants=network-online.target
+OnFailure=padsplit-onfailure@%p.service
+
+[Service]
+Type=oneshot
+User=padsplit
+Group=padsplit
+WorkingDirectory=/opt/padsplit
+Environment=PADSPLIT_WORKSPACE=/opt/padsplit
+Environment=PADSPLIT_ENV_FILE=/etc/padsplit/.env
+EnvironmentFile=/etc/padsplit/.env
+ExecStart=/opt/padsplit/run_field_mms.sh

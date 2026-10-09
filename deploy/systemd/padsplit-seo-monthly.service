@@ -1,0 +1,18 @@
+# Example unit. /opt/padsplit is a placeholder checkout. No secrets, no hostnames.
+# Discord post stays off unless SEO_MONTHLY_DISCORD_ENABLE is set.
+# Shadow: PADSPLIT_NO_PUSH=1 and leave every *_ENABLE unset.
+[Unit]
+Description=PadSplit monthly SEO vacancy advice
+After=network-online.target
+Wants=network-online.target
+OnFailure=padsplit-onfailure@%p.service
+
+[Service]
+Type=oneshot
+User=padsplit
+Group=padsplit
+WorkingDirectory=/opt/padsplit
+Environment=PADSPLIT_WORKSPACE=/opt/padsplit
+Environment=PADSPLIT_ENV_FILE=/etc/padsplit/.env
+EnvironmentFile=/etc/padsplit/.env
+ExecStart=/opt/padsplit/run_seo_monthly.sh

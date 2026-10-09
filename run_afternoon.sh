@@ -1,74 +1,35 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
+# Afternoon scrape. bash or zsh. Workspace defaults to this script's directory.
 set -euo pipefail
 
-WORKSPACE="/Users/leon/Documents/Code/padsplit-scraper"
-VENV="$WORKSPACE/venv/bin/python3"
-LOCK_DIR="/private/tmp/padsplit-scraper-afternoon.lock"
+_padsplit_self=$0
+case "$_padsplit_self" in
+  /*) ;;
+  *) _padsplit_self=$(pwd)/$_padsplit_self ;;
+esac
+PADSPLIT_SCRIPT_DIR=$(CDPATH= cd -- "$(dirname "$_padsplit_self")" && pwd -P)
+# shellcheck source=scripts/run_common.sh
+. "$PADSPLIT_SCRIPT_DIR/scripts/run_common.sh"
+padsplit_bootstrap "padsplit-scraper-afternoon.lock"
 
-acquire_lock() {
-  if mkdir "$LOCK_DIR" 2>/dev/null; then
-    printf '%s\n' "$$" > "$LOCK_DIR/pid"
-    return 0
-  fi
-  echo "[$(date)] Afternoon run already in progress; skipping"
-  return 1
-}
-
-release_lock() {
-  rm -f "$LOCK_DIR/pid" 2>/dev/null || true
-  rmdir "$LOCK_DIR" 2>/dev/null || true
-}
-
-run_phase() {
-  label=$1
-  shift
-  echo "[$(date)] Running $label..."
-  if "$@"; then
-    echo "[$(date)] $label completed"
-  else
-    status=$?
-    echo "[$(date)] $label failed with exit code $status; continuing so rolling outputs can be committed" >&2
-  fi
-}
-
-commit_and_push() {
-  msg=$1
-  git -C "$WORKSPACE" add \
-    padsplit_scraper/output/latest.json \
-    padsplit_scraper/output/stats.json \
-    padsplit_scraper/output/monthly_history.json \
-    docs/data/latest.json 2>/dev/null || true
-
-  if git -C "$WORKSPACE" diff --cached --quiet; then
-    echo "[$(date)] Nothing to commit"
-    return
-  fi
-
-  git -C "$WORKSPACE" commit -m "$msg" || return
-  set +e
-  git -C "$WORKSPACE" pull --rebase
-  git -C "$WORKSPACE" push
-  set -e
-}
-
-acquire_lock || exit 0
-trap release_lock EXIT
+padsplit_acquire_lock "Afternoon run" || exit 0
+trap padsplit_release_lock EXIT
 
 echo "[$(date)] Starting afternoon run"
 
-# --- FIX: Pull remote changes BEFORE scraping ---
-echo "[$(date)] Syncing with GitHub..."
-set +e
-git -C "$WORKSPACE" pull --rebase
-set -e
-# ------------------------------------------------
+# Pull remote changes before scraping, unless this is a no-push shadow run.
+padsplit_git_sync
 
-run_phase "PadSplit scraper (messages only)" "$VENV" "$WORKSPACE/padsplit_scraper/scraper.py" --messages-only
-run_phase "Spanish Moss lock codes" "$VENV" "$WORKSPACE/padsplit_scraper/lock_codes.py"
-run_phase "Codes history catch-up" "$VENV" "$WORKSPACE/padsplit_scraper/codes_history.py"
-run_phase "PadSplit lockout replies" "$VENV" "$WORKSPACE/padsplit_scraper/lockout_reply.py"
-run_phase "PadSplit leak replies" "$VENV" "$WORKSPACE/padsplit_scraper/leak_reply.py"
+run_phase "PadSplit scraper (messages only)" "$PYTHON" "$WORKSPACE/padsplit_scraper/scraper.py" --messages-only
+run_phase "Spanish Moss lock codes" "$PYTHON" "$WORKSPACE/padsplit_scraper/lock_codes.py"
+run_phase "Codes history catch-up" "$PYTHON" "$WORKSPACE/padsplit_scraper/codes_history.py"
+run_phase "PadSplit lockout replies" "$PYTHON" "$WORKSPACE/padsplit_scraper/lockout_reply.py"
+run_phase "PadSplit leak replies" "$PYTHON" "$WORKSPACE/padsplit_scraper/leak_reply.py"
 
 echo "[$(date)] Afternoon run complete"
 
-commit_and_push "chore: afternoon data $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+padsplit_commit_and_push "chore: afternoon data $(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  padsplit_scraper/output/latest.json \
+  padsplit_scraper/output/stats.json \
+  padsplit_scraper/output/monthly_history.json \
+  docs/data/latest.json
