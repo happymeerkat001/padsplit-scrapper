@@ -76,7 +76,10 @@ def _run_live(**kwargs):
     kwargs.setdefault("fetch_phone", lambda thread: "")
     with patch.object(lock_codes, "running_in_ci", return_value=False), \
          patch.object(lock_codes, "live_actions_enabled", return_value=True), \
-         patch.dict(lock_codes.os.environ, {"LOCK_CODES_APPROVER_USER_ID": "owner-fixture"}):
+         patch.dict(lock_codes.os.environ, {
+             "LOCK_CODES_APPROVER_USER_ID": "owner-fixture",
+             "SIFELY_VACANT_ROOM_DEFAULT": "0000",
+         }):
         return lock_codes.run(**kwargs)
 
 
@@ -328,6 +331,9 @@ class ShareAndRedactionTests(unittest.TestCase):
         self.assertNotIn("Bearer", headers["Authorization"])
 
     def test_discord_outbound_templates_have_no_digits(self) -> None:
+        with patch.dict(lock_codes.os.environ, {"SIFELY_VACANT_ROOM_DEFAULT": "0000"}, clear=False):
+            fake = lock_codes.vacant_room_default()
+        self.assertEqual(fake, "0000")
         for text in (
             lock_codes.discord_human_change_text(),
             lock_codes.discord_rotated_text(),
@@ -342,7 +348,7 @@ class ShareAndRedactionTests(unittest.TestCase):
         ):
             self.assertFalse(lock_codes.has_digit_characters(text), msg=text)
             self.assertEqual(lock_codes.assert_discord_outbound_safe(text), text)
-            self.assertNotIn(lock_codes.VACANT_ROOM_DEFAULT, text)
+            self.assertNotIn(fake, text)
         ask = lock_codes.discord_ask_ang_text("Spanish Moss", "2", "Member Example")
         self.assertIn("front and back door", ask)
         self.assertIn("confirm vacant room reset", ask)
@@ -380,7 +386,10 @@ class PhoneAndAngReplyTests(unittest.TestCase):
     def test_ang_reply_yes_no_ignores_digits(self) -> None:
         self.assertEqual(lock_codes.classify_ang_reply("yes"), "yes")
         self.assertEqual(lock_codes.classify_ang_reply("No"), "no")
-        self.assertIsNone(lock_codes.classify_ang_reply("yes 0417"))
+        with patch.dict(lock_codes.os.environ, {"SIFELY_VACANT_ROOM_DEFAULT": "0000"}, clear=False):
+            fake = lock_codes.vacant_room_default()
+        self.assertEqual(fake, "0000")
+        self.assertIsNone(lock_codes.classify_ang_reply("yes " + fake))
         self.assertIsNone(lock_codes.classify_ang_reply("not sure"))
         messages = [
             {"id": "reply-1", "author": {"id": "owner-fixture"}, "content": "yes", "message_reference": {"message_id": "ask-1"}},
@@ -793,6 +802,84 @@ class RunFlowTests(unittest.TestCase):
         self.assertNotIn("ai-tasks-temp", source)
         self.assertNotIn("to-buy", source)
         self.assertNotIn("field_mms", source)
+
+
+class VacantDefaultTests(unittest.TestCase):
+    def _ask(self) -> dict:
+        return {"house_slug": "spanish_moss", "room": "2", "event_key": "evt-vacant"}
+
+    def _reset(self, *, env: dict, inventory, rotate_lock, write_fields):
+        result = lock_codes.RunResult(action="test", reason="test")
+        with patch.dict(lock_codes.os.environ, env, clear=False):
+            with patch.object(lock_codes, "_log") as log:
+                ok = lock_codes._reset_vacated_room(
+                    self._ask(),
+                    inventory=inventory,
+                    ready=True,
+                    now=NOW,
+                    dry_run=False,
+                    poster=lambda text: None,
+                    result=result,
+                    rotate_lock=rotate_lock,
+                    write_fields=write_fields,
+                    state={},
+                )
+        return ok, result, log
+
+    def test_unset_vacant_default_skips_without_rotation_or_firestore_write(self) -> None:
+        rotated: list[str] = []
+        written: list[dict] = []
+
+        def rotate_lock(match, code, event_key):
+            rotated.append(code)
+            return True
+
+        def write_fields(slug, fields, event_key):
+            written.append(fields)
+            return True
+
+        ok, result, log = self._reset(
+            env={"SIFELY_VACANT_ROOM_DEFAULT": ""},
+            inventory=[lock_codes.LockMatch(lock_id="ROOM2", slug="spanish_moss", role="room", room="2")],
+            rotate_lock=rotate_lock,
+            write_fields=write_fields,
+        )
+        self.assertFalse(ok)
+        self.assertEqual(rotated, [])
+        self.assertEqual(written, [])
+        self.assertFalse(result.digest_updated)
+        log.assert_called_once_with("vacant default not configured")
+
+    def test_configured_vacant_default_is_rotated_and_written(self) -> None:
+        rotated: list[str] = []
+        written: list[dict] = []
+
+        def rotate_lock(match, code, event_key):
+            rotated.append(code)
+            return True
+
+        def write_fields(slug, fields, event_key):
+            written.append(fields)
+            return True
+
+        ok, result, log = self._reset(
+            env={"SIFELY_VACANT_ROOM_DEFAULT": "0000"},
+            inventory=[lock_codes.LockMatch(lock_id="ROOM2", slug="spanish_moss", role="room", room="2")],
+            rotate_lock=rotate_lock,
+            write_fields=write_fields,
+        )
+        self.assertTrue(ok)
+        self.assertEqual(rotated, ["0000"])
+        self.assertEqual(written, [{"r2": "0000"}])
+        self.assertTrue(result.digest_updated)
+        log.assert_not_called()
+
+    def test_missing_or_blank_vacant_default_reads_empty(self) -> None:
+        with patch.dict(lock_codes.os.environ, {}, clear=False):
+            lock_codes.os.environ.pop("SIFELY_VACANT_ROOM_DEFAULT", None)
+            self.assertEqual(lock_codes.vacant_room_default(), "")
+        with patch.dict(lock_codes.os.environ, {"SIFELY_VACANT_ROOM_DEFAULT": "   "}, clear=False):
+            self.assertEqual(lock_codes.vacant_room_default(), "")
 
 
 if __name__ == "__main__":

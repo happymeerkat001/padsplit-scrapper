@@ -15,6 +15,8 @@ to Discord #ai-automations.
 Move-out / member terminated: ask for scoped approval; do not reset from a
 scheduled date, cancellation or payment signal. Ang or Joe must directly
 reply "confirm vacant room reset" to the event's house/room request.
+The vacant-room PIN is ``SIFELY_VACANT_ROOM_DEFAULT`` at runtime (no
+default). Unset skips that reset: no rotation and no Firestore write.
 Shared front/back rotation separately requires Ang's direct yes reply.
 Confirmed stage checkpoints prevent repeating completed physical changes,
 Firestore writes and member notifications. Ambiguous interrupted effects
@@ -88,8 +90,8 @@ PROPERTY_LABEL = "Spanish Moss"
 PROPERTY_SLUG = "spanish_moss"
 LOCK_FIELD = "back_door"
 CODES_COLLECTION = "property_codes"
-# Vacant-room default after move-out. Never put this on Discord or in logs.
-VACANT_ROOM_DEFAULT = "0417"
+# Vacant-room PIN is read from SIFELY_VACANT_ROOM_DEFAULT at runtime.
+# Unset skips the reset. Never hardcode it, log it, or put it on Discord.
 RECENT_EVENT_DAYS = 3
 
 # Digit-free Discord labels only. Street numbers stay out of Discord.
@@ -334,6 +336,11 @@ def live_actions_enabled() -> bool:
 def sifely_api_key() -> str:
     """Return SIFELY_API_KEY or empty. Never invent a key. Never print it."""
     return (os.getenv("SIFELY_API_KEY") or "").strip()
+
+
+def vacant_room_default() -> str:
+    """Return SIFELY_VACANT_ROOM_DEFAULT or empty. Never invent a code. Never print it."""
+    return (os.getenv("SIFELY_VACANT_ROOM_DEFAULT") or "").strip()
 
 
 def firebase_credentials_ready() -> bool:
@@ -2076,7 +2083,15 @@ def _reset_vacated_room(
     write_fields: Callable[[str, Dict[str, Any], str], bool],
     state: Dict[str, Any],
 ) -> bool:
-    """Execute an explicitly approved vacant-room reset and record completed stages."""
+    """Execute an explicitly approved vacant-room reset and record completed stages.
+
+    Missing ``SIFELY_VACANT_ROOM_DEFAULT`` fails closed before any lock
+    rotation or Firestore write.
+    """
+    code = vacant_room_default()
+    if not code:
+        _log("vacant default not configured")
+        return False
     if isinstance(event_or_ask, LockEvent):
         house_slug = event_or_ask.house_slug
         room = event_or_ask.room
@@ -2089,11 +2104,11 @@ def _reset_vacated_room(
         _need_you_once(state, now, "need_you_firebase", poster, result, dry_run=dry_run)
         return False
     match = find_lock(inventory, house_slug, "room", room)
-    if match is None or not rotate_lock(match, VACANT_ROOM_DEFAULT, event_key):
+    if match is None or not rotate_lock(match, code, event_key):
         _need_you_once(state, now, "need_you_lock", poster, result, dry_run=dry_run)
         return False
     field_name = codes_field_for(house_slug, "room", room)
-    if field_name and not _write_or_skip(write_fields, house_slug, {field_name: VACANT_ROOM_DEFAULT}, result, event_key):
+    if field_name and not _write_or_skip(write_fields, house_slug, {field_name: code}, result, event_key):
         _need_you_once(state, now, "need_you_firebase", poster, result, dry_run=dry_run)
         return False
     return True
