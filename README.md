@@ -45,6 +45,8 @@ Run scheduled scripts:
 ./run_seo_monthly.sh
 ```
 
+These scripts run under bash or zsh. On the Mac, leave `PADSPLIT_NO_PUSH` unset so morning and afternoon still git-pull, commit, and push. A Linux shadow run is `PADSPLIT_NO_PUSH=1` plus every send flag left unset. See [Running on a Linux server](#running-on-a-linux-server).
+
 Don-field Quo SMS blast (7:00am CT only, every day including weekends; no 7pm / evening send) is the Mac launchd job. Not live until merge + Mac pull + `python3 padsplit_scraper/field_mms.py --install-launchd` so Hour=7 Minute=0 is loaded. Skips when PadSplit host messages and Discord `#ai-tasks-temp` are both empty. GitHub Actions must not send it. Do not send from a box/VPS IP.
 
 Primary send path is **Quo SMS** from `+14693732048` (A2P approved) via `POST https://api.quo.com/v1/messages`, one group send (Don `+12147798338`, Dad `+19452413070`, and Ang GV `+14696267260` by default; no Joe; override with `FIELD_MMS_QUO_TO`). Quo’s `to` field is the full recipient list in a single POST so Don, Dad, and Ang GV share one conversation. Fallbacks are Google Voice group SMS (Ang’s already-signed-in Mac Chrome) then the Messages.app chat named exactly `Don Field`. Prefer the Mac job. Quo HTTP does not need a residential IP the way Google Voice does; still do not run live sends from CI or a box/VPS by default. Never paste Quo keys, Google passwords, or message-body secrets into the repo.
@@ -198,6 +200,7 @@ python3 test_smarthome_identity.py
 python3 test_obsidian_daily_digest.py
 python3 test_field_mms.py
 python3 test_seo_monthly.py
+python3 test_run_scripts_portable.py
 python3 test_lock_codes.py
 python3 test_lockout_reply.py
 python3 test_leak_reply.py
@@ -384,3 +387,67 @@ Current limitation:
 - ``python3 thermostat/schedule.py status`` shows only schedule-managed thermostat LaunchAgents created by `thermostat/schedule.py`.
 - ``python3 thermostat/schedule.py status --target "6623 Leanna"`` shows the full configured schedule for that house from `thermostat/config/schedules.json`.
 - It does not show the older legacy `com.padsplit.thermostat-set-temps.plist`.
+
+## Running on a Linux server
+
+`run_morning.sh`, `run_afternoon.sh`, `run_field_mms.sh`, and `run_seo_monthly.sh` run on Ang's Mac (launchd, zsh) and on a Linux server (systemd). The shebang is `#!/usr/bin/env bash`. Launchd can keep calling them with `/bin/zsh`.
+
+Mac defaults, when the overrides below are unset:
+
+- Workspace is the directory that contains the script.
+- Python is `venv/bin/python3` when that file is executable, otherwise `.venv/bin/python3`, otherwise `python3` on `PATH`.
+- Env is the repo `.env`. Variables already set in the environment are left alone.
+- `PADSPLIT_NO_PUSH` unset: morning and afternoon still `git pull --rebase` before the scrape, then commit the same rolling JSON files and `git push`.
+- Obsidian still runs when `uname` is Darwin and `OBSIDIAN_DAILY_NOTES_DIR` is an existing directory.
+- Field MMS still falls through to Google Voice and Messages.app on Darwin when the Chrome profile directory exists and Messages.app is installed. Quo stays the first transport.
+- Lock files stay in `/private/tmp` (same names as today), so a launchd run and a manual Terminal run still share one lock.
+
+Overrides:
+
+| Variable | Role |
+| --- | --- |
+| `PADSPLIT_WORKSPACE` | Checkout to operate on. Default: the script's directory. |
+| `PADSPLIT_PYTHON` | Python interpreter. Default: venv detection above. |
+| `PADSPLIT_ENV_FILE` | Env file to load. Example: `/etc/padsplit/.env`. Default: `$PADSPLIT_WORKSPACE/.env`. |
+| `PADSPLIT_NO_PUSH` | `1` skips git pull, commit, and push, and logs the file list that would have been committed. |
+| `PADSPLIT_LOCK_DIR` | Lock directory parent on every OS. Unset on macOS: `/private/tmp`. Unset on Linux: `${TMPDIR:-/tmp}`. |
+
+`PADSPLIT_NO_PUSH` does not turn sends on or off. Sends stay on their existing flags, so the switches combine:
+
+- Shadow (scrape, do not publish, do not send): `PADSPLIT_NO_PUSH=1`, and leave `PADSPLIT_ENABLE_ACTION_HOOKS`, `LOCKOUT_REPLY_ENABLE`, `LEAK_REPLY_ENABLE`, `LEAK_ALERT_ENABLE`, `FIELD_MMS_ENABLE`, `SEO_MONTHLY_DISCORD_ENABLE`, `LOCK_CODES_ENABLE`, `FRONTLOAD_WEBHOOK_ENABLE`, and the `PADSPLIT_SEND_*` aliases unset.
+- Publish without sending: leave `PADSPLIT_NO_PUSH` unset, and leave those send flags unset.
+- Send without publishing: `PADSPLIT_NO_PUSH=1` plus the one `*_ENABLE` flag you mean to turn on.
+
+On Linux, or when a Mac path is missing, these steps log a skip and do not run:
+
+- Obsidian vault write (`OBSIDIAN_DAILY_NOTES_DIR`)
+- Google Voice / Playwright Chrome-profile fallback (`FIELD_MMS_CHROME_USER_DATA_DIR`, or `~/Library/Application Support/Google/Chrome` on macOS)
+- Messages.app (`/System/Applications/Messages.app` or `/Applications/Messages.app`)
+
+Quo SMS is HTTP. On Linux it still sends only when `FIELD_MMS_ENABLE` is set. The field-MMS script sets `FIELD_MMS_SKIP_GOOGLE_VOICE` and `FIELD_MMS_SKIP_MESSAGES` so those Mac fallbacks are not attempted.
+
+Example systemd timers live in `deploy/systemd/`. They are examples: user `padsplit`, env file `/etc/padsplit/.env`, checkout placeholder `/opt/padsplit`. No secrets and no hostnames. Each `OnCalendar` ends with `America/Chicago` (systemd 255 accepts the zone on the calendar expression; a separate `Timezone=` key is not valid on Ubuntu 24.04), so the host timezone can be UTC. Each job service has `OnFailure=padsplit-onfailure@%p.service` (a placeholder echo).
+
+| Timer | America/Chicago |
+| --- | --- |
+| `padsplit-morning.timer` | 06:00 daily |
+| `padsplit-afternoon.timer` | 14:00 daily |
+| `padsplit-field-mms.timer` | 07:00 daily |
+| `padsplit-seo-monthly.timer` | 09:00 on the 1st |
+| `padsplit-smarthome-watcher.timer` | hourly |
+
+```bash
+sudo useradd --system --create-home --home-dir /opt/padsplit padsplit || true
+sudo install -d -o padsplit -g padsplit /etc/padsplit
+# checkout at /opt/padsplit, env at /etc/padsplit/.env
+sudo cp deploy/systemd/padsplit-*.service deploy/systemd/padsplit-*.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now \
+  padsplit-morning.timer \
+  padsplit-afternoon.timer \
+  padsplit-field-mms.timer \
+  padsplit-seo-monthly.timer \
+  padsplit-smarthome-watcher.timer
+```
+
+Lock files on macOS are `/private/tmp/padsplit-*.lock`, including when `TMPDIR` is the per-user temp directory. Launchd and Terminal therefore still block each other. On Linux the parent is `${PADSPLIT_LOCK_DIR:-${TMPDIR:-/tmp}}`. Set `PADSPLIT_LOCK_DIR` to use one directory on both.

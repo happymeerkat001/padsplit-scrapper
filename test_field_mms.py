@@ -508,6 +508,26 @@ class FieldMmsTransportTests(unittest.TestCase):
     @patch("padsplit_scraper.field_mms.send_via_messages_chat")
     @patch("padsplit_scraper.field_mms.send_via_google_voice_chrome")
     @patch("padsplit_scraper.field_mms.send_via_quo")
+    def test_skip_flags_do_not_call_mac_fallbacks(self, quo, gv, messages, _allowed) -> None:
+        quo.side_effect = QuoTransportError("Quo SMS send failed: HTTP 503")
+        with patch.dict(
+            os.environ,
+            {
+                "FIELD_MMS_TRANSPORT": "auto",
+                "FIELD_MMS_SKIP_GOOGLE_VOICE": "1",
+                "FIELD_MMS_SKIP_MESSAGES": "1",
+            },
+        ):
+            with self.assertRaisesRegex(RuntimeError, "Messages.app skipped"):
+                send_group_mms("PadSplit: kitchen sink leak", QUO_RECIPIENTS_DEFAULT)
+        quo.assert_called_once()
+        gv.assert_not_called()
+        messages.assert_not_called()
+
+    @patch("padsplit_scraper.field_mms.sending_allowed", return_value=True)
+    @patch("padsplit_scraper.field_mms.send_via_messages_chat")
+    @patch("padsplit_scraper.field_mms.send_via_google_voice_chrome")
+    @patch("padsplit_scraper.field_mms.send_via_quo")
     def test_auto_falls_back_on_transport_failure(self, quo, gv, messages, _allowed) -> None:
         quo.side_effect = QuoTransportError("Quo SMS send failed: HTTP 503")
         gv.side_effect = GoogleVoiceTransportError("Google Voice Chrome failed to launch")

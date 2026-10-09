@@ -169,10 +169,14 @@ class CatchupTests(unittest.TestCase):
         self.assertGreater(MORNING.index("codes_history.py"), MORNING.index("lock_codes.py"))
         self.assertGreater(AFTERNOON.index("codes_history.py"), AFTERNOON.index("lock_codes.py"))
         self.assertNotIn("codes_history.py", WORKFLOW)
-        morning_add = MORNING.split("git -C \"$WORKSPACE\" add", 1)[1].split("if git", 1)[0]
-        afternoon_add = AFTERNOON.split("git -C \"$WORKSPACE\" add", 1)[1].split("if git", 1)[0]
+        morning_add = MORNING.split("padsplit_commit_and_push", 1)[1].split("\n\n", 1)[0]
+        afternoon_add = AFTERNOON.split("padsplit_commit_and_push", 1)[1].split("\n\n", 1)[0]
         self.assertNotIn("codes_history.py", morning_add)
         self.assertNotIn("codes_history.py", afternoon_add)
+        common = (ROOT / "scripts" / "run_common.sh").read_text()
+        helper = common.split("padsplit_commit_and_push()", 1)[1]
+        self.assertIn('git -C "$WORKSPACE" add', helper)
+        self.assertLess(helper.find("if padsplit_no_push"), helper.find('git -C "$WORKSPACE" add'))
 
 
 class FakeSnap:

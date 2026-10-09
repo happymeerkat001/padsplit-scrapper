@@ -1,0 +1,11 @@
+# 14:00 America/Chicago. The zone is part of OnCalendar so a UTC host still fires at 14:00 CT.
+[Unit]
+Description=PadSplit afternoon scrape timer
+
+[Timer]
+OnCalendar=*-*-* 14:00:00 America/Chicago
+Persistent=true
+Unit=padsplit-afternoon.service
+
+[Install]
+WantedBy=timers.target

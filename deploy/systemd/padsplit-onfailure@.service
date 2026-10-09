@@ -1,0 +1,10 @@
+# Placeholder failure hook. %i is the failed unit's prefix (for example padsplit-morning).
+# Replace ExecStart with a real notifier later. No secrets in this file.
+[Unit]
+Description=PadSplit scheduled job failure placeholder for %i
+
+[Service]
+Type=oneshot
+User=padsplit
+Group=padsplit
+ExecStart=/bin/echo padsplit scheduled job failed: %i

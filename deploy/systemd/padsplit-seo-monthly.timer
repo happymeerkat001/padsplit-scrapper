@@ -1,0 +1,11 @@
+# 09:00 America/Chicago on the 1st of each month.
+[Unit]
+Description=PadSplit monthly SEO timer
+
+[Timer]
+OnCalendar=*-*-01 09:00:00 America/Chicago
+Persistent=true
+Unit=padsplit-seo-monthly.service
+
+[Install]
+WantedBy=timers.target

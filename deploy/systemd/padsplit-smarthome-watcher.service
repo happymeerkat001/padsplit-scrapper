@@ -1,0 +1,17 @@
+# Example unit. Hourly window-AC tick (one shot, then exit). No secrets, no hostnames.
+# Point ExecStart at this host's venv python if it is not /opt/padsplit/venv.
+[Unit]
+Description=PadSplit SmartHome window AC watcher
+After=network-online.target
+Wants=network-online.target
+OnFailure=padsplit-onfailure@%p.service
+
+[Service]
+Type=oneshot
+User=padsplit
+Group=padsplit
+WorkingDirectory=/opt/padsplit
+Environment=PADSPLIT_WORKSPACE=/opt/padsplit
+Environment=PADSPLIT_ENV_FILE=/etc/padsplit/.env
+EnvironmentFile=/etc/padsplit/.env
+ExecStart=/opt/padsplit/venv/bin/python3 -m smarthome.watcher
