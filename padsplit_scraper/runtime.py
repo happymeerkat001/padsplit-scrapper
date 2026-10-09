@@ -42,6 +42,7 @@ ACTION_FLAGS = {
     "discord_digest": ("PADSPLIT_SEND_DISCORD_DIGEST",),
     "discord_summary": ("PADSPLIT_SEND_DISCORD_SUMMARY",),
     "frontload": ("FRONTLOAD_WEBHOOK_ENABLE",),
+    "evictions": ("PADSPLIT_SEND_EVICTIONS", "EVICTIONS_ENABLE"),
 }
 
 _TRUE = {"1", "true", "yes", "on"}

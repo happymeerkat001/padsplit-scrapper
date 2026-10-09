@@ -75,6 +75,30 @@ Spanish Moss back-door lock-code automation (Sifely, v1) is Mac morning/afternoo
 
 Lockout auto-reply (`padsplit_scraper/lockout_reply.py`) detects member lockout messages and SENDS sequentially on the PadSplit member thread only when house and room are 100% known: door code(s) first (deadbolt tip + fail ladder); lockbox / room code + location only after the member later says the door still failed; member got-it / I’m in / code-worked after the door stage stops the ladder (no lockbox SEND, no Discord escalate). Default off until Mac `.env` sets `LOCKOUT_REPLY_ENABLE=1`. CI must not send. Spanish Moss back door uses the Sifely path (never a static Firestore/Tinghui back-door value). Discord `#ai-automations` drafts may say lockout detected / needs a tap / ask Joe, and never include codes or any digits.
 
+Eviction packages (`padsplit_scraper/evictions.py`) turn collections / terminated partner members into a notice-to-vacate PDF plus a one-page ledger. The morning job runs it after the PadSplit scrape. A members-fetch failure is logged and skipped so the rest of the morning continues. GitHub Actions is a no-op.
+
+`EVICTIONS_ENABLE` defaults off (`PADSPLIT_SEND_EVICTIONS` is the alias). Off is a dry run: the PDF is written and the would-post text plus the PDF path are appended to `logs/evictions_dryrun.jsonl`. Nothing is posted. Live Discord also needs `PADSPLIT_ENABLE_ACTION_HOOKS=1` and collection-only left off, same as the other action flags. CI never sends.
+
+Trigger statuses come from `EVICTIONS_TRIGGER_STATUSES` (default `terminated,Behind`). `is_terminated: true` counts as `terminated`. `is_on_payment_plan` suppresses the case. Dedupe lives in `logs/evictions_state.json`, keyed by occupancy id + status. A later run posts again only when the status is worse (`Behind`, then `terminated`).
+
+The notice is filled from `templates/notice_to_vacate.txt` (entity placeholder `Li Real Estate LLC / Liaison Ventures Management`, signer placeholder `[Authorized signer]`, no phone number). Vacate date = notice/mail date + 3 days + `EVICTIONS_VACATE_SLACK_DAYS` (default 2). PDFs go to `padsplit_scraper/output/evictions/`, which is gitignored. Balance is inside the PDF only. Discord text, dry-run logs, and the state file do not include balance, member names, lock codes, or member messages.
+
+Discord is one post per new case to `#evictions`: `DISCORD_EVICTIONS_CHANNEL_ID` with `DISCORD_BOT_TOKEN`, or else `DISCORD_EVICTIONS_WEBHOOK_URL`. The PDF is attached. The post says the house, room, status, vacate date, and `package attached; mailing and county filing are manual`.
+
+Preview a fake member (`TEST 100 Example Lane`, Room 2) with no network:
+
+```bash
+python3 -m padsplit_scraper.evictions --preview
+```
+
+```
+EVICTIONS_ENABLE=                  # default off. Alias PADSPLIT_SEND_EVICTIONS
+EVICTIONS_TRIGGER_STATUSES=terminated,Behind
+EVICTIONS_VACATE_SLACK_DAYS=2
+DISCORD_EVICTIONS_CHANNEL_ID=
+DISCORD_EVICTIONS_WEBHOOK_URL=
+```
+
 Water-leak auto-reply (`padsplit_scraper/leak_reply.py`) detects an **active** member water emergency only: pipe burst / pipe leak, water main, flooding, or water leaking from wall or ceiling. Bare `leak`/`leaking`, slow leaks, drips, seepage, and toilet-only cases do **not** fire (no curb-key / whole-house shutoff). Flooding still fires even with a toilet mention. SENDS a 1:1 adaptation of Firestore `templates/shared` **t5** (`n5` Water leak announcement) on that PadSplit thread, with Quo call/text added (t5 is house-wide and has no Quo). Live t5 is preferred; baked t5 is the fallback. Canonical water-key YouTube: `https://youtube.com/shorts/SCryjPiyZcs`. It also posts a `WATER_KEY_ORDER` event to Discord `#ai-automations` (digit-free except the leaking property ship-to) for Cart: house label, full street address, Orbit ASIN / `water curb key`. No Amazon purchase in this scraper. No Spanish Moss address override. Host reminder blasts and historical “previous leak” chatter do not fire. Default off until Mac `.env` sets `LEAK_REPLY_ENABLE=1`. CI must not send. Discord posts never include lock codes. Nest is interim-handling leak replies until enable is live — tell Nest to stop duplicates when this is turned on.
 
 Leak alert planner (`padsplit_scraper/leak_alert.py`) plans one incident. `LEAK_ALERT_ENABLE` defaults off and CI must not send. Bland voice is planned for Don and Tom (`LEAK_ALERT_DON_E164`, `LEAK_ALERT_TOM_E164`). The Don, Tom, and Ang notice is one Quo group post, not a 1:1: `POST https://api.quo.com/v1/messages` with `to` set from `LEAK_ALERT_GROUP_E164S` (comma list of the group participants, excluding the from-line). If that list is unset, the plan records a skip. Quo v1 cannot post by conversation id. The send body is `content`, `from`, and `to` (max 10); there is no conversation id field ([Send a text message](https://www.quo.com/docs/mdx/api-reference/messages/send-a-text-message)). A group message is that `to` list ([changelog](https://www.quo.com/docs/changelog)). The same participant set is how `GET /v1/messages` loads the group thread ([List messages](https://www.quo.com/docs/mdx/api-reference/messages/list-messages)). Optional `LEAK_ALERT_GROUP_CONVERSATION_ID` is a dry-run check only: `GET /v1/conversations` confirms those participants match ([List conversations](https://www.quo.com/docs/mdx/api-reference/conversations/list-conversations)). Numbers are not written to the plan, state, logs, or Discord. State keys are `group:{incident}` and `tenant:{incident}:{hash}`. Tenant texts stay private 1:1 posts. No code defaults for any number.
@@ -200,6 +224,7 @@ python3 test_field_mms.py
 python3 test_seo_monthly.py
 python3 test_lock_codes.py
 python3 test_lockout_reply.py
+python3 test_evictions.py
 python3 test_leak_reply.py
 python3 test_leak_alert.py
 python3 test_quo_sender.py
