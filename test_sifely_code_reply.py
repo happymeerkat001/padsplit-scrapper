@@ -449,6 +449,7 @@ class ClassifierTests(unittest.TestCase):
 
         class Resp:
             status_code = 200
+            text = ""
 
             def json(self):
                 return {
@@ -458,14 +459,24 @@ class ClassifierTests(unittest.TestCase):
                     }
                 }
 
-        def fake_post(url, headers=None, json=None, timeout=None):
-            captured["url"] = url
-            captured["headers"] = headers
-            captured["json"] = json
-            captured["timeout"] = timeout
-            return Resp()
+        class FakeSession:
+            def __init__(self) -> None:
+                self.trust_env = True
+                self.mounted = []
 
-        with patch("requests.post", fake_post):
+            def mount(self, prefix, adapter) -> None:
+                self.mounted.append((prefix, adapter))
+
+            def post(self, url, headers=None, json=None, timeout=None):
+                captured["url"] = url
+                captured["headers"] = headers
+                captured["json"] = json
+                captured["timeout"] = timeout
+                captured["trust_env"] = self.trust_env
+                captured["mounted"] = list(self.mounted)
+                return Resp()
+
+        with patch("requests.Session", FakeSession):
             body = code_request._default_post(
                 code_request.jev_payload("is there a way in"),
                 code_request.JEV_TIMEOUT_S,
@@ -473,49 +484,114 @@ class ClassifierTests(unittest.TestCase):
             )
         self.assertEqual(captured["url"], "https://ai-gateway.vercel.sh/v1/evaluate")
         self.assertEqual(captured["headers"]["Authorization"], "Bearer test-key")
-        self.assertNotIn("Bearer", captured["json"]["model"])
+        self.assertIsInstance(captured["json"]["questions"], dict)
+        self.assertNotIsInstance(captured["json"]["questions"], list)
         self.assertEqual(captured["json"]["model"], "typesafe-ai/jev")
         self.assertEqual(captured["json"]["state"], "is there a way in")
         self.assertEqual(captured["json"]["questions"]["is_code_request"]["type"], "boolean")
         self.assertEqual(captured["json"]["questions"]["kind"]["type"], "choice")
         self.assertTrue(captured["json"]["providerOptions"]["gateway"]["zeroDataRetention"])
-        self.assertTrue(captured["json"]["providerOptions"]["gateway"]["disallowPromptTraining"])
-        self.assertEqual(captured["timeout"], code_request.JEV_TIMEOUT_S)
+        self.assertFalse(captured["trust_env"])
+        self.assertEqual(captured["timeout"].total, code_request.JEV_TIMEOUT_S)
+        self.assertLessEqual(captured["timeout"].connect_timeout, 2)
+        retries = captured["mounted"][0][1].max_retries
+        self.assertEqual(int(retries.total), 0)
         self.assertEqual(body["answers"]["kind"]["choice"], "door")
 
+        with self.assertRaises(code_request.JevError) as raised:
+            code_request._default_post(
+                {"model": "typesafe-ai/jev", "state": "hi", "questions": [{"type": "boolean"}]},
+                code_request.JEV_TIMEOUT_S,
+                {"AI_GATEWAY_API_KEY": "test-key"},
+            )
+        self.assertIn("record", str(raised.exception))
+
     def test_jev_smoke_prints_flags_without_the_key(self) -> None:
-        def fake_post(url, headers=None, json=None, timeout=None):
-            self.assertEqual(url, code_request.JEV_URL)
-            self.assertEqual(timeout, code_request.JEV_TIMEOUT_S)
+        class Resp:
+            status_code = 200
+            text = ""
 
-            class Resp:
-                status_code = 200
-
-                def json(self):
-                    return {
-                        "answers": {
-                            "is_code_request": {"probability": 0.77},
-                            "kind": {"choice": "door", "probabilities": {"door": 0.77}},
-                        }
+            def json(self):
+                return {
+                    "answers": {
+                        "class": {"type": "choice", "choice": "A", "probabilities": {"A": 0.9, "B": 0.05, "C": 0.05}},
+                        "needs_photo": {"type": "boolean", "probability": 0.1},
+                        "is_actual_water_leak": {"type": "boolean", "probability": 0.02},
                     }
+                }
 
-            return Resp()
+        class FakeSession:
+            def __init__(self) -> None:
+                self.trust_env = True
+
+            def mount(self, prefix, adapter) -> None:
+                return None
+
+            def post(self, url, headers=None, json=None, timeout=None):
+                self.last = {"url": url, "json": json, "timeout": timeout}
+                FakeSession.last = self.last
+                return Resp()
 
         out = io.StringIO()
-        with patch("requests.post", fake_post), patch.dict(os.environ, {"AI_GATEWAY_API_KEY": ""}, clear=False), redirect_stdout(out):
+        with patch("requests.Session", FakeSession), patch.dict(os.environ, {"AI_GATEWAY_API_KEY": ""}, clear=False), redirect_stdout(out):
             code = code_request.main(["--jev-smoke"])
         self.assertEqual(code, 2)
         self.assertIn("missing AI_GATEWAY_API_KEY", out.getvalue())
 
         out = io.StringIO()
+        err = io.StringIO()
         env = {"AI_GATEWAY_API_KEY": "test-key", "JEV_CODE_CLASSIFY_ENABLE": "1"}
-        with patch("requests.post", fake_post), patch.dict(os.environ, env, clear=False), redirect_stdout(out):
-            code = code_request.jev_smoke(env)
+        with patch("requests.Session", FakeSession), patch.dict(os.environ, env, clear=False), redirect_stdout(out), redirect_stderr(err):
+            code = code_request.main(["--jev-smoke", "--debug"])
         text = out.getvalue()
         self.assertEqual(code, 0)
-        self.assertIn("is_code_request=True", text)
-        self.assertIn("kind=door", text)
+        self.assertIn("status=200", text)
+        self.assertIn("elapsed_s=", text)
+        self.assertIn("class=A", text)
+        self.assertIn("needs_photo=False", text)
+        self.assertIn("is_actual_water_leak=False", text)
         self.assertNotIn("test-key", text)
+        self.assertNotIn(code_request._SMOKE_TEXT, text)
+        sent = FakeSession.last["json"]["questions"]
+        self.assertIsInstance(sent, dict)
+        self.assertEqual(set(sent), {"class", "needs_photo", "is_actual_water_leak"})
+        self.assertEqual(sent["class"]["type"], "choice")
+        self.assertEqual(sent["needs_photo"]["type"], "boolean")
+        self.assertEqual(sent["is_actual_water_leak"]["type"], "boolean")
+        self.assertIn("true", sent["needs_photo"]["criteria"])
+        self.assertIn("A", sent["class"]["criteria"])
+
+    def test_jev_http_error_logs_body_snippet_without_the_message(self) -> None:
+        state = "The sink is dripping slowly."
+
+        class Resp:
+            status_code = 400
+            text = 'expected record, received array ' + state
+
+            def json(self):
+                return {}
+
+        class FakeSession:
+            def __init__(self) -> None:
+                self.trust_env = True
+
+            def mount(self, prefix, adapter) -> None:
+                return None
+
+            def post(self, url, headers=None, json=None, timeout=None):
+                return Resp()
+
+        out = io.StringIO()
+        err = io.StringIO()
+        env = {"AI_GATEWAY_API_KEY": "test-key"}
+        with patch("requests.Session", FakeSession), redirect_stdout(out), redirect_stderr(err):
+            code = code_request.jev_smoke(env, debug=True)
+        self.assertEqual(code, 1)
+        combined = out.getvalue() + err.getvalue()
+        self.assertIn("status=400", out.getvalue())
+        self.assertIn("expected record, received array", combined)
+        self.assertNotIn(state, combined)
+        self.assertNotIn("test-key", combined)
 
     def test_disabled_even_when_collection_only(self) -> None:
         def post(payload, timeout):

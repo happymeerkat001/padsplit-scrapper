@@ -22,9 +22,8 @@ import os
 import re
 import sys
 import threading
+import time
 import unicodedata
-from concurrent.futures import ThreadPoolExecutor
-from concurrent.futures import TimeoutError as FuturesTimeout
 from dataclasses import dataclass, replace
 from typing import Any, Callable, Dict, Optional, Sequence
 
@@ -40,7 +39,8 @@ JEV_MODEL = "typesafe-ai/jev"
 JEV_URL = "https://ai-gateway.vercel.sh/v1/evaluate"
 JEV_TIMEOUT_S = 3
 _CONFIDENT = 0.6
-_SMOKE_TEXT = "is there a way in"
+_SMOKE_TEXT = "The sink is dripping slowly."
+_IPV4_LOCK = threading.Lock()
 
 _WIFI_RE = re.compile(r"(?i)\bwi[\s-]?fi\b|\bwireless\b|\binternet\s+password\b")
 _LOCKBOX_RE = re.compile(r"(?i)\block\s*box\b|\blockbox\b")
@@ -223,10 +223,18 @@ def jev_payload(text: str) -> Dict[str, Any]:
 
 
 class JevError(Exception):
-    """Safe failure. reason is a short token and never includes message text."""
+    """Safe failure. reason never includes the message text."""
 
-    def __init__(self, reason: str) -> None:
+    def __init__(
+        self,
+        reason: str,
+        *,
+        status: Optional[int] = None,
+        elapsed_s: Optional[float] = None,
+    ) -> None:
         self.reason = reason
+        self.status = status
+        self.elapsed_s = elapsed_s
         super().__init__(reason)
 
 
@@ -389,69 +397,209 @@ def classify(text: str, jev: Optional[JevClassifier] = None) -> CodeRequest:
     return deterministic
 
 
+def smoke_questions() -> Dict[str, Any]:
+    """Exact question record from the known-working classify.ts evaluate call.
+
+    The gateway rejects an array (`expected record, received array`). Typesafe
+    rejects a guessed field set. Keys and types match that file.
+    """
+    return {
+        "class": {
+            "type": "choice",
+            "instructions": "Which PadSplit repair class best fits this issue?",
+            "criteria": {
+                "A": "Small repair or ordinary maintenance that is minor and may be DIY-friendly, including a toilet clog or slow drain without flooding.",
+                "B": "Big repair that needs substantial work or a qualified technician, but is not an immediate emergency.",
+                "C": "Emergency requiring urgent human handling: fire, lockout, or an actual water leak such as a burst pipe or flooding.",
+            },
+        },
+        "needs_photo": {
+            "type": "boolean",
+            "instructions": "Would a human reviewer likely need a photo to assess or route this repair issue?",
+            "criteria": {
+                "true": "A photo would materially help assess the damage, scope, or active hazard.",
+                "false": "A photo is not necessary for an initial human review or routing decision.",
+            },
+        },
+        "is_actual_water_leak": {
+            "type": "boolean",
+            "instructions": "Is this an actual water leak, meaning a pipe, burst, tank, or flooding, rather than a toilet clog or slow drain?",
+            "criteria": {
+                "true": "Water is escaping from a pipe, fixture supply, tank, or burst source, or flooding is occurring.",
+                "false": "There is no escaping water from a leak source; a toilet clog or slow drain alone is false.",
+            },
+        },
+    }
+
+
+def smoke_payload() -> Dict[str, Any]:
+    return {
+        "model": JEV_MODEL,
+        "state": _SMOKE_TEXT,
+        "questions": smoke_questions(),
+        "providerOptions": {
+            "gateway": {
+                "zeroDataRetention": True,
+                "disallowPromptTraining": True,
+            }
+        },
+    }
+
+
+def _body_snippet(raw: str, *, hidden: str = "") -> str:
+    """Short gateway text. Drops the state we sent and any digit run."""
+    text = " ".join(str(raw or "").split())
+    if hidden:
+        text = text.replace(hidden, "")
+    text = re.sub(r"\d{4,}", "", text)
+    text = " ".join(text.split())
+    if len(text) > 160:
+        text = text[:160]
+    return text
+
+
+def _request_timeout(seconds: float) -> Any:
+    """One total deadline. A bare float is connect plus read, which stacked past 3s."""
+    import urllib3
+
+    budget = float(seconds)
+    return urllib3.Timeout(total=budget, connect=min(2.0, budget), read=budget)
+
+
+def _direct_session() -> Any:
+    """No env proxy and no urllib3 retry. Curl to this host does not use either."""
+    import requests
+    from requests.adapters import HTTPAdapter
+
+    session = requests.Session()
+    session.trust_env = False
+    adapter = HTTPAdapter(max_retries=0)
+    session.mount("https://", adapter)
+    session.mount("http://", adapter)
+    return session
+
+
+def _post_ipv4(session: Any, url: str, headers: Dict[str, str], payload: Dict[str, Any], timeout: Any) -> Any:
+    """Skip a blackholed IPv6 address. urllib3 would spend a full connect timeout on each one."""
+    import socket
+    import urllib3.util.connection as urllib3_connection
+
+    with _IPV4_LOCK:
+        previous = urllib3_connection.allowed_gai_family
+        urllib3_connection.allowed_gai_family = lambda: socket.AF_INET
+        try:
+            return session.post(url, headers=headers, json=payload, timeout=timeout)
+        finally:
+            urllib3_connection.allowed_gai_family = previous
+
+
 def _default_post(payload: Dict[str, Any], timeout: float, environ: Optional[os._Environ[str]]) -> Any:
-    """POST /v1/evaluate. The wall clock stops at timeout even if the socket lingers."""
+    """POST /v1/evaluate once. questions is a JSON object keyed by id, never an array."""
     import requests
 
     env = _env(environ)
     key = (env.get("AI_GATEWAY_API_KEY") or "").strip()
     if not key:
         raise JevError("missing AI_GATEWAY_API_KEY")
-
-    def once() -> Any:
-        try:
-            response = requests.post(
-                JEV_URL,
-                headers={
-                    "Authorization": f"Bearer {key}",
-                    "Content-Type": "application/json",
-                },
-                json=payload,
-                timeout=timeout,
-            )
-        except requests.Timeout as exc:
-            raise JevError("timeout") from exc
-        except requests.RequestException as exc:
-            raise JevError("request failed") from exc
-        status = int(getattr(response, "status_code", 0) or 0)
-        if status >= 400:
-            raise JevError(f"http {status}")
-        try:
-            return response.json()
-        except ValueError as exc:
-            raise JevError("non-json") from exc
-
-    pool = ThreadPoolExecutor(max_workers=1)
+    questions = payload.get("questions")
+    if not isinstance(questions, dict):
+        raise JevError("questions must be a record")
+    hidden = payload.get("state") if isinstance(payload.get("state"), str) else ""
+    deadline = _request_timeout(timeout)
+    started = time.perf_counter()
+    session = _direct_session()
     try:
-        return pool.submit(once).result(timeout=timeout)
-    except FuturesTimeout as exc:
-        raise JevError("timeout") from exc
-    finally:
-        pool.shutdown(wait=False, cancel_futures=True)
+        response = _post_ipv4(
+            session,
+            JEV_URL,
+            {
+                "Authorization": f"Bearer {key}",
+                "Content-Type": "application/json",
+            },
+            payload,
+            deadline,
+        )
+    except requests.Timeout as exc:
+        raise JevError("timeout", elapsed_s=time.perf_counter() - started) from exc
+    except requests.RequestException as exc:
+        raise JevError("request failed", elapsed_s=time.perf_counter() - started) from exc
+    elapsed = time.perf_counter() - started
+    status = int(getattr(response, "status_code", 0) or 0)
+    if status >= 400:
+        snippet = _body_snippet(getattr(response, "text", "") or "", hidden=hidden)
+        reason = f"http {status}"
+        if snippet:
+            reason = f"{reason}: {snippet}"
+        raise JevError(reason, status=status, elapsed_s=elapsed)
+    try:
+        body = response.json()
+    except ValueError as exc:
+        raise JevError("non-json", status=status, elapsed_s=elapsed) from exc
+    if isinstance(body, dict):
+        body["_http_status"] = status
+        body["_elapsed_s"] = elapsed
+    return body
 
 
-def jev_smoke(environ: Optional[os._Environ[str]] = None) -> int:
-    """One harmless evaluate call. Prints the parsed flags, never the key or the text."""
+def _parse_smoke(payload: Any) -> Optional[str]:
+    """Same answer fields classify.ts reads. No message text."""
+    if not isinstance(payload, dict):
+        return None
+    answers = payload.get("answers")
+    if not isinstance(answers, dict):
+        return None
+    klass = answers.get("class") if isinstance(answers.get("class"), dict) else {}
+    photo = answers.get("needs_photo") if isinstance(answers.get("needs_photo"), dict) else {}
+    leak = answers.get("is_actual_water_leak") if isinstance(answers.get("is_actual_water_leak"), dict) else {}
+    choice = str(klass.get("choice") or "")
+    if choice not in {"A", "B", "C"}:
+        return None
+    try:
+        photo_p = float(photo.get("probability", 0))
+        leak_p = float(leak.get("probability", 0))
+    except (TypeError, ValueError):
+        return None
+    needs_photo = photo_p >= 0.5
+    is_leak = leak_p >= 0.5
+    return f"class={choice} needs_photo={needs_photo} is_actual_water_leak={is_leak}"
+
+
+def _debug_line(status: Optional[int], elapsed_s: Optional[float]) -> None:
+    status_text = "none" if status is None else str(status)
+    elapsed_text = "none" if elapsed_s is None else f"{elapsed_s:.2f}"
+    sys.stdout.write(f"jev smoke: status={status_text} elapsed_s={elapsed_text}\n")
+
+
+def jev_smoke(environ: Optional[os._Environ[str]] = None, *, debug: bool = False) -> int:
+    """One harmless evaluate call. Prints parsed flags, never the key or the text."""
     env = _env(environ)
     if not (env.get("AI_GATEWAY_API_KEY") or "").strip():
         sys.stdout.write("jev smoke: missing AI_GATEWAY_API_KEY\n")
         return 2
     try:
-        payload = _default_post(jev_payload(_SMOKE_TEXT), JEV_TIMEOUT_S, env)
-    except Exception as exc:
-        sys.stdout.write(f"jev smoke: failed ({_safe_reason(exc)})\n")
+        payload = _default_post(smoke_payload(), JEV_TIMEOUT_S, env)
+    except JevError as exc:
+        _log_jev(exc.reason)
+        if debug:
+            _debug_line(exc.status, exc.elapsed_s)
+        sys.stdout.write(f"jev smoke: failed ({exc.reason})\n")
         return 1
-    parsed = _parse_jev(payload, "")
+    except Exception as exc:
+        reason = _safe_reason(exc)
+        _log_jev(reason)
+        if debug:
+            _debug_line(None, None)
+        sys.stdout.write(f"jev smoke: failed ({reason})\n")
+        return 1
+    status = payload.get("_http_status") if isinstance(payload, dict) else None
+    elapsed = payload.get("_elapsed_s") if isinstance(payload, dict) else None
+    if debug:
+        _debug_line(status if isinstance(status, int) else None, elapsed if isinstance(elapsed, float) else None)
+    parsed = _parse_smoke(payload)
     if parsed is None:
         sys.stdout.write("jev smoke: unparsed\n")
         return 1
-    sys.stdout.write(
-        "jev smoke: "
-        f"is_code_request={parsed.is_code_request} "
-        f"kind={parsed.kind} "
-        f"ambiguous={parsed.ambiguous} "
-        f"lockout={parsed.lockout}\n"
-    )
+    sys.stdout.write(f"jev smoke: {parsed}\n")
     return 0
 
 
@@ -462,11 +610,16 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         action="store_true",
         help="Send one harmless evaluate request and print the parsed flags",
     )
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="With --jev-smoke, print HTTP status and elapsed seconds",
+    )
     args = parser.parse_args(list(argv) if argv is not None else None)
     if not args.jev_smoke:
         parser.print_help(sys.stderr)
         return 2
-    return jev_smoke()
+    return jev_smoke(debug=args.debug)
 
 
 if __name__ == "__main__":
