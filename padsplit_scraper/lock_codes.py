@@ -12,9 +12,10 @@ phone, message the tenant on PadSplit (digits allowed there only), update
 Firestore ``property_codes`` for codes.html, then post a digit-free notice
 to Discord #ai-automations.
 
-Move-out / member terminated: ALWAYS set the vacated room lock to the
-vacant default and update the codes page (do not wait for Ang on the
-room). ALWAYS ask Ang on #ai-automations whether to change front/back
+Move-out / member terminated: set the vacated room lock from
+``SIFELY_VACANT_ROOM_DEFAULT`` (no default; unset skips with no rotation
+and no Firestore write) and update the codes page (do not wait for Ang
+on the room). ALWAYS ask Ang on #ai-automations whether to change front/back
 door keycodes for that house (doors only; Discord is house/room/member,
 never digits). After Ang yes: rotate front/back, update the codes page,
 and PadSplit-blast remaining tenants at that house with the new door
@@ -87,8 +88,8 @@ PROPERTY_LABEL = "Spanish Moss"
 PROPERTY_SLUG = "spanish_moss"
 LOCK_FIELD = "back_door"
 CODES_COLLECTION = "property_codes"
-# Vacant-room default after move-out. Never put this on Discord or in logs.
-VACANT_ROOM_DEFAULT = "0417"
+# Vacant-room PIN is read from SIFELY_VACANT_ROOM_DEFAULT at runtime.
+# Unset skips the reset. Never hardcode it, log it, or put it on Discord.
 RECENT_EVENT_DAYS = 3
 
 # Digit-free Discord labels only. Street numbers stay out of Discord.
@@ -333,6 +334,11 @@ def live_actions_enabled() -> bool:
 def sifely_api_key() -> str:
     """Return SIFELY_API_KEY or empty. Never invent a key. Never print it."""
     return (os.getenv("SIFELY_API_KEY") or "").strip()
+
+
+def vacant_room_default() -> str:
+    """Return SIFELY_VACANT_ROOM_DEFAULT or empty. Never invent a code. Never print it."""
+    return (os.getenv("SIFELY_VACANT_ROOM_DEFAULT") or "").strip()
 
 
 def firebase_credentials_ready() -> bool:
@@ -1869,7 +1875,15 @@ def _reset_vacated_room(
     write_fields: Callable[[str, Dict[str, Any]], bool],
     state: Dict[str, Any],
 ) -> bool:
-    """Set vacated room to vacant default and update codes. Do not wait for Ang."""
+    """Set vacated room from SIFELY_VACANT_ROOM_DEFAULT. Do not wait for Ang.
+
+    Missing ``SIFELY_VACANT_ROOM_DEFAULT`` fails closed before any lock
+    rotation or Firestore write.
+    """
+    code = vacant_room_default()
+    if not code:
+        _log("vacant default not configured")
+        return False
     if isinstance(event_or_ask, LockEvent):
         house_slug = event_or_ask.house_slug
         room = event_or_ask.room
@@ -1880,11 +1894,11 @@ def _reset_vacated_room(
         _need_you_once(state, now, "need_you_firebase", poster, result, dry_run=dry_run)
         return False
     match = find_lock(inventory, house_slug, "room", room)
-    if match is None or not rotate_lock(match, VACANT_ROOM_DEFAULT):
+    if match is None or not rotate_lock(match, code):
         _need_you_once(state, now, "need_you_lock", poster, result, dry_run=dry_run)
         return False
     field_name = codes_field_for(house_slug, "room", room)
-    if field_name and not _write_or_skip(write_fields, house_slug, {field_name: VACANT_ROOM_DEFAULT}, result):
+    if field_name and not _write_or_skip(write_fields, house_slug, {field_name: code}, result):
         _need_you_once(state, now, "need_you_firebase", poster, result, dry_run=dry_run)
         return False
     return True

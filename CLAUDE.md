@@ -138,6 +138,7 @@ LOCK_CODES_ENABLE=             # default off; Mac .env sets 1 after merge to rot
 SIFELY_API_KEY=          # raw sk- key, no Bearer; missing = Need-you no-op
 SIFELY_LOCK_ID=          # optional Spanish Moss back-door lock id
 SIFELY_KEYBOARD_PWD_ID=  # optional tenant passcode id
+SIFELY_VACANT_ROOM_DEFAULT=  # vacant-room reset code; unset = skip, no rotation, no Firestore write
 # FIREBASE_SERVICE_ACCOUNT_JSON=  # required for codes.html records; missing = Need-you fail-closed
 # GOOGLE_APPLICATION_CREDENTIALS= # alt Firebase SA path; do not invent credentials
 OBSIDIAN_DAILY_NOTES_DIR=
