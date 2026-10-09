@@ -83,7 +83,7 @@ Trigger statuses come from `EVICTIONS_TRIGGER_STATUSES` (default `terminated,Beh
 
 The tenant notice is page 1, filled from `templates/notice_to_vacate.txt` (entity placeholder `Li Real Estate LLC / Liaison Ventures Management`, signer placeholder `[Authorized signer]`, no phone number). Page 2 is the ledger and timeline, headed `INTERNAL - not for tenant`, and that is where the draft/reviewer notes live. Vacate date = notice/mail date + 3 days + `EVICTIONS_VACATE_SLACK_DAYS` (default 2). PDFs go to `padsplit_scraper/output/evictions/`, which is gitignored. Balance is currency inside the PDF only. Discord text, dry-run logs, and the state file do not include balance, member names, lock codes, or member messages.
 
-Discord is one post per new case to `#evictions`: `DISCORD_EVICTIONS_CHANNEL_ID` with `DISCORD_BOT_TOKEN`, or else `DISCORD_EVICTIONS_WEBHOOK_URL`. The PDF is attached. The post says the house, room, status, vacate date, and `package attached; mailing and county filing are manual`.
+Discord is one post per new case to `#evictions-and-collections` (channel id `1544429847588245544`). Posting uses the existing bot token (`DISCORD_BOT_TOKEN`) through `padsplit_scraper/discord_notifier.py`. `DISCORD_EVICTIONS_CHANNEL_ID` defaults to that channel. `DISCORD_EVICTIONS_WEBHOOK_URL` is optional and is used only when the bot token is unset. The PDF is attached. The enable gate stays off until `EVICTIONS_ENABLE=1`. The post says the house, room, status, vacate date, and `package attached; mailing and county filing are manual`.
 
 Preview a fake member (`TEST 100 Example Lane`, Room 2) with no network:
 
@@ -95,8 +95,8 @@ python3 -m padsplit_scraper.evictions --preview
 EVICTIONS_ENABLE=                  # default off. Alias PADSPLIT_SEND_EVICTIONS
 EVICTIONS_TRIGGER_STATUSES=terminated,Behind
 EVICTIONS_VACATE_SLACK_DAYS=2
-DISCORD_EVICTIONS_CHANNEL_ID=
-DISCORD_EVICTIONS_WEBHOOK_URL=
+DISCORD_EVICTIONS_CHANNEL_ID=1544429847588245544   # #evictions-and-collections
+# DISCORD_EVICTIONS_WEBHOOK_URL=   # optional; bot token is the primary path
 ```
 
 Water-leak auto-reply (`padsplit_scraper/leak_reply.py`) detects an **active** member water emergency only: pipe burst / pipe leak, water main, flooding, or water leaking from wall or ceiling. Bare `leak`/`leaking`, slow leaks, drips, seepage, and toilet-only cases do **not** fire (no curb-key / whole-house shutoff). Flooding still fires even with a toilet mention. SENDS a 1:1 adaptation of Firestore `templates/shared` **t5** (`n5` Water leak announcement) on that PadSplit thread, with Quo call/text added (t5 is house-wide and has no Quo). Live t5 is preferred; baked t5 is the fallback. Canonical water-key YouTube: `https://youtube.com/shorts/SCryjPiyZcs`. It also posts a `WATER_KEY_ORDER` event to Discord `#ai-automations` (digit-free except the leaking property ship-to) for Cart: house label, full street address, Orbit ASIN / `water curb key`. No Amazon purchase in this scraper. No Spanish Moss address override. Host reminder blasts and historical “previous leak” chatter do not fire. Default off until Mac `.env` sets `LEAK_REPLY_ENABLE=1`. CI must not send. Discord posts never include lock codes. Nest is interim-handling leak replies until enable is live — tell Nest to stop duplicates when this is turned on.

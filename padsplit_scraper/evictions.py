@@ -26,8 +26,9 @@ from zoneinfo import ZoneInfo
 import requests
 
 try:
-    from padsplit_scraper import partner_members, runtime
+    from padsplit_scraper import discord_notifier, partner_members, runtime
 except ModuleNotFoundError:  # python3 padsplit_scraper/evictions.py
+    import discord_notifier  # type: ignore
     import partner_members  # type: ignore
     import runtime  # type: ignore
 
@@ -39,6 +40,8 @@ STATE_PATH = ROOT / "logs" / "evictions_state.json"
 DRY_LOG_PATH = ROOT / "logs" / "evictions_dryrun.jsonl"
 CHICAGO = ZoneInfo("America/Chicago")
 DISCORD_API = "https://discord.com/api/v10"
+# #evictions-and-collections. Channel ids are not secret.
+DEFAULT_EVICTIONS_CHANNEL_ID = "1544429847588245544"
 DEFAULT_TRIGGERS = ("terminated", "Behind")
 NOTICE_DAYS = 3
 DEFAULT_SLACK_DAYS = 2
@@ -470,20 +473,26 @@ def append_dry_log(path: Path, record: Dict[str, str]) -> None:
         handle.write(line + "\n")
 
 
+def evictions_channel_id(environ: Dict[str, str]) -> str:
+    raw = (environ.get("DISCORD_EVICTIONS_CHANNEL_ID") or "").strip()
+    return raw or DEFAULT_EVICTIONS_CHANNEL_ID
+
+
 def discord_delivery(text: str, pdf_path: Path, environ: Dict[str, str]) -> Dict[str, Any]:
-    """Bot channel when configured, otherwise the webhook. Does not send."""
-    channel = (environ.get("DISCORD_EVICTIONS_CHANNEL_ID") or "").strip()
+    """Bot token is primary. A webhook is used only when that token is unset."""
     token = (environ.get("DISCORD_BOT_TOKEN") or "").strip()
     webhook = (environ.get("DISCORD_EVICTIONS_WEBHOOK_URL") or "").strip()
     blob = pdf_path.read_bytes()
     filename = "notice-to-vacate.pdf"
-    if channel and token:
+    if token:
+        channel = evictions_channel_id(environ)
         return {
             "kind": "bot",
-            "url": f"{DISCORD_API}/channels/{channel}/messages",
-            "headers": {"Authorization": f"Bot {token}"},
-            "data": {"payload_json": json.dumps({"content": text})},
-            "files": {"files[0]": (filename, blob, "application/pdf")},
+            "channel": channel,
+            "token": token,
+            "text": text,
+            "filename": filename,
+            "blob": blob,
         }
     if webhook:
         return {
@@ -507,6 +516,16 @@ def post_discord(
     kind = str(delivery.get("kind") or "")
     if kind == "unconfigured":
         raise RuntimeError("discord unconfigured")
+    if kind == "bot":
+        discord_notifier.post_channel_attachment(
+            text,
+            str(delivery["filename"]),
+            delivery["blob"],
+            token=str(delivery["token"]),
+            channel=str(delivery["channel"]),
+            http_post=http_post,
+        )
+        return "bot"
     sender = http_post or requests.post
     response = sender(
         delivery["url"],

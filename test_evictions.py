@@ -380,7 +380,10 @@ class EvictionRunTests(unittest.TestCase):
                 response = type("Response", (), {"status_code": 200})()
                 return response
 
-            with patch("padsplit_scraper.evictions.requests.post", side_effect=AssertionError("raw requests")):
+            with patch("padsplit_scraper.evictions.requests.post", side_effect=AssertionError("raw requests")), patch(
+                "padsplit_scraper.discord_notifier.requests.post",
+                side_effect=AssertionError("notifier requests"),
+            ):
                 result = evictions.process(
                     [member()],
                     environ=live_env(
@@ -394,6 +397,7 @@ class EvictionRunTests(unittest.TestCase):
                 )
         self.assertEqual(result.action, "posted")
         self.assertIn("/channels/123/messages", seen["url"])
+        self.assertTrue(seen["url"].startswith(evictions.discord_notifier.DISCORD_API_BASE))
         payload = json.loads(seen["data"]["payload_json"])
         self.assertIn(evictions.MANUAL_LINE, payload["content"])
         self.assertNotIn(BALANCE, payload["content"])
@@ -409,6 +413,28 @@ class EvictionRunTests(unittest.TestCase):
         self.assertIn("$99,123.45", pages[0])
         self.assertIn(evictions.INTERNAL_HEADER, pages[1])
         self.assertNotIn("https://discord.example/webhook", seen["url"])
+
+    def test_bot_channel_defaults_and_webhook_is_optional(self) -> None:
+        self.assertEqual(evictions.DEFAULT_EVICTIONS_CHANNEL_ID, "1544429847588245544")
+        with TemporaryDirectory() as tmp:
+            pdf = Path(tmp) / "notice.pdf"
+            pdf.write_bytes(b"%PDF-1.3")
+            bot = evictions.discord_delivery(
+                "house",
+                pdf,
+                {"DISCORD_BOT_TOKEN": "bot-token", "DISCORD_EVICTIONS_WEBHOOK_URL": "https://discord.example/webhook"},
+            )
+            self.assertEqual(bot["kind"], "bot")
+            self.assertEqual(bot["channel"], "1544429847588245544")
+            webhook = evictions.discord_delivery(
+                "house",
+                pdf,
+                {"DISCORD_EVICTIONS_WEBHOOK_URL": "https://discord.example/webhook"},
+            )
+            self.assertEqual(webhook["kind"], "webhook")
+            self.assertEqual(webhook["url"], "https://discord.example/webhook")
+            missing = evictions.discord_delivery("house", pdf, {})
+            self.assertEqual(missing["kind"], "unconfigured")
 
     def test_members_fetch_failure_skips_without_discord(self) -> None:
         def post(_text: str, _pdf: Path) -> None:
@@ -545,6 +571,13 @@ class EvictionRunTests(unittest.TestCase):
         self.assertIn("padsplit_scraper/output/evictions/", gitignore)
         self.assertIn("reportlab", (ROOT / "padsplit_scraper" / "requirements.txt").read_text())
         self.assertIn("evictions", runtime.ACTION_FLAGS)
+        readme = (ROOT / "README.md").read_text()
+        example = (ROOT / ".env.example").read_text()
+        self.assertIn("#evictions-and-collections", readme)
+        self.assertIn("DISCORD_EVICTIONS_CHANNEL_ID=1544429847588245544", readme)
+        self.assertIn("DISCORD_EVICTIONS_CHANNEL_ID=1544429847588245544", example)
+        self.assertNotIn("EVICTIONS_ENABLE=1", example)
+        self.assertIn("discord_notifier", readme)
         self.assertFalse(runtime.send_enabled("evictions", dry_env()))
         self.assertTrue(runtime.send_enabled("evictions", live_env()))
 
