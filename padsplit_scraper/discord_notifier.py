@@ -127,6 +127,41 @@ def post_discord_message(text: str, *, token: Optional[str] = None, channel: Opt
     return response.json()
 
 
+def post_channel_attachment(
+    text: str,
+    file_name: str,
+    file_bytes: bytes,
+    *,
+    token: Optional[str] = None,
+    channel: Optional[str] = None,
+    mime: str = "application/pdf",
+    http_post=None,
+) -> Dict:
+    """Bot post with one file. ``channel`` overrides ``DISCORD_CHANNEL_ID``."""
+    token = (token if token is not None else os.getenv("DISCORD_BOT_TOKEN") or "").strip()
+    channel = (channel if channel is not None else os.getenv("DISCORD_CHANNEL_ID") or "").strip()
+    if not token or not channel:
+        raise RuntimeError("Missing DISCORD_BOT_TOKEN or channel")
+    sender = http_post or requests.post
+    response = sender(
+        f"{DISCORD_API_BASE}/channels/{channel}/messages",
+        headers={"Authorization": f"Bot {token}"},
+        data={"payload_json": json.dumps({"content": text})},
+        files={"files[0]": (file_name, file_bytes, mime)},
+        timeout=DEFAULT_TIMEOUT,
+    )
+    status = int(getattr(response, "status_code", 200) or 200)
+    if status >= 400:
+        raise RuntimeError("discord post failed")
+    if hasattr(response, "json"):
+        try:
+            body = response.json()
+        except Exception:
+            return {}
+        return body if isinstance(body, dict) else {}
+    return {}
+
+
 def main() -> None:
     base_dir = Path(__file__).resolve().parent
     payload = _load_latest_payload(base_dir)
