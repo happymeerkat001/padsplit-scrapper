@@ -1,6 +1,400 @@
 {
-  "scraped_at": "2026-10-12T09:48:26Z",
+  "scraped_at": "2026-10-12T19:50:35Z",
   "messages": [
+    {
+      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzA1Mzk4",
+      "title": "Chris Griffin",
+      "chatType": "HOST_SUPPORT_CHAT",
+      "isArchived": false,
+      "occupancy": {
+        "id": "TWVzc2VuZ2VyT2NjdXBhbmN5VHlwZToyNzU3MTE=",
+        "moveInDate": "2026-03-13",
+        "moveOutDate": "2026-10-11",
+        "conditionalEligibilityApplied": null,
+        "room": {
+          "pk": 21176,
+          "roomNumber": 3
+        },
+        "user": {
+          "picture": "img/profiles/user_921873_92d2030a-e411-49bb-9042-1db1b3b4ddd3.jpg",
+          "firstName": "Christopher",
+          "lastName": "Griffin",
+          "displayName": "Chris"
+        }
+      },
+      "property": {
+        "host": {
+          "firstName": "Tinghui",
+          "lastName": "Li",
+          "displayName": "",
+          "picture": ""
+        },
+        "description": "Your new home awaits! This cozy Dallas home is waiting for you. This PadSplit has a Backyard and Dining area, and is newly-renovated and cozy.\n\nThis home has a full kitchen, onsite laundry and parking and is very commutable close to public transit and multiple highways.  Located right between I35E, I45 and I20.\n\nThe neighborhood is quiet, which means you won\u2019t be far from all Dallas has to offer.\nThe image on satellite is a few years old and please come and see the house by yourself before you make any judgement.",
+        "address": {
+          "street1": "3414 Pebbleshores Drive",
+          "street2": "",
+          "zip": "75241",
+          "city": {
+            "name": "Dallas",
+            "state": {
+              "name": "Texas"
+            }
+          }
+        }
+      },
+      "isCancelled": false,
+      "lastMessage": {
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIxMzE1ODQ=",
+        "created": "2026-10-12T19:41:15.363636",
+        "text": null,
+        "deleted": null,
+        "extra": null,
+        "messageType": "TICKET_UPDATE",
+        "sender": {
+          "pk": 339595,
+          "firstName": "Tinghui",
+          "lastName": "Li",
+          "displayName": ""
+        },
+        "attachments": [],
+        "paymentExtensionStatus": null,
+        "ticketStatus": {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMjA1MjE3",
+          "created": "2026-10-12T19:41:15.367830",
+          "status": "HOLD",
+          "canRate": false,
+          "ticket": {
+            "id": "488561",
+            "author": {
+              "firstName": "Christopher",
+              "lastName": "Griffin",
+              "id": "921873",
+              "displayName": "Chris"
+            },
+            "details": "Collections",
+            "location": "ROOM",
+            "status": "HOLD",
+            "rating": null,
+            "comment": null,
+            "category": "ROOM_TURN",
+            "onHoldReason": null,
+            "withdrawReason": null
+          }
+        },
+        "bookingStatus": null
+      },
+      "member": {
+        "seenAt": "2026-10-12T19:31:32.763197",
+        "isPinned": false,
+        "isUnread": true
+      },
+      "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIxMzE1ODQ=",
+          "text": null,
+          "created": "2026-10-12T19:41:15.363636",
+          "messageType": "TICKET_UPDATE",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
+            "pk": 339595,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Tinghui",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "",
+            "padmateProfileId": 278216
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMjA1MjE3",
+            "created": "2026-10-12T19:41:15.367830",
+            "status": "HOLD",
+            "canRate": false,
+            "ticket": {
+              "id": "488561",
+              "author": {
+                "firstName": "Christopher",
+                "lastName": "Griffin",
+                "id": "921873",
+                "displayName": "Chris"
+              },
+              "details": "Collections",
+              "location": "ROOM",
+              "status": "HOLD",
+              "rating": null,
+              "comment": null,
+              "category": "ROOM_TURN",
+              "onHoldReason": null,
+              "withdrawReason": null
+            }
+          },
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIxMzEzODg=",
+          "text": "Hey Chris, we've been trying to reach you regarding your outstanding balance. If you'd like to keep your room, please make a payment of at least 10% of your outstanding balance to bring the remaining balance below $300. You will then have 3 days to settle the remaining amount.\n\nPlease let us know once the payment has been made. Thank you!",
+          "created": "2026-10-12T19:31:31.917892",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Joe Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIxMjY0MTQ=",
+          "text": "My number is 9453496790",
+          "created": "2026-10-12T16:43:56.416422",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkyMTg3Mw==",
+            "pk": 921873,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_921873_92d2030a-e411-49bb-9042-1db1b3b4ddd3.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_921873_92d2030a-e411-49bb-9042-1db1b3b4ddd3.jpg",
+            "firstName": "Christopher",
+            "lastName": "Griffin",
+            "isActive": true,
+            "displayName": "Chris",
+            "padmateProfileId": 859343
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIxMjYzOTU=",
+          "text": "I'm at work right now",
+          "created": "2026-10-12T16:43:12.598922",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkyMTg3Mw==",
+            "pk": 921873,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_921873_92d2030a-e411-49bb-9042-1db1b3b4ddd3.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_921873_92d2030a-e411-49bb-9042-1db1b3b4ddd3.jpg",
+            "firstName": "Christopher",
+            "lastName": "Griffin",
+            "isActive": true,
+            "displayName": "Chris",
+            "padmateProfileId": 859343
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIxMjYzODc=",
+          "text": "I just need until Wednesday or Thursday for my 1st check. I promise",
+          "created": "2026-10-12T16:42:52.160269",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkyMTg3Mw==",
+            "pk": 921873,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_921873_92d2030a-e411-49bb-9042-1db1b3b4ddd3.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_921873_92d2030a-e411-49bb-9042-1db1b3b4ddd3.jpg",
+            "firstName": "Christopher",
+            "lastName": "Griffin",
+            "isActive": true,
+            "displayName": "Chris",
+            "padmateProfileId": 859343
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIxMjYzMzQ=",
+          "text": "Hi Mr Joe? This is Christopher Griffin. I started my job last Monday. I want get paid until Wednesday or Thursday of this week,as soon as I get paid. I will pay full payment to stay. I just need until that time. Please \ud83d\ude4f I'm begging. I want miss a payment after my 1st paycheck from my new job. We also had the conversation over the phone about my situation",
+          "created": "2026-10-12T16:41:52.543140",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkyMTg3Mw==",
+            "pk": 921873,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_921873_92d2030a-e411-49bb-9042-1db1b3b4ddd3.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_921873_92d2030a-e411-49bb-9042-1db1b3b4ddd3.jpg",
+            "firstName": "Christopher",
+            "lastName": "Griffin",
+            "isActive": true,
+            "displayName": "Chris",
+            "padmateProfileId": 859343
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIxMjQ2NTY=",
+          "text": "Hi Chris , could you please confirm if you already moved out? Please submit a move out photos. Thanks!",
+          "created": "2026-10-12T15:37:15.982829",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Joe Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIxMDc3NDQ=",
+          "text": null,
+          "created": "2026-10-11T15:06:38.793796",
+          "messageType": "TICKET_UPDATE",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
+            "pk": 339595,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Tinghui",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "",
+            "padmateProfileId": 278216
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMjAyODcz",
+            "created": "2026-10-11T15:06:38.812510",
+            "status": "SUBMITTED",
+            "canRate": false,
+            "ticket": {
+              "id": "488561",
+              "author": {
+                "firstName": "Christopher",
+                "lastName": "Griffin",
+                "id": "921873",
+                "displayName": "Chris"
+              },
+              "details": "Collections",
+              "location": "ROOM",
+              "status": "HOLD",
+              "rating": null,
+              "comment": null,
+              "category": "ROOM_TURN",
+              "onHoldReason": null,
+              "withdrawReason": null
+            }
+          },
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIwNzk3MjI=",
+          "text": "Hi Chris, this is to let you know that a notice to vacate has been issued for your room due to non-payment. A written copy was mailed to you today by USPS First-Class, and the notice is also on your PadSplit account. Per the notice, the move-out date is Saturday, October 24, 2026 by 9:00 AM. If you have any questions, please reply here. Thank you.",
+          "created": "2026-10-09T21:32:31.773949",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Joe Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIwNzY1MDA=",
+          "text": "Hi Chris, I tried calling you, but the call wouldn\u2019t go through due to a restriction, and I wasn\u2019t able to send you a text message either. Could you please provide the best phone number to reach you?\n\nI also wanted to follow up on your rent payment. When can we expect your payment? Please let me know. Thank you!",
+          "created": "2026-10-09T19:10:44.207479",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Joe Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        }
+      ]
+    },
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MTc4MzUz",
       "title": "Lindzie Ross",
@@ -62,9 +456,9 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-10-11T19:53:16.065770",
+        "seenAt": "2026-10-12T19:31:38.380912",
         "isPinned": false,
-        "isUnread": true
+        "isUnread": false
       },
       "recent_messages": [
         {
@@ -405,7 +799,7 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-10-11T22:11:43.136530",
+        "seenAt": "2026-10-12T15:35:42.634708",
         "isPinned": false,
         "isUnread": false
       },
@@ -701,378 +1095,6 @@
             "isActive": true,
             "displayName": "Joe Manager",
             "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        }
-      ]
-    },
-    {
-      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzA1Mzk4",
-      "title": "Chris Griffin",
-      "chatType": "HOST_SUPPORT_CHAT",
-      "isArchived": false,
-      "occupancy": {
-        "id": "TWVzc2VuZ2VyT2NjdXBhbmN5VHlwZToyNzU3MTE=",
-        "moveInDate": "2026-03-13",
-        "moveOutDate": "2026-10-11",
-        "conditionalEligibilityApplied": null,
-        "room": {
-          "pk": 21176,
-          "roomNumber": 3
-        },
-        "user": {
-          "picture": "img/profiles/user_921873_92d2030a-e411-49bb-9042-1db1b3b4ddd3.jpg",
-          "firstName": "Christopher",
-          "lastName": "Griffin",
-          "displayName": "Chris"
-        }
-      },
-      "property": {
-        "host": {
-          "firstName": "Tinghui",
-          "lastName": "Li",
-          "displayName": "",
-          "picture": ""
-        },
-        "description": "Your new home awaits! This cozy Dallas home is waiting for you. This PadSplit has a Backyard and Dining area, and is newly-renovated and cozy.\n\nThis home has a full kitchen, onsite laundry and parking and is very commutable close to public transit and multiple highways.  Located right between I35E, I45 and I20.\n\nThe neighborhood is quiet, which means you won\u2019t be far from all Dallas has to offer.\nThe image on satellite is a few years old and please come and see the house by yourself before you make any judgement.",
-        "address": {
-          "street1": "3414 Pebbleshores Drive",
-          "street2": "",
-          "zip": "75241",
-          "city": {
-            "name": "Dallas",
-            "state": {
-              "name": "Texas"
-            }
-          }
-        }
-      },
-      "isCancelled": false,
-      "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIxMDc3NDQ=",
-        "created": "2026-10-11T15:06:38.793796",
-        "text": null,
-        "deleted": null,
-        "extra": null,
-        "messageType": "TICKET_UPDATE",
-        "sender": {
-          "pk": 339595,
-          "firstName": "Tinghui",
-          "lastName": "Li",
-          "displayName": ""
-        },
-        "attachments": [],
-        "paymentExtensionStatus": null,
-        "ticketStatus": {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMjAyODcz",
-          "created": "2026-10-11T15:06:38.812510",
-          "status": "SUBMITTED",
-          "canRate": false,
-          "ticket": {
-            "id": "488561",
-            "author": {
-              "firstName": "Christopher",
-              "lastName": "Griffin",
-              "id": "921873",
-              "displayName": "Chris"
-            },
-            "details": "Collections",
-            "location": "ROOM",
-            "status": "SUBMITTED",
-            "rating": null,
-            "comment": null,
-            "category": "ROOM_TURN",
-            "onHoldReason": null,
-            "withdrawReason": null
-          }
-        },
-        "bookingStatus": null
-      },
-      "member": {
-        "seenAt": "2026-10-11T19:53:42.100486",
-        "isPinned": false,
-        "isUnread": false
-      },
-      "recent_messages": [
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIxMDc3NDQ=",
-          "text": null,
-          "created": "2026-10-11T15:06:38.793796",
-          "messageType": "TICKET_UPDATE",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
-            "pk": 339595,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Tinghui",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "",
-            "padmateProfileId": 278216
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": {
-            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMjAyODcz",
-            "created": "2026-10-11T15:06:38.812510",
-            "status": "SUBMITTED",
-            "canRate": false,
-            "ticket": {
-              "id": "488561",
-              "author": {
-                "firstName": "Christopher",
-                "lastName": "Griffin",
-                "id": "921873",
-                "displayName": "Chris"
-              },
-              "details": "Collections",
-              "location": "ROOM",
-              "status": "SUBMITTED",
-              "rating": null,
-              "comment": null,
-              "category": "ROOM_TURN",
-              "onHoldReason": null,
-              "withdrawReason": null
-            }
-          },
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIwNzk3MjI=",
-          "text": "Hi Chris, this is to let you know that a notice to vacate has been issued for your room due to non-payment. A written copy was mailed to you today by USPS First-Class, and the notice is also on your PadSplit account. Per the notice, the move-out date is Saturday, October 24, 2026 by 9:00 AM. If you have any questions, please reply here. Thank you.",
-          "created": "2026-10-09T21:32:31.773949",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Joe Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIwNzY1MDA=",
-          "text": "Hi Chris, I tried calling you, but the call wouldn\u2019t go through due to a restriction, and I wasn\u2019t able to send you a text message either. Could you please provide the best phone number to reach you?\n\nI also wanted to follow up on your rent payment. When can we expect your payment? Please let me know. Thank you!",
-          "created": "2026-10-09T19:10:44.207479",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Joe Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE4ODM4Mjg=",
-          "text": "Also, please note that the rent will be increased by $5 going forward.",
-          "created": "2026-09-30T21:57:23.946697",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Joe Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE4ODM4MDE=",
-          "text": "Hey Chris, I spoke with the owner and asked if you could continue staying at the property now that JB has left. He has agreed to let you stay, but he wants you to be on your best behavior moving forward.\n\nPlease make sure you do not bring any guests to the house and that you maintain a respectful and peaceful relationship with your co-tenants. We expect everyone to follow the house rules and treat each other with respect.\n\nThe owner is giving you another chance, so please take this seriously. If we receive the same complaints or encounter similar issues again in the future, we will not be able to offer another second chance.\n\nThank you for understanding and cooperating.",
-          "created": "2026-09-30T21:56:03.887545",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Joe Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE4ODA3NTE=",
-          "text": "Okay thank you",
-          "created": "2026-09-30T19:58:25.383167",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkyMTg3Mw==",
-            "pk": 921873,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_921873_92d2030a-e411-49bb-9042-1db1b3b4ddd3.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_921873_92d2030a-e411-49bb-9042-1db1b3b4ddd3.jpg",
-            "firstName": "Christopher",
-            "lastName": "Griffin",
-            "isActive": true,
-            "displayName": "Chris",
-            "padmateProfileId": 859343
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE4NjM1Mjc=",
-          "text": "Hi Chris, thank you for speaking with me over the phone. I already informed the owner about your request and I'm waiting for his feedback and final decision. I'll let you know once I receive a response from him.",
-          "created": "2026-09-30T00:08:40.894000",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Joe Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE4NTg5Mjg=",
-          "text": "Can you please contact me 9453496790",
-          "created": "2026-09-29T20:16:13.570976",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkyMTg3Mw==",
-            "pk": 921873,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_921873_92d2030a-e411-49bb-9042-1db1b3b4ddd3.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_921873_92d2030a-e411-49bb-9042-1db1b3b4ddd3.jpg",
-            "firstName": "Christopher",
-            "lastName": "Griffin",
-            "isActive": true,
-            "displayName": "Chris",
-            "padmateProfileId": 859343
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE4NTgzNDc=",
-          "text": "JB has moved out",
-          "created": "2026-09-29T19:49:49.425954",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkyMTg3Mw==",
-            "pk": 921873,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_921873_92d2030a-e411-49bb-9042-1db1b3b4ddd3.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_921873_92d2030a-e411-49bb-9042-1db1b3b4ddd3.jpg",
-            "firstName": "Christopher",
-            "lastName": "Griffin",
-            "isActive": true,
-            "displayName": "Chris",
-            "padmateProfileId": 859343
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE4NTgzMTM=",
-          "text": "JB had moved out yesterday. I don't know if he let you all know. I've been cleaning up the backyard the kitchen the both bathrooms. I'm also the second longest tenant here . I've been here since the ending of February",
-          "created": "2026-09-29T19:48:45.720688",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkyMTg3Mw==",
-            "pk": 921873,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_921873_92d2030a-e411-49bb-9042-1db1b3b4ddd3.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_921873_92d2030a-e411-49bb-9042-1db1b3b4ddd3.jpg",
-            "firstName": "Christopher",
-            "lastName": "Griffin",
-            "isActive": true,
-            "displayName": "Chris",
-            "padmateProfileId": 859343
           },
           "attachments": [],
           "reactions": [],
@@ -1532,7 +1554,7 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-10-11T15:43:37.427142",
+        "seenAt": "2026-10-12T15:37:28.452967",
         "isPinned": false,
         "isUnread": false
       },
@@ -7903,52 +7925,6 @@
   "tasks": {
     "Requests": [
       {
-        "id": 488561,
-        "status": "submitted",
-        "comment": null,
-        "category": "room-turn",
-        "media": [],
-        "created": "2026-10-11T15:06:38.749080",
-        "modified": "2026-10-11T15:06:39.415207",
-        "room_name": "A-3",
-        "room_number": 3,
-        "room_status": 3,
-        "room_code": "1234",
-        "location": "Room",
-        "details": "Collections",
-        "property_id": 5735,
-        "property_address": {
-          "id": 7379,
-          "street1": "3414 Pebbleshores Drive",
-          "street2": "",
-          "city": "Dallas",
-          "state": "TX",
-          "zip": "75241",
-          "city_slug": "dallas-tx"
-        },
-        "reported_by": {
-          "id": 921873,
-          "name": "Chris",
-          "role_id": 0,
-          "picture": "img/profiles/user_921873_92d2030a-e411-49bb-9042-1db1b3b4ddd3.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-10-11T15:06:38.751584",
-        "rating": null,
-        "extra_data": {
-          "user_id": 921873,
-          "occupancy_id": 275711,
-          "move_out_date": "2026-10-11"
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
-      },
-      {
         "id": 487371,
         "status": "submitted",
         "comment": null,
@@ -8634,6 +8610,54 @@
         "payment_plan_end_date": null,
         "payment_plan_reason_note": null
       }
+    ],
+    "Other": [
+      {
+        "id": 488561,
+        "status": "hold",
+        "comment": null,
+        "category": "room-turn",
+        "media": [],
+        "created": "2026-10-11T15:06:38.749080",
+        "modified": "2026-10-12T19:41:15.346282",
+        "room_name": "A-3",
+        "room_number": 3,
+        "room_status": 3,
+        "room_code": "1234",
+        "location": "Room",
+        "details": "Collections",
+        "property_id": 5735,
+        "property_address": {
+          "id": 7379,
+          "street1": "3414 Pebbleshores Drive",
+          "street2": "",
+          "city": "Dallas",
+          "state": "TX",
+          "zip": "75241",
+          "city_slug": "dallas-tx"
+        },
+        "reported_by": {
+          "id": 921873,
+          "name": "Chris",
+          "role_id": 0,
+          "picture": "img/profiles/user_921873_92d2030a-e411-49bb-9042-1db1b3b4ddd3.jpg"
+        },
+        "assigned_to": null,
+        "on_hold_reason": null,
+        "update_status_at": "2026-10-12T19:41:15.336791",
+        "rating": null,
+        "extra_data": {
+          "user_id": 921873,
+          "occupancy_id": 275711,
+          "move_out_date": "2026-10-11"
+        },
+        "has_reused_code": true,
+        "moveout_photos_count": 0,
+        "days_to_complete": null,
+        "is_on_payment_plan": true,
+        "payment_plan_end_date": "2026-10-12",
+        "payment_plan_reason_note": ""
+      }
     ]
   },
   "run_status": {
@@ -8643,9 +8667,9 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-10-12T09:48:26Z",
-    "started_at": "2026-10-12T09:48:11Z",
-    "finished_at": "2026-10-12T09:48:37Z",
+    "run_scraped_at": "2026-10-12T19:50:35Z",
+    "started_at": "2026-10-12T19:50:28Z",
+    "finished_at": "2026-10-12T19:50:46Z",
     "host": "runnervmmprz5",
     "counts": {
       "messages": 52,
@@ -8660,7 +8684,7 @@
     "sources": {
       "messages": {
         "state": "ok",
-        "scraped_at": "2026-10-12T09:48:26Z"
+        "scraped_at": "2026-10-12T19:50:35Z"
       },
       "stats": {
         "state": "degraded",
