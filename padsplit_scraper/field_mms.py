@@ -158,6 +158,20 @@ def sending_allowed() -> bool:
     return flag in {"1", "true", "yes"}
 
 
+def _skip_flag(name: str) -> bool:
+    return (os.getenv(name) or "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def mac_google_voice_skipped() -> bool:
+    """Set by run_field_mms.sh when uname is not Darwin or the Chrome profile is missing."""
+    return _skip_flag("FIELD_MMS_SKIP_GOOGLE_VOICE")
+
+
+def mac_messages_skipped() -> bool:
+    """Set by run_field_mms.sh when uname is not Darwin or Messages.app is missing."""
+    return _skip_flag("FIELD_MMS_SKIP_MESSAGES")
+
+
 class QuoTransportError(RuntimeError):
     """Quo HTTP send failed or is not configured. Never include the API key."""
 
@@ -729,12 +743,20 @@ def send_group_mms(body: str, recipients: Optional[Sequence[str]] = None) -> Non
     transport = resolve_field_mms_transport()
     chat_name = messages_chat_name() or FIELD_MMS_CHAT_NAME_DEFAULT
     if transport == "messages":
+        if mac_messages_skipped():
+            sys.stderr.write("[field-mms] Skipping Mac-only Messages.app\n")
+            raise RuntimeError("Mac-only Messages.app skipped; message was not sent")
         send_via_messages_chat(body, chat_name)
         return
     if transport == "quo":
         send_via_quo(body, quo_to)
         return
     if transport == "google_voice":
+        if mac_google_voice_skipped():
+            sys.stderr.write(
+                "[field-mms] Skipping Mac-only Google Voice/Playwright Chrome-profile fallback\n"
+            )
+            raise RuntimeError("Mac-only Google Voice/Playwright skipped; message was not sent")
         send_via_google_voice_chrome(body, group)
         return
     try:
@@ -742,17 +764,25 @@ def send_group_mms(body: str, recipients: Optional[Sequence[str]] = None) -> Non
         return
     except Exception:
         sys.stderr.write("[field-mms] Quo SMS failed; falling back to Google Voice\n")
-    try:
-        send_via_google_voice_chrome(body, group)
-        return
-    except GoogleVoiceChallenge:
+    if mac_google_voice_skipped():
         sys.stderr.write(
-            f"[field-mms] Google Voice challenge; falling back to Messages chat {chat_name}\n"
+            "[field-mms] Skipping Mac-only Google Voice/Playwright Chrome-profile fallback\n"
         )
-    except Exception:
-        sys.stderr.write(
-            f"[field-mms] Google Voice failed; falling back to Messages chat {chat_name}\n"
-        )
+    else:
+        try:
+            send_via_google_voice_chrome(body, group)
+            return
+        except GoogleVoiceChallenge:
+            sys.stderr.write(
+                f"[field-mms] Google Voice challenge; falling back to Messages chat {chat_name}\n"
+            )
+        except Exception:
+            sys.stderr.write(
+                f"[field-mms] Google Voice failed; falling back to Messages chat {chat_name}\n"
+            )
+    if mac_messages_skipped():
+        sys.stderr.write("[field-mms] Skipping Mac-only Messages.app\n")
+        raise RuntimeError("Mac-only Messages.app skipped; message was not sent")
     send_via_messages_chat(body, chat_name)
 
 
