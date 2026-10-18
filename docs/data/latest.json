@@ -1,6 +1,378 @@
 {
-  "scraped_at": "2026-10-18T11:45:49Z",
+  "scraped_at": "2026-10-18T14:52:59Z",
   "messages": [
+    {
+      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MTYwNDc4",
+      "title": "Michael Cook",
+      "chatType": "HOST_SUPPORT_CHAT",
+      "isArchived": false,
+      "occupancy": {
+        "id": "TWVzc2VuZ2VyT2NjdXBhbmN5VHlwZToxODc0NTE=",
+        "moveInDate": "2025-06-20",
+        "moveOutDate": "2026-10-18",
+        "conditionalEligibilityApplied": null,
+        "room": {
+          "pk": 25340,
+          "roomNumber": 5
+        },
+        "user": {
+          "picture": "img/profiles/user_723052_bee6568f-818c-4952-853b-482deb58a5c1.jpg",
+          "firstName": "Michael",
+          "lastName": "Cook",
+          "displayName": null
+        }
+      },
+      "property": {
+        "host": {
+          "firstName": "Tinghui",
+          "lastName": "Li",
+          "displayName": "",
+          "picture": ""
+        },
+        "description": "Move into a freshly renovated House today! Close to freeways, food, grocery and a bus station this spacious and newly renovated home is the perfect place to call home. \n\nThe kitchen comes equipped with a fridge, sink, oven, stovetop, as well as dishwasher, making it the perfect spot to whip up a meal or two.\n\nThe neighbourhood is near highways, food and public transit while still being quiet and safe and you won\u2019t be far from all Dallas has to offer.",
+        "address": {
+          "street1": "6623 Leana Avenue",
+          "street2": "",
+          "zip": "75241",
+          "city": {
+            "name": "Dallas",
+            "state": {
+              "name": "Texas"
+            }
+          }
+        }
+      },
+      "isCancelled": false,
+      "lastMessage": {
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIyNTAyNjg=",
+        "created": "2026-10-18T12:30:28.896006",
+        "text": null,
+        "deleted": null,
+        "extra": null,
+        "messageType": "TICKET_UPDATE",
+        "sender": {
+          "pk": 339595,
+          "firstName": "Tinghui",
+          "lastName": "Li",
+          "displayName": ""
+        },
+        "attachments": [],
+        "paymentExtensionStatus": null,
+        "ticketStatus": {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMjEzNzg1",
+          "created": "2026-10-18T12:30:28.903755",
+          "status": "SUBMITTED",
+          "canRate": false,
+          "ticket": {
+            "id": "491856",
+            "author": {
+              "firstName": "Michael",
+              "lastName": "Cook",
+              "id": "723052",
+              "displayName": null
+            },
+            "details": "safety-concern",
+            "location": "ROOM",
+            "status": "SUBMITTED",
+            "rating": null,
+            "comment": null,
+            "category": "ROOM_TURN",
+            "onHoldReason": null,
+            "withdrawReason": null
+          }
+        },
+        "bookingStatus": null
+      },
+      "member": {
+        "seenAt": "2026-10-09T20:44:51.759014",
+        "isPinned": false,
+        "isUnread": true
+      },
+      "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIyNTAyNjg=",
+          "text": null,
+          "created": "2026-10-18T12:30:28.896006",
+          "messageType": "TICKET_UPDATE",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
+            "pk": 339595,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Tinghui",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "",
+            "padmateProfileId": 278216
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMjEzNzg1",
+            "created": "2026-10-18T12:30:28.903755",
+            "status": "SUBMITTED",
+            "canRate": false,
+            "ticket": {
+              "id": "491856",
+              "author": {
+                "firstName": "Michael",
+                "lastName": "Cook",
+                "id": "723052",
+                "displayName": null
+              },
+              "details": "safety-concern",
+              "location": "ROOM",
+              "status": "SUBMITTED",
+              "rating": null,
+              "comment": null,
+              "category": "ROOM_TURN",
+              "onHoldReason": null,
+              "withdrawReason": null
+            }
+          },
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE5MTUwNDk=",
+          "text": "I understand, Michael. I appreciate you explaining the situation. Take the week you need to get things sorted out, and please keep me updated. Just let me know when you expect to be able to make the payment. Thank you for communicating with me.",
+          "created": "2026-10-01T22:26:20.735707",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Joe Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE5MTQ4NjI=",
+          "text": "I understand that, and I\u2019ve been in this position before and again I\u2019ve never been pressed like this\u2026.\n\nAnd all I need is another week. ",
+          "created": "2026-10-01T22:18:58.530786",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjcyMzA1Mg==",
+            "pk": 723052,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_723052_bee6568f-818c-4952-853b-482deb58a5c1.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_723052_bee6568f-818c-4952-853b-482deb58a5c1.jpg",
+            "firstName": "Michael",
+            "lastName": "Cook",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 660629
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE5MTQ4MzQ=",
+          "text": "I understand, Michael, and we\u2019re not trying to attack or single you out. We\u2019re just following up on the outstanding balance.\n\nI understand you need another week. Please let me know when you expect to make the payment. Thank you for keeping me updated.",
+          "created": "2026-10-01T22:17:57.329858",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Joe Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE5MTQ1OTY=",
+          "text": "Again been here for a year and now I feel as if I\u2019m being attacked. \n\nAnd with my stuff I can\u2019t find a storage unit for my stuff, I get paid next week, I just need another week to figure it out ",
+          "created": "2026-10-01T22:09:23.803535",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjcyMzA1Mg==",
+            "pk": 723052,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_723052_bee6568f-818c-4952-853b-482deb58a5c1.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_723052_bee6568f-818c-4952-853b-482deb58a5c1.jpg",
+            "firstName": "Michael",
+            "lastName": "Cook",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 660629
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE5MTQ1NTQ=",
+          "text": "Why am I being pressed all of a sudden? ",
+          "created": "2026-10-01T22:08:15.495208",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjcyMzA1Mg==",
+            "pk": 723052,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_723052_bee6568f-818c-4952-853b-482deb58a5c1.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_723052_bee6568f-818c-4952-853b-482deb58a5c1.jpg",
+            "firstName": "Michael",
+            "lastName": "Cook",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 660629
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE5MTI1NjQ=",
+          "text": "Thanks for the update, Michael. I appreciate you letting me know. Please send me a quick message once the payment has been made so I can confirm it on our end. Thank you!",
+          "created": "2026-10-01T20:56:43.439114",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Joe Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE5MTA5OTQ=",
+          "text": "It\u2019ll be paid today\u2026",
+          "created": "2026-10-01T19:54:34.604265",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjcyMzA1Mg==",
+            "pk": 723052,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_723052_bee6568f-818c-4952-853b-482deb58a5c1.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_723052_bee6568f-818c-4952-853b-482deb58a5c1.jpg",
+            "firstName": "Michael",
+            "lastName": "Cook",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 660629
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE5MTA2ODM=",
+          "text": "Hi Michael, I noticed that your rent payment has not come through yet.\n\nCan you please let me know what\u2019s going on and when I can expect the payment? I want to make sure we can get this sorted out quickly.\n\nPlease reply with an update when you can. Thank you.",
+          "created": "2026-10-01T19:40:38.886898",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Joe Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE4NDIxODc=",
+          "text": "Hi everyone! \ud83d\udc4b\n\nJust a friendly reminder to regularly clean and organize the refrigerator. Please remove any expired, spoiled, or unwanted food to help keep the fridge clean and prevent unpleasant odors and pests.\n\nOnce you\u2019ve cleaned it, please send us a clear photo of the inside of the refrigerator. We\u2019d like to check its condition and available space so we can determine the best way to place the labels/stickers.\n\nThank you for your help in keeping the shared areas clean and organized!",
+          "created": "2026-09-29T00:01:50.754677",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": true,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Joe Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        }
+      ]
+    },
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzY4NTIz",
       "title": "Jaia Adams",
@@ -62,9 +434,9 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-10-16T23:01:50.315359",
+        "seenAt": "2026-10-18T14:50:46.492725",
         "isPinned": false,
-        "isUnread": true
+        "isUnread": false
       },
       "recent_messages": [
         {
@@ -390,9 +762,9 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-10-17T22:45:07.801257",
+        "seenAt": "2026-10-18T14:49:36.084419",
         "isPinned": false,
-        "isUnread": true
+        "isUnread": false
       },
       "recent_messages": [
         {
@@ -2103,7 +2475,7 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-10-17T18:51:55.832954",
+        "seenAt": "2026-10-18T14:48:59.704037",
         "isPinned": false,
         "isUnread": false
       },
@@ -7708,72 +8080,6 @@
       }
     },
     {
-      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MTYwNDc4",
-      "title": "Michael Cook",
-      "chatType": "HOST_SUPPORT_CHAT",
-      "isArchived": false,
-      "occupancy": {
-        "id": "TWVzc2VuZ2VyT2NjdXBhbmN5VHlwZToxODc0NTE=",
-        "moveInDate": "2025-06-20",
-        "moveOutDate": "2026-10-18",
-        "conditionalEligibilityApplied": null,
-        "room": {
-          "pk": 25340,
-          "roomNumber": 5
-        },
-        "user": {
-          "picture": "img/profiles/user_723052_bee6568f-818c-4952-853b-482deb58a5c1.jpg",
-          "firstName": "Michael",
-          "lastName": "Cook",
-          "displayName": null
-        }
-      },
-      "property": {
-        "host": {
-          "firstName": "Tinghui",
-          "lastName": "Li",
-          "displayName": "",
-          "picture": ""
-        },
-        "description": "Move into a freshly renovated House today! Close to freeways, food, grocery and a bus station this spacious and newly renovated home is the perfect place to call home. \n\nThe kitchen comes equipped with a fridge, sink, oven, stovetop, as well as dishwasher, making it the perfect spot to whip up a meal or two.\n\nThe neighbourhood is near highways, food and public transit while still being quiet and safe and you won\u2019t be far from all Dallas has to offer.",
-        "address": {
-          "street1": "6623 Leana Avenue",
-          "street2": "",
-          "zip": "75241",
-          "city": {
-            "name": "Dallas",
-            "state": {
-              "name": "Texas"
-            }
-          }
-        }
-      },
-      "isCancelled": false,
-      "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTE5MTUwNDk=",
-        "created": "2026-10-01T22:26:20.735707",
-        "text": "I understand, Michael. I appreciate you explaining the situation. Take the week you need to get things sorted out, and please keep me updated. Just let me know when you expect to be able to make the payment. Thank you for communicating with me.",
-        "deleted": null,
-        "extra": null,
-        "messageType": "TEXT",
-        "sender": {
-          "pk": 318367,
-          "firstName": "Ang",
-          "lastName": "Li",
-          "displayName": "Joe Manager"
-        },
-        "attachments": [],
-        "paymentExtensionStatus": null,
-        "ticketStatus": null,
-        "bookingStatus": null
-      },
-      "member": {
-        "seenAt": "2026-10-09T20:44:51.759014",
-        "isPinned": false,
-        "isUnread": false
-      }
-    },
-    {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6NDI3MzMy",
       "title": "Timothy Napoleon",
       "chatType": "HOST_SUPPORT_CHAT",
@@ -8635,6 +8941,52 @@
   "tasks": {
     "Requests": [
       {
+        "id": 491856,
+        "status": "submitted",
+        "comment": null,
+        "category": "room-turn",
+        "media": [],
+        "created": "2026-10-18T12:30:28.830580",
+        "modified": "2026-10-18T12:30:28.830580",
+        "room_name": "A-5",
+        "room_number": 5,
+        "room_status": 3,
+        "room_code": "1234",
+        "location": "Room",
+        "details": "safety-concern",
+        "property_id": 7093,
+        "property_address": {
+          "id": 9235,
+          "street1": "6623 Leana Avenue",
+          "street2": "",
+          "city": "Dallas",
+          "state": "TX",
+          "zip": "75241",
+          "city_slug": "dallas-tx"
+        },
+        "reported_by": {
+          "id": 723052,
+          "name": "Michael Cook",
+          "role_id": 0,
+          "picture": "img/profiles/user_723052_bee6568f-818c-4952-853b-482deb58a5c1.jpg"
+        },
+        "assigned_to": null,
+        "on_hold_reason": null,
+        "update_status_at": "2026-10-18T12:30:28.830825",
+        "rating": null,
+        "extra_data": {
+          "user_id": 723052,
+          "occupancy_id": 187451,
+          "move_out_date": "2026-10-18"
+        },
+        "has_reused_code": true,
+        "moveout_photos_count": 0,
+        "days_to_complete": null,
+        "is_on_payment_plan": false,
+        "payment_plan_end_date": null,
+        "payment_plan_reason_note": null
+      },
+      {
         "id": 488561,
         "status": "submitted",
         "comment": null,
@@ -8676,9 +9028,9 @@
         "has_reused_code": true,
         "moveout_photos_count": 0,
         "days_to_complete": null,
-        "is_on_payment_plan": true,
-        "payment_plan_end_date": "2026-10-19",
-        "payment_plan_reason_note": ""
+        "is_on_payment_plan": false,
+        "payment_plan_end_date": null,
+        "payment_plan_reason_note": null
       },
       {
         "id": 490362,
@@ -9448,13 +9800,13 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-10-18T11:45:49Z",
-    "started_at": "2026-10-18T11:45:43Z",
-    "finished_at": "2026-10-18T11:45:59Z",
+    "run_scraped_at": "2026-10-18T14:52:59Z",
+    "started_at": "2026-10-18T14:52:53Z",
+    "finished_at": "2026-10-18T14:53:10Z",
     "host": "runnervm8k3b6",
     "counts": {
       "messages": 50,
-      "tasks": 17,
+      "tasks": 18,
       "rooms": 62,
       "properties": 9,
       "earnings_properties": 0
@@ -9465,7 +9817,7 @@
     "sources": {
       "messages": {
         "state": "ok",
-        "scraped_at": "2026-10-18T11:45:49Z"
+        "scraped_at": "2026-10-18T14:52:59Z"
       },
       "stats": {
         "state": "degraded",
