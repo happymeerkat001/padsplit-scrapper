@@ -769,9 +769,18 @@ def post_automations_discord(
     ship_to: str = "",
     token: Optional[str] = None,
     channel: Optional[str] = None,
+    guard: Optional[Callable[[str], str]] = None,
 ) -> Optional[Dict[str, Any]]:
-    """Post WATER_KEY_ORDER. Digit-free except ship_to. Do not use lock_codes.assert on the full text."""
-    safe = assert_water_key_order_safe(text, ship_to=ship_to)
+    """Post to #ai-automations.
+
+    The default guard is digit-free except ship_to. Callers that must keep a
+    ticket id and room number pass their own guard. Do not use
+    lock_codes.assert on the full text.
+    """
+    if guard is not None:
+        safe = guard(text)
+    else:
+        safe = assert_water_key_order_safe(text, ship_to=ship_to)
     token = token or (os.getenv("DISCORD_BOT_TOKEN") or "").strip()
     channel = channel or (
         (os.getenv("DISCORD_AUTOMATIONS_CHANNEL_ID") or "").strip()
