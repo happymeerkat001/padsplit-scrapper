@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-10-20T04:57:52Z",
+  "scraped_at": "2026-10-20T10:08:01Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzQ5NTcw",
@@ -4752,7 +4752,7 @@
             },
             "details": "My plastic spoons and forks are gone from last week",
             "location": "OTHER",
-            "status": "COMPLETED",
+            "status": "ARCHIVED",
             "rating": null,
             "comment": null,
             "category": "UNCLASSIFIED",
@@ -4840,7 +4840,7 @@
             },
             "details": "The caller reported that her new room access code was not working. She stated that she had been waiting for three hours and had not received a response from her host. Ticket submitted.",
             "location": "ROOM",
-            "status": "COMPLETED",
+            "status": "ARCHIVED",
             "rating": "A_1",
             "comment": null,
             "category": "LOCKS",
@@ -7472,94 +7472,6 @@
         "is_on_payment_plan": false,
         "payment_plan_end_date": null,
         "payment_plan_reason_note": null
-      },
-      {
-        "id": 483166,
-        "status": "completed",
-        "comment": null,
-        "category": "unclassified",
-        "media": [],
-        "created": "2026-10-01T02:03:29.820153",
-        "modified": "2026-10-12T20:59:43.460611",
-        "room_name": "",
-        "room_number": 6,
-        "room_status": 1,
-        "room_code": "1234",
-        "location": "Other",
-        "details": "My plastic spoons and forks are gone from last week",
-        "property_id": 20021,
-        "property_address": {
-          "id": 27496,
-          "street1": "1404 Pioneer Lane",
-          "street2": "",
-          "city": "Plano",
-          "state": "TX",
-          "zip": "75023",
-          "city_slug": "plano-tx"
-        },
-        "reported_by": {
-          "id": 607947,
-          "name": "Terius Cooper",
-          "role_id": 0,
-          "picture": "img/profiles/user_607947_210a3700-3cc6-4822-a454-f3a9c4f5f501.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-10-12T20:59:43.454949",
-        "rating": null,
-        "extra_data": {
-          "checklist": {}
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
-      },
-      {
-        "id": 487371,
-        "status": "completed",
-        "comment": null,
-        "category": "locks",
-        "media": [],
-        "created": "2026-10-09T04:13:03.942990",
-        "modified": "2026-10-12T20:13:13.852953",
-        "room_name": "",
-        "room_number": 7,
-        "room_status": 1,
-        "room_code": "2573",
-        "location": "Room",
-        "details": "The caller reported that her new room access code was not working. She stated that she had been waiting for three hours and had not received a response from her host. Ticket submitted.",
-        "property_id": 31523,
-        "property_address": {
-          "id": 42103,
-          "street1": "1025 Broken Crest",
-          "street2": "",
-          "city": "DeSoto",
-          "state": "TX",
-          "zip": "75115",
-          "city_slug": "desoto-tx"
-        },
-        "reported_by": {
-          "id": 662002,
-          "name": "Stacy Anaele",
-          "role_id": 0,
-          "picture": "img/profiles/user_662002_6204e573-6218-4db6-b856-c6e65e3f5975.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-10-12T20:12:24.430216",
-        "rating": 1,
-        "extra_data": {
-          "checklist": {}
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
       }
     ]
   },
@@ -7570,13 +7482,13 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-10-20T04:57:52Z",
-    "started_at": "2026-10-20T04:57:46Z",
-    "finished_at": "2026-10-20T04:58:02Z",
-    "host": "runnervm8k3b6",
+    "run_scraped_at": "2026-10-20T10:08:01Z",
+    "started_at": "2026-10-20T10:07:55Z",
+    "finished_at": "2026-10-20T10:08:12Z",
+    "host": "runnervmxehtw",
     "counts": {
       "messages": 50,
-      "tasks": 18,
+      "tasks": 16,
       "rooms": 62,
       "properties": 9,
       "earnings_properties": 0
@@ -7587,7 +7499,7 @@
     "sources": {
       "messages": {
         "state": "ok",
-        "scraped_at": "2026-10-20T04:57:52Z"
+        "scraped_at": "2026-10-20T10:08:01Z"
       },
       "stats": {
         "state": "degraded",
