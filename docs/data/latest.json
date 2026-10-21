@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-10-21T01:01:53Z",
+  "scraped_at": "2026-10-21T11:58:20Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6NDUwNzE0",
@@ -6901,50 +6901,6 @@
         "is_on_payment_plan": false,
         "payment_plan_end_date": null,
         "payment_plan_reason_note": null
-      },
-      {
-        "id": 483154,
-        "status": "completed",
-        "comment": null,
-        "category": "unclassified",
-        "media": [],
-        "created": "2026-10-01T01:11:50.457615",
-        "modified": "2026-10-13T21:52:39.372159",
-        "room_name": "",
-        "room_number": 3,
-        "room_status": 1,
-        "room_code": "1234",
-        "location": "Kitchen",
-        "details": "someone is eating food they didn\u2019t purchase and using silverware they didn\u2019t purchase, we need a camera in the kitchen  apparently because someone doesn\u2019t know how to be a normal adult who doesn\u2019t steal",
-        "property_id": 20021,
-        "property_address": {
-          "id": 27496,
-          "street1": "1404 Pioneer Lane",
-          "street2": "",
-          "city": "Plano",
-          "state": "TX",
-          "zip": "75023",
-          "city_slug": "plano-tx"
-        },
-        "reported_by": {
-          "id": 1209743,
-          "name": "Mark Renic",
-          "role_id": 0,
-          "picture": "img/profiles/user_1209743_796805ed-3577-4485-8d88-1e54fe41adc9.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-10-13T21:52:30.650240",
-        "rating": null,
-        "extra_data": {
-          "checklist": {}
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
       }
     ]
   },
@@ -6955,13 +6911,13 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-10-21T01:01:53Z",
-    "started_at": "2026-10-21T01:01:48Z",
-    "finished_at": "2026-10-21T01:02:05Z",
+    "run_scraped_at": "2026-10-21T11:58:20Z",
+    "started_at": "2026-10-21T11:58:12Z",
+    "finished_at": "2026-10-21T11:58:30Z",
     "host": "runnervm8k3b6",
     "counts": {
       "messages": 50,
-      "tasks": 17,
+      "tasks": 16,
       "rooms": 62,
       "properties": 9,
       "earnings_properties": 0
@@ -6972,7 +6928,7 @@
     "sources": {
       "messages": {
         "state": "ok",
-        "scraped_at": "2026-10-21T01:01:53Z"
+        "scraped_at": "2026-10-21T11:58:20Z"
       },
       "stats": {
         "state": "degraded",
