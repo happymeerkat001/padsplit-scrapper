@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-10-22T04:57:25Z",
+  "scraped_at": "2026-10-22T10:16:27Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzYxNDQy",
@@ -4118,7 +4118,7 @@
             },
             "details": "Screen needed on window",
             "location": "ROOM",
-            "status": "COMPLETED",
+            "status": "ARCHIVED",
             "rating": null,
             "comment": null,
             "category": "UNCLASSIFIED",
@@ -4206,7 +4206,7 @@
             },
             "details": "My bedroom door will not lock after departure from the room. I have trouble keeping it shut when inside the room. I am in room 2.",
             "location": "DOORLOCK",
-            "status": "COMPLETED",
+            "status": "ARCHIVED",
             "rating": null,
             "comment": null,
             "category": "UNCLASSIFIED",
@@ -7021,204 +7021,6 @@
         "is_on_payment_plan": false,
         "payment_plan_end_date": null,
         "payment_plan_reason_note": null
-      },
-      {
-        "id": 471349,
-        "status": "completed",
-        "comment": null,
-        "category": "room-turn",
-        "media": [],
-        "created": "2026-09-08T08:01:38.536900",
-        "modified": "2026-10-14T20:33:56.687141",
-        "room_name": "",
-        "room_number": 2,
-        "room_status": 2,
-        "room_code": "6512",
-        "location": "Room",
-        "details": "Collections",
-        "property_id": 8840,
-        "property_address": {
-          "id": 11718,
-          "street1": "2516 Sylvia Street",
-          "street2": "",
-          "city": "Dallas",
-          "state": "TX",
-          "zip": "75241",
-          "city_slug": "dallas-tx"
-        },
-        "reported_by": {
-          "id": 515273,
-          "name": "Kerry Matthews",
-          "role_id": 0,
-          "picture": "img/profiles/user_515273_8c23827c-7d4f-46ee-b8de-cd3d3acc8931.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-10-14T20:33:56.655973",
-        "rating": null,
-        "extra_data": {
-          "user_id": 515273,
-          "checklist": {
-            "ensure_room_is_sanitized": true
-          },
-          "occupancy_id": 332290,
-          "move_out_date": "2026-09-08",
-          "move_out_details": null,
-          "is_present_after_move_out": false
-        },
-        "has_reused_code": false,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
-      },
-      {
-        "id": 483360,
-        "status": "completed",
-        "comment": null,
-        "category": "room-turn",
-        "media": [],
-        "created": "2026-10-01T12:33:38.036606",
-        "modified": "2026-10-14T20:30:23.941604",
-        "room_name": "",
-        "room_number": 5,
-        "room_status": 2,
-        "room_code": "5410",
-        "location": "Room",
-        "details": "moving-to-a-new-home",
-        "property_id": 8840,
-        "property_address": {
-          "id": 11718,
-          "street1": "2516 Sylvia Street",
-          "street2": "",
-          "city": "Dallas",
-          "state": "TX",
-          "zip": "75241",
-          "city_slug": "dallas-tx"
-        },
-        "reported_by": {
-          "id": 448210,
-          "name": "Tyrone Parker",
-          "role_id": 0,
-          "picture": "img/profiles/user_448210_194fb865-68e8-4684-b99e-790ff082f633.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-10-14T20:30:14.581170",
-        "rating": null,
-        "extra_data": {
-          "user_id": 448210,
-          "checklist": {
-            "ensure_room_is_sanitized": true
-          },
-          "occupancy_id": 131731,
-          "move_out_date": "2026-10-01",
-          "move_out_quiz": {
-            "Do you have a physical key to your room?": "No, I don\u2019t have a key to my room"
-          }
-        },
-        "has_reused_code": false,
-        "moveout_photos_count": 3,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
-      },
-      {
-        "id": 485200,
-        "status": "completed",
-        "comment": null,
-        "category": "unclassified",
-        "media": [
-          {
-            "id": 161159,
-            "location": "img/tickets/ticket_485200_0.jpg",
-            "category": "default",
-            "media_type": "image"
-          }
-        ],
-        "created": "2026-10-05T05:16:27.909468",
-        "modified": "2026-10-14T18:09:42.219880",
-        "room_name": "",
-        "room_number": 7,
-        "room_status": 1,
-        "room_code": "1234",
-        "location": "Room",
-        "details": "Screen needed on window",
-        "property_id": 9369,
-        "property_address": {
-          "id": 12545,
-          "street1": "3406 Green Hill Drive",
-          "street2": "",
-          "city": "Arlington",
-          "state": "TX",
-          "zip": "76014",
-          "city_slug": "arlington-tx"
-        },
-        "reported_by": {
-          "id": 743600,
-          "name": "Lindzie Ross",
-          "role_id": 0,
-          "picture": "img/profiles/user_743600_fdc599e2-a99c-4bde-bf30-a05fa3e79d20.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-10-14T18:09:42.214337",
-        "rating": null,
-        "extra_data": {
-          "checklist": {}
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
-      },
-      {
-        "id": 483970,
-        "status": "completed",
-        "comment": null,
-        "category": "unclassified",
-        "media": [],
-        "created": "2026-10-02T15:34:57.542848",
-        "modified": "2026-10-14T17:43:52.457581",
-        "room_name": "",
-        "room_number": 2,
-        "room_status": 1,
-        "room_code": "1234",
-        "location": "Doorlock",
-        "details": "My bedroom door will not lock after departure from the room. I have trouble keeping it shut when inside the room. I am in room 2.",
-        "property_id": 9369,
-        "property_address": {
-          "id": 12545,
-          "street1": "3406 Green Hill Drive",
-          "street2": "",
-          "city": "Arlington",
-          "state": "TX",
-          "zip": "76014",
-          "city_slug": "arlington-tx"
-        },
-        "reported_by": {
-          "id": 196954,
-          "name": "Jennifer Clemons",
-          "role_id": 0,
-          "picture": "img/profiles/user_196954_909e88e5-985d-466d-a415-acbf2b9116b4.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-10-14T17:43:52.451298",
-        "rating": null,
-        "extra_data": {
-          "checklist": {}
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
       }
     ]
   },
@@ -7229,13 +7031,13 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-10-22T04:57:25Z",
-    "started_at": "2026-10-22T04:57:19Z",
-    "finished_at": "2026-10-22T04:57:37Z",
+    "run_scraped_at": "2026-10-22T10:16:27Z",
+    "started_at": "2026-10-22T10:16:23Z",
+    "finished_at": "2026-10-22T10:16:37Z",
     "host": "runnervmxehtw",
     "counts": {
       "messages": 50,
-      "tasks": 16,
+      "tasks": 12,
       "rooms": 62,
       "properties": 9,
       "earnings_properties": 0
@@ -7246,7 +7048,7 @@
     "sources": {
       "messages": {
         "state": "ok",
-        "scraped_at": "2026-10-22T04:57:25Z"
+        "scraped_at": "2026-10-22T10:16:27Z"
       },
       "stats": {
         "state": "degraded",
