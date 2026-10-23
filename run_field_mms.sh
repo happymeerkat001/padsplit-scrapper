@@ -1,16 +1,21 @@
-#!/usr/bin/env zsh
-set -euo pipefail
-
+#!/usr/bin/env bash
 # Daily Don-field Quo SMS blast (Don + Dad + Ang GV, one group). Morning 7:00am CT only.
 # Hard clock guard: America/Chicago hour > 7 exits 0 (no afternoon/evening blast).
 # Hour < 7 is the prior-day catch-up path. Launchd is Hour=7 only.
-# Primary transport is Quo SMS (QUO_API_KEY); GV / Messages are fallbacks.
-# Not live until this branch is merged and this Mac has pulled + installed the LaunchAgent.
-# Do not run from GitHub Actions.
+# Primary transport is Quo SMS (QUO_API_KEY). Google Voice and Messages.app are
+# Mac fallbacks and are skipped when uname is not Darwin or their paths are missing.
+# bash or zsh. Do not run from GitHub Actions.
+set -euo pipefail
 
-WORKSPACE="/Users/leon/Documents/Code/padsplit-scraper"
-VENV="$WORKSPACE/venv/bin/python3"
-LOCK_DIR="/private/tmp/padsplit-field-mms.lock"
+_padsplit_self=$0
+case "$_padsplit_self" in
+  /*) ;;
+  *) _padsplit_self=$(pwd)/$_padsplit_self ;;
+esac
+PADSPLIT_SCRIPT_DIR=$(CDPATH= cd -- "$(dirname "$_padsplit_self")" && pwd -P)
+# shellcheck source=scripts/run_common.sh
+. "$PADSPLIT_SCRIPT_DIR/scripts/run_common.sh"
+padsplit_bootstrap "padsplit-field-mms.lock"
 
 if [ -n "${GITHUB_ACTIONS:-}" ] || [ -n "${CI:-}" ]; then
   echo "[$(date)] CI must not send MMS; exiting"
@@ -23,23 +28,11 @@ if [ "$CT_HOUR" -gt 7 ]; then
   exit 0
 fi
 
-acquire_lock() {
-  if mkdir "$LOCK_DIR" 2>/dev/null; then
-    printf '%s\n' "$$" > "$LOCK_DIR/pid"
-    return 0
-  fi
-  echo "[$(date)] Field MMS already in progress; skipping"
-  return 1
-}
+padsplit_note_mac_only_field_mms
 
-release_lock() {
-  rm -f "$LOCK_DIR/pid" 2>/dev/null || true
-  rmdir "$LOCK_DIR" 2>/dev/null || true
-}
-
-acquire_lock || exit 0
-trap release_lock EXIT
+padsplit_acquire_lock "Field MMS" || exit 0
+trap padsplit_release_lock EXIT
 
 echo "[$(date)] Starting field MMS window"
-"$VENV" "$WORKSPACE/padsplit_scraper/field_mms.py"
+"$PYTHON" "$WORKSPACE/padsplit_scraper/field_mms.py"
 echo "[$(date)] Field MMS window complete"
