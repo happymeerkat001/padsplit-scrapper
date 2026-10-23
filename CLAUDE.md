@@ -29,6 +29,7 @@ python3 thermostat/scraper.py
 # Lockout auto-reply runs from morning/afternoon + scraper (LOCKOUT_REPLY_ENABLE; CI no-op)
 # Leak auto-reply runs from morning/afternoon + scraper (LEAK_REPLY_ENABLE; CI no-op)
 # Leak alert Bland calls stay off until LEAK_ALERT_ENABLE=1 and LEAK_ALERT_DRY_RUN=0 (CI no-op)
+# Leak ticket triage runs from the scraper after fetch_tasks (LEAK_TICKET_ALERT_ENABLE; default off; CI no-op; dry-run on)
 # Frontload booking/listing webhook runs from the scraper (FRONTLOAD_WEBHOOK_ENABLE; default off, dry-run on).
 # Sends use runtime.send_enabled("frontload"): also needs PADSPLIT_ENABLE_ACTION_HOOKS and not collection-only.
 # Collection-only jobs skip and do not touch the ledger. Mac launchd owns live POST. CI must not POST.
@@ -63,6 +64,7 @@ python3 test_codes_history.py
 python3 test_codes_dashboard.py
 python3 test_lockout_reply.py
 python3 test_leak_reply.py
+python3 tests/test_leak_ticket.py
 python3 test_leak_alert.py
 python3 test_quo_sender.py
 python3 test_leak_alert_bland.py
@@ -129,6 +131,7 @@ No build step or linter configuration; tests use direct Python execution.
 - `padsplit_scraper/lock_codes.py` — Spanish Moss back-door Sifely lock-code v1 (Mac morning/afternoon; CI must not rotate or post)
 - `padsplit_scraper/lockout_reply.py` — member lockout auto-SEND on PadSplit when house/room are 100% known: door codes first, lockbox only after a door-fail follow-up; got-it / I’m in / code-worked after door stops the ladder (Mac; `LOCKOUT_REPLY_ENABLE`; CI must not send). Spanish Moss back door uses Sifely, never Firestore static. Discord posts never include codes or digits.
 - `padsplit_scraper/leak_reply.py` — member water-leak auto-SEND on PadSplit for active water emergencies only (burst / pipe / main / flooding / wall-ceiling). Slow leak, drip, seepage, and toilet-only cases do not fire (no curb-key shutoff). Body is a 1:1 adaptation of Firestore `templates/shared` t5 (Water leak announcement) plus Quo; baked t5 fallback. Emits `WATER_KEY_ORDER` on `#ai-automations` for Cart (house + full ship-to; digit-free except address). No Amazon purchase here. Default off until Mac `.env` sets `LEAK_REPLY_ENABLE=1`. CI must not send. Discord posts never include codes. Nest interim-handles until enable is live.
+- `padsplit_scraper/leak_ticket.py` — triage-only Discord `LEAK_TICKET` for new or open maintenance tickets whose details or location match `detect_ticket_leak` (broader than `detect_leak`, including bare "leaked"). Uses the tasks from `fetch_tasks()`. No tenant auto-reply, shutoff pack, texts, or Bland calls. House street label, room, category, and ticket id only. Default off until `LEAK_TICKET_ALERT_ENABLE=1`. CI no-op. `LEAK_ALERT_DRY_RUN` defaults on and writes `logs/leak_ticket_preview.jsonl` instead of posting.
 - `slack_task_digest.py` — scheduled DFW weather and task digest, posts to Discord
 - `padsplit_scraper/firestore_status_monitor.py` — Firestore integration
 - `obsidian_daily_digest.py` — daily note generation from scraped data
@@ -163,7 +166,8 @@ DISCORD_AUTOMATIONS_CHANNEL_ID= # optional #ai-automations; lockout drafts + lea
 LOCKOUT_REPLY_ENABLE=          # default off; Mac .env sets 1 to auto-SEND lockout door then lockbox
 LEAK_REPLY_ENABLE=             # default off; Mac .env sets 1 to auto-SEND water-leak shut-off pack + WATER_KEY_ORDER
 LEAK_ALERT_ENABLE=             # default off. Live Bland also needs LEAK_ALERT_DRY_RUN=0
-LEAK_ALERT_DRY_RUN=            # default on. Set 0 to allow Bland POST and result Quo
+LEAK_ALERT_DRY_RUN=            # default on. Set 0 to allow Bland POST, result Quo, and live LEAK_TICKET Discord
+LEAK_TICKET_ALERT_ENABLE=      # default off. Triage Discord only for new/open maintenance tickets. CI no-op. Live post also needs LEAK_ALERT_DRY_RUN=0
 LEAK_ALERT_DON_E164=
 LEAK_ALERT_TOM_E164=
 LEAK_ALERT_GROUP_E164S=
