@@ -1,6 +1,400 @@
 {
-  "scraped_at": "2026-10-24T23:20:01Z",
+  "scraped_at": "2026-10-25T01:43:15Z",
   "messages": [
+    {
+      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzA1Mzk4",
+      "title": "Chris Griffin",
+      "chatType": "HOST_SUPPORT_CHAT",
+      "isArchived": false,
+      "occupancy": {
+        "id": "TWVzc2VuZ2VyT2NjdXBhbmN5VHlwZToyNzU3MTE=",
+        "moveInDate": "2026-03-13",
+        "moveOutDate": null,
+        "conditionalEligibilityApplied": null,
+        "room": {
+          "pk": 21176,
+          "roomNumber": 3
+        },
+        "user": {
+          "picture": "img/profiles/user_921873_92d2030a-e411-49bb-9042-1db1b3b4ddd3.jpg",
+          "firstName": "Christopher",
+          "lastName": "Griffin",
+          "displayName": "Chris"
+        }
+      },
+      "property": {
+        "host": {
+          "firstName": "Tinghui",
+          "lastName": "Li",
+          "displayName": "",
+          "picture": ""
+        },
+        "description": "Your new home awaits! This cozy Dallas home is waiting for you. This PadSplit has a Backyard and Dining area, and is newly-renovated and cozy.\n\nThis home has a full kitchen, onsite laundry and parking and is very commutable close to public transit and multiple highways.  Located right between I35E, I45 and I20.\n\nThe neighborhood is quiet, which means you won\u2019t be far from all Dallas has to offer.\nThe image on satellite is a few years old and please come and see the house by yourself before you make any judgement.",
+        "address": {
+          "street1": "3414 Pebbleshores Drive",
+          "street2": "",
+          "zip": "75241",
+          "city": {
+            "name": "Dallas",
+            "state": {
+              "name": "Texas"
+            }
+          }
+        }
+      },
+      "isCancelled": false,
+      "lastMessage": {
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIzODY2MDg=",
+        "created": "2026-10-24T23:27:06.735325",
+        "text": "Yes I paid. Padsplit sent me a message",
+        "deleted": null,
+        "extra": null,
+        "messageType": "TEXT",
+        "sender": {
+          "pk": 921873,
+          "firstName": "Christopher",
+          "lastName": "Griffin",
+          "displayName": "Chris"
+        },
+        "attachments": [],
+        "paymentExtensionStatus": null,
+        "ticketStatus": null,
+        "bookingStatus": null
+      },
+      "member": {
+        "seenAt": "2026-10-22T15:40:24.856614",
+        "isPinned": false,
+        "isUnread": true
+      },
+      "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIzODY2MDg=",
+          "text": "Yes I paid. Padsplit sent me a message",
+          "created": "2026-10-24T23:27:06.735325",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkyMTg3Mw==",
+            "pk": 921873,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_921873_92d2030a-e411-49bb-9042-1db1b3b4ddd3.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_921873_92d2030a-e411-49bb-9042-1db1b3b4ddd3.jpg",
+            "firstName": "Christopher",
+            "lastName": "Griffin",
+            "isActive": true,
+            "displayName": "Chris",
+            "padmateProfileId": 859343
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIzODY1NDM=",
+          "text": null,
+          "created": "2026-10-24T23:23:25.033014",
+          "messageType": "TICKET_UPDATE",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
+            "pk": 339595,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Tinghui",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "",
+            "padmateProfileId": 278216
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMjI0NTk2",
+            "created": "2026-10-24T23:23:25.040740",
+            "status": "WITHDRAWN",
+            "canRate": false,
+            "ticket": {
+              "id": "488561",
+              "author": {
+                "firstName": "Christopher",
+                "lastName": "Griffin",
+                "id": "921873",
+                "displayName": "Chris"
+              },
+              "details": "Collections",
+              "location": "ROOM",
+              "status": "WITHDRAWN",
+              "rating": null,
+              "comment": null,
+              "category": "ROOM_TURN",
+              "onHoldReason": null,
+              "withdrawReason": null
+            }
+          },
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIyMjcyNTU=",
+          "text": "I opened the payment portal and saw that you already paid. Thanks!",
+          "created": "2026-10-17T00:09:05.633393",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Joe Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIyMjY4NjA=",
+          "text": "I'm not able to pay my bill. I",
+          "created": "2026-10-16T23:47:02.632540",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkyMTg3Mw==",
+            "pk": 921873,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_921873_92d2030a-e411-49bb-9042-1db1b3b4ddd3.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_921873_92d2030a-e411-49bb-9042-1db1b3b4ddd3.jpg",
+            "firstName": "Christopher",
+            "lastName": "Griffin",
+            "isActive": true,
+            "displayName": "Chris",
+            "padmateProfileId": 859343
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIyMjY4NTY=",
+          "text": "I'm trying to pay my bill now",
+          "created": "2026-10-16T23:46:33.826299",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkyMTg3Mw==",
+            "pk": 921873,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_921873_92d2030a-e411-49bb-9042-1db1b3b4ddd3.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_921873_92d2030a-e411-49bb-9042-1db1b3b4ddd3.jpg",
+            "firstName": "Christopher",
+            "lastName": "Griffin",
+            "isActive": true,
+            "displayName": "Chris",
+            "padmateProfileId": 859343
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIyMjY4NTU=",
+          "text": null,
+          "created": "2026-10-16T23:46:21.695031",
+          "messageType": "TICKET_UPDATE",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
+            "pk": 339595,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Tinghui",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "",
+            "padmateProfileId": 278216
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMjEyMDgz",
+            "created": "2026-10-16T23:46:21.701489",
+            "status": "HOLD",
+            "canRate": false,
+            "ticket": {
+              "id": "488561",
+              "author": {
+                "firstName": "Christopher",
+                "lastName": "Griffin",
+                "id": "921873",
+                "displayName": "Chris"
+              },
+              "details": "Collections",
+              "location": "ROOM",
+              "status": "WITHDRAWN",
+              "rating": null,
+              "comment": null,
+              "category": "ROOM_TURN",
+              "onHoldReason": null,
+              "withdrawReason": null
+            }
+          },
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIyMjY3NTU=",
+          "text": "I just put the money on my card to pay",
+          "created": "2026-10-16T23:40:26.843501",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkyMTg3Mw==",
+            "pk": 921873,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_921873_92d2030a-e411-49bb-9042-1db1b3b4ddd3.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_921873_92d2030a-e411-49bb-9042-1db1b3b4ddd3.jpg",
+            "firstName": "Christopher",
+            "lastName": "Griffin",
+            "isActive": true,
+            "displayName": "Chris",
+            "padmateProfileId": 859343
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIxMzM0OTQ=",
+          "text": "So much",
+          "created": "2026-10-12T21:07:00.122092",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkyMTg3Mw==",
+            "pk": 921873,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_921873_92d2030a-e411-49bb-9042-1db1b3b4ddd3.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_921873_92d2030a-e411-49bb-9042-1db1b3b4ddd3.jpg",
+            "firstName": "Christopher",
+            "lastName": "Griffin",
+            "isActive": true,
+            "displayName": "Chris",
+            "padmateProfileId": 859343
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIxMzM0OTI=",
+          "text": "Ok thanks again so",
+          "created": "2026-10-12T21:06:53.537221",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkyMTg3Mw==",
+            "pk": 921873,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_921873_92d2030a-e411-49bb-9042-1db1b3b4ddd3.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_921873_92d2030a-e411-49bb-9042-1db1b3b4ddd3.jpg",
+            "firstName": "Christopher",
+            "lastName": "Griffin",
+            "isActive": true,
+            "displayName": "Chris",
+            "padmateProfileId": 859343
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIxMzE1ODQ=",
+          "text": null,
+          "created": "2026-10-12T19:41:15.363636",
+          "messageType": "TICKET_UPDATE",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
+            "pk": 339595,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Tinghui",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "",
+            "padmateProfileId": 278216
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMjA1MjE3",
+            "created": "2026-10-12T19:41:15.367830",
+            "status": "HOLD",
+            "canRate": false,
+            "ticket": {
+              "id": "488561",
+              "author": {
+                "firstName": "Christopher",
+                "lastName": "Griffin",
+                "id": "921873",
+                "displayName": "Chris"
+              },
+              "details": "Collections",
+              "location": "ROOM",
+              "status": "WITHDRAWN",
+              "rating": null,
+              "comment": null,
+              "category": "ROOM_TURN",
+              "onHoldReason": null,
+              "withdrawReason": null
+            }
+          },
+          "bookingStatus": null
+        }
+      ]
+    },
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6NDE0MzYz",
       "title": "Kyree Evans",
@@ -5219,72 +5613,6 @@
       }
     },
     {
-      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzA1Mzk4",
-      "title": "Chris Griffin",
-      "chatType": "HOST_SUPPORT_CHAT",
-      "isArchived": false,
-      "occupancy": {
-        "id": "TWVzc2VuZ2VyT2NjdXBhbmN5VHlwZToyNzU3MTE=",
-        "moveInDate": "2026-03-13",
-        "moveOutDate": "2026-10-11",
-        "conditionalEligibilityApplied": null,
-        "room": {
-          "pk": 21176,
-          "roomNumber": 3
-        },
-        "user": {
-          "picture": "img/profiles/user_921873_92d2030a-e411-49bb-9042-1db1b3b4ddd3.jpg",
-          "firstName": "Christopher",
-          "lastName": "Griffin",
-          "displayName": "Chris"
-        }
-      },
-      "property": {
-        "host": {
-          "firstName": "Tinghui",
-          "lastName": "Li",
-          "displayName": "",
-          "picture": ""
-        },
-        "description": "Your new home awaits! This cozy Dallas home is waiting for you. This PadSplit has a Backyard and Dining area, and is newly-renovated and cozy.\n\nThis home has a full kitchen, onsite laundry and parking and is very commutable close to public transit and multiple highways.  Located right between I35E, I45 and I20.\n\nThe neighborhood is quiet, which means you won\u2019t be far from all Dallas has to offer.\nThe image on satellite is a few years old and please come and see the house by yourself before you make any judgement.",
-        "address": {
-          "street1": "3414 Pebbleshores Drive",
-          "street2": "",
-          "zip": "75241",
-          "city": {
-            "name": "Dallas",
-            "state": {
-              "name": "Texas"
-            }
-          }
-        }
-      },
-      "isCancelled": false,
-      "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIyMjcyNTU=",
-        "created": "2026-10-17T00:09:05.633393",
-        "text": "I opened the payment portal and saw that you already paid. Thanks!",
-        "deleted": null,
-        "extra": null,
-        "messageType": "TEXT",
-        "sender": {
-          "pk": 318367,
-          "firstName": "Ang",
-          "lastName": "Li",
-          "displayName": "Joe Manager"
-        },
-        "attachments": [],
-        "paymentExtensionStatus": null,
-        "ticketStatus": null,
-        "bookingStatus": null
-      },
-      "member": {
-        "seenAt": "2026-10-22T15:40:24.856614",
-        "isPinned": false,
-        "isUnread": false
-      }
-    },
-    {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzkwOTc3",
       "title": "Aaron Magness",
       "chatType": "HOST_SUPPORT_CHAT",
@@ -7589,52 +7917,6 @@
         "payment_plan_reason_note": null
       },
       {
-        "id": 488561,
-        "status": "submitted",
-        "comment": null,
-        "category": "room-turn",
-        "media": [],
-        "created": "2026-10-11T15:06:38.749080",
-        "modified": "2026-10-16T23:48:17.902302",
-        "room_name": "A-3",
-        "room_number": 3,
-        "room_status": 3,
-        "room_code": "1234",
-        "location": "Room",
-        "details": "Collections",
-        "property_id": 5735,
-        "property_address": {
-          "id": 7379,
-          "street1": "3414 Pebbleshores Drive",
-          "street2": "",
-          "city": "Dallas",
-          "state": "TX",
-          "zip": "75241",
-          "city_slug": "dallas-tx"
-        },
-        "reported_by": {
-          "id": 921873,
-          "name": "Chris",
-          "role_id": 0,
-          "picture": "img/profiles/user_921873_92d2030a-e411-49bb-9042-1db1b3b4ddd3.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-10-16T23:48:17.839266",
-        "rating": null,
-        "extra_data": {
-          "user_id": 921873,
-          "occupancy_id": 275711,
-          "move_out_date": "2026-10-11"
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": false,
-        "payment_plan_end_date": null,
-        "payment_plan_reason_note": null
-      },
-      {
         "id": 490362,
         "status": "submitted",
         "comment": null,
@@ -8075,13 +8357,13 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-10-24T23:20:01Z",
-    "started_at": "2026-10-24T23:19:55Z",
-    "finished_at": "2026-10-24T23:20:12Z",
+    "run_scraped_at": "2026-10-25T01:43:15Z",
+    "started_at": "2026-10-25T01:43:06Z",
+    "finished_at": "2026-10-25T01:43:25Z",
     "host": "runnervmtai0g",
     "counts": {
       "messages": 50,
-      "tasks": 14,
+      "tasks": 13,
       "rooms": 62,
       "properties": 9,
       "earnings_properties": 0
@@ -8092,7 +8374,7 @@
     "sources": {
       "messages": {
         "state": "ok",
-        "scraped_at": "2026-10-24T23:20:01Z"
+        "scraped_at": "2026-10-25T01:43:15Z"
       },
       "stats": {
         "state": "degraded",
