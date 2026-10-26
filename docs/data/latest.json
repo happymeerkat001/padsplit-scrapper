@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-10-26T11:33:49Z",
+  "scraped_at": "2026-10-26T17:39:28Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzYxNDQy",
@@ -44,9 +44,9 @@
       },
       "isCancelled": false,
       "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTI0MDcwNDk=",
-        "created": "2026-10-26T11:03:40.501889",
-        "text": "Good morning, is there a time frame for delivery of the refrigerator today?",
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTI0MTI4MzY=",
+        "created": "2026-10-26T15:36:53.170903",
+        "text": "Thank you Joseph, two technicians just came by to adjust the thermostat. I\u2019ll let you know how the adjustments go. ",
         "deleted": null,
         "extra": null,
         "messageType": "TEXT",
@@ -62,11 +62,37 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-10-23T22:37:32.201249",
+        "seenAt": "2026-10-26T15:56:31.033229",
         "isPinned": false,
-        "isUnread": true
+        "isUnread": false
       },
       "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTI0MTI4MzY=",
+          "text": "Thank you Joseph, two technicians just came by to adjust the thermostat. I\u2019ll let you know how the adjustments go. ",
+          "created": "2026-10-26T15:36:53.170903",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkxMTIyNg==",
+            "pk": 911226,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_911226_ad3e5aff-96a6-4362-a21a-8cab4464471a.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_911226_ad3e5aff-96a6-4362-a21a-8cab4464471a.jpg",
+            "firstName": "Marianne",
+            "lastName": "Fried",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 848697
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
         {
           "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTI0MDcwNDk=",
           "text": "Good morning, is there a time frame for delivery of the refrigerator today?",
@@ -300,26 +326,372 @@
           "paymentExtensionStatus": null,
           "ticketStatus": null,
           "bookingStatus": null
+        }
+      ]
+    },
+    {
+      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6NDE0MzYz",
+      "title": "Kyree Evans",
+      "chatType": "HOST_SUPPORT_CHAT",
+      "isArchived": false,
+      "occupancy": {
+        "id": "TWVzc2VuZ2VyT2NjdXBhbmN5VHlwZTozNDY2NDg=",
+        "moveInDate": "2026-08-15",
+        "moveOutDate": "2026-10-26",
+        "conditionalEligibilityApplied": null,
+        "room": {
+          "pk": 31133,
+          "roomNumber": 6
+        },
+        "user": {
+          "picture": "img/profiles/user_1192505_b70aeb80-88f4-43c2-82e4-c9725b94f1a3.jpg",
+          "firstName": "Kyree",
+          "lastName": "Evans",
+          "displayName": null
+        }
+      },
+      "property": {
+        "host": {
+          "firstName": "Tinghui",
+          "lastName": "Li",
+          "displayName": "",
+          "picture": ""
+        },
+        "description": "Enjoy living in a comfortable House. This beautiful home is decorated with modern touches while providing the basic necessities. All that\u2019s missing is you!\n\nThe kitchen is equipped with a fridge, sink, oven, stovetop, as well as upgraded appliances. It\u2019s the perfect spot for you to cook at home and save money.\n\nThe surrounding location is near grocery stores, making it the perfect place to call home.",
+        "address": {
+          "street1": "2516 Sylvia Street",
+          "street2": "",
+          "zip": "75241",
+          "city": {
+            "name": "Dallas",
+            "state": {
+              "name": "Texas"
+            }
+          }
+        }
+      },
+      "isCancelled": false,
+      "lastMessage": {
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTI0MTIyMDA=",
+        "created": "2026-10-26T15:18:05.256124",
+        "text": null,
+        "deleted": null,
+        "extra": null,
+        "messageType": "TICKET_UPDATE",
+        "sender": {
+          "pk": 339595,
+          "firstName": "Tinghui",
+          "lastName": "Li",
+          "displayName": ""
+        },
+        "attachments": [],
+        "paymentExtensionStatus": null,
+        "ticketStatus": {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMjI2Njgx",
+          "created": "2026-10-26T15:18:05.264182",
+          "status": "SUBMITTED",
+          "canRate": false,
+          "ticket": {
+            "id": "496082",
+            "author": {
+              "firstName": "Kyree",
+              "lastName": "Evans",
+              "id": "1192505",
+              "displayName": null
+            },
+            "details": "Collections",
+            "location": "ROOM",
+            "status": "SUBMITTED",
+            "rating": null,
+            "comment": null,
+            "category": "ROOM_TURN",
+            "onHoldReason": null,
+            "withdrawReason": null
+          }
+        },
+        "bookingStatus": null
+      },
+      "member": {
+        "seenAt": "2026-10-26T16:53:51.636520",
+        "isPinned": false,
+        "isUnread": false
+      },
+      "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTI0MTIyMDA=",
+          "text": null,
+          "created": "2026-10-26T15:18:05.256124",
+          "messageType": "TICKET_UPDATE",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
+            "pk": 339595,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Tinghui",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "",
+            "padmateProfileId": 278216
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": {
+            "id": "TWVzc2VuZ2VyTWVzc2FnZVRpY2tldFN0YXR1czoxMjI2Njgx",
+            "created": "2026-10-26T15:18:05.264182",
+            "status": "SUBMITTED",
+            "canRate": false,
+            "ticket": {
+              "id": "496082",
+              "author": {
+                "firstName": "Kyree",
+                "lastName": "Evans",
+                "id": "1192505",
+                "displayName": null
+              },
+              "details": "Collections",
+              "location": "ROOM",
+              "status": "SUBMITTED",
+              "rating": null,
+              "comment": null,
+              "category": "ROOM_TURN",
+              "onHoldReason": null,
+              "withdrawReason": null
+            }
+          },
+          "bookingStatus": null
         },
         {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIyNzAyNTc=",
-          "text": "Ok, I\u2019ll tell the others  to expect them.,",
-          "created": "2026-10-19T14:20:00.731150",
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIzODIwNTg=",
+          "text": "Okay thank you ",
+          "created": "2026-10-24T18:30:48.144329",
           "messageType": "TEXT",
           "deleted": null,
           "isBroadcast": false,
           "extra": null,
           "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjkxMTIyNg==",
-            "pk": 911226,
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjExOTI1MDU=",
+            "pk": 1192505,
             "roleId": "A_0",
-            "picture": "img/profiles/user_911226_ad3e5aff-96a6-4362-a21a-8cab4464471a.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_911226_ad3e5aff-96a6-4362-a21a-8cab4464471a.jpg",
-            "firstName": "Marianne",
-            "lastName": "Fried",
+            "picture": "img/profiles/user_1192505_b70aeb80-88f4-43c2-82e4-c9725b94f1a3.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1192505_b70aeb80-88f4-43c2-82e4-c9725b94f1a3.jpg",
+            "firstName": "Kyree",
+            "lastName": "Evans",
             "isActive": true,
             "displayName": null,
-            "padmateProfileId": 848697
+            "padmateProfileId": 1129347
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIzODIwMjg=",
+          "text": "Hi Kyree, thanks for explaining. I understand that your first paycheck was lower because you were still in orientation. Please go ahead with your payments today and tonight as planned, and keep me updated on the amounts paid. Once your balance is down to $299, please let me know so I can review your extension request. Please keep in mind that the extension is subject to approval. Thank you for keeping me informed.",
+          "created": "2026-10-24T18:29:16.970402",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Joe Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIzNzg1MjM=",
+          "text": "Hey I was asking about a extension. My first check wasn\u2019t all that due to it being my orientation but I will be paying on it today and tn to get it down 299",
+          "created": "2026-10-24T15:37:26.398491",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjExOTI1MDU=",
+            "pk": 1192505,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_1192505_b70aeb80-88f4-43c2-82e4-c9725b94f1a3.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1192505_b70aeb80-88f4-43c2-82e4-c9725b94f1a3.jpg",
+            "firstName": "Kyree",
+            "lastName": "Evans",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 1129347
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIyMjIwMDE=",
+          "text": "Thank you",
+          "created": "2026-10-16T19:58:45.121524",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjExOTI1MDU=",
+            "pk": 1192505,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_1192505_b70aeb80-88f4-43c2-82e4-c9725b94f1a3.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1192505_b70aeb80-88f4-43c2-82e4-c9725b94f1a3.jpg",
+            "firstName": "Kyree",
+            "lastName": "Evans",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 1129347
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIxOTY3Mjc=",
+          "text": "Hey Kyree, thank you for letting me know and for making an effort to put something towards it. I appreciate you keeping me updated. I can give you an extension until next Friday, when you receive your first paycheck. Please keep me updated, and thank you for communicating with me.",
+          "created": "2026-10-15T19:18:26.092805",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Joe Manager",
+            "padmateProfileId": 257098
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIxODQxOTI=",
+          "text": "Hey I wanted to let you know I am putting something towards it and I start Amazon today and my first paycheck come next Friday. I just wanna ask for a extension if it okay.",
+          "created": "2026-10-15T03:05:37.758743",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjExOTI1MDU=",
+            "pk": 1192505,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_1192505_b70aeb80-88f4-43c2-82e4-c9725b94f1a3.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1192505_b70aeb80-88f4-43c2-82e4-c9725b94f1a3.jpg",
+            "firstName": "Kyree",
+            "lastName": "Evans",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 1129347
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIxNTE3OTU=",
+          "text": "No",
+          "created": "2026-10-13T20:21:52.585259",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjExOTI1MDU=",
+            "pk": 1192505,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_1192505_b70aeb80-88f4-43c2-82e4-c9725b94f1a3.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1192505_b70aeb80-88f4-43c2-82e4-c9725b94f1a3.jpg",
+            "firstName": "Kyree",
+            "lastName": "Evans",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 1129347
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIxNDU5NTI=",
+          "text": "Is there a T-Mobile synchronize box in the house? Please let me know. Thanks",
+          "created": "2026-10-13T16:03:11.902643",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": true,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
+            "pk": 339595,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Tinghui",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "",
+            "padmateProfileId": 278216
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIwOTg3MDY=",
+          "text": "Thanks for providing me the photo of your smart lock. Is it working? Do you still have any concerns?",
+          "created": "2026-10-10T22:22:04.482178",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
+            "pk": 318367,
+            "roleId": "A_1",
+            "picture": "",
+            "preferredPicture": null,
+            "firstName": "Ang",
+            "lastName": "Li",
+            "isActive": true,
+            "displayName": "Joe Manager",
+            "padmateProfileId": 257098
           },
           "attachments": [],
           "reactions": [],
@@ -390,7 +762,7 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-10-25T23:23:25.373821",
+        "seenAt": "2026-10-26T13:52:06.328890",
         "isPinned": false,
         "isUnread": false
       },
@@ -724,342 +1096,6 @@
       ]
     },
     {
-      "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6NDE0MzYz",
-      "title": "Kyree Evans",
-      "chatType": "HOST_SUPPORT_CHAT",
-      "isArchived": false,
-      "occupancy": {
-        "id": "TWVzc2VuZ2VyT2NjdXBhbmN5VHlwZTozNDY2NDg=",
-        "moveInDate": "2026-08-15",
-        "moveOutDate": null,
-        "conditionalEligibilityApplied": null,
-        "room": {
-          "pk": 31133,
-          "roomNumber": 6
-        },
-        "user": {
-          "picture": "img/profiles/user_1192505_b70aeb80-88f4-43c2-82e4-c9725b94f1a3.jpg",
-          "firstName": "Kyree",
-          "lastName": "Evans",
-          "displayName": null
-        }
-      },
-      "property": {
-        "host": {
-          "firstName": "Tinghui",
-          "lastName": "Li",
-          "displayName": "",
-          "picture": ""
-        },
-        "description": "Enjoy living in a comfortable House. This beautiful home is decorated with modern touches while providing the basic necessities. All that\u2019s missing is you!\n\nThe kitchen is equipped with a fridge, sink, oven, stovetop, as well as upgraded appliances. It\u2019s the perfect spot for you to cook at home and save money.\n\nThe surrounding location is near grocery stores, making it the perfect place to call home.",
-        "address": {
-          "street1": "2516 Sylvia Street",
-          "street2": "",
-          "zip": "75241",
-          "city": {
-            "name": "Dallas",
-            "state": {
-              "name": "Texas"
-            }
-          }
-        }
-      },
-      "isCancelled": false,
-      "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIzODIwNTg=",
-        "created": "2026-10-24T18:30:48.144329",
-        "text": "Okay thank you ",
-        "deleted": null,
-        "extra": null,
-        "messageType": "TEXT",
-        "sender": {
-          "pk": 1192505,
-          "firstName": "Kyree",
-          "lastName": "Evans",
-          "displayName": null
-        },
-        "attachments": [],
-        "paymentExtensionStatus": null,
-        "ticketStatus": null,
-        "bookingStatus": null
-      },
-      "member": {
-        "seenAt": "2026-10-24T18:58:13.099505",
-        "isPinned": false,
-        "isUnread": false
-      },
-      "recent_messages": [
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIzODIwNTg=",
-          "text": "Okay thank you ",
-          "created": "2026-10-24T18:30:48.144329",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjExOTI1MDU=",
-            "pk": 1192505,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_1192505_b70aeb80-88f4-43c2-82e4-c9725b94f1a3.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1192505_b70aeb80-88f4-43c2-82e4-c9725b94f1a3.jpg",
-            "firstName": "Kyree",
-            "lastName": "Evans",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 1129347
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIzODIwMjg=",
-          "text": "Hi Kyree, thanks for explaining. I understand that your first paycheck was lower because you were still in orientation. Please go ahead with your payments today and tonight as planned, and keep me updated on the amounts paid. Once your balance is down to $299, please let me know so I can review your extension request. Please keep in mind that the extension is subject to approval. Thank you for keeping me informed.",
-          "created": "2026-10-24T18:29:16.970402",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Joe Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIzNzg1MjM=",
-          "text": "Hey I was asking about a extension. My first check wasn\u2019t all that due to it being my orientation but I will be paying on it today and tn to get it down 299",
-          "created": "2026-10-24T15:37:26.398491",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjExOTI1MDU=",
-            "pk": 1192505,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_1192505_b70aeb80-88f4-43c2-82e4-c9725b94f1a3.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1192505_b70aeb80-88f4-43c2-82e4-c9725b94f1a3.jpg",
-            "firstName": "Kyree",
-            "lastName": "Evans",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 1129347
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIyMjIwMDE=",
-          "text": "Thank you",
-          "created": "2026-10-16T19:58:45.121524",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjExOTI1MDU=",
-            "pk": 1192505,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_1192505_b70aeb80-88f4-43c2-82e4-c9725b94f1a3.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1192505_b70aeb80-88f4-43c2-82e4-c9725b94f1a3.jpg",
-            "firstName": "Kyree",
-            "lastName": "Evans",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 1129347
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIxOTY3Mjc=",
-          "text": "Hey Kyree, thank you for letting me know and for making an effort to put something towards it. I appreciate you keeping me updated. I can give you an extension until next Friday, when you receive your first paycheck. Please keep me updated, and thank you for communicating with me.",
-          "created": "2026-10-15T19:18:26.092805",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Joe Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIxODQxOTI=",
-          "text": "Hey I wanted to let you know I am putting something towards it and I start Amazon today and my first paycheck come next Friday. I just wanna ask for a extension if it okay.",
-          "created": "2026-10-15T03:05:37.758743",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjExOTI1MDU=",
-            "pk": 1192505,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_1192505_b70aeb80-88f4-43c2-82e4-c9725b94f1a3.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1192505_b70aeb80-88f4-43c2-82e4-c9725b94f1a3.jpg",
-            "firstName": "Kyree",
-            "lastName": "Evans",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 1129347
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIxNTE3OTU=",
-          "text": "No",
-          "created": "2026-10-13T20:21:52.585259",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjExOTI1MDU=",
-            "pk": 1192505,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_1192505_b70aeb80-88f4-43c2-82e4-c9725b94f1a3.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1192505_b70aeb80-88f4-43c2-82e4-c9725b94f1a3.jpg",
-            "firstName": "Kyree",
-            "lastName": "Evans",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 1129347
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIxNDU5NTI=",
-          "text": "Is there a T-Mobile synchronize box in the house? Please let me know. Thanks",
-          "created": "2026-10-13T16:03:11.902643",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": true,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMzOTU5NQ==",
-            "pk": 339595,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Tinghui",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "",
-            "padmateProfileId": 278216
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIwOTg3MDY=",
-          "text": "Thanks for providing me the photo of your smart lock. Is it working? Do you still have any concerns?",
-          "created": "2026-10-10T22:22:04.482178",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjMxODM2Nw==",
-            "pk": 318367,
-            "roleId": "A_1",
-            "picture": "",
-            "preferredPicture": null,
-            "firstName": "Ang",
-            "lastName": "Li",
-            "isActive": true,
-            "displayName": "Joe Manager",
-            "padmateProfileId": 257098
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIwODU4MDk=",
-          "text": "",
-          "created": "2026-10-10T05:18:04.183116",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjExOTI1MDU=",
-            "pk": 1192505,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_1192505_b70aeb80-88f4-43c2-82e4-c9725b94f1a3.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1192505_b70aeb80-88f4-43c2-82e4-c9725b94f1a3.jpg",
-            "firstName": "Kyree",
-            "lastName": "Evans",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 1129347
-          },
-          "attachments": [
-            {
-              "id": "TWVzc2VuZ2VyQXR0YWNobWVudFR5cGU6OTcyMDM4",
-              "deleted": null,
-              "mediaType": "PICTURE",
-              "location": "img/chat/message/attachments/message_12085809_dd2f31de-835b-4c27-8ef5-93c412d24a5a.jpg",
-              "filename": "image.jpg"
-            }
-          ],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
-        }
-      ]
-    },
-    {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MjYzMTA3",
       "title": "Roshawn Porter",
       "chatType": "HOST_SUPPORT_CHAT",
@@ -1142,7 +1178,7 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-10-24T18:48:17.242344",
+        "seenAt": "2026-10-26T15:51:59.992067",
         "isPinned": false,
         "isUnread": false
       },
@@ -1536,7 +1572,7 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-10-24T18:29:38.464231",
+        "seenAt": "2026-10-26T13:56:21.223564",
         "isPinned": false,
         "isUnread": false
       },
@@ -4657,7 +4693,7 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-10-23T21:51:25.192730",
+        "seenAt": "2026-10-26T16:54:48.268536",
         "isPinned": false,
         "isUnread": false
       },
@@ -6663,7 +6699,7 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-10-19T19:18:17.531323",
+        "seenAt": "2026-10-26T15:50:26.283199",
         "isPinned": false,
         "isUnread": false
       }
@@ -6993,7 +7029,7 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-10-19T18:56:47.660115",
+        "seenAt": "2026-10-26T15:49:31.214872",
         "isPinned": false,
         "isUnread": false
       }
@@ -7728,6 +7764,52 @@
   "tasks": {
     "Requests": [
       {
+        "id": 496082,
+        "status": "submitted",
+        "comment": null,
+        "category": "room-turn",
+        "media": [],
+        "created": "2026-10-26T15:18:05.225032",
+        "modified": "2026-10-26T15:18:05.634415",
+        "room_name": "",
+        "room_number": 6,
+        "room_status": 3,
+        "room_code": "2516",
+        "location": "Room",
+        "details": "Collections",
+        "property_id": 8840,
+        "property_address": {
+          "id": 11718,
+          "street1": "2516 Sylvia Street",
+          "street2": "",
+          "city": "Dallas",
+          "state": "TX",
+          "zip": "75241",
+          "city_slug": "dallas-tx"
+        },
+        "reported_by": {
+          "id": 1192505,
+          "name": "Kyree Evans",
+          "role_id": 0,
+          "picture": "img/profiles/user_1192505_b70aeb80-88f4-43c2-82e4-c9725b94f1a3.jpg"
+        },
+        "assigned_to": null,
+        "on_hold_reason": null,
+        "update_status_at": "2026-10-26T15:18:05.227167",
+        "rating": null,
+        "extra_data": {
+          "user_id": 1192505,
+          "occupancy_id": 346648,
+          "move_out_date": "2026-10-26"
+        },
+        "has_reused_code": true,
+        "moveout_photos_count": 0,
+        "days_to_complete": null,
+        "is_on_payment_plan": false,
+        "payment_plan_end_date": null,
+        "payment_plan_reason_note": null
+      },
+      {
         "id": 495076,
         "status": "submitted",
         "comment": null,
@@ -8357,13 +8439,13 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-10-26T11:33:49Z",
-    "started_at": "2026-10-26T11:33:42Z",
-    "finished_at": "2026-10-26T11:34:01Z",
+    "run_scraped_at": "2026-10-26T17:39:28Z",
+    "started_at": "2026-10-26T17:39:21Z",
+    "finished_at": "2026-10-26T17:39:40Z",
     "host": "runnervmtai0g",
     "counts": {
       "messages": 50,
-      "tasks": 13,
+      "tasks": 14,
       "rooms": 62,
       "properties": 9,
       "earnings_properties": 0
@@ -8374,7 +8456,7 @@
     "sources": {
       "messages": {
         "state": "ok",
-        "scraped_at": "2026-10-26T11:33:49Z"
+        "scraped_at": "2026-10-26T17:39:28Z"
       },
       "stats": {
         "state": "degraded",
