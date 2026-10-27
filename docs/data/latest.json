@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-10-27T06:51:35Z",
+  "scraped_at": "2026-10-27T13:17:45Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6MzY4NTIz",
@@ -44,17 +44,17 @@
       },
       "isCancelled": false,
       "lastMessage": {
-        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTI0MjIzNjI=",
-        "created": "2026-10-26T22:09:14.016935",
-        "text": "Hi Jaia, I wanted to check if you have already moved out of the property. If so, please send us photos of the room after you\u2019ve removed your belongings. Also, our records show that you still have an outstanding balance of $760. Please let us know when you plan to settle the remaining balance. Thank you.",
+        "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTI0Mjk1MjY=",
+        "created": "2026-10-27T12:21:02.351065",
+        "text": "I\u2019m sorry I don\u2019t think I will be able to take a picture. I didn\u2019t know I would have to do that but I\u2019m not even in Texas right now. And I\u2019m not sure when I\u2019ll be able to pay but it will be soon. ",
         "deleted": null,
         "extra": null,
         "messageType": "TEXT",
         "sender": {
-          "pk": 318367,
-          "firstName": "Ang",
-          "lastName": "Li",
-          "displayName": "Joe Manager"
+          "pk": 1144732,
+          "firstName": "Jaia",
+          "lastName": "Adams",
+          "displayName": null
         },
         "attachments": [],
         "paymentExtensionStatus": null,
@@ -62,11 +62,37 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-10-26T22:09:16.620441",
+        "seenAt": "2026-10-27T13:09:12.605912",
         "isPinned": false,
         "isUnread": false
       },
       "recent_messages": [
+        {
+          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTI0Mjk1MjY=",
+          "text": "I\u2019m sorry I don\u2019t think I will be able to take a picture. I didn\u2019t know I would have to do that but I\u2019m not even in Texas right now. And I\u2019m not sure when I\u2019ll be able to pay but it will be soon. ",
+          "created": "2026-10-27T12:21:02.351065",
+          "messageType": "TEXT",
+          "deleted": null,
+          "isBroadcast": false,
+          "extra": null,
+          "sender": {
+            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjExNDQ3MzI=",
+            "pk": 1144732,
+            "roleId": "A_0",
+            "picture": "img/profiles/user_1144732_39fd9394-11ee-425e-98bf-efac89c7a932.jpg",
+            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1144732_39fd9394-11ee-425e-98bf-efac89c7a932.jpg",
+            "firstName": "Jaia",
+            "lastName": "Adams",
+            "isActive": true,
+            "displayName": null,
+            "padmateProfileId": 1081698
+          },
+          "attachments": [],
+          "reactions": [],
+          "paymentExtensionStatus": null,
+          "ticketStatus": null,
+          "bookingStatus": null
+        },
         {
           "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTI0MjIzNjI=",
           "text": "Hi Jaia, I wanted to check if you have already moved out of the property. If so, please send us photos of the room after you\u2019ve removed your belongings. Also, our records show that you still have an outstanding balance of $760. Please let us know when you plan to settle the remaining balance. Thank you.",
@@ -322,32 +348,6 @@
           "paymentExtensionStatus": null,
           "ticketStatus": null,
           "bookingStatus": null
-        },
-        {
-          "id": "TWVzc2VuZ2VyTWVzc2FnZVR5cGU6MTIyNTQzMjk=",
-          "text": "Okay ",
-          "created": "2026-10-18T15:38:50.852989",
-          "messageType": "TEXT",
-          "deleted": null,
-          "isBroadcast": false,
-          "extra": null,
-          "sender": {
-            "id": "TWVzc2VuZ2VyUGFydGljaXBhbnRUeXBlOjExNDQ3MzI=",
-            "pk": 1144732,
-            "roleId": "A_0",
-            "picture": "img/profiles/user_1144732_39fd9394-11ee-425e-98bf-efac89c7a932.jpg",
-            "preferredPicture": "https://www.padsplit.com/img/profiles/user_1144732_39fd9394-11ee-425e-98bf-efac89c7a932.jpg",
-            "firstName": "Jaia",
-            "lastName": "Adams",
-            "isActive": true,
-            "displayName": null,
-            "padmateProfileId": 1081698
-          },
-          "attachments": [],
-          "reactions": [],
-          "paymentExtensionStatus": null,
-          "ticketStatus": null,
-          "bookingStatus": null
         }
       ]
     },
@@ -434,7 +434,7 @@
         "bookingStatus": null
       },
       "member": {
-        "seenAt": "2026-10-26T21:51:32.791182",
+        "seenAt": "2026-10-27T13:11:57.903713",
         "isPinned": false,
         "isUnread": false
       },
@@ -8105,9 +8105,9 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-10-27T06:51:35Z",
-    "started_at": "2026-10-27T06:51:29Z",
-    "finished_at": "2026-10-27T06:51:46Z",
+    "run_scraped_at": "2026-10-27T13:17:45Z",
+    "started_at": "2026-10-27T13:17:40Z",
+    "finished_at": "2026-10-27T13:17:56Z",
     "host": "runnervmtai0g",
     "counts": {
       "messages": 50,
@@ -8122,7 +8122,7 @@
     "sources": {
       "messages": {
         "state": "ok",
-        "scraped_at": "2026-10-27T06:51:35Z"
+        "scraped_at": "2026-10-27T13:17:45Z"
       },
       "stats": {
         "state": "degraded",
