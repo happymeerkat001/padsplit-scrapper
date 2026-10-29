@@ -1,37 +1,27 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
+# Monthly PadSplit SEO / vacancy advice. 9:00am CT on the 1st via launchd or systemd.
+# Do not run from GitHub Actions. Does not change prices or Instant Book.
+# bash or zsh. Workspace defaults to this script's directory.
 set -euo pipefail
 
-# Monthly PadSplit SEO / vacancy advice. 9:00am CT on the 1st via launchd.
-# Not live until this branch is merged and this Mac has pulled + installed the LaunchAgent.
-# Do not run from GitHub Actions. Does not change prices or Instant Book.
-# Chief Grok Bot cron fallback stays until this LaunchAgent is loaded.
-
-WORKSPACE="/Users/leon/Documents/Code/padsplit-scraper"
-VENV="$WORKSPACE/venv/bin/python3"
-LOCK_DIR="/private/tmp/padsplit-seo-monthly.lock"
+_padsplit_self=$0
+case "$_padsplit_self" in
+  /*) ;;
+  *) _padsplit_self=$(pwd)/$_padsplit_self ;;
+esac
+PADSPLIT_SCRIPT_DIR=$(CDPATH= cd -- "$(dirname "$_padsplit_self")" && pwd -P)
+# shellcheck source=scripts/run_common.sh
+. "$PADSPLIT_SCRIPT_DIR/scripts/run_common.sh"
+padsplit_bootstrap "padsplit-seo-monthly.lock"
 
 if [ -n "${GITHUB_ACTIONS:-}" ] || [ -n "${CI:-}" ]; then
   echo "[$(date)] CI must not Discord-post SEO monthly; exiting"
   exit 0
 fi
 
-acquire_lock() {
-  if mkdir "$LOCK_DIR" 2>/dev/null; then
-    printf '%s\n' "$$" > "$LOCK_DIR/pid"
-    return 0
-  fi
-  echo "[$(date)] SEO monthly already in progress; skipping"
-  return 1
-}
-
-release_lock() {
-  rm -f "$LOCK_DIR/pid" 2>/dev/null || true
-  rmdir "$LOCK_DIR" 2>/dev/null || true
-}
-
-acquire_lock || exit 0
-trap release_lock EXIT
+padsplit_acquire_lock "SEO monthly" || exit 0
+trap padsplit_release_lock EXIT
 
 echo "[$(date)] Starting monthly SEO / vacancy advice"
-"$VENV" "$WORKSPACE/padsplit_scraper/seo_monthly.py"
+"$PYTHON" "$WORKSPACE/padsplit_scraper/seo_monthly.py"
 echo "[$(date)] Monthly SEO / vacancy advice complete"

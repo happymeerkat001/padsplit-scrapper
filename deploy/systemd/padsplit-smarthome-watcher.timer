@@ -1,0 +1,11 @@
+# Hourly on the America/Chicago hour. A whole-hour offset matches UTC :00 as well.
+[Unit]
+Description=PadSplit SmartHome watcher timer
+
+[Timer]
+OnCalendar=*-*-* *:00:00 America/Chicago
+Persistent=true
+Unit=padsplit-smarthome-watcher.service
+
+[Install]
+WantedBy=timers.target

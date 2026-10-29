@@ -20,11 +20,14 @@ source venv/bin/activate
 python3 padsplit_scraper/scraper.py
 python3 thermostat/scraper.py
 
-# Scheduled runs (also commit/push rolling output to git)
+# Scheduled runs (also commit/push rolling output to git unless PADSPLIT_NO_PUSH=1)
 ./run_morning.sh      # padsplit + thermostat
 ./run_afternoon.sh    # padsplit only
 ./run_field_mms.sh    # Don+Dad+Ang GV Quo group SMS blast (morning 7am CT only; skip if both sources empty)
 ./run_seo_monthly.sh  # monthly SEO / vacancy advice (1st 9:00am CT; CI must not post)
+# Linux systemd examples: deploy/systemd/ (see README "Running on a Linux server").
+# Shadow: PADSPLIT_NO_PUSH=1 and leave every *_ENABLE unset so nothing sends.
+# Mac launchd defaults are unchanged when those overrides are unset.
 # Spanish Moss back-door lock codes run from morning/afternoon (Mac only; CI no-op)
 # Lockout auto-reply runs from morning/afternoon + scraper (LOCKOUT_REPLY_ENABLE; CI no-op)
 # Leak auto-reply runs from morning/afternoon + scraper (LEAK_REPLY_ENABLE; CI no-op)
@@ -66,6 +69,7 @@ python3 test_leak_reply.py
 python3 test_leak_alert.py
 python3 test_quo_sender.py
 python3 test_leak_alert_bland.py
+python3 test_run_scripts_portable.py
 ```
 
 No build step or linter configuration; tests use direct Python execution.
