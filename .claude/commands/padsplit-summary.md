@@ -12,5 +12,6 @@ set -a && source .env && set +a
 
 - `message_summarizer.py` sends latest messages to MiniMax AI, posts urgent summary to `DISCORD_WEBHOOK_MESSAGES`.
 - `slack_task_digest.py` fetches DFW weather + formats tasks digest, posts to `DISCORD_WEBHOOK_TASKS`. Weather only included during 5-9 CT.
+- Counts-only dry run (does not post, no tenant names, codes, or amounts): `./venv/bin/python3 slack_task_digest.py --dry-run`
 
 Print stdout/stderr verbatim. Do not reformat. Report non-zero exits with exact error output.

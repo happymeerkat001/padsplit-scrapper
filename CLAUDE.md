@@ -32,6 +32,9 @@ python3 thermostat/scraper.py
 # Frontload booking/listing webhook runs from the scraper (FRONTLOAD_WEBHOOK_ENABLE; default off, dry-run on).
 # Sends use runtime.send_enabled("frontload"): also needs PADSPLIT_ENABLE_ACTION_HOOKS and not collection-only.
 # Collection-only jobs skip and do not touch the ledger. Mac launchd owns live POST. CI must not POST.
+
+# Task digest counts only (no Discord post, no tenant names, codes, or amounts)
+python3 slack_task_digest.py --dry-run
 ```
 
 ## Tests
@@ -129,7 +132,7 @@ No build step or linter configuration; tests use direct Python execution.
 - `padsplit_scraper/lock_codes.py` — Spanish Moss back-door Sifely lock-code v1 (Mac morning/afternoon; CI must not rotate or post)
 - `padsplit_scraper/lockout_reply.py` — member lockout auto-SEND on PadSplit when house/room are 100% known: door codes first, lockbox only after a door-fail follow-up; got-it / I’m in / code-worked after door stops the ladder (Mac; `LOCKOUT_REPLY_ENABLE`; CI must not send). Spanish Moss back door uses Sifely, never Firestore static. Discord posts never include codes or digits.
 - `padsplit_scraper/leak_reply.py` — member water-leak auto-SEND on PadSplit for active water emergencies only (burst / pipe / main / flooding / wall-ceiling). Slow leak, drip, seepage, and toilet-only cases do not fire (no curb-key shutoff). Body is a 1:1 adaptation of Firestore `templates/shared` t5 (Water leak announcement) plus Quo; baked t5 fallback. Emits `WATER_KEY_ORDER` on `#ai-automations` for Cart (house + full ship-to; digit-free except address). No Amazon purchase here. Default off until Mac `.env` sets `LEAK_REPLY_ENABLE=1`. CI must not send. Discord posts never include codes. Nest interim-handles until enable is live.
-- `slack_task_digest.py` — scheduled DFW weather and task digest, posts to Discord
+- `slack_task_digest.py` — DFW weather and task digest for Discord `#ai-tasks-temp` (`DISCORD_WEBHOOK_TASKS`). The PadSplit scrape workflow posts it once during 05:00–07:59 America/Chicago after a successful scrape. `docs/data/task_digest_ledger.json` stores that Chicago date (no ticket text) so later scrapes skip. The 11:00 UTC Discord Digests workflow is the backup and skips when the ledger already shows today. Counts-only preview: `python3 slack_task_digest.py --dry-run` (no post; no tenant names, codes, or amounts). Morning list buckets stay Requests and Open.
 - `padsplit_scraper/firestore_status_monitor.py` — Firestore integration
 - `obsidian_daily_digest.py` — daily note generation from scraped data
 - `smarthome/` — MSmartHome window-AC CLI (`python3 -m smarthome`) and watcher (`python3 -m smarthome.watcher`). Reads Honeywell `schedules.json` as data only.
