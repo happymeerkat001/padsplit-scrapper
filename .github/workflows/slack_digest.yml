@@ -1,15 +1,24 @@
 name: Discord Digests
 
+# Backup for the morning scrape post (scrape.yml, 05:00–07:59 America/Chicago).
+# slack_task_digest.py skips when docs/data/task_digest_ledger.json already
+# records today's Chicago date. This cron stays at 11:00 UTC.
+
 on:
   schedule:
     - cron: "0 11 * * *"
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   task-digest:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
 
       - uses: actions/setup-python@v5
         with:
@@ -28,3 +37,22 @@ jobs:
         env:
           DISCORD_WEBHOOK_TASKS: ${{ secrets.DISCORD_WEBHOOK_TASKS }}
         run: python slack_task_digest.py
+
+      - name: Commit task digest ledger
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          ledger=docs/data/task_digest_ledger.json
+          if [ ! -f "$ledger" ]; then
+            echo "No task digest ledger to commit."
+            exit 0
+          fi
+          if git ls-files --error-unmatch "$ledger" >/dev/null 2>&1 && git diff --quiet -- "$ledger"; then
+            echo "Task digest ledger unchanged."
+            exit 0
+          fi
+          git pull --rebase --autostash
+          git add "$ledger"
+          git diff --cached --quiet && echo "Task digest ledger unchanged." && exit 0
+          git commit -m "chore: record task digest posted $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git push origin HEAD:${{ github.ref_name }}

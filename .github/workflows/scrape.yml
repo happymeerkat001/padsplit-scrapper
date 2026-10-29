@@ -69,6 +69,15 @@ jobs:
           cp padsplit_scraper/output/latest.json docs/data/latest.json
           cp padsplit_scraper/output/occupancy.json docs/data/occupancy.json || echo "occupancy.json not found, skipping"
 
+      # Posts once per Chicago day during 05:00–07:59. Later scrapes no-op.
+      # A Discord failure must not block the snapshot commit; the 11:00 UTC
+      # Discord Digests workflow is the backup.
+      - name: Post morning task digest
+        continue-on-error: true
+        env:
+          DISCORD_WEBHOOK_TASKS: ${{ secrets.DISCORD_WEBHOOK_TASKS }}
+        run: python slack_task_digest.py --after-scrape
+
       - name: Diagnose token permissions
         run: |
           echo "=== Token write check ==="
@@ -93,6 +102,9 @@ jobs:
           git config --local user.name "GitHub Action"
           git pull --rebase --autostash
           git add docs/data/latest.json docs/data/occupancy.json
+          if [ -f docs/data/task_digest_ledger.json ]; then
+            git add docs/data/task_digest_ledger.json
+          fi
           git diff --cached --quiet || git commit -m "chore: scrape $(date -u +%Y-%m-%dT%H:%M:%SZ)"
           git push origin HEAD:${{ github.ref_name }}
 

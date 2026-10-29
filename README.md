@@ -45,6 +45,12 @@ Run scheduled scripts:
 ./run_seo_monthly.sh
 ```
 
+Task digest for Discord `#ai-tasks-temp` posts once from the morning GitHub scrape during 05:00–07:59 America/Chicago. The 11:00 UTC Discord Digests workflow is the backup and skips when `docs/data/task_digest_ledger.json` already has that Chicago date. Preview counts without posting (request count, open count, property count; no tenant names, codes, or amounts):
+
+```bash
+python3 slack_task_digest.py --dry-run
+```
+
 Don-field Quo SMS blast (7:00am CT only, every day including weekends; no 7pm / evening send) is the Mac launchd job. Not live until merge + Mac pull + `python3 padsplit_scraper/field_mms.py --install-launchd` so Hour=7 Minute=0 is loaded. Skips when PadSplit host messages and Discord `#ai-tasks-temp` are both empty. GitHub Actions must not send it. Do not send from a box/VPS IP.
 
 Primary send path is **Quo SMS** from `+14693732048` (A2P approved) via `POST https://api.quo.com/v1/messages`, one group send (Don `+12147798338`, Dad `+19452413070`, and Ang GV `+14696267260` by default; no Joe; override with `FIELD_MMS_QUO_TO`). Quo’s `to` field is the full recipient list in a single POST so Don, Dad, and Ang GV share one conversation. Fallbacks are Google Voice group SMS (Ang’s already-signed-in Mac Chrome) then the Messages.app chat named exactly `Don Field`. Prefer the Mac job. Quo HTTP does not need a residential IP the way Google Voice does; still do not run live sends from CI or a box/VPS by default. Never paste Quo keys, Google passwords, or message-body secrets into the repo.
