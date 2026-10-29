@@ -862,33 +862,65 @@ def _action_hooks_allowed(policy=None) -> bool:
     return runtime.action_hooks_enabled()
 
 
-def _invoke_action_hook(module_name: str, func_name: str, session, creds, messages) -> None:
-    """Import-and-call one outbound hook. Collection-only never reaches here."""
+# Message hooks take (session, creds, messages). leak_ticket takes the
+# fetch_tasks() map and is invoked from _run_task_action_hooks after tasks
+# exist. Keeping it in this list is what the scraper walks.
+_ACTION_HOOKS = (
+    ("new_booking", "run_for_scraper"),
+    ("lockout_reply", "run_for_scraper"),
+    ("leak_reply", "run_for_scraper"),
+    ("leak_ticket", "run_for_scraper"),
+)
+
+_HOOK_LABELS = {
+    "new_booking": "New-booking first host message",
+    "lockout_reply": "Lockout auto-reply",
+    "leak_reply": "Leak auto-reply",
+    "leak_ticket": "Leak ticket triage",
+}
+
+
+def _load_hook(module_name: str, func_name: str):
     try:
         module = __import__(f"padsplit_scraper.{module_name}", fromlist=[func_name])
     except ModuleNotFoundError:
         module = __import__(module_name)
-    getattr(module, func_name)(session, creds, messages)
+    return getattr(module, func_name)
+
+
+def _invoke_action_hook(module_name: str, func_name: str, session, creds, messages) -> None:
+    """Import-and-call one outbound hook. Collection-only never reaches here."""
+    _load_hook(module_name, func_name)(session, creds, messages)
+
+
+def _invoke_task_hook(module_name: str, func_name: str, tasks) -> None:
+    """Call a hook with the fetch_tasks() payload. No session and no mail."""
+    _load_hook(module_name, func_name)(tasks)
 
 
 def _run_action_hooks(session, creds: Dict[str, str], messages: List[Dict[str, Any]], policy=None) -> None:
     if not _action_hooks_allowed(policy):
         return
-    hooks = (
-        ("new_booking", "run_for_scraper"),
-        ("lockout_reply", "run_for_scraper"),
-        ("leak_reply", "run_for_scraper"),
-    )
-    labels = {
-        "new_booking": "New-booking first host message",
-        "lockout_reply": "Lockout auto-reply",
-        "leak_reply": "Leak auto-reply",
-    }
-    for module_name, func_name in hooks:
+    for module_name, func_name in _ACTION_HOOKS:
+        if module_name == "leak_ticket":
+            continue
         try:
             _invoke_action_hook(module_name, func_name, session, creds, messages)
         except Exception as exc:
-            sys.stderr.write(f"# {labels[module_name]} failed; continuing scrape: {exc}\n")
+            sys.stderr.write(f"# {_HOOK_LABELS[module_name]} failed; continuing scrape: {exc}\n")
+
+
+def _run_task_action_hooks(tasks, policy=None) -> None:
+    """Triage maintenance tickets. Message hooks stay in _run_action_hooks."""
+    if not _action_hooks_allowed(policy):
+        return
+    for module_name, func_name in _ACTION_HOOKS:
+        if module_name != "leak_ticket":
+            continue
+        try:
+            _invoke_task_hook(module_name, func_name, tasks)
+        except Exception as exc:
+            sys.stderr.write(f"# {_HOOK_LABELS[module_name]} failed; continuing scrape: {exc}\n")
 
 
 def _emit_frontload_webhook(
@@ -1085,6 +1117,7 @@ def run(messages_only: bool = False, *, isolate_output: bool = False, policy=Non
         fetched_tasks = _run_phase("Fetching tasks...", "tasks", lambda: fetch_tasks(session, creds))
         payload["tasks"] = fetched_tasks
         tasks_for_kpis = fetched_tasks
+        _run_task_action_hooks(fetched_tasks, policy=policy)
         out_path = _persist_latest_payload(payload, scraped_at=scraped_at, write_timestamped=True)
 
         occupancy_payload: Optional[Dict[str, Any]] = None
