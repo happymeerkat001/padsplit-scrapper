@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-10-31T01:52:06Z",
+  "scraped_at": "2026-10-31T08:29:21Z",
   "messages": [
     {
       "id": "TWVzc2VuZ2VyQ2hhdFR5cGU6NDE5MjQ1",
@@ -1951,7 +1951,7 @@
               },
               "details": "Collections",
               "location": "ROOM",
-              "status": "HOLD",
+              "status": "SUBMITTED",
               "rating": null,
               "comment": null,
               "category": "ROOM_TURN",
@@ -2077,7 +2077,7 @@
               },
               "details": "Collections",
               "location": "ROOM",
-              "status": "HOLD",
+              "status": "SUBMITTED",
               "rating": null,
               "comment": null,
               "category": "ROOM_TURN",
@@ -2453,7 +2453,7 @@
               },
               "details": "Collections",
               "location": "ROOM",
-              "status": "HOLD",
+              "status": "SUBMITTED",
               "rating": null,
               "comment": null,
               "category": "ROOM_TURN",
@@ -12252,6 +12252,100 @@
   "tasks": {
     "Requests": [
       {
+        "id": 463747,
+        "status": "submitted",
+        "comment": null,
+        "category": "room-turn",
+        "media": [],
+        "created": "2026-08-24T15:11:24.669303",
+        "modified": "2026-10-31T08:00:19.232499",
+        "room_name": "",
+        "room_number": 1,
+        "room_status": 3,
+        "room_code": "7845",
+        "location": "Room",
+        "details": "Collections",
+        "property_id": 9369,
+        "property_address": {
+          "id": 12545,
+          "street1": "3406 Green Hill Drive",
+          "street2": "",
+          "city": "Arlington",
+          "state": "TX",
+          "zip": "76014",
+          "city_slug": "arlington-tx"
+        },
+        "reported_by": {
+          "id": 753899,
+          "name": "Anthony Yancey",
+          "role_id": 0,
+          "picture": "img/profiles/user_753899_563b2db5-08c5-48b8-8675-03ee4e06653f.jpg"
+        },
+        "assigned_to": null,
+        "on_hold_reason": null,
+        "update_status_at": "2026-10-31T08:00:19.218155",
+        "rating": null,
+        "extra_data": {
+          "user_id": 753899,
+          "occupancy_id": 219335,
+          "move_out_date": "2026-08-24",
+          "move_out_details": "Pay to Stay request\nAwaiting for approval\nAmount to Pay: $321\nPayment date: 08/28\nHost Ticket \u202d#1453819\u202c",
+          "is_present_after_move_out": true
+        },
+        "has_reused_code": true,
+        "moveout_photos_count": 0,
+        "days_to_complete": null,
+        "is_on_payment_plan": false,
+        "payment_plan_end_date": null,
+        "payment_plan_reason_note": null
+      },
+      {
+        "id": 496082,
+        "status": "submitted",
+        "comment": null,
+        "category": "room-turn",
+        "media": [],
+        "created": "2026-10-26T15:18:05.225032",
+        "modified": "2026-10-31T08:00:13.590116",
+        "room_name": "",
+        "room_number": 6,
+        "room_status": 3,
+        "room_code": "2516",
+        "location": "Room",
+        "details": "Collections",
+        "property_id": 8840,
+        "property_address": {
+          "id": 11718,
+          "street1": "2516 Sylvia Street",
+          "street2": "",
+          "city": "Dallas",
+          "state": "TX",
+          "zip": "75241",
+          "city_slug": "dallas-tx"
+        },
+        "reported_by": {
+          "id": 1192505,
+          "name": "Kyree Evans",
+          "role_id": 0,
+          "picture": "img/profiles/user_1192505_b70aeb80-88f4-43c2-82e4-c9725b94f1a3.jpg"
+        },
+        "assigned_to": null,
+        "on_hold_reason": null,
+        "update_status_at": "2026-10-31T08:00:13.502122",
+        "rating": null,
+        "extra_data": {
+          "user_id": 1192505,
+          "occupancy_id": 346648,
+          "move_out_date": "2026-10-26"
+        },
+        "has_reused_code": true,
+        "moveout_photos_count": 0,
+        "days_to_complete": null,
+        "is_on_payment_plan": false,
+        "payment_plan_end_date": null,
+        "payment_plan_reason_note": null
+      },
+      {
         "id": 482823,
         "status": "submitted",
         "comment": null,
@@ -12780,100 +12874,6 @@
         "is_on_payment_plan": false,
         "payment_plan_end_date": null,
         "payment_plan_reason_note": null
-      },
-      {
-        "id": 463747,
-        "status": "hold",
-        "comment": null,
-        "category": "room-turn",
-        "media": [],
-        "created": "2026-08-24T15:11:24.669303",
-        "modified": "2026-10-29T21:35:23.386089",
-        "room_name": "",
-        "room_number": 1,
-        "room_status": 3,
-        "room_code": "7845",
-        "location": "Room",
-        "details": "Collections",
-        "property_id": 9369,
-        "property_address": {
-          "id": 12545,
-          "street1": "3406 Green Hill Drive",
-          "street2": "",
-          "city": "Arlington",
-          "state": "TX",
-          "zip": "76014",
-          "city_slug": "arlington-tx"
-        },
-        "reported_by": {
-          "id": 753899,
-          "name": "Anthony Yancey",
-          "role_id": 0,
-          "picture": "img/profiles/user_753899_563b2db5-08c5-48b8-8675-03ee4e06653f.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-10-29T21:35:23.370470",
-        "rating": null,
-        "extra_data": {
-          "user_id": 753899,
-          "occupancy_id": 219335,
-          "move_out_date": "2026-08-24",
-          "move_out_details": "Pay to Stay request\nAwaiting for approval\nAmount to Pay: $321\nPayment date: 08/28\nHost Ticket \u202d#1453819\u202c",
-          "is_present_after_move_out": true
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": true,
-        "payment_plan_end_date": "2026-10-30",
-        "payment_plan_reason_note": ""
-      },
-      {
-        "id": 496082,
-        "status": "hold",
-        "comment": null,
-        "category": "room-turn",
-        "media": [],
-        "created": "2026-10-26T15:18:05.225032",
-        "modified": "2026-10-26T21:50:57.258965",
-        "room_name": "",
-        "room_number": 6,
-        "room_status": 3,
-        "room_code": "2516",
-        "location": "Room",
-        "details": "Collections",
-        "property_id": 8840,
-        "property_address": {
-          "id": 11718,
-          "street1": "2516 Sylvia Street",
-          "street2": "",
-          "city": "Dallas",
-          "state": "TX",
-          "zip": "75241",
-          "city_slug": "dallas-tx"
-        },
-        "reported_by": {
-          "id": 1192505,
-          "name": "Kyree Evans",
-          "role_id": 0,
-          "picture": "img/profiles/user_1192505_b70aeb80-88f4-43c2-82e4-c9725b94f1a3.jpg"
-        },
-        "assigned_to": null,
-        "on_hold_reason": null,
-        "update_status_at": "2026-10-26T21:50:57.230196",
-        "rating": null,
-        "extra_data": {
-          "user_id": 1192505,
-          "occupancy_id": 346648,
-          "move_out_date": "2026-10-26"
-        },
-        "has_reused_code": true,
-        "moveout_photos_count": 0,
-        "days_to_complete": null,
-        "is_on_payment_plan": true,
-        "payment_plan_end_date": "2026-10-30",
-        "payment_plan_reason_note": ""
       }
     ]
   },
@@ -12884,9 +12884,9 @@
     "error_type": "HTTPError",
     "error_message": "earnings_stats failed (https://www.padsplit.com/api/partner/earnings/): HTTP 404",
     "fallback_used": true,
-    "run_scraped_at": "2026-10-31T01:52:06Z",
-    "started_at": "2026-10-31T01:51:58Z",
-    "finished_at": "2026-10-31T01:52:16Z",
+    "run_scraped_at": "2026-10-31T08:29:21Z",
+    "started_at": "2026-10-31T08:29:09Z",
+    "finished_at": "2026-10-31T08:29:32Z",
     "host": "runnervm48cm3",
     "counts": {
       "messages": 50,
@@ -12901,7 +12901,7 @@
     "sources": {
       "messages": {
         "state": "ok",
-        "scraped_at": "2026-10-31T01:52:06Z"
+        "scraped_at": "2026-10-31T08:29:21Z"
       },
       "stats": {
         "state": "degraded",
