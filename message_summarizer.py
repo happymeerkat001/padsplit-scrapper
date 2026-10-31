@@ -5,6 +5,7 @@ Reads padsplit_scraper/output/latest.json, sends the messages to MiniMax AI
 for summarization, and posts the result to Discord via DISCORD_WEBHOOK_MESSAGES.
 """
 
+import http.client
 import json
 import os
 import sys
@@ -117,6 +118,8 @@ def extract_tenant_text(chat: dict) -> str | None:
 def parse_urgent_items(raw: str) -> list[dict]:
     content = raw.strip()
     if content.startswith("```") and content.endswith("```"):
+        if "\n" not in content:
+            raise ValueError("MiniMax response has a malformed code fence")
         content = content.split("\n", 1)[1].rsplit("\n", 1)[0].strip()
 
     try:
@@ -131,10 +134,14 @@ def parse_urgent_items(raw: str) -> list[dict]:
     for item in parsed:
         if not isinstance(item, dict):
             raise ValueError("MiniMax response items must be JSON objects")
+        if "chat_id" in item and not isinstance(item["chat_id"], str):
+            raise ValueError("MiniMax response chat_id must be a string")
         if not item.get("chat_id"):
             continue
-        if not item.get("summary"):
+        if not isinstance(item.get("summary"), str) or not item["summary"].strip():
             raise ValueError("MiniMax response items must include summary")
+        if item.get("sent_at") is not None and not isinstance(item["sent_at"], str):
+            raise ValueError("MiniMax response sent_at must be a string")
         urgent_items.append(item)
     return urgent_items
 
@@ -148,7 +155,6 @@ def render_summary(urgent_items: list[dict], messages_by_id: dict) -> str:
         chat_id = item["chat_id"]
         chat = messages_by_id.get(chat_id)
         if chat is None:
-            print(f"Skipping urgent item with unknown chat_id: {chat_id}")
             continue
 
         address = format_address(chat)
@@ -165,6 +171,64 @@ def render_summary(urgent_items: list[dict], messages_by_id: dict) -> str:
     return "\n\n".join(blocks) if blocks else "No urgent tenant messages."
 
 
+class MiniMaxStatusError(RuntimeError):
+    def __init__(self, code: int):
+        self.code = code
+        # Use local hints, never the provider's potentially private status_msg.
+        hints = {
+            1004: "verify API key type and account access",
+            2049: "verify API key type and account access",
+            1008: "check account balance",
+            1039: "check input and output token limits",
+            2013: "check request parameters",
+            2022: "check configured model access",
+            2069: "check configured model availability",
+            2056: "check account usage window",
+            2057: "check credential type for this endpoint",
+            2061: "check plan model access",
+            2068: "check plan model access",
+        }
+        hint = hints.get(code, "check provider status and account configuration")
+        super().__init__(
+            f"MiniMax response rejected: status_code={code}; {hint}; no notification sent."
+        )
+
+
+def _validated_minimax_content(raw: bytes) -> str:
+    def fail(reason: str) -> None:
+        raise RuntimeError(f"MiniMax response rejected: {reason}; no notification sent.") from None
+
+    try:
+        result = json.loads(raw)
+    except (ValueError, UnicodeError):
+        fail("invalid JSON")
+    if not isinstance(result, dict):
+        fail("expected response object")
+    if "base_resp" in result:
+        status = result["base_resp"]
+        if not isinstance(status, dict) or type(status.get("status_code")) is not int:
+            fail("malformed provider status")
+        code = status["status_code"]
+        if not 0 <= code <= 99999:
+            fail("malformed provider status")
+        if code:
+            raise MiniMaxStatusError(code) from None
+    if "error" in result:
+        fail("provider error envelope")
+    choices = result.get("choices")
+    if not isinstance(choices, list) or not choices:
+        fail("choices must be a nonempty array")
+    choice = choices[0]
+    if not isinstance(choice, dict) or not isinstance(choice.get("message"), dict):
+        fail("missing or malformed choice message")
+    if choice.get("finish_reason") == "length":
+        fail("truncated completion")
+    content = choice["message"].get("content")
+    if not isinstance(content, str) or not content.strip():
+        fail("message content must be a nonempty string")
+    return content
+
+
 def call_minimax(prompt: str) -> str:
     api_key = (os.getenv("MINIMAX_API_KEY") or "").strip()
     if not api_key:
@@ -174,6 +238,7 @@ def call_minimax(prompt: str) -> str:
     body = json.dumps({
         "model": model,
         "messages": [{"role": "user", "content": prompt}],
+        "max_completion_tokens": 10240,
     }).encode()
 
     req = urllib.request.Request(
@@ -187,10 +252,19 @@ def call_minimax(prompt: str) -> str:
     max_retries = 3
     for attempt in range(max_retries):
         try:
-            with urllib.request.urlopen(req) as resp:
-                result = json.loads(resp.read())
-            return result.get("choices", [{}])[0].get("message", {}).get("content", "")
+            with urllib.request.urlopen(req, timeout=120) as resp:
+                raw = resp.read()
+            return _validated_minimax_content(raw)
+        except MiniMaxStatusError as exc:
+            # Application errors can arrive with HTTP 200. Share the existing
+            # three-attempt budget; do not retry account/parameter failures.
+            if exc.code not in (1000, 1001, 1002, 1024, 1033, 2064, 2066) or attempt == max_retries - 1:
+                raise
+            wait = 10 * (attempt + 1)
+            print(f"MiniMax status_code={exc.code}; retrying in {wait}s (attempt {attempt + 1}/{max_retries})")
+            time.sleep(wait)
         except urllib.error.HTTPError as exc:
+            exc.close()
             if exc.code in (429, 529) and attempt < max_retries - 1:
                 wait = 10 * (attempt + 1)
                 print(f"MiniMax returned {exc.code}, retrying in {wait}s... (attempt {attempt + 1}/{max_retries})")
@@ -204,8 +278,8 @@ def call_minimax(prompt: str) -> str:
                     },
                 )
                 continue
-            sys.exit(f"MiniMax API error: {exc.code} {exc.reason}")
-        except urllib.error.URLError as exc:
+            sys.exit(f"MiniMax API HTTP error: {exc.code}; no notification sent.")
+        except (urllib.error.URLError, http.client.RemoteDisconnected, TimeoutError):
             if attempt < max_retries - 1:
                 wait = 10 * (attempt + 1)
                 print(f"MiniMax request failed, retrying in {wait}s... (attempt {attempt + 1}/{max_retries})")
@@ -219,7 +293,7 @@ def call_minimax(prompt: str) -> str:
                     },
                 )
                 continue
-            sys.exit(f"MiniMax request failed: {exc}")
+            sys.exit("MiniMax transport request failed; no notification sent.")
     sys.exit("MiniMax API: all retries exhausted")
 
 
@@ -294,11 +368,7 @@ def main() -> None:
                 messages_by_id,
             )
         except ValueError:
-            message = "⚠️ Formatting fallback (AI response was not valid JSON):\n\n" + summary
-
-    print("\n" + "=" * 50)
-    print(f"Discord Message:\n{message}")
-    print("=" * 50 + "\n")
+            raise RuntimeError("MiniMax returned invalid summary JSON twice; no notification sent.") from None
 
     send_to_discord(message)
 
