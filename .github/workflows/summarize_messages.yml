@@ -35,6 +35,7 @@ jobs:
 
       - name: Summarize messages with MiniMax AI
         env:
+          MINIMAX_MODEL: ${{ vars.MINIMAX_MODEL || 'MiniMax-M2.5' }}
           MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
           DISCORD_WEBHOOK_MESSAGES: ${{ secrets.DISCORD_WEBHOOK_MESSAGES }}
         run: python message_summarizer.py
