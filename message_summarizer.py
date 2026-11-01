@@ -165,62 +165,111 @@ def render_summary(urgent_items: list[dict], messages_by_id: dict) -> str:
     return "\n\n".join(blocks) if blocks else "No urgent tenant messages."
 
 
+# Only locally defined descriptions and numeric codes enter diagnostics. Never log
+# provider status_msg/error bodies: they can echo credentials or tenant data.
+MINIMAX_ERROR_HINTS = {
+    1000: "temporary provider error", 1001: "provider timeout",
+    1002: "rate limit", 1004: "authentication rejected; check API key",
+    1008: "insufficient balance; check MiniMax billing",
+    1024: "provider internal error", 1026: "input rejected by content policy",
+    1027: "output rejected by content policy", 1033: "provider system error",
+    1039: "token limit", 2013: "invalid request parameters",
+    2022: "model unavailable; check MINIMAX_MODEL and model access",
+    2049: "invalid API key", 2056: "usage quota exhausted",
+    2061: "model not included in plan", 2064: "provider overloaded",
+    2066: "provider timeout", 2069: "model retired; update MINIMAX_MODEL",
+}
+MINIMAX_TRANSIENT_CODES = {1000, 1001, 1002, 1024, 1033, 2064, 2066}
+
+
+class MiniMaxError(RuntimeError):
+    def __init__(self, message: str, retryable: bool = False):
+        super().__init__(message)
+        self.retryable = retryable
+
+
+def minimax_content(result: object) -> str:
+    if not isinstance(result, dict):
+        raise MiniMaxError("response must be a JSON object", True)
+    if "base_resp" in result:
+        status = result["base_resp"]
+        if not isinstance(status, dict) or type(status.get("status_code")) is not int:
+            raise MiniMaxError("invalid base_resp.status_code", True)
+        code = status["status_code"]
+        if code != 0:
+            hint = MINIMAX_ERROR_HINTS.get(code, "provider rejected request; consult MiniMax error codes")
+            raise MiniMaxError(f"API status_code={code}: {hint}", code in MINIMAX_TRANSIENT_CODES)
+    if result.get("error") is not None:
+        raise MiniMaxError("provider returned an error object; check account and request configuration")
+    choices = result.get("choices")
+    if not isinstance(choices, list) or not choices:
+        raise MiniMaxError("missing, null, empty or invalid choices", True)
+    choice = choices[0]
+    if not isinstance(choice, dict):
+        raise MiniMaxError("invalid choices[0]", True)
+    finish = choice.get("finish_reason")
+    if finish is not None and finish != "stop":
+        hint = "output truncated; review token budget" if finish == "length" else "completion did not finish normally"
+        raise MiniMaxError(hint)
+    message = choice.get("message")
+    if not isinstance(message, dict):
+        raise MiniMaxError("missing or invalid assistant message", True)
+    content = message.get("content")
+    if not isinstance(content, str) or not content.strip():
+        raise MiniMaxError("missing, empty or invalid assistant content", True)
+    return content
+
+
 def call_minimax(prompt: str) -> str:
     api_key = (os.getenv("MINIMAX_API_KEY") or "").strip()
     if not api_key:
         sys.exit("Missing MINIMAX_API_KEY in environment")
-    model = (os.getenv("MINIMAX_MODEL") or "MiniMax-M2.5").strip()
-
+    model = (os.getenv("MINIMAX_MODEL") or "").strip() or "MiniMax-M2.5"
     body = json.dumps({
         "model": model,
+        "stream": False,
         "messages": [{"role": "user", "content": prompt}],
     }).encode()
-
     req = urllib.request.Request(
         "https://api.minimax.io/v1/text/chatcompletion_v2",
         data=body,
-        headers={
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-        },
+        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
     )
-    max_retries = 3
-    for attempt in range(max_retries):
+    max_attempts = 3
+    for attempt in range(1, max_attempts + 1):
+        http_status = "unavailable"
         try:
-            with urllib.request.urlopen(req) as resp:
-                result = json.loads(resp.read())
-            return result.get("choices", [{}])[0].get("message", {}).get("content", "")
+            with urllib.request.urlopen(req, timeout=120) as resp:
+                http_status = resp.getcode()
+                try:
+                    result = json.loads(resp.read())
+                except (ValueError, UnicodeError):
+                    raise MiniMaxError("response was not valid JSON", True) from None
+            return minimax_content(result)
         except urllib.error.HTTPError as exc:
-            if exc.code in (429, 529) and attempt < max_retries - 1:
-                wait = 10 * (attempt + 1)
-                print(f"MiniMax returned {exc.code}, retrying in {wait}s... (attempt {attempt + 1}/{max_retries})")
-                time.sleep(wait)
-                req = urllib.request.Request(
-                    "https://api.minimax.io/v1/text/chatcompletion_v2",
-                    data=body,
-                    headers={
-                        "Authorization": f"Bearer {api_key}",
-                        "Content-Type": "application/json",
-                    },
-                )
-                continue
-            sys.exit(f"MiniMax API error: {exc.code} {exc.reason}")
-        except urllib.error.URLError as exc:
-            if attempt < max_retries - 1:
-                wait = 10 * (attempt + 1)
-                print(f"MiniMax request failed, retrying in {wait}s... (attempt {attempt + 1}/{max_retries})")
-                time.sleep(wait)
-                req = urllib.request.Request(
-                    "https://api.minimax.io/v1/text/chatcompletion_v2",
-                    data=body,
-                    headers={
-                        "Authorization": f"Bearer {api_key}",
-                        "Content-Type": "application/json",
-                    },
-                )
-                continue
-            sys.exit(f"MiniMax request failed: {exc}")
-    sys.exit("MiniMax API: all retries exhausted")
+            http_status = exc.code
+            # Preserve numeric API errors even when the transport is unsuccessful.
+            error = MiniMaxError("HTTP request rejected", exc.code in {408, 429, 500, 502, 503, 504, 529})
+            try:
+                result = json.loads(exc.read())
+                minimax_content(result)
+            except MiniMaxError as api_error:
+                if str(api_error).startswith("API status_code="):
+                    error = api_error
+            except (ValueError, UnicodeError, OSError):
+                pass
+            finally:
+                exc.close()
+        except (urllib.error.URLError, TimeoutError, ConnectionError):
+            error = MiniMaxError("network failure or timeout", True)
+        except MiniMaxError as exc:
+            error = exc
+        diagnostic = f"MiniMax HTTP={http_status}, attempt={attempt}/{max_attempts}: {error}"
+        if not error.retryable or attempt == max_attempts:
+            sys.exit(diagnostic + "; summary unavailable; Discord send skipped")
+        wait = 10 * attempt
+        print(diagnostic + f"; retrying in {wait}s", file=sys.stderr)
+        time.sleep(wait)
 
 
 DISCORD_MESSAGE_LIMIT = 2000
@@ -305,3 +354,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
