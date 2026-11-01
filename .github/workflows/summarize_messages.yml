@@ -8,6 +8,7 @@ on:
 jobs:
   summarize:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
@@ -15,10 +16,18 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Verify Discord secret is set
+      - name: Test summarizer without network access
+        run: python -m unittest test_message_summarizer test_minimax_responses
+
+      - name: Verify required secrets are set
         env:
+          MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
           DISCORD_WEBHOOK_MESSAGES: ${{ secrets.DISCORD_WEBHOOK_MESSAGES }}
         run: |
+          if [ -z "$MINIMAX_API_KEY" ]; then
+            echo "::error::MINIMAX_API_KEY secret is not set."
+            exit 1
+          fi
           if [ -z "$DISCORD_WEBHOOK_MESSAGES" ]; then
             echo "::error::DISCORD_WEBHOOK_MESSAGES secret is not set — message summaries cannot be sent to Discord."
             exit 1
