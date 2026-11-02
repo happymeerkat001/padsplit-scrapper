@@ -97,7 +97,7 @@ class PreviewGateTests(NetworkGuard):
             codes_fn=lambda slug: codes.append(slug) or fake_doc(),
             sifely_fn=lambda: sifely.append("sifely") or (FAKE_BACK, "sifely_current"),
         )
-        self.assertEqual(rows[0]["action"], "skip")
+        self.assertEqual(rows[0]["action"], "not_current_member")
         self.assertEqual(codes, [])
         self.assertEqual(sifely, [])
         self.assertEqual(fake.sends, [])

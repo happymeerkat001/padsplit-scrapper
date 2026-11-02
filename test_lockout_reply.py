@@ -54,6 +54,11 @@ def member_thread(
     follow_up: str | None = None,
     follow_up_created: str = "2026-09-07T14:45:00Z",
     move_out: str | None = None,
+    move_in: str = "2026-08-01",
+    occupancy_status: str | None = None,
+    cancelled: bool = False,
+    archived: bool = False,
+    user_active: bool | None = None,
 ) -> dict:
     messages = [
         {
@@ -81,15 +86,23 @@ def member_thread(
                 "sender": {"roleId": "A_0", "firstName": "Member", "lastName": "Example"},
             }
         )
+    occupancy_user = {"firstName": "Member", "lastName": "Example"}
+    if user_active is not None:
+        occupancy_user["isActive"] = user_active
+    occupancy = {
+        "moveInDate": move_in,
+        "moveOutDate": move_out,
+        "user": occupancy_user,
+        "room": {"roomNumber": room},
+    }
+    if occupancy_status:
+        occupancy["status"] = occupancy_status
     return {
         "id": chat_id,
         "title": "Member Example",
-        "occupancy": {
-            "moveInDate": "2026-08-01",
-            "moveOutDate": move_out,
-            "user": {"firstName": "Member", "lastName": "Example"},
-            "room": {"roomNumber": room},
-        },
+        "occupancy": occupancy,
+        "isCancelled": cancelled,
+        "isArchived": archived,
         "property": {"address": {"street1": street}},
         "recent_messages": messages,
         "lastMessage": messages[0],
@@ -776,7 +789,7 @@ class FlowTests(unittest.TestCase):
     def test_departed_occupant_is_skipped(self) -> None:
         fake = FakeSend()
         rows, _ = run_process(fake, [member_thread(move_out="2026-08-01")])
-        self.assertEqual(rows[0]["action"], "skip")
+        self.assertEqual(rows[0]["action"], "not_current_member")
         self.assertEqual(fake.sends, [])
 
     def test_enable_flag_defaults_off_and_ci_never_sends(self) -> None:
@@ -796,6 +809,176 @@ class FlowTests(unittest.TestCase):
             )
         self.assertEqual(result.action, "skip_ci")
         self.assertEqual(result.sent, 0)
+
+
+class SafetyGateTests(unittest.TestCase):
+    def test_backlog_older_than_cutoff_is_stale_and_terminal(self) -> None:
+        fake = FakeSend()
+        codes = []
+        sifely = []
+        created = (NOW - timedelta(hours=3)).strftime("%Y-%m-%dT%H:%M:%SZ")
+        thread = member_thread(created=created)
+        with tempfile.TemporaryDirectory() as tmpdir:
+            state_path = Path(tmpdir) / "state.json"
+            kwargs = dict(
+                state_path=state_path,
+                leftover_compose_tabs=fake.tabs,
+                close_tabs_fn=fake.close_tabs,
+                send_fn=fake.send,
+                codes_fn=lambda slug: codes.append(slug) or fake_doc(),
+                sifely_fn=lambda: sifely.append("sifely") or (FAKE_BACK, "sifely_current"),
+                post_discord=fake.posts.append,
+                send_enabled=True,
+                dry_run=False,
+            )
+            first = lockout_reply.process_lockouts([thread], now=NOW, **kwargs)
+            saved = lockout_reply.load_state(state_path)
+            with patch.dict("os.environ", {"LOCKOUT_REPLY_MAX_AGE_HOURS": "48"}, clear=False):
+                second = lockout_reply.process_lockouts([thread], now=NOW, **kwargs)
+        self.assertEqual(first[0]["action"], "stale")
+        self.assertEqual(second[0]["action"], "stale")
+        self.assertEqual(second[0]["reason"], "stale lockout already recorded")
+        self.assertIn("m-lockout", saved["threads"]["chat-leana"]["stale_message_ids"])
+        self.assertEqual(fake.sends, [])
+        self.assertEqual(codes, [])
+        self.assertEqual(sifely, [])
+        self.assertEqual(fake.posts, [])
+
+    def test_stale_dry_run_does_not_record_terminal_state(self) -> None:
+        fake = FakeSend()
+        created = (NOW - timedelta(hours=3)).strftime("%Y-%m-%dT%H:%M:%SZ")
+        with tempfile.TemporaryDirectory() as tmpdir:
+            state_path = Path(tmpdir) / "state.json"
+            rows = lockout_reply.process_lockouts(
+                [member_thread(created=created)],
+                now=NOW,
+                state_path=state_path,
+                leftover_compose_tabs=[],
+                close_tabs_fn=fake.close_tabs,
+                send_fn=fake.send,
+                codes_fn=lambda _slug: fake_doc(),
+                post_discord=fake.posts.append,
+                send_enabled=True,
+                dry_run=True,
+            )
+            self.assertFalse(state_path.exists())
+        self.assertEqual(rows[0]["action"], "stale")
+        self.assertEqual(fake.sends, [])
+
+    def test_hand_reply_after_lockout_is_already_answered(self) -> None:
+        fake = FakeSend()
+        codes = []
+        thread = member_thread(host_texts=["On my way, I will meet you at the door"])
+        rows, state = run_process(
+            fake,
+            [thread],
+            codes_fn=lambda slug: codes.append(slug) or fake_doc(),
+        )
+        self.assertEqual(rows[0]["action"], "already_answered")
+        self.assertEqual(fake.sends, [])
+        self.assertEqual(codes, [])
+        self.assertEqual(fake.posts, [])
+        self.assertNotIn("chat-leana", state.get("threads") or {})
+
+    def test_terminated_member_is_not_current(self) -> None:
+        fake = FakeSend()
+        codes = []
+        rows, _ = run_process(
+            fake,
+            [member_thread(occupancy_status="terminated")],
+            codes_fn=lambda slug: codes.append(slug) or fake_doc(),
+        )
+        self.assertEqual(rows[0]["action"], "not_current_member")
+        self.assertEqual(fake.sends, [])
+        self.assertEqual(codes, [])
+
+    def test_cancelled_future_move_in_and_inactive_are_not_current(self) -> None:
+        fake = FakeSend()
+        for thread in (
+            member_thread(cancelled=True),
+            member_thread(archived=True),
+            member_thread(move_in="2026-09-08"),
+            member_thread(user_active=False),
+        ):
+            rows, _ = run_process(fake, [thread])
+            self.assertEqual(rows[0]["action"], "not_current_member")
+        self.assertEqual(fake.sends, [])
+
+    def test_reinstated_member_can_still_send(self) -> None:
+        fake = FakeSend()
+        rows, _ = run_process(fake, [member_thread(occupancy_status="reinstated")])
+        self.assertEqual(rows[0]["action"], "sent")
+        self.assertEqual(rows[0]["stage"], "door")
+        self.assertEqual(len(fake.sends), 1)
+
+    def test_fresh_lockout_still_sends_door(self) -> None:
+        fake = FakeSend()
+        rows, state = run_process(fake, [member_thread()])
+        self.assertEqual(rows[0]["action"], "sent")
+        self.assertEqual(rows[0]["stage"], "door")
+        self.assertEqual(len(fake.sends), 1)
+        self.assertIn("door_sent_at", state["threads"]["chat-leana"])
+        self.assertNotIn("stale_message_ids", state["threads"]["chat-leana"])
+
+    def test_per_run_send_cap_defaults_to_five(self) -> None:
+        fake = FakeSend()
+        threads = [
+            member_thread(chat_id=f"chat-{index}", created="2026-09-07T14:40:00Z")
+            for index in range(6)
+        ]
+        with tempfile.TemporaryDirectory() as tmpdir:
+            state_path = Path(tmpdir) / "state.json"
+            kwargs = dict(
+                now=NOW,
+                state_path=state_path,
+                leftover_compose_tabs=fake.tabs,
+                close_tabs_fn=fake.close_tabs,
+                send_fn=fake.send,
+                codes_fn=lambda _slug: fake_doc(),
+                post_discord=fake.posts.append,
+                send_enabled=True,
+                dry_run=False,
+            )
+            first = lockout_reply.process_lockouts(threads, **kwargs)
+            second = lockout_reply.process_lockouts(threads, **kwargs)
+        self.assertEqual([row["action"] for row in first], ["sent"] * 5 + ["send_cap"])
+        self.assertEqual(len(fake.sends), 6)
+        self.assertEqual(second[5]["action"], "sent")
+        self.assertEqual([row["action"] for row in second[:5]], ["already_sent"] * 5)
+
+    def test_dry_run_env_does_not_log_in_or_send(self) -> None:
+        with patch.dict(
+            "os.environ",
+            {
+                "LOCKOUT_REPLY_DRY_RUN": "1",
+                "LOCKOUT_REPLY_ENABLE": "1",
+                "CI": "",
+                "GITHUB_ACTIONS": "",
+                "PADSPLIT_ENABLE_ACTION_HOOKS": "1",
+                "PADSPLIT_COLLECTION_ONLY": "0",
+            },
+            clear=False,
+        ):
+            self.assertTrue(lockout_reply.dry_run_requested())
+            with patch.object(
+                lockout_reply,
+                "run",
+                return_value=lockout_reply.RunResult(action="would_send", reason="preview"),
+            ) as run, patch.object(lockout_reply, "login") as login, patch.object(
+                lockout_reply, "create_session"
+            ) as session:
+                code = lockout_reply.main([])
+            self.assertEqual(code, 0)
+            self.assertTrue(run.call_args.kwargs.get("dry_run"))
+            login.assert_not_called()
+            session.assert_not_called()
+            with patch.object(
+                lockout_reply,
+                "run",
+                return_value=lockout_reply.RunResult(action="would_send", reason="preview"),
+            ) as hooked:
+                lockout_reply.run_for_scraper(object(), {"email": "x"}, [member_thread()])
+            self.assertTrue(hooked.call_args.kwargs.get("dry_run"))
 
 
 class ObtainSifelyTests(unittest.TestCase):
