@@ -62,14 +62,14 @@ class MainFlowTests(unittest.TestCase):
 
     def test_reply_matching_address_and_complete_marks_task(self) -> None:
         meta = {"channel": "c", "message_id": "0"}
-        replies = [{"id": "5", "content": "1025 Broken Crest Rd Complete"}]
+        replies = [{"id": "5", "content": "102 Broken Crest Rd Complete"}]
 
         with tempfile.TemporaryDirectory() as tmpdir:
             base_dir = Path(tmpdir)
             (base_dir / "docs" / "data").mkdir(parents=True)
             (base_dir / "docs" / "data" / "latest.json").write_text(json.dumps({
                 "tasks": {
-                    "Requests": [{"id": 101, "property_address": {"street1": "1025 Broken Crest Rd"}}],
+                    "Requests": [{"id": 101, "property_address": {"street1": "102 Broken Crest Rd"}}],
                     "Open": [],
                 }
             }))
@@ -96,7 +96,7 @@ class MainFlowTests(unittest.TestCase):
             env={"DISCORD_BOT_TOKEN": "tok"},
             meta={"channel": "c", "message_id": "0"},
             processed={"processed_reply_ts": ["5"]},
-            replies=[{"id": "5", "content": "1025 Broken Crest Rd Complete"}],
+            replies=[{"id": "5", "content": "102 Broken Crest Rd Complete"}],
         )
 
         self.assertEqual(update_calls, [])

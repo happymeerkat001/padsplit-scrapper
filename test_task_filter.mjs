@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import vm from 'node:vm';
+const ctx={};vm.runInNewContext(readFileSync('docs/task-filter.js','utf8'),ctx);
+assert.equal(ctx.matchesTask('pioneer','103 Pioneer Lane'),true);
+assert.equal(ctx.matchesTask('leak','Broken sink'),false);
+assert.equal(ctx.matchesTask('  ','Anything'),true);
+console.log('task search matches normalized text');
+assert.equal(ctx.shouldClearTaskDraft('first','first'),true);
+assert.equal(ctx.shouldClearTaskDraft('first','second'),false);
+assert.equal(ctx.taskMatchesStatus('doing','doing'),true);
+assert.equal(ctx.taskMatchesStatus('doing','submitted'),false);
+assert.equal(ctx.taskMatchesStatus('', 'submitted'),true);
+assert.equal(ctx.shouldFollowDiscussion(100,80,20),true);
+assert.equal(ctx.shouldFollowDiscussion(500,100,100),false);

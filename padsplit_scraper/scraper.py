@@ -941,16 +941,22 @@ def _source_health(
     stats_state: str,
     stats_scraped_at: Optional[str] = None,
     fallback_used: bool = False,
+    occupancy_state: Optional[str] = None,
 ) -> Dict[str, Any]:
     stats: Dict[str, Any] = {"state": stats_state}
     if stats_scraped_at:
         stats["scraped_at"] = stats_scraped_at
     if fallback_used:
         stats["fallback_used"] = True
-    return {
+    result = {
         "messages": {"state": "ok", "scraped_at": messages_scraped_at},
         "stats": stats,
     }
+    if occupancy_state is not None:
+        result["occupancy"] = {"state": occupancy_state}
+        if occupancy_state == "ok":
+            result["occupancy"]["scraped_at"] = messages_scraped_at
+    return result
 
 
 def _count_tasks(fetched: Any) -> int:
@@ -1088,11 +1094,15 @@ def run(messages_only: bool = False, *, isolate_output: bool = False, policy=Non
         out_path = _persist_latest_payload(payload, scraped_at=scraped_at, write_timestamped=True)
 
         occupancy_payload: Optional[Dict[str, Any]] = None
+        occupancy_error: Optional[str] = None
         try:
             occupancy_payload = compute_occupancy(messages, fetched_tasks, datetime.now(timezone.utc))
             _persist_occupancy_payload(occupancy_payload)
         except Exception as exc:
-            sys.stderr.write(f"# Occupancy derivation failed; continuing scrape: {exc}\n")
+            # Exceptions can contain tenant data; log only the exception type.
+            occupancy_error = exc.__class__.__name__
+            occupancy_payload = None
+            sys.stderr.write(f"# Occupancy derivation or persistence failed: {occupancy_error}\n")
 
         rooms: List[Any] = []
         rooms_observed = False
@@ -1160,6 +1170,7 @@ def run(messages_only: bool = False, *, isolate_output: bool = False, policy=Non
                     stats_state="degraded",
                     stats_scraped_at=str(prior_stats_ts) if prior_stats_ts else None,
                     fallback_used=fallback_stats is not None,
+                    occupancy_state="failed" if occupancy_error else "ok",
                 ),
             )
             _persist_latest_payload(payload, scraped_at=scraped_at, run_status=run_status, write_timestamped=True)
@@ -1189,19 +1200,23 @@ def run(messages_only: bool = False, *, isolate_output: bool = False, policy=Non
             return _degraded_outcome(run_status)
 
         run_status = _this_run_health(
-            state="ok",
+            state="degraded" if occupancy_error else "ok",
             mode=mode,
             run_scraped_at=scraped_at,
             started_at=started_at,
             messages=messages,
+            previous=_load_json_if_exists(_stats_output_path()) if occupancy_error else None,
             fetched_tasks=fetched_tasks,
             rooms=rooms,
             properties=properties,
             earnings_payload=earnings_payload,
+            failed_phase="occupancy" if occupancy_error else None,
+            error_type=occupancy_error,
             sources=_source_health(
                 messages_scraped_at=scraped_at,
                 stats_state="ok",
                 stats_scraped_at=scraped_at,
+                occupancy_state="failed" if occupancy_error else "ok",
             ),
         )
         _persist_latest_payload(payload, scraped_at=scraped_at, run_status=run_status, write_timestamped=True)
@@ -1230,7 +1245,7 @@ def run(messages_only: bool = False, *, isolate_output: bool = False, policy=Non
             occupancy=occupancy_payload,
             policy=policy,
         )
-        return _ok_outcome(run_status)
+        return _degraded_outcome(run_status) if occupancy_error else _ok_outcome(run_status)
 
 
 def main(argv: Optional[List[str]] = None) -> int:

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import importlib
 import plistlib
 import tempfile
 import unittest
@@ -7,6 +8,18 @@ from datetime import datetime
 from pathlib import Path
 from unittest.mock import Mock, patch
 from zoneinfo import ZoneInfo
+
+from padsplit_scraper import field_mms as _field_mms
+_fake_phone_environment = {
+    "FIELD_MMS_ANG_VOICE_PHONE": "+12025550101",
+    "FIELD_MMS_DAD_PHONE": "+12025550102",
+    "FIELD_MMS_JOE_PHONE": "+12025550103",
+    "FIELD_MMS_DON_PHONE": "+12025550104",
+    "FIELD_MMS_DON_WRONG_PHONE": "+12025550105",
+    "FIELD_MMS_FROM_NUMBER": "+12025550103",
+}
+with patch.dict(os.environ, _fake_phone_environment):
+    importlib.reload(_field_mms)
 
 from padsplit_scraper.field_mms import (
     ANG_GV_PHONE,
@@ -82,6 +95,11 @@ def host_thread(street: str, room: int, text: str, created: str, *, role: str = 
 
 
 class FieldMmsTests(unittest.TestCase):
+    def test_missing_recipient_configuration_fails_closed(self) -> None:
+        with patch.object(_field_mms, "DON_PHONE", ""):
+            with self.assertRaisesRegex(RuntimeError, "configured"):
+                assert_group_recipients(GROUP_RECIPIENTS)
+
     def test_empty_plus_empty_skips(self) -> None:
         window = window_for(datetime(2026, 9, 1, 7, 0, tzinfo=CT))
         plan = plan_send([], [], window, set())
@@ -93,7 +111,7 @@ class FieldMmsTests(unittest.TestCase):
         sent: list[tuple[str, tuple[str, ...]]] = []
 
         def host(_since: datetime) -> list[str]:
-            return ["10235 Ridge Oak Rm 5 — kitchen sink leak"]
+            return ["101 Ridge Oak Rm 5 — kitchen sink leak"]
 
         def tasks(_since: datetime) -> list[str]:
             return []
@@ -131,7 +149,7 @@ class FieldMmsTests(unittest.TestCase):
         sent: list[str] = []
 
         def host(_since: datetime) -> list[str]:
-            return ["10235 Ridge Oak Rm 5 — kitchen sink leak"]
+            return ["101 Ridge Oak Rm 5 — kitchen sink leak"]
 
         with tempfile.TemporaryDirectory() as tmp:
             state = Path(tmp) / "sent.json"
@@ -164,7 +182,7 @@ class FieldMmsTests(unittest.TestCase):
 
         def host(_since: datetime) -> list[str]:
             fetched.append("host")
-            return ["10235 Ridge Oak Rm 5 — kitchen sink leak"]
+            return ["101 Ridge Oak Rm 5 — kitchen sink leak"]
 
         def tasks(_since: datetime) -> list[str]:
             fetched.append("tasks")
@@ -257,11 +275,11 @@ class FieldMmsTests(unittest.TestCase):
         self.assertEqual(plan.action, "send")
         self.assertIn("Open tasks:", plan.body)
 
-    def test_don_number_is_live_not_old(self) -> None:
-        self.assertEqual(normalize_phone("(214) 779-8338"), DON_PHONE)
-        self.assertEqual(DON_PHONE, "+12147798338")
+    def test_configured_numbers_include_correct_recipient(self) -> None:
+        self.assertEqual(normalize_phone("(202) 555-0104"), DON_PHONE)
+        self.assertEqual(DON_PHONE, "+12025550104")
         self.assertNotEqual(DON_PHONE, DON_WRONG_PHONE)
-        self.assertNotEqual(DON_PHONE, normalize_phone("214-454-1768"))
+        self.assertNotEqual(DON_PHONE, normalize_phone("202-555-0105"))
         self.assertNotIn(DON_WRONG_PHONE, GROUP_RECIPIENTS)
         self.assertEqual(GROUP_RECIPIENTS, (DAD_PHONE, JOE_PHONE, DON_PHONE))
         self.assertEqual(assert_group_recipients(GROUP_RECIPIENTS), list(GROUP_RECIPIENTS))
@@ -271,15 +289,15 @@ class FieldMmsTests(unittest.TestCase):
             assert_group_recipients((DON_PHONE,))
 
     def test_quo_recipients_are_don_dad_and_ang_gv(self) -> None:
-        self.assertEqual(normalize_phone("(945) 241-3070"), DAD_PHONE)
-        self.assertEqual(normalize_phone("(469) 626-7260"), ANG_GV_PHONE)
+        self.assertEqual(normalize_phone("(202) 555-0102"), DAD_PHONE)
+        self.assertEqual(normalize_phone("(202) 555-0101"), ANG_GV_PHONE)
         self.assertEqual(ANG_GV_PHONE, ANG_VOICE_PHONE)
         self.assertEqual(QUO_RECIPIENTS_DEFAULT, (DON_PHONE, DAD_PHONE, ANG_GV_PHONE))
         self.assertNotIn(JOE_PHONE, QUO_RECIPIENTS_DEFAULT)
         self.assertEqual(assert_quo_recipients(QUO_RECIPIENTS_DEFAULT), list(QUO_RECIPIENTS_DEFAULT))
         # Don + Dad remain the required pair; Ang GV is allowed, Joe is not required.
         self.assertEqual(
-            assert_quo_recipients(["(214) 779-8338", "(945) 241-3070"]),
+            assert_quo_recipients(["(202) 555-0104", "(202) 555-0102"]),
             [DON_PHONE, DAD_PHONE],
         )
         self.assertEqual(
@@ -302,7 +320,7 @@ class FieldMmsTests(unittest.TestCase):
         extra = "+15555550199"
         with patch.dict(
             os.environ,
-            {"FIELD_MMS_QUO_TO": f"(214) 779-8338, (945) 241-3070, {extra}"},
+            {"FIELD_MMS_QUO_TO": f"(202) 555-0104, (202) 555-0102, {extra}"},
         ):
             self.assertEqual(resolve_quo_recipients(), [DON_PHONE, DAD_PHONE, extra])
         with patch.dict(os.environ, {"FIELD_MMS_QUO_TO": f"{DON_PHONE} {DAD_PHONE}"}):
@@ -316,13 +334,13 @@ class FieldMmsTests(unittest.TestCase):
     def test_sms_body_never_contains_lock_code_like_strings(self) -> None:
         threads = [
             host_thread(
-                "10235 Ridge Oak",
+                "101 Ridge Oak",
                 5,
                 "AC is out and the hallway is hot. Front door code 4125. WiFi spectrumsetup22 password cosmicloyal912.",
                 "2026-09-01T11:00:00Z",
             ),
             host_thread(
-                "3406 Green Hill",
+                "105 Green Hill",
                 2,
                 "The new lock code for the front door is 34061234. SSN 123-45-6789",
                 "2026-09-01T11:10:00Z",
@@ -332,7 +350,7 @@ class FieldMmsTests(unittest.TestCase):
         host_lines = summarize_host_messages(threads, since=since)
         task_lines = extract_open_task_lines(
             "Tasks Digest (2026-09-01):\n"
-            "10235 Ridge Oak:\n"
+            "101 Ridge Oak:\n"
             "[Requests] (Room 5) AC out — door code 9999 and wifi pass secret\n"
         )
         body = build_mms_body(host_lines, task_lines)
@@ -342,7 +360,7 @@ class FieldMmsTests(unittest.TestCase):
         self.assertFalse(contains_lock_code_like(sanitize_sms("Front door code 4125. Room code 121212")))
         for forbidden in ("4125", "121212", "34061234", "123-45-6789", "cosmicloyal912", "9999", "spectrumsetup22"):
             self.assertNotIn(forbidden, body)
-        self.assertNotIn("214-454-1768", body)
+        self.assertNotIn("202-555-0105", body)
 
     def test_sms_body_redacts_discord_bot_token(self) -> None:
         fake_token = "FAKESECRET_y2z3a4b5c6d7e8f9g0h1"
@@ -352,9 +370,9 @@ class FieldMmsTests(unittest.TestCase):
 
     def test_thread_owner_is_ang_voice_and_quo_blast_is_don_dad_ang_gv(self) -> None:
         window = window_for(datetime(2026, 9, 1, 7, 0, tzinfo=CT))
-        plan = plan_send(["10235 Ridge Oak Rm 1 — AC out"], [], window, set())
+        plan = plan_send(["101 Ridge Oak Rm 1 — AC out"], [], window, set())
         self.assertEqual(plan.thread_owner, ANG_VOICE_PHONE)
-        self.assertEqual(normalize_phone("(469) 626-7260"), ANG_VOICE_PHONE)
+        self.assertEqual(normalize_phone("(202) 555-0101"), ANG_VOICE_PHONE)
         self.assertEqual(tuple(plan.recipients), QUO_RECIPIENTS_DEFAULT)
         self.assertIn(DON_PHONE, plan.recipients)
         self.assertIn(DAD_PHONE, plan.recipients)
@@ -366,7 +384,7 @@ class FieldMmsTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             plan = run_window(
                 now=datetime(2026, 9, 1, 7, 0, tzinfo=CT),
-                host_fetcher=lambda _s: ["10235 Ridge Oak Rm 1 — AC out"],
+                host_fetcher=lambda _s: ["101 Ridge Oak Rm 1 — AC out"],
                 task_fetcher=lambda _s: [],
                 sender=lambda body, _r: sent.append(body),
                 state_path=Path(tmp) / "sent.json",
@@ -377,7 +395,7 @@ class FieldMmsTests(unittest.TestCase):
 
     def test_staff_broadcast_is_not_a_host_inbox_item(self) -> None:
         thread = host_thread(
-            "3541 Parker Road East",
+            "107 Parker Road East",
             4,
             "HOUSE REMINDER do not flush wipes",
             "2026-09-01T11:00:00Z",
@@ -666,9 +684,9 @@ class FieldMmsTransportTests(unittest.TestCase):
         self.assertEqual(page.sends, 0)
 
     def test_format_voice_recipient_is_national(self) -> None:
-        self.assertEqual(format_voice_recipient(DON_PHONE), "(214) 779-8338")
-        self.assertEqual(format_voice_recipient(DAD_PHONE), "(945) 241-3070")
-        self.assertEqual(format_voice_recipient(JOE_PHONE), "(469) 373-2048")
+        self.assertEqual(format_voice_recipient(DON_PHONE), "(202) 555-0104")
+        self.assertEqual(format_voice_recipient(DAD_PHONE), "(202) 555-0102")
+        self.assertEqual(format_voice_recipient(JOE_PHONE), "(202) 555-0103")
 
 
 FAKE_QUO_KEY = "test-quo-key-not-real"
@@ -679,7 +697,7 @@ class FieldMmsQuoTests(unittest.TestCase):
     def test_default_from_number_is_quo_469(self) -> None:
         with patch.dict(os.environ, {"QUO_FROM_NUMBER": "", "FIELD_MMS_QUO_FROM": ""}):
             self.assertEqual(resolve_quo_from_number(), QUO_FROM_NUMBER_DEFAULT)
-            self.assertEqual(QUO_FROM_NUMBER_DEFAULT, "+14693732048")
+            self.assertEqual(QUO_FROM_NUMBER_DEFAULT, "+12025550103")
 
     def test_from_number_env_aliases(self) -> None:
         with patch.dict(os.environ, {"QUO_FROM_NUMBER": FAKE_QUO_FROM, "FIELD_MMS_QUO_FROM": ""}):

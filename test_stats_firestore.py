@@ -73,7 +73,7 @@ class StatsFirestoreTests(unittest.TestCase):
         self.assertIn("match /stats/{document}", RULES)
         self.assertIn("TXSU0LOpmDWNBbbv0x3uHHBnZb12", RULES)
         self.assertIn("8jOJNgLoxpfyseZ0RY1PDZ1DXbi2", RULES)
-        stats_block = RULES.split("match /stats/{document}")[1].split("match /{document=**}")[0]
+        stats_block = RULES.split("match /stats/{document}", 1)[1].split("\n    }", 1)[0]
         self.assertIn("TXSU0LOpmDWNBbbv0x3uHHBnZb12", stats_block)
         self.assertNotIn("pcJSHjdXeDfOeGRQMgso11Gvlxh2", stats_block)
         self.assertNotIn("8jOJNgLoxpfyseZ0RY1PDZ1DXbi2", stats_block)

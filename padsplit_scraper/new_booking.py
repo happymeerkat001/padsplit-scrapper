@@ -14,8 +14,8 @@ send Hirevire, and do not post a Discord pack.
 Leftover compose/draft closer is a HARD GATE before every host send.
 If leftover drafts cannot be cleared: HARD SKIP that send (do not send).
 The scrape continues. GraphQL sendMessage does not open compose tabs; this
-gate still refuses to send when leftover tab records remain, which is the
-Alexandria Haltom Rm 2 8/31 triple-bubble class of duplicate.
+gate still refuses to send when leftover tab records remain, preventing
+the previously observed duplicate-message failure.
 """
 
 from __future__ import annotations
@@ -49,7 +49,6 @@ TEMPLATES_DOC_URL = (
     "databases/(default)/documents/templates/shared"
 )
 NEW_BOOKING_LABEL = "new booking request"
-HIREVIRE_ACCOUNT_EMAIL = "liaisonventuresmanagement@gmail.com"
 HIREVIRE_APPLICATION_ID = "977d344b-8592-4fc5-bd41-38717d6fa90a"
 HIREVIRE_URL_RE = re.compile(
     r"https://app\.hirevire\.com/applications/"
@@ -282,11 +281,11 @@ def template_send_body(label: str, text: str) -> str:
 
 
 def verify_hirevire_template(text: str) -> str:
-    """Require the Hirevire application owned by liaisonventuresmanagement@gmail.com."""
+    """Require the configured Hirevire application.com."""
     match = HIREVIRE_URL_RE.search(text or "")
     if not match:
         raise RuntimeError(
-            f"New-booking template is missing the {HIREVIRE_ACCOUNT_EMAIL} Hirevire link"
+            "New-booking template is missing the expected Hirevire link"
         )
     return match.group(0)
 

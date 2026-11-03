@@ -296,28 +296,33 @@ class CodesDashboardStructureTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, msg="renderer structure test failed")
         self.assertIn("codes dashboard renderer structure ok", result.stdout)
 
-    def test_existing_default_values_unchanged(self):
+    def test_public_defaults_do_not_embed_sensitive_values(self):
+        # These defaults are served by GitHub Pages before any login; values
+        # must come from Firestore, not public HTML or repository history.
+        self.assertTrue(self.houses)
+        for slug, block in self.houses.items():
+            values = _key_values(block)
+            self.assertTrue(values, msg=f"{slug} has no fields")
+            for key, value in values.items():
+                self.assertEqual(value, "", msg=f"{slug} {key} has a public default")
+
+    def test_existing_property_field_schema_preserved(self):
         main_html = None
         for ref in ("origin/main", "main"):
             result = subprocess.run(
                 ["git", "show", f"{ref}:docs/codes.html"],
-                capture_output=True,
-                text=True,
+                capture_output=True, text=True,
             )
             if result.returncode == 0:
                 main_html = result.stdout
                 break
         if main_html is None:
-            self.skipTest("main codes.html not available for comparison")
+            self.skipTest("main codes.html not available for schema comparison")
         main_houses = _house_blocks(main_html)
         for slug, main_block in main_houses.items():
-            if slug not in self.houses:
-                continue
-            current = _key_values(self.houses[slug])
-            previous = _key_values(main_block)
-            for key, old_value in previous.items():
-                self.assertIn(key, current, msg=f"{slug} dropped key {key}")
-                self.assertEqual(current[key], old_value, msg=f"{slug} changed default for {key}")
+            self.assertIn(slug, self.houses)
+            self.assertTrue(set(_key_values(main_block)).issubset(_key_values(self.houses[slug])),
+                            msg=f"{slug} dropped a default field key")
 
 
 if __name__ == "__main__":

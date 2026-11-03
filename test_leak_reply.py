@@ -12,6 +12,17 @@ from padsplit_scraper import leak_reply
 from padsplit_scraper import lock_codes
 from padsplit_scraper import new_booking
 
+_field_phone_patch = patch.object(leak_reply, "QUO_FIELD_PHONE", "+1 (202) 555-0103")
+_phone_env_patch = patch.dict("os.environ", {"LOCKOUT_FIELD_PHONE": "+1 (202) 555-0103"})
+
+def setUpModule():
+    _field_phone_patch.start()
+    _phone_env_patch.start()
+
+def tearDownModule():
+    _phone_env_patch.stop()
+    _field_phone_patch.stop()
+
 
 NOW = datetime(2026, 9, 10, 15, 0, tzinfo=timezone.utc)
 
@@ -19,7 +30,7 @@ NOW = datetime(2026, 9, 10, 15, 0, tzinfo=timezone.utc)
 def member_thread(
     *,
     chat_id: str = "chat-leana",
-    street: str = "6623 Leana Avenue",
+    street: str = "109 Leana Avenue",
     room: int = 2,
     text: str = "water leaking from the ceiling",
     created: str = "2026-09-10T14:30:00Z",
@@ -226,11 +237,16 @@ class DetectTests(unittest.TestCase):
 
 
 class BodyTests(unittest.TestCase):
+    def test_missing_field_phone_fails_closed(self) -> None:
+        with patch.object(leak_reply, "QUO_FIELD_PHONE", ""):
+            with self.assertRaisesRegex(RuntimeError, "LOCKOUT_FIELD_PHONE"):
+                leak_reply.format_leak_body(leak_reply.BAKED_T5_TEXT)
+
     def test_body_contains_quo_and_youtube(self) -> None:
         body = leak_reply.format_leak_body(leak_reply.BAKED_T5_TEXT)
         self.assertIn(leak_reply.QUO_FIELD_PHONE, body)
         self.assertIn("Call/text Quo:", body)
-        self.assertIn("+1 (469) 373-2048", body)
+        self.assertIn("+1 (202) 555-0103", body)
         self.assertIn(leak_reply.WATER_KEY_YOUTUBE_URL, body)
         self.assertIn("https://youtube.com/shorts/SCryjPiyZcs", body)
         self.assertNotIn("si=", body)
@@ -272,7 +288,7 @@ class BodyTests(unittest.TestCase):
 
 class DiscordTests(unittest.TestCase):
     def test_water_key_order_requires_house_and_full_address(self) -> None:
-        ship_to = "6623 Leana Avenue, Dallas, TX 75241"
+        ship_to = "109 Leana Avenue, Dallas, TX 75241"
         text = leak_reply.discord_water_key_order_text(
             house_label="Leana",
             ship_to=ship_to,
@@ -377,7 +393,7 @@ class FlowTests(unittest.TestCase):
         ship_to = rows[0]["ship_to"]
         remainder = fake.posts[0].replace(ship_to, "", 1)
         self.assertFalse(lock_codes.has_digit_characters(remainder))
-        self.assertIn("6623 Leana Avenue", fake.posts[0])
+        self.assertIn("109 Leana Avenue", fake.posts[0])
         self.assertIn("water curb key", fake.posts[0])
         self.assertIn("sent_at", state["threads"]["chat-leana"])
 
@@ -488,7 +504,7 @@ class FlowTests(unittest.TestCase):
         )
         other_house = member_thread(
             chat_id="sylvia",
-            street="2516 Sylvia Avenue",
+            street="104 Sylvia Avenue",
             host_texts=[
                 "In case of a water leak\nhttps://youtube.com/shorts/SCryjPiyZcs"
             ],

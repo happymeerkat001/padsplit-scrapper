@@ -14,7 +14,7 @@ Add a rolling `occupancy.json` derived from live `latest.json` messages and task
 
 ## Problem Frame
 
-`stats.json` is stale. Earnings `/api/partner/earnings/` 404s, the full scrape marks `run_status.state=degraded`, and prior May 2026 stats are rewritten. `kpis.vacancy_rooms` is listed-status, not presence. 1025 Broken Crest Rm 3 / property `31523` still has Curtis Palmer on the occupancy, an active host chat after the 2026-06-29 move-out, eviction ticket `433568` with `is_present_after_move_out: true`, and zero move-out photos. A date check or `vacancy_rooms` read would invent empty. This PR writes that derived file and locks 1025 Broken Crest Rm 3 as present and not rent-ready. Live operator surfaces still read `vacancy_rooms` until PR 2.
+`stats.json` is stale. Earnings `/api/partner/earnings/` 404s, the full scrape marks `run_status.state=degraded`, and prior May 2026 stats are rewritten. `kpis.vacancy_rooms` is listed-status, not presence. 102 Broken Crest Rm 3 / property `31523` still has Curtis Palmer on the occupancy, an active host chat after the 2026-06-29 move-out, eviction ticket `433568` with `is_present_after_move_out: true`, and zero move-out photos. A date check or `vacancy_rooms` read would invent empty. This PR writes that derived file and locks 102 Broken Crest Rm 3 as present and not rent-ready. Live operator surfaces still read `vacancy_rooms` until PR 2.
 
 ---
 
@@ -31,7 +31,7 @@ Add a rolling `occupancy.json` derived from live `latest.json` messages and task
 
 - R5. `occupant_present` is true if the source chat's `occupancy.user` is present, or host chat still has a `lastMessage` after listed move-out (broadcasts and `TICKET_UPDATE` count), or ticket `extra_data.is_present_after_move_out` is true. If unsure, present. `moveOutDate < today` alone never empties a room. Vacant stays `not present`; do not require a completed turn to empty a room.
 - R6. `vacant` is not present. `turned` is a completed `room-turn` ticket in this fetch, plus `move_out_photos > 0`, plus no open eviction or hold. `turned` is independent of vacant. `rent_ready` is vacant and turned. `seo_eligible` is rent-ready and `days_vacant > 14`.
-- R7. 1025 Broken Crest Rm 3 / property `31523` is `occupant_present: true`, `rent_ready: false`, `seo_eligible: false` on the live Curtis Palmer / ticket `433568` fixture. This acceptance does not change.
+- R7. 102 Broken Crest Rm 3 / property `31523` is `occupant_present: true`, `rent_ready: false`, `seo_eligible: false` on the live Curtis Palmer / ticket `433568` fixture. This acceptance does not change.
 
 ### Pipeline
 
@@ -47,7 +47,7 @@ Add a rolling `occupancy.json` derived from live `latest.json` messages and task
 - KTD2. **Universe is messages ∪ tasks.** Chats have no `property.id`. Partner rooms live inside the earnings try-block, so they cannot be the catalog without blocking on the 404. Rooms with no chat and no ticket are absent this PR.
 - KTD3. **Skip occupancy on `--messages-only`.** Afternoon would otherwise drop ticket `433568` and can flip Curtis toward `seo_eligible`. Matches the existing skip of tasks and stats.
 - KTD4. **`turned` is snapshot-only.** Live `Complete` often has no aged-out room-turn. `turned` is true only when a completed `room-turn` is in this fetch. Prior occupancy is not a memory of turned.
-- KTD5. **Presence is OR across sources for one room.** Merge on `(normalized street1, room_number)`. Normalized street is lowercase trimmed `street1` with trailing street-type tokens stripped (`rd`, `dr`, `ave`, `st`, `street`, `road`, `drive`, `avenue`) so `1025 Broken Crest` and `1025 Broken Crest Rd` are one row. Listed move-out is the latest `moveOutDate` / ticket `extra_data.move_out_date`. Next move-in is the earliest `moveInDate` after the Chicago date of `now`.
+- KTD5. **Presence is OR across sources for one room.** Merge on `(normalized street1, room_number)`. Normalized street is lowercase trimmed `street1` with trailing street-type tokens stripped (`rd`, `dr`, `ave`, `st`, `street`, `road`, `drive`, `avenue`) so `102 Broken Crest` and `102 Broken Crest Rd` are one row. Listed move-out is the latest `moveOutDate` / ticket `extra_data.move_out_date`. Next move-in is the earliest `moveInDate` after the Chicago date of `now`.
 - KTD6. **`days_vacant` is 0 while present.** Otherwise whole Chicago calendar days from listed move-out. When `listed_move_out` is null, treat presence as unsure (`occupant_present` true, `days_vacant` 0, `seo_eligible` false). `seo_eligible` is rent-ready and `days_vacant > 14` (14 is not eligible). Occupancy uses America/Chicago, same as `obsidian_daily_digest.py`.
 - KTD7. **A user on a future move-in is present.** The stated rule is the source chat's `occupancy.user` is present. That blocks `seo_eligible`. Incoming-list handling is PR 2.
 - KTD8. **Open ticket lists are exclusive.** `open_eviction_ticket_ids` from `status == eviction`. `open_hold_ticket_ids` from `status == on_hold`. `open_turn_ticket_ids` from category `room-turn` / `ROOM_TURN` among remaining `kpis.py` open statuses (`submitted`, `accepted`, `in_progress`). Ticket `433568` is eviction-only; category never overrides eviction or hold. A completed turn is still category `room-turn` / `ROOM_TURN` with a completed status. Unclassified or laundry tickets do not complete a turn.
@@ -164,7 +164,7 @@ flowchart TB
 
 **Test scenarios:**
 
-- Covers R7. Curtis Palmer / 1025 Broken Crest Rm 3 / property `31523`: `occupancy.user` present, `moveOutDate` 2026-06-29, host `lastMessage` 2026-08-19 (parking broadcast), eviction ticket `433568`, `is_present_after_move_out` true, `moveout_photos_count` 0, ticket `room_code` `7633`. Expect `occupant_present` true, `vacant` false, `turned` false, `rent_ready` false, `seo_eligible` false, `property_id` 31523 from the ticket, `move_out_photos` 0, `433568` in `open_eviction_ticket_ids` and not in `open_turn_ticket_ids`, room keys equal the R3 allowlist, no `room_code` key. Same join when one source says `1025 Broken Crest Rd`.
+- Covers R7. Curtis Palmer / 102 Broken Crest Rm 3 / property `31523`: `occupancy.user` present, `moveOutDate` 2026-06-29, host `lastMessage` 2026-08-19 (parking broadcast), eviction ticket `433568`, `is_present_after_move_out` true, `moveout_photos_count` 0, ticket `room_code` `7633`. Expect `occupant_present` true, `vacant` false, `turned` false, `rent_ready` false, `seo_eligible` false, `property_id` 31523 from the ticket, `move_out_photos` 0, `433568` in `open_eviction_ticket_ids` and not in `open_turn_ticket_ids`, room keys equal the R3 allowlist, no `room_code` key. Same join when one source says `102 Broken Crest Rd`.
 - Past `moveOutDate`, user present, dead chat: still present.
 - Past `moveOutDate`, user null, lastMessage after move-out: present.
 - Past `moveOutDate`, user null, dead chat, no present-after flag, no tickets: vacant, not turned.

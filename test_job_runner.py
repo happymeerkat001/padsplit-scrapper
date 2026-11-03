@@ -143,6 +143,7 @@ class JobRunnerTests(unittest.TestCase):
             ambient = {
                 "CI": "",
                 "GITHUB_ACTIONS": "",
+                "PADSPLIT_COLLECTION_ONLY": "0",
                 "PADSPLIT_ENABLE_ACTION_HOOKS": "1",
                 "LOCKOUT_REPLY_ENABLE": "1",
                 "LEAK_REPLY_ENABLE": "1",

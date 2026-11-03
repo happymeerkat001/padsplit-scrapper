@@ -184,10 +184,10 @@ class SeoMonthlyTests(unittest.TestCase):
         self.assertIn("not detectable", pack.markdown.lower())
 
     def test_presence_conflict_called_out(self) -> None:
-        rooms = [listing_room(street="1025 Broken Crest", room_number=3, days=51, room_id=99)]
+        rooms = [listing_room(street="102 Broken Crest", room_number=3, days=51, room_id=99)]
         occupancy = [
             occ_row(
-                street="1025 Broken Crest",
+                street="102 Broken Crest",
                 room_number=3,
                 vacant=False,
                 days_vacant=0,

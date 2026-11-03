@@ -28,7 +28,7 @@ class MessageSummarizerTests(unittest.TestCase):
                     "occupancy": {"room": {"roomNumber": 2}},
                     "property": {
                         "address": {
-                            "street1": "10235 Ridge Oak",
+                            "street1": "101 Ridge Oak",
                             "city": {"name": "Dallas", "state": {"name": "TX"}},
                         }
                     },
@@ -58,14 +58,14 @@ class MessageSummarizerTests(unittest.TestCase):
             "occupancy": {"room": {"roomNumber": 12}},
             "property": {
                 "address": {
-                    "street1": "10235 Ridge Oak",
+                    "street1": "101 Ridge Oak",
                     "city": {"name": "Dallas", "state": {"name": "TX"}},
                 }
             },
         }
 
         self.assertEqual(format_room(chat), "12")
-        self.assertEqual(format_address(chat), "10235 Ridge Oak, Dallas, TX")
+        self.assertEqual(format_address(chat), "101 Ridge Oak, Dallas, TX")
 
     def test_format_room_returns_unknown_when_occupancy_missing(self) -> None:
         self.assertEqual(format_room({}), "Unknown")
@@ -77,13 +77,13 @@ class MessageSummarizerTests(unittest.TestCase):
         chat = {
             "property": {
                 "address": {
-                    "street1": "10235 Ridge Oak",
+                    "street1": "101 Ridge Oak",
                     "city": {"name": "Dallas"},
                 }
             }
         }
 
-        self.assertEqual(format_address(chat), "10235 Ridge Oak, Dallas, Unknown")
+        self.assertEqual(format_address(chat), "101 Ridge Oak, Dallas, Unknown")
 
     def test_format_address_returns_unknown_when_property_missing(self) -> None:
         self.assertEqual(format_address({}), "Unknown")
@@ -123,7 +123,7 @@ class MessageSummarizerTests(unittest.TestCase):
         messages_by_id = {
             "chat-1": {
                 "occupancy": {"room": {"roomNumber": 2}},
-                "property": {"address": {"street1": "10235 Ridge Oak", "city": {"name": "Dallas", "state": {"name": "TX"}}}},
+                "property": {"address": {"street1": "101 Ridge Oak", "city": {"name": "Dallas", "state": {"name": "TX"}}}},
             },
             "chat-2": {
                 "occupancy": {"room": {"roomNumber": 7}},
@@ -137,13 +137,13 @@ class MessageSummarizerTests(unittest.TestCase):
 
         rendered = render_summary(urgent_items, messages_by_id)
 
-        self.assertIn("10235 Ridge Oak, Dallas, TX — Room 2 — 2026-07-26T10:00:00Z", rendered)
+        self.assertIn("101 Ridge Oak, Dallas, TX — Room 2 — 2026-07-26T10:00:00Z", rendered)
         self.assertIn("Water leak", rendered)
         self.assertIn("4100 N Main St, Fort Worth, TX — Room 7 — 2026-07-26T10:05:00Z", rendered)
         self.assertIn("Gas smell", rendered)
 
     def test_render_summary_skips_unknown_chat_and_keeps_valid_item(self) -> None:
-        messages_by_id = {"chat-1": {"occupancy": {"room": {"roomNumber": 2}}, "property": {"address": {"street1": "10235 Ridge Oak", "city": {"name": "Dallas", "state": {"name": "TX"}}}}}}
+        messages_by_id = {"chat-1": {"occupancy": {"room": {"roomNumber": 2}}, "property": {"address": {"street1": "101 Ridge Oak", "city": {"name": "Dallas", "state": {"name": "TX"}}}}}}
         urgent_items = [
             {"chat_id": "missing", "summary": "Ignore", "sent_at": "now"},
             {"chat_id": "chat-1", "summary": "Water leak", "sent_at": "now"},
@@ -169,14 +169,14 @@ class MessageSummarizerTests(unittest.TestCase):
 
     def test_render_summary_quotes_tenant_last_message(self) -> None:
         chat = {
-            "title": "Jeremy Hodges",
+            "title": "Morgan Sample",
             "occupancy": {
                 "room": {"roomNumber": 8},
                 "user": {"firstName": "Jeremy", "lastName": "Hodges"},
             },
             "property": {
                 "address": {
-                    "street1": "3541 Parker Road East",
+                    "street1": "107 Parker Road East",
                     "city": {"name": "Haltom City", "state": {"name": "Texas"}},
                 }
             },
@@ -193,21 +193,21 @@ class MessageSummarizerTests(unittest.TestCase):
 
         self.assertEqual(
             rendered,
-            "3541 Parker Road East, Haltom City, Texas — Room 8 — now\n"
+            "107 Parker Road East, Haltom City, Texas — Room 8 — now\n"
             "Tenant: Ima pay up Friday\n"
             "Payment delay",
         )
 
     def test_render_summary_falls_back_to_recent_tenant_message(self) -> None:
         chat = {
-            "title": "Jeremy Hodges",
+            "title": "Morgan Sample",
             "occupancy": {
                 "room": {"roomNumber": 8},
                 "user": {"firstName": "Jeremy", "lastName": "Hodges"},
             },
             "property": {
                 "address": {
-                    "street1": "3541 Parker Road East",
+                    "street1": "107 Parker Road East",
                     "city": {"name": "Haltom City", "state": {"name": "Texas"}},
                 }
             },
@@ -246,14 +246,14 @@ class MessageSummarizerTests(unittest.TestCase):
 
     def test_render_summary_omits_tenant_line_when_no_tenant_text(self) -> None:
         chat = {
-            "title": "Jeremy Hodges",
+            "title": "Morgan Sample",
             "occupancy": {
                 "room": {"roomNumber": 8},
                 "user": {"firstName": "Jeremy", "lastName": "Hodges"},
             },
             "property": {
                 "address": {
-                    "street1": "3541 Parker Road East",
+                    "street1": "107 Parker Road East",
                     "city": {"name": "Haltom City", "state": {"name": "Texas"}},
                 }
             },
@@ -282,7 +282,7 @@ class MessageSummarizerTests(unittest.TestCase):
 
         self.assertEqual(
             rendered,
-            "3541 Parker Road East, Haltom City, Texas — Room 8 — now\n"
+            "107 Parker Road East, Haltom City, Texas — Room 8 — now\n"
             "Payment delay",
         )
 
@@ -290,7 +290,7 @@ class MessageSummarizerTests(unittest.TestCase):
         messages_by_id = {
             "chat-1": {
                 "occupancy": {"room": {"roomNumber": 2}},
-                "property": {"address": {"street1": "10235 Ridge Oak", "city": {"name": "Dallas", "state": {"name": "TX"}}}},
+                "property": {"address": {"street1": "101 Ridge Oak", "city": {"name": "Dallas", "state": {"name": "TX"}}}},
             },
             "chat-2": {
                 "occupancy": {"room": {"roomNumber": 7}},
@@ -314,7 +314,7 @@ class MessageSummarizerTests(unittest.TestCase):
         self.assertEqual(len(prompts), 1)
         self.assertEqual(
             sent_messages,
-            ["10235 Ridge Oak, Dallas, TX — Room 2 — now\nWater leak"],
+            ["101 Ridge Oak, Dallas, TX — Room 2 — now\nWater leak"],
         )
 
     def test_main_retries_with_json_reinforcement_after_invalid_response(self) -> None:
@@ -326,7 +326,7 @@ class MessageSummarizerTests(unittest.TestCase):
         self.assertIn("Your last response was not valid JSON", prompts[1])
         self.assertEqual(
             sent_messages,
-            ["10235 Ridge Oak, Dallas, TX — Room 2 — now\nWater leak"],
+            ["101 Ridge Oak, Dallas, TX — Room 2 — now\nWater leak"],
         )
 
     def test_main_sends_visible_fallback_when_both_responses_are_invalid(self) -> None:

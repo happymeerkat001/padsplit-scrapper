@@ -278,6 +278,10 @@ def run_digest(
         print(format_dry_run(digest_counts(latest)))
         return 0
 
+    if latest.get("private_content_omitted") is True:
+        print("Task digest unavailable: the public snapshot omits task details; no message sent.")
+        return 1
+
     day = ct_day(now)
     reason = post_decision(
         already_posted=already_posted_today(load_ledger(ledger_path), day),

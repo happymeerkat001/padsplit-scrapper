@@ -30,13 +30,13 @@ class CloudHelperTests(unittest.TestCase):
     def test_list_and_find(self) -> None:
         client = SimpleNamespace(
             list_appliances=lambda: [
-                {"name": "1025 Broken Crest", "id": "1", "type": "0xac"},
+                {"name": "102 Broken Crest", "id": "1", "type": "0xac"},
                 {"name": "Washer", "id": "2", "type": "0xa1"},
             ]
         )
         acs = cloud.list_acs(client)
-        self.assertEqual([a["name"] for a in acs], ["1025 Broken Crest"])
-        found = cloud.find_ac(client, "1025 Broken Crest")
+        self.assertEqual([a["name"] for a in acs], ["102 Broken Crest"])
+        found = cloud.find_ac(client, "102 Broken Crest")
         self.assertEqual(found["id"], "1")
 
     def test_unknown_name(self) -> None:

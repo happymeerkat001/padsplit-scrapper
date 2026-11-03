@@ -23,7 +23,7 @@ def _latest() -> dict:
         "tasks": {
             "Requests": [
                 {
-                    "property_address": {"street1": "1025 Broken Crest"},
+                    "property_address": {"street1": "102 Broken Crest"},
                     "details": "Window stuck for Ada Lovelace",
                     "room_number": 2,
                 }
@@ -71,7 +71,7 @@ class SlackTaskDigestTests(unittest.TestCase):
             "tasks": {
                 "Requests": [
                     {
-                        "property_address": {"street1": "1025 Broken Crest"},
+                        "property_address": {"street1": "102 Broken Crest"},
                         "details": "Window stuck",
                         "room_number": 2,
                     }
@@ -82,7 +82,7 @@ class SlackTaskDigestTests(unittest.TestCase):
         stale_kpis = {
             "vacancy_rooms": [
                 {
-                    "property": "1025 Broken Crest, DeSoto, TX",
+                    "property": "102 Broken Crest, DeSoto, TX",
                     "room_number": 3,
                     "days_listed": 51,
                     "base_price": 174,
@@ -90,7 +90,7 @@ class SlackTaskDigestTests(unittest.TestCase):
             ]
         }
         message = slack_task_digest.compose_message(latest, kpis=stale_kpis)
-        self.assertIn("1025 Broken Crest", message)
+        self.assertIn("102 Broken Crest", message)
         self.assertIn("Window stuck", message)
         self.assertNotIn("Vacancy Alert", message)
         self.assertNotIn("51 days", message)
@@ -121,7 +121,7 @@ class SlackTaskDigestTests(unittest.TestCase):
         )
 
     def test_dry_run_prints_counts_and_hides_composed_text(self) -> None:
-        secret_body = "SECRET Ada Lovelace code 2846 amount $174 1025 Broken Crest"
+        secret_body = "SECRET Ada Lovelace code 2846 amount $174 102 Broken Crest"
         composed = {"called": False}
 
         def fake_compose(latest, **kwargs):

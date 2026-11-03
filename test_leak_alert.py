@@ -19,6 +19,17 @@ from test_leak_reply import firestore_t5_doc
 from test_leak_reply import member_thread
 from test_leak_reply import run_process
 
+_field_phone_patch = patch.object(leak_reply, "QUO_FIELD_PHONE", "+1 (202) 555-0103")
+_phone_env_patch = patch.dict("os.environ", {"LOCKOUT_FIELD_PHONE": "+1 (202) 555-0103"})
+
+def setUpModule():
+    _field_phone_patch.start()
+    _phone_env_patch.start()
+
+def tearDownModule():
+    _phone_env_patch.stop()
+    _field_phone_patch.stop()
+
 
 DON = "+15555550101"
 TOM = "+15555550102"

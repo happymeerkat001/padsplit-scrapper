@@ -53,7 +53,7 @@ python3 slack_task_digest.py --dry-run
 
 Don-field Quo SMS blast (7:00am CT only, every day including weekends; no 7pm / evening send) is the Mac launchd job. Not live until merge + Mac pull + `python3 padsplit_scraper/field_mms.py --install-launchd` so Hour=7 Minute=0 is loaded. Skips when PadSplit host messages and Discord `#ai-tasks-temp` are both empty. GitHub Actions must not send it. Do not send from a box/VPS IP.
 
-Primary send path is **Quo SMS** from `+14693732048` (A2P approved) via `POST https://api.quo.com/v1/messages`, one group send (Don `+12147798338`, Dad `+19452413070`, and Ang GV `+14696267260` by default; no Joe; override with `FIELD_MMS_QUO_TO`). Quo’s `to` field is the full recipient list in a single POST so Don, Dad, and Ang GV share one conversation. Fallbacks are Google Voice group SMS (Ang’s already-signed-in Mac Chrome) then the Messages.app chat named exactly `Don Field`. Prefer the Mac job. Quo HTTP does not need a residential IP the way Google Voice does; still do not run live sends from CI or a box/VPS by default. Never paste Quo keys, Google passwords, or message-body secrets into the repo.
+Primary send path is **Quo SMS** from `[configured privately]` (A2P approved) via `POST https://api.quo.com/v1/messages`, one group send (Don `[configured privately]`, Dad `[configured privately]`, and Ang GV `[configured privately]` by default; no Joe; override with `FIELD_MMS_QUO_TO`). Quo’s `to` field is the full recipient list in a single POST so Don, Dad, and Ang GV share one conversation. Fallbacks are Google Voice group SMS (Ang’s already-signed-in Mac Chrome) then the Messages.app chat named exactly `Don Field`. Prefer the Mac job. Quo HTTP does not need a residential IP the way Google Voice does; still do not run live sends from CI or a box/VPS by default. Never paste Quo keys, Google passwords, or message-body secrets into the repo.
 
 Chrome fallback must already be signed into Google Voice as **mr.angli** / Voice 469. Install Playwright on the Mac once (`pip install playwright`; uses system Chrome, no Voice API key). Then set:
 
@@ -64,14 +64,29 @@ Chrome fallback must already be signed into Google Voice as **mr.angli** / Voice
 # messages = Messages.app only
 FIELD_MMS_TRANSPORT=auto
 QUO_API_KEY=
-# optional; defaults to +14693732048
+# Set private staff contacts in E.164 format on the Mac; all five must be distinct.
+FIELD_MMS_ANG_VOICE_PHONE=
+FIELD_MMS_DAD_PHONE=
+FIELD_MMS_JOE_PHONE=
+FIELD_MMS_DON_PHONE=
+FIELD_MMS_DON_WRONG_PHONE=  # the known disallowed number, not a recipient
+# Required sender for the Quo path (or use QUO_FROM_NUMBER/FIELD_MMS_QUO_FROM).
+FIELD_MMS_FROM_NUMBER=
+# Used by lockout and leak emergency replies; missing/invalid prevents sending.
+LOCKOUT_FIELD_PHONE=
+# Alternative sender configuration:
 # QUO_FROM_NUMBER=
 # FIELD_MMS_QUO_FROM=
-# optional comma/space list; defaults to Don + Dad + Ang GV (no Joe)
-# FIELD_MMS_QUO_TO=+12147798338,+19452413070,+14696267260
+# optional comma/space list; defaults to the configured Don + Dad + Ang GV
+# FIELD_MMS_QUO_TO=
 FIELD_MMS_CHROME_USER_DATA_DIR=   # Chrome user-data-dir already signed into Voice
 FIELD_MMS_CHROME_PROFILE_DIRECTORY=Default   # mr.angli Chrome profile directory
 ```
+
+These values must be configured privately on every machine running the relevant
+jobs; they are no longer stored in source control. Until configured, the field
+SMS job and affected lockout/leak replies fail closed rather than sending to an
+unverified recipient. No job or production secret is changed by this branch.
 
 `FIELD_MMS_CHROME_USER_DATA_DIR` is the Chrome *root* (the folder that contains `Default` / `Profile 1`), not the profile folder itself. Prefer a dedicated copy of that profile so the daily Chrome window is not locked. If Quo fails, `auto` tries Google Voice; if Google shows a login wall / captcha / challenge, create (or reuse) a Messages group named exactly `Don Field`. `FIELD_MMS_TRANSPORT=quo` and `FIELD_MMS_TRANSPORT=google_voice` do not fall back.
 

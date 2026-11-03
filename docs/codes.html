@@ -259,33 +259,47 @@
     .notes-copy-btn.copied { color: var(--success); border-color: var(--success); }
     .notes-copy-btn svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
   </style>
+  <link rel="stylesheet" href="./operations.css">
+  <link rel="stylesheet" href="./password-reset.css">
+  <script defer src="./navigation.js"></script>
 </head>
 <body>
   <div id="gate-wrap" class="card hidden">
     <h2 class="gate-title">Codes Access</h2>
     <div class="muted">Enter password to view and edit property codes.</div>
     <form id="gate-form" class="gate-form">
-      <input id="gate-email" type="email" placeholder="Email" autocomplete="email" />
-      <input id="gate-input" type="password" placeholder="Password" autocomplete="current-password" />
+      <label for="gate-email" class="gate-label">Email</label>
+        <input aria-label="Email" id="gate-email" type="email" placeholder="Email" autocomplete="email" />
+      <label for="gate-input" class="gate-label">Password</label>
+        <input aria-label="Password" id="gate-input" type="password" placeholder="Password" autocomplete="current-password" />
+        <button type="button" class="password-toggle" aria-controls="gate-input" aria-pressed="false">Show password</button>
       <button type="submit">Unlock</button>
     </form>
-    <div id="gate-error" class="error hidden" style="margin-top:0.6rem">Incorrect email or password.</div>
+    <div role="alert" id="gate-error" class="error hidden" style="margin-top:0.6rem">Sign-in failed. Check your credentials and connection, then try again.</div>
   </div>
 
   <div id="app-wrap" class="hidden">
     <header>
       <h1>Property Codes</h1>
       <div class="header-meta">
-        <a href="./index.html" class="header-link">Dashboard</a>
-        <a href="./templates.html" class="header-link">Templates</a>
-        <a href="./stats.html" class="header-link">Stats</a>
         <button id="signout-btn" class="header-link" style="background:none;border:none;cursor:pointer;padding:0">Sign out</button>
       </div>
     </header>
+  <nav class="ops-nav" aria-label="Main navigation">
+    <a href="./index.html">Overview</a>
+    <a href="./private-messages.html">Messages</a>
+    <a href="./templates.html">Templates</a>
+    <a href="./codes.html" aria-current="page">Codes</a>
+    <a href="./stats.html">Stats</a>
+    <a href="./vendors.html">Vendors</a>
+    <a href="./kpi-history.html">History</a>
+  </nav>
+
 
     <div class="card">
       <div class="codes-intro">
         <button type="button" id="page-history-btn" class="history-btn">History</button>
+        <button type="button" id="toggle-sensitive" class="history-btn" aria-pressed="false">Reveal sensitive values</button>
         <div class="muted">Values in parentheses indicate known conflicting entries and can be edited.</div>
       </div>
       <div id="page-history-panel" class="history-panel hidden"></div>
@@ -295,18 +309,21 @@
     <section class="notes-section">
       <h2>Notes</h2>
       <div class="notes-card">
-        <textarea class="notes-textarea" id="notes-textarea" placeholder="Add shared notes…"></textarea>
+        <textarea aria-label="Shared notes" class="notes-textarea" id="notes-textarea" placeholder="Add shared notes…"></textarea>
         <div class="notes-footer">
           <button class="notes-save-btn" id="notes-save-btn">Save</button>
-          <button class="notes-copy-btn" id="notes-copy-btn" title="Copy notes"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+          <button class="notes-copy-btn" id="notes-copy-btn" aria-label="Copy notes" title="Copy notes"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
         </div>
       </div>
     </section>
   </div>
 
+  <script src="./draft-guard.js"></script>
+  <script src="./owner-notes.js"></script>
+  <script src="./password-reset.js"></script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import { getFirestore, collection, getDocs, getDoc, setDoc, doc, serverTimestamp, onSnapshot, query, orderBy, limit, startAfter, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -327,20 +344,20 @@
         address: "6623 Leana",
         sections: [
           { label: "Door Codes", fields: [
-            { key: "front_door", label: "Front Door", value: "3478" },
-            { key: "admin", label: "Admin", value: "662366" },
-            { key: "thermo", label: "Thermo", value: "3477" }
+            { key: "front_door", label: "Front Door", value: "" },
+            { key: "admin", label: "Admin", value: "" },
+            { key: "thermo", label: "Thermo", value: "" }
           ]},
           { label: "WiFi", fields: [
-            { key: "wifi_primary", label: "Spectrum", value: "SpectrumSetup-C1 / Unionerrand354" },
-            { key: "wifi_tmobile", label: "T-Mobile", value: "TMOBILE-14a / g4eaa7cugt5" }
+            { key: "wifi_primary", label: "Spectrum", value: "" },
+            { key: "wifi_tmobile", label: "T-Mobile", value: "" }
           ]},
           { label: "Rooms", fields: [
-            { key: "r1", label: "R1", value: "2721" },
-            { key: "r2", label: "R2", value: "5410" },
-            { key: "r3", label: "R3", value: "1069" },
-            { key: "r4", label: "R4", value: "3414" },
-            { key: "r5", label: "R5", value: "7520" }
+            { key: "r1", label: "R1", value: "" },
+            { key: "r2", label: "R2", value: "" },
+            { key: "r3", label: "R3", value: "" },
+            { key: "r4", label: "R4", value: "" },
+            { key: "r5", label: "R5", value: "" }
           ]},
           { label: "Contact", fields: [
             { key: "responsible_tenant", label: "Responsible Tenant", value: "", placeholder: "Name, Phone" },
@@ -356,20 +373,20 @@
         address: "2516 Sylvia",
         sections: [
           { label: "Door Codes", fields: [
-            { key: "front_door", label: "Front Door", value: "4306" },
-            { key: "thermo", label: "Thermo", value: "3476" }
+            { key: "front_door", label: "Front Door", value: "" },
+            { key: "thermo", label: "Thermo", value: "" }
           ]},
           { label: "WiFi", fields: [
-            { key: "wifi_primary", label: "WiFi", value: "TomLi / hduep3tkr77o (or hduep3tkrr77?)" },
-            { key: "wifi_tmobile", label: "T-Mobile", value: "TMOBILE-3FF9" }
+            { key: "wifi_primary", label: "WiFi", value: "" },
+            { key: "wifi_tmobile", label: "T-Mobile", value: "" }
           ]},
           { label: "Rooms", fields: [
-            { key: "r1", label: "R1", value: "7653" },
-            { key: "r2", label: "R2", value: "6512" },
-            { key: "r3", label: "R3", value: "1069" },
-            { key: "r4", label: "R4", value: "1304" },
-            { key: "r5", label: "R5", value: "5410" },
-            { key: "r6", label: "R6", value: "2024" }
+            { key: "r1", label: "R1", value: "" },
+            { key: "r2", label: "R2", value: "" },
+            { key: "r3", label: "R3", value: "" },
+            { key: "r4", label: "R4", value: "" },
+            { key: "r5", label: "R5", value: "" },
+            { key: "r6", label: "R6", value: "" }
           ]},
           { label: "Contact", fields: [
             { key: "responsible_tenant", label: "Responsible Tenant", value: "", placeholder: "Name, Phone" },
@@ -385,24 +402,24 @@
         address: "10235 Ridge Oak",
         sections: [
           { label: "Door Codes", fields: [
-            { key: "front_door", label: "Front", value: "4301" },
-            { key: "back_door", label: "Back", value: "4302" },
-            { key: "front_master", label: "Front Master", value: "174530" },
-            { key: "back_master", label: "Back Master", value: "373430" },
-            { key: "room_master", label: "Room Master", value: "102351" },
-            { key: "thermo", label: "Thermo", value: "3477" }
+            { key: "front_door", label: "Front", value: "" },
+            { key: "back_door", label: "Back", value: "" },
+            { key: "front_master", label: "Front Master", value: "" },
+            { key: "back_master", label: "Back Master", value: "" },
+            { key: "room_master", label: "Room Master", value: "" },
+            { key: "thermo", label: "Thermo", value: "" }
           ]},
           { label: "WiFi", fields: [
-            { key: "wifi_primary", label: "Spectrum", value: "SpectrumSetup-BEE8 / simplestate018" },
-            { key: "tenant_login", label: "Tenant Login", value: "TomLi / Lemming6623" }
+            { key: "wifi_primary", label: "Spectrum", value: "" },
+            { key: "tenant_login", label: "Tenant Login", value: "" }
           ]},
           { label: "Rooms", fields: [
-            { key: "r1", label: "R1", value: "6510" },
-            { key: "r2", label: "R2", value: "1304" },
-            { key: "r3", label: "R3", value: "7653" },
-            { key: "r4", label: "R4", value: "5410" },
-            { key: "r5", label: "R5", value: "1069" },
-            { key: "r6", label: "R6", value: "3414" }
+            { key: "r1", label: "R1", value: "" },
+            { key: "r2", label: "R2", value: "" },
+            { key: "r3", label: "R3", value: "" },
+            { key: "r4", label: "R4", value: "" },
+            { key: "r5", label: "R5", value: "" },
+            { key: "r6", label: "R6", value: "" }
           ]},
           { label: "Contact", fields: [
             { key: "responsible_tenant", label: "Responsible Tenant", value: "", placeholder: "Name, Phone" },
@@ -418,22 +435,22 @@
         address: "3414 Pebbleshores",
         sections: [
           { label: "Door Codes", fields: [
-            { key: "front_back", label: "Front/Back Door", value: "0961 (or 8338?)" },
-            { key: "outside_master", label: "Outside Master", value: "341434" },
-            { key: "room_master", label: "Room Master", value: "34143414" },
-            { key: "thermo", label: "Thermo", value: "3743" }
+            { key: "front_back", label: "Front/Back Door", value: "" },
+            { key: "outside_master", label: "Outside Master", value: "" },
+            { key: "room_master", label: "Room Master", value: "" },
+            { key: "thermo", label: "Thermo", value: "" }
           ]},
           { label: "WiFi", fields: [
-            { key: "wifi_primary", label: "WiFi", value: "Tomli / Jilingma123" }
+            { key: "wifi_primary", label: "WiFi", value: "" }
           ]},
           { label: "Rooms", fields: [
-            { key: "r1", label: "R1", value: "7845 (or 5613?)" },
-            { key: "r2", label: "R2", value: "4590" },
-            { key: "r3", label: "R3", value: "3506" },
-            { key: "r4", label: "R4", value: "1314" },
-            { key: "r5", label: "R5", value: "2398" },
-            { key: "r6", label: "R6", value: "6510" },
-            { key: "r7", label: "R7", value: "7653" }
+            { key: "r1", label: "R1", value: "" },
+            { key: "r2", label: "R2", value: "" },
+            { key: "r3", label: "R3", value: "" },
+            { key: "r4", label: "R4", value: "" },
+            { key: "r5", label: "R5", value: "" },
+            { key: "r6", label: "R6", value: "" },
+            { key: "r7", label: "R7", value: "" }
           ]},
           { label: "Contact", fields: [
             { key: "responsible_tenant", label: "Responsible Tenant", value: "", placeholder: "Name, Phone" },
@@ -449,22 +466,22 @@
         address: "3406 Greenhill",
         sections: [
           { label: "Door Codes", fields: [
-            { key: "front_door", label: "Front", value: "6530" },
-            { key: "thermo", label: "Thermo", value: "3739" }
+            { key: "front_door", label: "Front", value: "" },
+            { key: "thermo", label: "Thermo", value: "" }
           ]},
           { label: "WiFi", fields: [
-            { key: "wifi_tmobile", label: "T-Mobile", value: "T-Mobile9B46 / cp4x2gk3chf" },
-            { key: "wifi_alt", label: "Alt", value: "Tom3406 / greenhill3406" },
-            { key: "tmobile_line", label: "T-Mobile Line", value: "2144039718" }
+            { key: "wifi_tmobile", label: "T-Mobile", value: "" },
+            { key: "wifi_alt", label: "Alt", value: "" },
+            { key: "tmobile_line", label: "T-Mobile Line", value: "" }
           ]},
           { label: "Rooms", fields: [
-            { key: "r1", label: "R1", value: "1604" },
-            { key: "r2", label: "R2", value: "2406" },
-            { key: "r3", label: "R3", value: "3604" },
-            { key: "r4", label: "R4", value: "4406" },
-            { key: "r5", label: "R5", value: "5604" },
-            { key: "r6", label: "R6", value: "5006" },
-            { key: "r7", label: "R7", value: "7503" }
+            { key: "r1", label: "R1", value: "" },
+            { key: "r2", label: "R2", value: "" },
+            { key: "r3", label: "R3", value: "" },
+            { key: "r4", label: "R4", value: "" },
+            { key: "r5", label: "R5", value: "" },
+            { key: "r6", label: "R6", value: "" },
+            { key: "r7", label: "R7", value: "" }
           ]},
           { label: "Contact", fields: [
             { key: "responsible_tenant", label: "Responsible Tenant", value: "", placeholder: "Name, Phone" },
@@ -480,31 +497,31 @@
         address: "4351 Parker Rd E, Haltom City",
         sections: [
           { label: "Door Codes", fields: [
-            { key: "front_door", label: "Front", value: "1670" },
-            { key: "back_door", label: "Back", value: "8464" }
+            { key: "front_door", label: "Front", value: "" },
+            { key: "back_door", label: "Back", value: "" }
           ]},
           { label: "WiFi", fields: [
-            { key: "wifi_primary", label: "Spectrum", value: "SpectrumSetup-35 / choicesystem718" }
+            { key: "wifi_primary", label: "Spectrum", value: "" }
           ]},
           { label: "Rooms", fields: [
-            { key: "r1", label: "R1", value: "1587" },
-            { key: "r2", label: "R2", value: "0411" },
-            { key: "r3", label: "R3", value: "9239" },
-            { key: "r4", label: "R4", value: "3454" },
-            { key: "r5", label: "R5", value: "2523" },
-            { key: "r6", label: "R6", value: "6584" },
-            { key: "r7", label: "R7", value: "9012" },
-            { key: "r8", label: "R8", value: "0629" }
+            { key: "r1", label: "R1", value: "" },
+            { key: "r2", label: "R2", value: "" },
+            { key: "r3", label: "R3", value: "" },
+            { key: "r4", label: "R4", value: "" },
+            { key: "r5", label: "R5", value: "" },
+            { key: "r6", label: "R6", value: "" },
+            { key: "r7", label: "R7", value: "" },
+            { key: "r8", label: "R8", value: "" }
           ]},
           { label: "Lockboxes", fields: [
-            { key: "lockbox_1", label: "1", value: "1244" },
-            { key: "lockbox_2", label: "2", value: "3344" },
-            { key: "lockbox_3", label: "3", value: "4011" },
-            { key: "lockbox_4", label: "4", value: "5312" },
-            { key: "lockbox_5", label: "5", value: "7233" },
-            { key: "lockbox_6", label: "6", value: "5168" },
-            { key: "lockbox_7", label: "7", value: "0228" },
-            { key: "lockbox_8", label: "8", value: "3211" }
+            { key: "lockbox_1", label: "1", value: "" },
+            { key: "lockbox_2", label: "2", value: "" },
+            { key: "lockbox_3", label: "3", value: "" },
+            { key: "lockbox_4", label: "4", value: "" },
+            { key: "lockbox_5", label: "5", value: "" },
+            { key: "lockbox_6", label: "6", value: "" },
+            { key: "lockbox_7", label: "7", value: "" },
+            { key: "lockbox_8", label: "8", value: "" }
           ]},
           { label: "Contact", fields: [
             { key: "responsible_tenant", label: "Responsible Tenant", value: "", placeholder: "Name, Phone" },
@@ -520,29 +537,29 @@
         address: "1404 Pioneer Lane",
         sections: [
           { label: "Door Codes", fields: [
-            { key: "front_door", label: "Front", value: "1371" },
-            { key: "back_door", label: "Back", value: "4194" }
+            { key: "front_door", label: "Front", value: "" },
+            { key: "back_door", label: "Back", value: "" }
           ]},
           { label: "WiFi", fields: [
-            { key: "wifi_primary", label: "Pioneer (Frontier)", value: "Pioneer (Frontier) / 9452413070" }
+            { key: "wifi_primary", label: "Pioneer (Frontier)", value: "" }
           ]},
           { label: "Rooms", fields: [
-            { key: "r1", label: "R1", value: "3450" },
-            { key: "r2", label: "R2", value: "9011" },
-            { key: "r3", label: "R3", value: "7712" },
-            { key: "r4", label: "R4", value: "0328 (or 1755?)" },
-            { key: "r5", label: "R5", value: "2846" },
-            { key: "r6", label: "R6", value: "8950" },
-            { key: "r7", label: "R7", value: "5252" }
+            { key: "r1", label: "R1", value: "" },
+            { key: "r2", label: "R2", value: "" },
+            { key: "r3", label: "R3", value: "" },
+            { key: "r4", label: "R4", value: "" },
+            { key: "r5", label: "R5", value: "" },
+            { key: "r6", label: "R6", value: "" },
+            { key: "r7", label: "R7", value: "" }
           ]},
           { label: "Other", fields: [
-            { key: "keys_1", label: "Keys 1", value: "1111" },
-            { key: "keys_2", label: "Keys 2", value: "2010" },
-            { key: "keys_3", label: "Keys 3", value: "3111" },
-            { key: "keys_4", label: "Keys 4", value: "0400" },
-            { key: "keys_5", label: "Keys 5", value: "5115" },
-            { key: "keys_6", label: "Keys 6", value: "6330" },
-            { key: "keys_7", label: "Keys 7", value: "7222" }
+            { key: "keys_1", label: "Keys 1", value: "" },
+            { key: "keys_2", label: "Keys 2", value: "" },
+            { key: "keys_3", label: "Keys 3", value: "" },
+            { key: "keys_4", label: "Keys 4", value: "" },
+            { key: "keys_5", label: "Keys 5", value: "" },
+            { key: "keys_6", label: "Keys 6", value: "" },
+            { key: "keys_7", label: "Keys 7", value: "" }
           ]},
           { label: "Contact", fields: [
             { key: "responsible_tenant", label: "Responsible Tenant", value: "", placeholder: "Name, Phone" },
@@ -558,30 +575,30 @@
         address: "5509 Burton Ave, Fort Worth",
         sections: [
           { label: "Door Codes", fields: [
-            { key: "front_door", label: "Front", value: "4125" },
-            { key: "thermo", label: "Thermo", value: "3746 (or 3477?)" },
-            { key: "spectrum_code", label: "Spectrum Code", value: "4639" }
+            { key: "front_door", label: "Front", value: "" },
+            { key: "thermo", label: "Thermo", value: "" },
+            { key: "spectrum_code", label: "Spectrum Code", value: "" }
           ]},
           { label: "WiFi", fields: [
-            { key: "wifi_primary", label: "Spectrum", value: "SpectrumSetup-354C / parkingworth923" }
+            { key: "wifi_primary", label: "Spectrum", value: "" }
           ]},
           { label: "Rooms", fields: [
-            { key: "r1", label: "R1", value: "232323" },
-            { key: "r2", label: "R2", value: "242424" },
-            { key: "r3", label: "R3", value: "141414" },
-            { key: "r4", label: "R4", value: "456090" },
-            { key: "r5", label: "R5", value: "504530" },
-            { key: "r6", label: "R6", value: "313131" },
-            { key: "r7", label: "R7", value: "121212" }
+            { key: "r1", label: "R1", value: "" },
+            { key: "r2", label: "R2", value: "" },
+            { key: "r3", label: "R3", value: "" },
+            { key: "r4", label: "R4", value: "" },
+            { key: "r5", label: "R5", value: "" },
+            { key: "r6", label: "R6", value: "" },
+            { key: "r7", label: "R7", value: "" }
           ]},
           { label: "Lockboxes", fields: [
-            { key: "lockbox_1", label: "1", value: "1100" },
-            { key: "lockbox_2", label: "2", value: "2110" },
-            { key: "lockbox_3", label: "3", value: "3000" },
-            { key: "lockbox_4", label: "4", value: "4321" },
-            { key: "lockbox_5", label: "5", value: "5220" },
-            { key: "lockbox_6", label: "6", value: "6111" },
-            { key: "lockbox_7", label: "7", value: "7222" }
+            { key: "lockbox_1", label: "1", value: "" },
+            { key: "lockbox_2", label: "2", value: "" },
+            { key: "lockbox_3", label: "3", value: "" },
+            { key: "lockbox_4", label: "4", value: "" },
+            { key: "lockbox_5", label: "5", value: "" },
+            { key: "lockbox_6", label: "6", value: "" },
+            { key: "lockbox_7", label: "7", value: "" }
           ]},
           { label: "Contact", fields: [
             { key: "responsible_tenant", label: "Responsible Tenant", value: "", placeholder: "Name, Phone" },
@@ -597,22 +614,22 @@
         address: "1025 Broken Crest, Desoto",
         sections: [
           { label: "Door Codes", fields: [
-            { key: "front_door", label: "Front", value: "225577 (format: 22-55-77?)" },
-            { key: "thermo", label: "Thermo", value: "3838" }
+            { key: "front_door", label: "Front", value: "" },
+            { key: "thermo", label: "Thermo", value: "" }
           ]},
           { label: "WiFi", fields: [
-            { key: "wifi_primary", label: "Spectrum", value: "SpectrumSetup-A402 / distinctbase477" }
+            { key: "wifi_primary", label: "Spectrum", value: "" }
           ]},
           { label: "Rooms", fields: [
-            { key: "r1", label: "R1", value: "9119 (lockbox)" },
-            { key: "r2", label: "R2", value: "0079 (lockbox)" },
-            { key: "r3", label: "R3", value: "7633 (lockbox)" },
-            { key: "r4", label: "R4", value: "1717" },
-            { key: "r5", label: "R5", value: "6964" },
-            { key: "r6", label: "R6", value: "5376" },
-            { key: "r7", label: "R7", value: "2573" },
-            { key: "r8", label: "R8", value: "6553" },
-            { key: "r9", label: "R9", value: "4554" }
+            { key: "r1", label: "R1", value: "" },
+            { key: "r2", label: "R2", value: "" },
+            { key: "r3", label: "R3", value: "" },
+            { key: "r4", label: "R4", value: "" },
+            { key: "r5", label: "R5", value: "" },
+            { key: "r6", label: "R6", value: "" },
+            { key: "r7", label: "R7", value: "" },
+            { key: "r8", label: "R8", value: "" },
+            { key: "r9", label: "R9", value: "" }
           ]},
           { label: "Contact", fields: [
             { key: "responsible_tenant", label: "Responsible Tenant", value: "", placeholder: "Name, Phone" },
@@ -628,9 +645,35 @@
     const gateWrap = document.getElementById('gate-wrap');
     const appWrap = document.getElementById('app-wrap');
     const gateForm = document.getElementById('gate-form');
+    mountPasswordReset({auth, sender: sendPasswordResetEmail, form: gateForm, signInEmail: document.getElementById('gate-email')});
     const gateInput = document.getElementById('gate-input');
     const gateError = document.getElementById('gate-error');
     const list = document.getElementById('codes-list');
+    const OPERATOR_UID = '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2';
+    let codesUid;
+    let codesGeneration = 0;
+    const codeDrafts = new Map();
+    list.addEventListener('input', event => {
+      if (event.target.matches('input[data-prop][data-field], textarea[data-prop][data-field]')) event.target.dataset.dirty = 'true';
+    });
+    function captureCodeDrafts() {
+      list.querySelectorAll('input[data-prop][data-field], textarea[data-prop][data-field]').forEach(input => {
+        if (input.dataset.dirty === 'true') codeDrafts.set(JSON.stringify([input.dataset.prop, input.dataset.field]), input.value);
+      });
+    }
+    function restoreCodeDrafts() {
+      list.querySelectorAll('input[data-prop][data-field], textarea[data-prop][data-field]').forEach(input => {
+        const key = JSON.stringify([input.dataset.prop, input.dataset.field]);
+        if (codeDrafts.has(key)) { input.value = codeDrafts.get(key); input.dataset.dirty = 'true'; }
+      });
+    }
+    document.getElementById('toggle-sensitive').addEventListener('click', (event) => {
+      const button = event.currentTarget;
+      const reveal = button.getAttribute('aria-pressed') !== 'true';
+      button.setAttribute('aria-pressed', String(reveal));
+      button.textContent = reveal ? 'Hide sensitive values' : 'Reveal sensitive values';
+      list.querySelectorAll('input[data-sensitive="true"]').forEach(input => { input.type = reveal ? 'text' : 'password'; });
+    });
 
     function showApp() {
       gateWrap.classList.add('hidden');
@@ -752,9 +795,12 @@
       const isTextarea = options.type === 'textarea';
       const input = document.createElement(isTextarea ? 'textarea' : 'input');
       if (!isTextarea) input.type = options.type || 'text';
+      const sensitive = /^(?:r\d+|(?:front|back|outside|room)_(?:door|master)|front_back|admin|thermo|wifi.*|spectrum_code|tmobile_line|tenant_login|keys_\d+|lockbox_\d+|.*_code)$/i.test(fieldKey);
+      if (sensitive && !isTextarea && (!options.type || options.type === 'text')) { input.type = 'password'; input.dataset.sensitive = 'true'; }
       input.className = isTextarea ? 'code-input code-textarea' : 'code-input';
       input.dataset.prop = property.slug;
       input.dataset.field = fieldKey;
+      input.ariaLabel = `${property.address}: ${fieldKey.replace(/_/g, ' ')}`;
       input.value = value;
       if (options.placeholder) input.placeholder = options.placeholder;
       if (isTextarea) input.rows = options.rows || 3;
@@ -1000,6 +1046,7 @@
     }
 
     async function initCodes() {
+      const sessionGeneration = codesGeneration;
       const CODES_UID = '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2';
       const isCodesUser = () => auth.currentUser && auth.currentUser.uid === CODES_UID;
 
@@ -1035,6 +1082,7 @@
         const property = DEFAULTS.find((item) => item.slug === slug);
         if (!property) return;
         const snap = await getDoc(liveRef(slug));
+        if (sessionGeneration !== codesGeneration || !isCodesUser()) return;
         const hasLive = snap.exists();
         const node = renderProperty(property, hasLive ? snap.data() : {}, hasLive);
         const old = list.querySelector(`details[data-house="${slug}"]`);
@@ -1101,6 +1149,7 @@
           ? query(versionsCol(slug), orderBy('createdAt', 'desc'), startAfter(cursor), limit(50))
           : query(versionsCol(slug), orderBy('createdAt', 'desc'), limit(50));
         const snap = await getDocs(q);
+        if (sessionGeneration !== codesGeneration || !isCodesUser()) return;
         if (!cursor && snap.empty) {
           panel.innerHTML = '';
           const note = document.createElement('div');
@@ -1140,11 +1189,25 @@
       }
 
       function showVersion(panel, slug, address, versionId, data) {
+        if (sessionGeneration !== codesGeneration || !isCodesUser()) return;
         const fields = data.fields || {};
         const when = formatWhen(data.createdAt);
         const preview = document.createElement('div');
         preview.className = 'history-preview';
-        preview.textContent = Object.keys(fields).sort().map((key) => `${key}: ${fields[key]}`).join('\n');
+        const renderPreview = (reveal) => {
+          preview.textContent = Object.keys(fields).sort().map((key) => `${key}: ${reveal ? fields[key] : '••••'}`).join('\n');
+        };
+        renderPreview(false);
+        const revealPreview = document.createElement('button');
+        revealPreview.type = 'button';
+        revealPreview.textContent = 'Reveal snapshot values';
+        revealPreview.setAttribute('aria-pressed', 'false');
+        revealPreview.addEventListener('click', () => {
+          const reveal = revealPreview.getAttribute('aria-pressed') !== 'true';
+          revealPreview.setAttribute('aria-pressed', String(reveal));
+          revealPreview.textContent = reveal ? 'Hide snapshot values' : 'Reveal snapshot values';
+          renderPreview(reveal);
+        });
         const actions = document.createElement('div');
         actions.className = 'history-actions';
         const restoreBtn = document.createElement('button');
@@ -1167,6 +1230,7 @@
         });
         panel.innerHTML = '';
         panel.appendChild(preview);
+        actions.appendChild(revealPreview);
         actions.appendChild(restoreBtn);
         actions.appendChild(cancel);
         panel.appendChild(actions);
@@ -1180,6 +1244,7 @@
           const before = await getDoc(liveRef(slug));
           const live = before.exists() ? before.data() : {};
           const beforeHash = await hashCodeFields(live);
+          if (sessionGeneration !== codesGeneration || !isCodesUser()) return;
           await writeSnapshot(slug, live, 'page');
           const version = await getDoc(doc(db, 'property_codes', slug, 'code_versions', versionId));
           if (!version.exists()) {
@@ -1192,6 +1257,7 @@
             panel.textContent = 'Live codes changed. Restore cancelled.';
             return;
           }
+          if (sessionGeneration !== codesGeneration || !isCodesUser()) return;
           const saveBtn = list.querySelector(`button[data-save="${slug}"]`);
           if (saveBtn) saveBtn.disabled = true;
           await setDoc(liveRef(slug), {
@@ -1251,10 +1317,12 @@
               ...payload,
               updatedAt: serverTimestamp()
             }, { merge: true });
+            if (sessionGeneration !== codesGeneration || !isCodesUser()) return;
             const after = await getDoc(liveRef(slug));
             const live = after.exists() ? after.data() : payload;
             const digest = await hashCodeFields(live);
             const latest = await latestVersionHash(slug);
+            if (sessionGeneration !== codesGeneration || !isCodesUser()) return;
             if (digest !== latest) {
               try {
                 await writeSnapshot(slug, live, 'page');
@@ -1265,6 +1333,11 @@
                 return;
               }
             }
+            node.querySelectorAll('input[data-prop][data-field], textarea[data-prop][data-field]').forEach(input => {
+              if (input.value.trim() === payload[input.dataset.field]) {
+                delete input.dataset.dirty; codeDrafts.delete(JSON.stringify([input.dataset.prop, input.dataset.field]));
+              }
+            });
             btn.textContent = 'Saved ✓';
             btn.classList.add('saved');
             setTimeout(() => {
@@ -1284,6 +1357,7 @@
       }
 
       const snapshot = await getDocs(collection(db, 'property_codes'));
+      if (sessionGeneration !== codesGeneration || !isCodesUser()) return;
       const docsBySlug = new Map();
       snapshot.forEach((d) => docsBySlug.set(d.id, d.data()));
 
@@ -1294,6 +1368,7 @@
         list.appendChild(node);
         bindHouse(node, property.slug, property.address);
       });
+      restoreCodeDrafts();
 
       const pageHistoryBtn = document.getElementById('page-history-btn');
       const pageHistoryPanel = document.getElementById('page-history-panel');
@@ -1309,33 +1384,46 @@
       }
     }
 
-    onAuthStateChanged(auth, (user) => {
-      if (user) showApp();
-      else showGate();
-    });
-    document.getElementById('signout-btn').addEventListener('click', () => signOut(auth));
-
-    // ── Notes ────────────────────────────────────────────────────────────────
     const NOTES_DOC = doc(db, 'notes', 'codes');
     const notesTA = document.getElementById('notes-textarea');
     const notesSave = document.getElementById('notes-save-btn');
     const notesCopy = document.getElementById('notes-copy-btn');
-    onSnapshot(NOTES_DOC, snap => {
-      if (snap.exists() && document.activeElement !== notesTA)
-        notesTA.value = snap.data().text || '';
+    const notesStatus = document.createElement('p'); notesStatus.setAttribute('role', 'status'); notesTA.before(notesStatus);
+    const ownerNotes = createOwnerNotesSession({
+      ownerUid: OPERATOR_UID, ta: notesTA, saveBtn: notesSave, copyBtn: notesCopy, status: notesStatus,
+      subscribe: (next, error) => onSnapshot(NOTES_DOC, next, error),
+      save: text => setDoc(NOTES_DOC, { text }, { merge: true }),
+      copy: text => navigator.clipboard.writeText(text)
     });
-    notesSave.addEventListener('click', async () => {
-      notesSave.textContent = 'Saving…'; notesSave.disabled = true;
-      try { await setDoc(NOTES_DOC, { text: notesTA.value }, { merge: true }); notesSave.textContent = 'Saved!'; }
-      catch { notesSave.textContent = 'Error'; }
-      setTimeout(() => { notesSave.textContent = 'Save'; notesSave.disabled = false; }, 1500);
+    onAuthStateChanged(auth, user => {
+      const next = user?.uid === OPERATOR_UID ? user.uid : null;
+      ownerNotes.setUser(user);
+      if (codesUid === next) return;
+      if (codesUid) captureCodeDrafts();
+      codesUid = next; codesGeneration++;
+      list.replaceChildren();
+      const history = document.getElementById('page-history-panel');
+      if (history) { history.replaceChildren(); history.classList.add('hidden'); }
+      if (next) showApp();
+      else {
+        showGate();
+        if (user) { gateError.textContent = 'This account does not have access to codes.'; gateError.classList.remove('hidden'); }
+      }
     });
-    notesCopy.addEventListener('click', () => {
-      navigator.clipboard.writeText(notesTA.value).then(() => {
-        notesCopy.classList.add('copied');
-        setTimeout(() => notesCopy.classList.remove('copied'), 1500);
+    document.getElementById('signout-btn').addEventListener('click', () => signOut(auth));
+  </script>
+
+  <script>
+    (() => {
+      const toggle = document.querySelector('.password-toggle');
+      const input = document.getElementById('gate-input');
+      toggle.addEventListener('click', () => {
+        const show = input.type === 'password';
+        input.type = show ? 'text' : 'password';
+        toggle.setAttribute('aria-pressed', String(show));
+        toggle.textContent = show ? 'Hide password' : 'Show password';
       });
-    });
+    })();
   </script>
 </body>
 </html>

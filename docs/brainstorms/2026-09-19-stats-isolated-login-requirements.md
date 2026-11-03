@@ -8,7 +8,7 @@ date: 2026-09-19
 
 ## Summary
 
-Vendors keep occupancy. Stats and KPI History stay behind their own login. Only `stats-only@padsplit-scraper.com` (UID `TXSU0LOpmDWNBbbv0x3uHHBnZb12`) can unlock money. An old Codes or dashboard session must never auto-open those pages.
+Vendors keep occupancy. Stats and KPI History stay behind their own login. Only `[configured account]` (UID `TXSU0LOpmDWNBbbv0x3uHHBnZb12`) can unlock money. An old Codes or dashboard session must never auto-open those pages.
 
 ## Problem Frame
 
@@ -19,7 +19,7 @@ The operator clicked Stats while already signed in elsewhere and saw money. Code
 ### Lock
 
 - R1. Opening Stats or KPI History always shows a Stats-only auth screen first.
-- R2. Only Firebase user `stats-only@padsplit-scraper.com` with UID `TXSU0LOpmDWNBbbv0x3uHHBnZb12` unlocks those pages.
+- R2. Only Firebase user `[configured account]` with UID `TXSU0LOpmDWNBbbv0x3uHHBnZb12` unlocks those pages.
 - R3. A Codes, Dashboard, Vendors, or Templates session does not unlock Stats.
 
 ### Session
@@ -54,12 +54,12 @@ The operator clicked Stats while already signed in elsewhere and saw money. Code
 
 ## Key Decisions
 
-- D1. Stats-only identity is `stats-only@padsplit-scraper.com` / `TXSU0LOpmDWNBbbv0x3uHHBnZb12`.
+- D1. Stats-only identity is `[configured account]` / `TXSU0LOpmDWNBbbv0x3uHHBnZb12`.
 - D2. Force re-login on the Stats surface only. Do not force-sign-out Codes or Dashboard.
 - D3. No past-viewer report. That data was never collected.
 
 ## Acceptance Examples
 
 - AE1. Operator is signed into Codes, clicks Stats, and sees the Stats auth screen with no prices.
-- AE2. Operator signs in as `stats-only@padsplit-scraper.com` and sees the score card and listed prices.
+- AE2. Operator signs in as `[configured account]` and sees the score card and listed prices.
 - AE3. Operator opens KPI History while still signed into Codes only and sees the same Stats lock, not payout charts.

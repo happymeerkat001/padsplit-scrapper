@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+const ctx={};vm.runInNewContext(readFileSync('docs/listener-status.js','utf8'),ctx);
+assert.equal(ctx.listenerMessage('manual','loading'),'Loading manual tasks…');
+assert.equal(ctx.listenerMessage('manual','ready'),'Manual tasks connected.');
+assert.equal(ctx.listenerMessage('manual','denied'),'Manual tasks unavailable: permission denied.');
+assert.equal(ctx.listenerMessage('discussion','error'),'Internal discussions unavailable. Try again later.');
+assert.equal(ctx.manualCountLabel(false,0),'—');
+assert.equal(ctx.manualCountLabel(true,0),'0');
+console.log('listener status distinguishes missing data and errors');

@@ -11,6 +11,17 @@ from padsplit_scraper import lock_codes
 from padsplit_scraper import lockout_reply
 from padsplit_scraper import new_booking
 
+_field_phone_patch = patch.object(lockout_reply, "JOE_FIELD_PHONE", "+1 (202) 555-0103")
+_phone_env_patch = patch.dict("os.environ", {"LOCKOUT_FIELD_PHONE": "+1 (202) 555-0103"})
+
+def setUpModule():
+    _field_phone_patch.start()
+    _phone_env_patch.start()
+
+def tearDownModule():
+    _phone_env_patch.stop()
+    _field_phone_patch.stop()
+
 
 NOW = datetime(2026, 9, 7, 15, 0, tzinfo=timezone.utc)
 FAKE_FRONT = "XXXX"  # fake placeholder, not a real code
@@ -247,6 +258,11 @@ class HouseRoomCertaintyTests(unittest.TestCase):
 
 
 class CodesMappingTests(unittest.TestCase):
+    def test_missing_field_phone_fails_closed(self) -> None:
+        with patch.object(lockout_reply, "JOE_FIELD_PHONE", ""):
+            with self.assertRaisesRegex(RuntimeError, "LOCKOUT_FIELD_PHONE"):
+                lockout_reply._fail_ladder_lines()
+
     def test_prefers_matching_room_lockbox_over_extra(self) -> None:
         doc = fake_doc(
             extra_lockbox_1_code=FAKE_EXTRA,
@@ -353,7 +369,7 @@ class DiscordSafetyTests(unittest.TestCase):
             self.assertEqual(lock_codes.assert_discord_outbound_safe(text), text)
 
     def test_fail_ladder_numbers_are_explicit_constants(self) -> None:
-        self.assertEqual(lockout_reply.JOE_FIELD_PHONE, "+1 (469) 373-2048")
+        self.assertEqual(lockout_reply.JOE_FIELD_PHONE, "+1 (202) 555-0103")
         self.assertEqual(lockout_reply.PADSPLIT_MEMBER_SUPPORT_PHONE, "+1 (770) 373-7863")
 
     def test_discord_rejects_digits(self) -> None:

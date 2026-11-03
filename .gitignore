@@ -29,3 +29,8 @@ logs/
 
 *.log
 padsplit_scraper/output/latest.json
+
+# Raw operational and financial snapshots must never be committed.
+padsplit_scraper/output/stats.json
+padsplit_scraper/output/monthly_history.json
+thermostat/output/*.json

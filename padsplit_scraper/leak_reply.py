@@ -303,6 +303,8 @@ class RunResult:
 
 def load_environment() -> None:
     load_dotenv(ENV_PATH)
+    global QUO_FIELD_PHONE
+    QUO_FIELD_PHONE = os.getenv("LOCKOUT_FIELD_PHONE", "")
 
 
 def running_in_ci() -> bool:
@@ -515,6 +517,8 @@ def format_leak_body(
     fetch_doc: Optional[Callable[[], Dict[str, Any]]] = None,
 ) -> str:
     """PadSplit 1:1 body from live t5 (or baked t5). Quo + canonical YouTube."""
+    if not re.fullmatch(r"\+?1?[2-9]\d{9}", re.sub(r"[^\d+]", "", QUO_FIELD_PHONE)):
+        raise RuntimeError("LOCKOUT_FIELD_PHONE must be configured before sending")
     raw = source if source is not None else load_t5_source(fetch_doc)
     body = adapt_t5_to_member_thread(raw)
     if QUO_FIELD_PHONE not in body:

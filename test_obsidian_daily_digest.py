@@ -45,7 +45,7 @@ def sample_padsplit_payload() -> dict:
         },
         "messages": [
             {
-                "title": "Roshawn Porter",
+                "title": "Jordan Fiction",
                 "occupancy": {
                     "room": {"roomNumber": 5},
                     "user": {"firstName": "Roshawn", "lastName": "Porter"},
@@ -109,7 +109,7 @@ def test_write_daily_digest_creates_note_when_missing() -> None:
         assert "## PadSplit Daily Digest" in content
         assert "10235 Ridge Oak, Dallas, TX: Requests Room 5: Leak under kitchen sink" in content
         assert "4100 N Main St, Fort Worth, TX: Open Room 1: Replace hallway smoke detector" in content
-        assert "Roshawn Porter (Room 5)" in content
+        assert "Jordan Fiction (Room 5)" in content
         assert "10235 Ridge Oak: 73.0F, heat 68.0F, cool 78.0F, humidity 49.0%" in content
 
 
@@ -153,7 +153,7 @@ def test_format_draft_replies_requires_contract_fields() -> None:
                 {
                     "chat_id": "chat_123",
                     "message_id": "msg_456",
-                    "tenant_name": "Roshawn Porter",
+                    "tenant_name": "Jordan Fiction",
                     "room_number": 5,
                     "property": "10235 Ridge Oak",
                     "category": "maintenance",
@@ -172,7 +172,7 @@ def test_format_draft_replies_requires_contract_fields() -> None:
 
     rendered = "\n".join(lines)
     assert "### Draft Replies" in rendered
-    assert "Roshawn Porter" in rendered
+    assert "Jordan Fiction" in rendered
     assert "Open PadSplit thread" in rendered
     assert "Malformed" not in rendered
 

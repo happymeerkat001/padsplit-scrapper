@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+const ctx={}; vm.createContext(ctx); vm.runInContext(fs.readFileSync('docs/auth-listeners.js','utf8'),ctx);
+let active=0, started=0, stopped=0;
+const manager=ctx.createAuthListeners();
+manager.add(()=>{ active++; started++; return ()=>{ active--; stopped++; }; });
+manager.setUser({uid:'a'}); assert.equal(active,1);
+manager.setUser({uid:'a'}); assert.equal(started,1);
+manager.setUser(null); assert.equal(active,0); assert.equal(stopped,1);
+manager.setUser({uid:'a'}); assert.equal(started,2); assert.equal(active,1);
+manager.setUser({uid:'b'}); assert.equal(started,3); assert.equal(stopped,2); assert.equal(active,1);
+manager.setUser(null); assert.equal(active,0);
+console.log('authentication listeners reattach and clean up');
+assert.deepEqual(Array.from(ctx.staleListenerIds(['a','b'], ['b','c'])), ['a']);
+assert.deepEqual(Array.from(ctx.staleListenerIds(['a'], [])), ['a']);

@@ -61,13 +61,15 @@ jobs:
       - name: Warn on degraded scrape
         if: steps.scrape_status.outputs.state == 'degraded'
         run: |
-          echo "::warning title=PadSplit scrape degraded::Mode=${{ steps.scrape_status.outputs.mode }} failed_phase=${{ steps.scrape_status.outputs.failed_phase }}. Fresh messages were saved and prior stats were reused."
+          echo "::warning title=PadSplit scrape degraded::Mode=${{ steps.scrape_status.outputs.mode }} failed_phase=${{ steps.scrape_status.outputs.failed_phase }}. Some collection results may be incomplete or reused; inspect run_status sources for details."
 
       - name: Copy latest snapshot for Pages
         run: |
           mkdir -p docs/data
-          cp padsplit_scraper/output/latest.json docs/data/latest.json
-          cp padsplit_scraper/output/occupancy.json docs/data/occupancy.json || echo "occupancy.json not found, skipping"
+          python -m padsplit_scraper.public_snapshot padsplit_scraper/output/latest.json docs/data/latest.json
+          if [ -f padsplit_scraper/output/occupancy.json ]; then
+            python -m padsplit_scraper.public_snapshot --occupancy padsplit_scraper/output/occupancy.json docs/data/occupancy.json
+          fi
 
       # Posts once per Chicago day during 05:00–07:59. Later scrapes no-op.
       # A Discord failure must not block the snapshot commit; the 11:00 UTC
@@ -76,7 +78,7 @@ jobs:
         continue-on-error: true
         env:
           DISCORD_WEBHOOK_TASKS: ${{ secrets.DISCORD_WEBHOOK_TASKS }}
-        run: python slack_task_digest.py --after-scrape
+        run: python slack_task_digest.py --after-scrape --latest padsplit_scraper/output/latest.json
 
       - name: Diagnose token permissions
         run: |

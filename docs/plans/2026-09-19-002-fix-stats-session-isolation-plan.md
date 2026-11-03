@@ -9,7 +9,7 @@ origin: docs/brainstorms/2026-09-19-stats-isolated-login-requirements.md
 
 ## Summary
 
-Point the Stats lock at `stats-only@padsplit-scraper.com` / `TXSU0LOpmDWNBbbv0x3uHHBnZb12`. On every visit to Stats or KPI History, sign out the named `stats-auth` app so an old Codes or stale Stats session cannot auto-open money. Leave the default Firebase app (Codes, Dashboard) signed in.
+Point the Stats lock at `[configured account]` / `TXSU0LOpmDWNBbbv0x3uHHBnZb12`. On every visit to Stats or KPI History, sign out the named `stats-auth` app so an old Codes or stale Stats session cannot auto-open money. Leave the default Firebase app (Codes, Dashboard) signed in.
 
 ## Problem Frame
 
@@ -113,7 +113,7 @@ sequenceDiagram
 ## Acceptance Examples
 
 - AE1. Codes session open, Stats click, lock screen, no prices. (origin AE1)
-- AE2. `stats-only@padsplit-scraper.com` unlocks the score card. (origin AE2)
+- AE2. `[configured account]` unlocks the score card. (origin AE2)
 - AE3. KPI History with Codes-only session shows the same lock. (origin AE3)
 
 ---
@@ -129,4 +129,4 @@ sequenceDiagram
 
 - Password stays in Firebase Auth only. Never commit it.
 - After merge: `firebase deploy --only firestore:rules --project padsplit-scrapper`.
-- Sign in on Stats with `stats-only@padsplit-scraper.com` and the password set in the console for UID `TXSU0LOpmDWNBbbv0x3uHHBnZb12`.
+- Sign in on Stats with `[configured account]` and the password set in the console for UID `TXSU0LOpmDWNBbbv0x3uHHBnZb12`.

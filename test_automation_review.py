@@ -30,6 +30,20 @@ from test_lockout_reply import (
 from test_leak_reply import firestore_t5_doc
 from test_leak_reply import member_thread as leak_member_thread
 
+_phone_patches = [
+    patch.object(leak_reply, "QUO_FIELD_PHONE", "+1 (202) 555-0103"),
+    patch.object(lockout_reply, "JOE_FIELD_PHONE", "+1 (202) 555-0103"),
+    patch.dict("os.environ", {"LOCKOUT_FIELD_PHONE": "+1 (202) 555-0103"}),
+]
+
+def setUpModule():
+    for item in _phone_patches:
+        item.start()
+
+def tearDownModule():
+    for item in reversed(_phone_patches):
+        item.stop()
+
 
 def _block_network(*_args, **_kwargs):
     raise AssertionError("network forbidden in test_automation_review")

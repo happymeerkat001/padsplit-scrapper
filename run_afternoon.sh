@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 set -euo pipefail
 
-WORKSPACE="/Users/leon/Documents/Code/padsplit-scraper"
+WORKSPACE="${0:A:h}"
 VENV="$WORKSPACE/venv/bin/python3"
 LOCK_DIR="/private/tmp/padsplit-scraper-afternoon.lock"
 
@@ -33,18 +33,24 @@ run_phase() {
 
 commit_and_push() {
   msg=$1
-  git -C "$WORKSPACE" add \
-    padsplit_scraper/output/latest.json \
-    padsplit_scraper/output/stats.json \
-    padsplit_scraper/output/monthly_history.json \
-    docs/data/latest.json 2>/dev/null || true
+  # Project private scraper data before staging any public snapshot.
+  if [ -f "$WORKSPACE/padsplit_scraper/output/latest.json" ]; then
+    (cd "$WORKSPACE" && "$VENV" -m padsplit_scraper.public_snapshot \
+      padsplit_scraper/output/latest.json docs/data/latest.json) || return 1
+  fi
+  if [ -f "$WORKSPACE/docs/data/occupancy.json" ]; then
+    (cd "$WORKSPACE" && "$VENV" -m padsplit_scraper.public_snapshot --occupancy \
+      docs/data/occupancy.json docs/data/occupancy.json) || return 1
+  fi
+  local publish_paths=(docs/data/latest.json docs/data/occupancy.json)
+  git -C "$WORKSPACE" add -- "${publish_paths[@]}"
 
-  if git -C "$WORKSPACE" diff --cached --quiet; then
+  if git -C "$WORKSPACE" diff --cached --quiet -- "${publish_paths[@]}"; then
     echo "[$(date)] Nothing to commit"
     return
   fi
 
-  git -C "$WORKSPACE" commit -m "$msg" || return
+  git -C "$WORKSPACE" commit --only -m "$msg" -- "${publish_paths[@]}" || return
   set +e
   git -C "$WORKSPACE" pull --rebase
   git -C "$WORKSPACE" push

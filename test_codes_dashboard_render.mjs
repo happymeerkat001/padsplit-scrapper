@@ -151,6 +151,9 @@ const liveLockbox = liveInputs.find((el) => el.dataset.field === "lockbox_1");
 assert.equal(liveLockbox.value, "", "live doc missing key is empty, not DEFAULTS");
 const liveFront = liveInputs.find((el) => el.dataset.field === "front_door");
 assert.equal(liveFront.value, "X");
+assert.equal(liveFront.type, "password", "sensitive door code is masked initially");
+assert.equal(liveFront.dataset.sensitive, "true");
+assert.equal(liveLockbox.type, "password", "lockbox code is masked initially");
 
 const room1 = inputs.find((el) => el.dataset.field === "r1");
 assert.notEqual(room1, lockbox1);

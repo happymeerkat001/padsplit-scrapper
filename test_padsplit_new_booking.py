@@ -60,7 +60,7 @@ def occupancy_thread(
         )
     return {
         "id": chat_id,
-        "title": "Alexandria Hudson",
+        "title": "Avery Example",
         "occupancy": {
             "id": occupancy_id,
             "moveInDate": "2026-09-02",
@@ -69,7 +69,7 @@ def occupancy_thread(
         },
         "property": {
             "address": {
-                "street1": "3541 Parker Road East",
+                "street1": "107 Parker Road East",
                 "city": {"name": "Haltom City"},
             }
         },
@@ -217,7 +217,7 @@ class NewBookingFirstMessageTests(unittest.TestCase):
         snap = results[0]["screening_snapshot"]
         self.assertEqual(snap["first_name"], "Alexandria")
         self.assertEqual(snap["last_initial"], "H")
-        self.assertEqual(snap["property"], "3541 Parker Road East, Haltom City")
+        self.assertEqual(snap["property"], "107 Parker Road East, Haltom City")
         self.assertEqual(snap["room"], 2)
         self.assertTrue(snap["wait_for_hirevire_video"])
         self.assertIn("Approve/Reject", snap["decision"])
@@ -427,6 +427,9 @@ class NewBookingFirstMessageTests(unittest.TestCase):
             output_dir = root / "output"
             docs_data_dir = root / "docs" / "data"
             with (
+                # This test exercises the opted-in hook path; never depend on a
+                # developer's .env, CI flags, or default collection-only policy.
+                patch.dict("os.environ", {"PADSPLIT_ENABLE_ACTION_HOOKS": "1", "PADSPLIT_COLLECTION_ONLY": "0", "CI": "", "GITHUB_ACTIONS": "", "LOCKOUT_REPLY_ENABLE": "0", "LEAK_REPLY_ENABLE": "0"}),
                 patch("padsplit_scraper.persist.OUTPUT_DIR", output_dir),
                 patch("padsplit_scraper.persist.DOCS_DATA_DIR", docs_data_dir),
                 patch("padsplit_scraper.scraper.load_credentials", return_value={"email": "user", "password": "pw"}),

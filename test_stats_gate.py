@@ -39,8 +39,10 @@ class StatsGateTests(unittest.TestCase):
         self.assertIn("./stats.html", HISTORY)
         self.assertIn("./kpi-history.html", STATS)
 
-    def test_occupancy_dashboard_stays_public(self) -> None:
-        self.assertIn("occupancy.json", INDEX)
+    def test_occupancy_dashboard_uses_private_snapshot(self) -> None:
+        self.assertNotIn("./data/occupancy.json", INDEX)
+        self.assertIn("readPrivateSnapshot", INDEX)
+        self.assertIn("clearOccupancy('Sign in as the owner", INDEX)
         self.assertIn("Incoming move-ins", INDEX)
         self.assertNotIn("vacancy_rooms", INDEX)
 

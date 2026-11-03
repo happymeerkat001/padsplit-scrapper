@@ -11,7 +11,9 @@ DIGEST = (ROOT / "slack_task_digest.py").read_text()
 
 class DashboardOccupancyUiTests(unittest.TestCase):
     def test_dashboard_reads_live_occupancy_not_stats_vacancy(self) -> None:
-        self.assertIn("occupancy.json", INDEX)
+        self.assertNotIn("./data/occupancy.json", INDEX)
+        self.assertIn("readPrivateSnapshot", INDEX)
+        self.assertIn("renderOccupancy(snapshot.occupancy)", INDEX)
         self.assertIn("Incoming move-ins", INDEX)
         self.assertIn("Occupied after listed move-out", INDEX)
         self.assertIn("Rent-ready", INDEX)

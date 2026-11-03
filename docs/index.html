@@ -196,38 +196,61 @@
     .notes-copy-btn svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
   </style>
+  <link rel="stylesheet" href="./operations.css">
+  <link rel="stylesheet" href="./property-detail.css">
+  <script defer src="./navigation.js"></script>
+  <script defer src="./overview-views.js"></script>
 </head>
 <body>
+  <nav class="ops-nav" aria-label="Main navigation">
+    <a href="./index.html" aria-current="page">Overview</a>
+    <a href="./private-messages.html">Messages</a>
+    <a href="./templates.html">Templates</a>
+    <a href="./codes.html">Codes</a>
+    <a href="./stats.html">Stats</a>
+    <a href="./vendors.html">Vendors</a>
+  </nav>
   <header>
-    <h1>PadSplit Dashboard</h1>
+    <div><h1 id="view-title">Operations overview</h1><p class="muted" id="view-description">Occupancy, tasks and property conditions at a glance.</p></div>
     <div class="header-meta">
       <span class="pill" id="last-updated">Loading…</span>
       <span class="muted" id="refresh-info">Auto-refresh in 300s</span>
-      <a href="#occupancy-section" class="header-link">Occupancy</a>
-      <a href="./private-messages.html" class="header-link">Tenant Messages</a>
-      <a href="./templates.html" class="header-link">Templates</a>
-      <a href="./codes.html" class="header-link">Codes</a>
-      <a href="./stats.html" class="header-link">Stats</a>
-      <a href="./vendors.html" class="header-link">Vendors</a>
       <button id="signout-btn" class="header-link" style="background:none;border:none;cursor:pointer;padding:0">Sign out</button>
     </div>
   </header>
 
+  <section id="overview-summary" aria-label="Operations summary">
+    <div class="overview-metrics">
+      <article class="card"><h2>Rooms seen</h2><p id="summary-rooms">—</p><span class="muted">From the occupancy snapshot</span></article>
+      <article class="card"><h2>Incoming move-ins</h2><p id="summary-incoming">—</p><span class="muted">Upcoming activity</span></article>
+      <article class="card"><h2>Needs a turn</h2><p id="summary-turn">—</p><span class="muted">Vacant and not rent-ready</span></article>
+    </div>
+    <div class="card overview-actions"><h2>Explore operations</h2><p class="muted">Review the details for each area, including source status and observation times.</p><div><a href="#occupancy-section">Properties &amp; rooms</a><a href="#content">Tasks</a><a href="#climate-section">Climate</a><a href="#system-health">System health</a><a href="./private-messages.html">Owner sign in</a></div></div>
+  </section>
+
   <section class="occupancy-split" id="occupancy-section">
     <div class="flex-between">
-      <h2>Live occupancy</h2>
-      <span class="pill" id="occupancy-updated">Loading occupancy.json…</span>
+      <h2>Occupancy</h2>
+      <span class="pill" id="occupancy-updated">Private occupancy unavailable</span>
     </div>
     <p class="muted source-note">
-      Presence from messages + tasks (<code>occupancy.json</code>).
+      Presence from the owner-only occupancy snapshot derived from messages and tasks.
       This is not <code>stats.json</code> listed-status.
       <a href="./stats.html" class="header-link">Stale KPI stats</a> stay on the Stats page.
     </p>
+    <label class="search-label" for="occupancy-search">Search rooms or properties</label>
+    <input id="occupancy-search" type="search" placeholder="Filter by property or room" autocomplete="off">
     <div id="occupancy-content">
-      <div class="loading">Fetching occupancy.json …</div>
+      <div class="loading">Sign in to load private occupancy.</div>
     </div>
   </section>
 
+  <div class="sync-status" id="task-sync" aria-live="polite">
+    <span id="discussion-sync">Loading internal discussions…</span>
+    <span id="manual-sync">Loading manual tasks…</span>
+    <span id="private-sync">Sign in to load private task details.</span>
+    <a href="./private-messages.html" id="overview-signin">Sign in</a>
+  </div>
   <div id="content">
     <div class="loading">Fetching latest.json …</div>
   </div>
@@ -244,25 +267,39 @@
     </div>
   </details>
 
-  <section class="notes-section">
+  <section class="section" id="system-health" aria-labelledby="system-health-title">
+    <h2 id="system-health-title">System health</h2>
+    <div class="card" id="health-content" role="status">Loading collection status…</div>
+  </section>
+
+  <section class="notes-section" id="overview-notes">
     <h2>Notes</h2>
     <div class="notes-card">
-      <textarea class="notes-textarea" id="notes-textarea" placeholder="Add shared notes…"></textarea>
+      <p id="overview-notes-status" role="status">Sign in to access shared notes.</p>
+      <textarea disabled aria-label="Shared notes" class="notes-textarea" id="notes-textarea" placeholder="Add shared notes…"></textarea>
       <div class="notes-footer">
-        <button class="notes-save-btn" id="notes-save-btn">Save</button>
-        <button class="notes-copy-btn" id="notes-copy-btn" title="Copy notes"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+        <button disabled class="notes-save-btn" id="notes-save-btn">Save</button>
+        <button disabled class="notes-copy-btn" id="notes-copy-btn" title="Copy notes" aria-label="Copy notes"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
       </div>
     </div>
   </section>
 
   <footer>
-    Data auto-refreshes every 5 minutes from <code>padsplit_scraper/output/latest.json</code>. Pages is public; repo history stays private.
+    Snapshot data refreshes every 5 minutes. The observation time is shown above; refreshing the page does not run a scrape.
   </footer>
 
+  <script src="./refresh-guard.js"></script>
+  <script src="./occupancy-view.js"></script>
+  <script src="./listener-status.js"></script>
+  <script src="./system-health.js"></script>
+  <script src="./task-filter.js"></script>
+  <script src="./property-detail.js"></script>
+  <script src="./private-snapshot.js"></script>
+  <script src="./overview-session.js"></script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import { getFirestore, collection, addDoc, deleteDoc, doc, setDoc, serverTimestamp, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, collection, addDoc, deleteDoc, doc, getDoc, setDoc, serverTimestamp, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     // Paste your Firebase config keys here (all fields required)
     const firebaseConfig = {
@@ -286,11 +323,29 @@
     const manualTaskRows = new Map();
     let manualTasksDiv = null;
     let manualCountBadge = null;
+    let manualTasksLoaded = false;
+    let publicSnapshot = null;
+    let privateSnapshot = null;
+    let privateGeneration = 0;
+    let latestClimate = null;
+    const propertyDetail = attachPropertyDetail({
+      root: document.getElementById('occupancy-content'),
+      getContext: () => ({ rooms: latestOccupancy?.rooms || [], occupancyObserved: latestOccupancy?.scraped_at,
+        tasks: privateSnapshot?.tasks, tasksAuthorized: !!privateSnapshot, climate: latestClimate })
+    });
 
     setInterval(() => {
       counter -= 1;
       if (counter <= 0) {
-        location.reload();
+        const active = document.activeElement;
+        const editing = active && active.matches('input, textarea, select');
+        const draft = Array.from(document.querySelectorAll('[data-msg], [data-notes]')).some(input => input.value.trim());
+        const notesDirty = document.getElementById('notes-textarea').dataset.dirty === 'true';
+        if (shouldDeferRefresh({ editing, draft, notesDirty })) {
+          refreshInfo.textContent = 'Refresh paused while editing';
+        } else {
+          location.reload();
+        }
       } else {
         refreshInfo.textContent = `Auto-refresh in ${counter}s`;
       }
@@ -299,7 +354,7 @@
     function fmtDate(s) {
       if (!s) return '—';
       const d = new Date(s);
-      return isNaN(d.getTime()) ? s : d.toLocaleString();
+      return isNaN(d.getTime()) ? s : d.toLocaleString(undefined, { timeZoneName: 'short' });
     }
 
     function chicagoToday(now = new Date()) {
@@ -356,47 +411,78 @@
         </div>`;
     }
 
+    let latestOccupancy = null;
+    document.getElementById('occupancy-search').addEventListener('input', () => { if (latestOccupancy) renderOccupancy(latestOccupancy); });
+    function clearOccupancy(message) {
+      latestOccupancy = null;
+      ['summary-rooms','summary-incoming','summary-turn'].forEach(id => { document.getElementById(id).textContent = '—'; });
+      document.getElementById('occupancy-updated').textContent = 'Private occupancy unavailable';
+      const notice = document.createElement('div'); notice.className = 'card'; notice.setAttribute('role', 'status'); notice.textContent = message;
+      document.getElementById('occupancy-content').replaceChildren(notice);
+    }
     function renderOccupancy(data) {
-      const rooms = Array.isArray(data.rooms) ? data.rooms : [];
+      if (!data || data.private_content_omitted || !Array.isArray(data.rooms)) return clearOccupancy('Room data is unavailable in this private snapshot.');
+      latestOccupancy = data;
+      const rooms = data.rooms;
       const today = chicagoToday();
       const lists = operatorLists(rooms, today);
       const present = rooms.filter((room) => room.occupant_present === true).length;
+      const unknownPresence = rooms.filter((room) => room.occupant_present !== true && room.occupant_present !== false).length;
       const vacant = rooms.filter((room) => room.vacant === true).length;
-      document.getElementById('occupancy-updated').textContent = `Updated ${fmtDate(data.scraped_at)}`;
+      document.getElementById('summary-rooms').textContent = String(rooms.length);
+      document.getElementById('summary-incoming').textContent = String(lists.incoming.length);
+      document.getElementById('summary-turn').textContent = String(lists.vacantNotReady.length);
+      document.getElementById('occupancy-updated').textContent = `Observed ${fmtDate(data.scraped_at)}`;
 
       const counts = [
         ['Rooms seen', rooms.length],
         ['Present', present],
+        ['Presence unknown', unknownPresence],
         ['Vacant', vacant],
         ['Incoming', lists.incoming.length],
         ['Occupied after move-out', lists.occupiedAfterMoveOut.length],
         ['Rent-ready', lists.rentReady.length],
       ];
-      const incomingRows = lists.incoming.map((room) => `
+      const filter = document.getElementById('occupancy-search').value.trim().toLowerCase();
+      const matches = room => roomLabel(room).toLowerCase().includes(filter);
+      const incomingRows = lists.incoming.filter(matches).map((room) => `
         <tr>
           <td>${escapeText(roomLabel(room))}</td>
           <td>${escapeText(room.next_move_in)}</td>
-          <td>${room.occupant_present ? 'Present' : 'Vacant'}</td>
+          <td>${presenceLabel(room)}</td>
         </tr>`).join('');
-      const holdoverRows = lists.occupiedAfterMoveOut.map((room) => `
+      const holdoverRows = lists.occupiedAfterMoveOut.filter(matches).map((room) => `
         <tr>
           <td>${escapeText(roomLabel(room))}</td>
           <td>${escapeText(room.listed_move_out || '—')}</td>
           <td>${room.open_eviction_ticket_ids?.length ? 'Eviction open' : (room.open_hold_ticket_ids?.length ? 'Hold open' : 'Present')}</td>
         </tr>`).join('');
-      const readyRows = lists.rentReady.map((room) => `
+      const readyRows = lists.rentReady.filter(matches).map((room) => `
         <tr>
           <td>${escapeText(roomLabel(room))}</td>
-          <td>${escapeText(room.days_vacant ?? 0)}</td>
+          <td>${escapeText(displayDays(room))}</td>
         </tr>`).join('');
-      const vacantRows = lists.vacantNotReady.map((room) => `
+      const vacantRows = lists.vacantNotReady.filter(matches).map((room) => `
         <tr>
           <td>${escapeText(roomLabel(room))}</td>
-          <td>${escapeText(room.days_vacant ?? 0)}</td>
+          <td>${escapeText(displayDays(room))}</td>
           <td>${room.turned ? 'Turned' : 'Not turned'}</td>
         </tr>`).join('');
 
+      const workspaceRows = rooms.map((room, index) => ({room, index})).filter(({room}) => matches(room)).map(({room, index}) => `
+        <tr><td>${escapeText(room.address || 'Unknown property')}</td>
+        <td>${escapeText(room.room_number ?? '—')}</td>
+        <td>${escapeText(presenceLabel(room))}</td>
+        <td>${escapeText(roomActionLabel(room))}</td>
+        <td>${escapeText(room.next_move_in || '—')}</td>
+        <td><button type="button" data-room-detail="${index}" aria-label="View details for ${escapeText(roomLabel(room))}">View</button></td></tr>`).join('');
       document.getElementById('occupancy-content').innerHTML = `
+        <div class="attention-summary" role="region" aria-label="Rooms needing attention">
+          <strong>Attention</strong>
+          <span>${lists.occupiedAfterMoveOut.length} occupied after listed move-out</span>
+          <span>${lists.vacantNotReady.length} vacant awaiting a turn</span>
+          <span>${lists.incoming.length} incoming move-ins</span>
+        </div>
         <div class="occupancy-counts">
           ${counts.map(([label, value]) => `
             <div class="card">
@@ -404,10 +490,15 @@
               <div class="status">${value}</div>
             </div>`).join('')}
         </div>
+        <section class="card room-workspace" aria-labelledby="room-workspace-heading">
+          <h3 id="room-workspace-heading">Properties and rooms</h3>
+          <p class="muted">Showing ${rooms.filter(matches).length} of ${rooms.length} rooms from this snapshot.</p>
+          ${occupancyTable(['Property', 'Room', 'Presence', 'Room status', 'Next move-in', 'Details'], workspaceRows, 'No rooms match this search.', 6)}
+        </section>
         <div class="occupancy-lists">
           <div class="card">
             <h3>Incoming move-ins</h3>
-            <div class="muted">Future move-in dates from live occupancy.json</div>
+            <div class="muted">Future move-in dates from the occupancy snapshot</div>
             ${occupancyTable(['Room', 'Move-in', 'Status'], incomingRows, 'No upcoming move-ins.', 3)}
           </div>
           <div class="card">
@@ -465,10 +556,10 @@
       msgDiv.dataset.docId = message.id;
       msgDiv.innerHTML = `
         <div>
-          <strong>${message.role || 'Role'}${message.status ? ` [${message.status}]` : ''}:</strong> ${message.text || ''}
-          <button class="delete-msg-btn" data-doc-id="${message.id}" title="Delete">✕</button>
+          <strong>${escapeText(message.role || 'Role')}${message.status ? ` [${escapeText(message.status)}]` : ''}:</strong> ${escapeText(message.text || '')}
+          <button class="delete-msg-btn" data-doc-id="${escapeText(message.id)}" title="Delete">✕</button>
         </div>
-        <div class="msg-meta">${created ? fmtDate(created) : ''}</div>
+        <div class="msg-meta">${created ? escapeText(fmtDate(created)) : ''}</div>
       `;
       const deleteBtn = msgDiv.querySelector('.delete-msg-btn');
       deleteBtn.addEventListener('click', async (e) => {
@@ -481,12 +572,14 @@
     function renderTaskMessages(taskId) {
       const container = taskMessageContainers.get(taskId);
       if (!container) return;
+      const follow = shouldFollowDiscussion(container.scrollHeight, container.scrollTop, container.clientHeight);
+      const previousTop = container.scrollTop;
       container.innerHTML = '';
       const messages = sortTaskMessages(taskId);
       messages.forEach((message) => {
         container.appendChild(buildTaskMessageRow(message));
       });
-      container.scrollTop = container.scrollHeight;
+      container.scrollTop = follow ? container.scrollHeight : previousTop;
     }
     function upsertTaskMessage(messageId, data) {
       const previous = taskMessagesById.get(messageId);
@@ -543,22 +636,23 @@
     function buildTaskChatBox(taskId) {
       const chatBox = document.createElement('div');
       chatBox.className = 'chat-box';
+      chatBox.dataset.taskId = String(taskId);
       const controls = document.createElement('div');
       controls.className = 'chat-controls';
       controls.innerHTML = `
-        <select data-role>
+        <select data-role aria-label="Discussion author">
           <option value="Don">Don</option>
           <option value="Repairman #1">Repairman #1</option>
           <option value="Repairman #2">Repairman #2</option>
           <option value="Owner">Owner</option>
           <option value="Manager">Manager</option>
         </select>
-        <select data-status>
+        <select data-status aria-label="Discussion status">
           <option value="Done">Done</option>
           <option value="In Process">In Process</option>
           <option value="Can't get to it for a bit...">Can't get to it for a bit...</option>
         </select>
-        <input data-msg placeholder="Message" />
+        <input data-msg aria-label="Internal discussion message" placeholder="Internal discussion" />
         <button data-send>Post</button>
       `;
       const messagesDiv = document.createElement('div');
@@ -571,10 +665,12 @@
       const msgInput = controls.querySelector('[data-msg]');
 
       sendBtn.addEventListener('click', async () => {
+        if (sendBtn.disabled) return;
         const role = controls.querySelector('[data-role]').value;
         const status = controls.querySelector('[data-status]').value;
         const text = msgInput.value.trim();
         sendBtn.disabled = true;
+        sendBtn.textContent = 'Posting…';
         try {
           await addDoc(collection(db, "task_messages"), {
             taskId,
@@ -583,11 +679,14 @@
             text,
             created: serverTimestamp(),
           });
-          msgInput.value = "";
+          if (shouldClearTaskDraft(text, msgInput.value.trim())) msgInput.value = "";
+          sendBtn.textContent = 'Posted';
         } catch (err) {
           console.error("Failed to send message", err);
-          alert("Failed to send message");
+          alert("Could not post the internal discussion. Your draft is still here.");
         } finally {
+          if (sendBtn.textContent === 'Posted') setTimeout(() => { if (sendBtn.textContent === 'Posted') sendBtn.textContent = 'Post'; }, 1500);
+          else sendBtn.textContent = 'Post';
           sendBtn.disabled = false;
         }
       });
@@ -600,14 +699,15 @@
     function buildManualTaskRow(taskId, d) {
       const row = document.createElement('div');
       row.style.marginTop = '0.5rem';
+      row.className = 'task-row';
       row.dataset.taskId = taskId;
       row.innerHTML = `
         <div class="flex-between">
-          <div class="status">${d.who || 'Task'}</div>
-          <span class="chip">${d.source || 'Other'}</span>
+          <div class="status">${escapeText(d.who || 'Task')}</div>
+          <span class="chip">${escapeText(d.source || 'Other')}</span>
           <button class="delete-msg-btn" title="Delete task">✕</button>
         </div>
-        <div class="muted">${d.notes || 'No details'}</div>
+        <div class="muted">${escapeText(d.notes || 'No details')}</div>
       `;
       row.querySelector('.flex-between').prepend(buildImportantBtn(taskId));
       row.querySelector('.delete-msg-btn').addEventListener('click', async (e) => {
@@ -619,12 +719,30 @@
       return row;
     }
 
+    function applyTaskFilter() {
+      const search = document.getElementById('task-search');
+      if (!search) return;
+      const status = document.getElementById('task-status-filter')?.value || '';
+      document.querySelectorAll('#content .task-row').forEach(row => {
+        row.hidden = !matchesTask(search.value, row.textContent) || !taskMatchesStatus(status, row.dataset.status);
+      });
+      const sort = document.getElementById('task-sort')?.value || 'source';
+      document.querySelectorAll('#content .task-bucket').forEach(bucket => {
+        const rows = Array.from(bucket.querySelectorAll(':scope > .task-row'));
+        rows.sort((a, b) => sort === 'property'
+          ? (a.dataset.property || '').localeCompare(b.dataset.property || '')
+          : Number(a.dataset.order) - Number(b.dataset.order));
+        rows.forEach(row => bucket.appendChild(row));
+      });
+    }
+
     function updateManualBadgeCount() {
       if (!manualCountBadge) return;
-      manualCountBadge.textContent = manualTaskRows.size;
+      manualCountBadge.textContent = manualCountLabel(manualTasksLoaded, manualTaskRows.size);
     }
 
     function render(data) {
+      if (overviewSession.currentUid()) activeOverviewDrafts = captureOverviewDrafts();
       const root = document.createElement('div');
       taskMessageContainers.clear();
       manualTasksDiv = null;
@@ -632,7 +750,8 @@
 
       // Header info
       const last = document.getElementById('last-updated');
-      last.textContent = `Updated ${fmtDate(data.scraped_at)}`;
+      const runState = data.run_status?.state;
+      last.textContent = `Scraped ${fmtDate(data.scraped_at)}${runState && runState !== 'ok' ? ` · ${runState}` : ''}`;
 
       // Tasks
       const taskSection = document.createElement('div');
@@ -641,33 +760,69 @@
       const taskHeader = document.createElement('h2');
       taskHeader.textContent = 'Tasks';
       taskDetails.appendChild(taskHeader);
+      const searchLabel = document.createElement('label');
+      searchLabel.className = 'search-label';
+      searchLabel.textContent = 'Search tasks';
+      searchLabel.htmlFor = 'task-search';
+      const taskSearch = document.createElement('input');
+      taskSearch.id = 'task-search'; taskSearch.type = 'search';
+      taskSearch.placeholder = 'Filter by property, request or status';
+      taskSearch.addEventListener('input', applyTaskFilter);
+      taskDetails.append(searchLabel, taskSearch);
       const tasks = data.tasks || {};
+      const taskStatuses = [...new Set(Object.values(tasks).flatMap(items => Array.isArray(items) ? items : [])
+        .map(task => task?.status).filter(value => typeof value === 'string' && value))].sort();
+      const statusLabel = document.createElement('label');
+      statusLabel.className = 'search-label'; statusLabel.htmlFor = 'task-status-filter'; statusLabel.textContent = 'Filter by status';
+      const statusFilter = document.createElement('select'); statusFilter.id = 'task-status-filter';
+      [['', 'All statuses'], ...taskStatuses.map(value => [value, value])].forEach(([value, label]) => {
+        const option = document.createElement('option'); option.value = value; option.textContent = label; statusFilter.appendChild(option);
+      });
+      statusFilter.addEventListener('change', applyTaskFilter);
+      const sortLabel = document.createElement('label');
+      sortLabel.className = 'search-label'; sortLabel.htmlFor = 'task-sort'; sortLabel.textContent = 'Sort tasks within each group';
+      const taskSort = document.createElement('select'); taskSort.id = 'task-sort';
+      [['source', 'Source order'], ['property', 'Property']].forEach(([value, label]) => {
+        const option = document.createElement('option'); option.value = value; option.textContent = label; taskSort.appendChild(option);
+      });
+      taskSort.addEventListener('change', applyTaskFilter);
+      taskDetails.append(statusLabel, statusFilter, sortLabel, taskSort);
+      if (data.private_content_omitted) {
+        const notice = document.createElement('p');
+        notice.className = 'card';
+        notice.textContent = 'Task details are unavailable in the public snapshot. Internal manual tasks remain available below.';
+        taskDetails.appendChild(notice);
+      }
       const dismissed = new Set(JSON.parse(localStorage.getItem('dismissed_task_ids') || '[]'));
       Object.keys(tasks).forEach(bucket => {
         if (bucket === 'Complete') return;
-        const bucketTasks = tasks[bucket].filter(t => t.id && !dismissed.has(t.id));
+        const bucketTasks = tasks[bucket].filter(t => t && typeof t === 'object' && t.id && !dismissed.has(t.id));
         if (bucketTasks.length === 0) return;
 
         const bucketDiv = document.createElement('div');
-        bucketDiv.className = 'card';
+        bucketDiv.className = 'card task-bucket';
         const header = document.createElement('div');
         header.className = 'flex-between';
-        header.innerHTML = `<h3>${bucket}</h3><span class="badge">${bucketTasks.length}</span>`;
+        header.innerHTML = `<h3>${escapeText(bucket)}</h3><span class="badge">${bucketTasks.length}</span>`;
 
         bucketDiv.appendChild(header);
-        bucketTasks.forEach(t => {
+        bucketTasks.forEach((t, taskIndex) => {
           const taskId = t.id || `${bucket}-${Math.random().toString(16).slice(2)}`;
           const row = document.createElement('div');
           row.style.marginTop = '0.5rem';
+          row.className = 'task-row';
+          row.dataset.status = t.status || '';
+          row.dataset.property = t.property_address?.street1 || '';
+          row.dataset.order = String(taskIndex);
           row.innerHTML = `
             <div class="flex-between">
-              <div class="status">${t.category || 'Task'}</div>
-              <span class="chip">${t.status || 'unknown'}</span>
+              <div class="status">${escapeText(t.category || 'Task')}</div>
+              <span class="chip">${escapeText(t.status || 'unknown')}</span>
             </div>
-            <div class="muted">${t.details || t.description || 'No details'}</div>
+            <div class="muted">${escapeText(t.details || t.description || 'No details')}</div>
             <div class="chips">
-              ${t.property_address?.street1 ? `<span class="chip">${t.property_address.street1}</span>` : ''}
-              ${t.location ? `<span class="chip">${t.location}${t.room_number != null ? ` #${t.room_number}` : ''}</span>` : ''}
+              ${t.property_address?.street1 ? `<span class="chip">${escapeText(t.property_address.street1)}</span>` : ''}
+              ${t.location ? `<span class="chip">${escapeText(t.location)}${t.room_number != null ? ` #${escapeText(t.room_number)}` : ''}</span>` : ''}
             </div>
           `;
           row.querySelector('.flex-between').prepend(buildImportantBtn(taskId));
@@ -687,6 +842,8 @@
       manualBucketDiv.appendChild(manualTasksDiv);
       manualTaskRows.forEach((row, taskId) => {
         manualTasksDiv.appendChild(row);
+        const messages = row.querySelector('.chat-messages');
+        if (messages) taskMessageContainers.set(String(taskId), messages);
         renderTaskMessages(taskId);
       });
       updateManualBadgeCount();
@@ -701,19 +858,19 @@
         </div>
         <div class="chat-box">
           <div class="chat-controls">
-            <select data-who>
+            <select data-who aria-label="Assigned to">
               <option>Don</option>
               <option>Repairman #1</option>
               <option>Repairman #2</option>
               <option>Owner</option>
               <option>Manager</option>
             </select>
-            <select data-source>
+            <select data-source aria-label="Task source">
               <option>Chat</option>
               <option>In-Person</option>
               <option>Other</option>
             </select>
-            <input data-notes placeholder="Notes" style="flex:1" />
+            <input data-notes aria-label="Task notes" placeholder="Notes" style="flex:1" />
             <button data-add>Add</button>
           </div>
         </div>
@@ -721,11 +878,13 @@
       const addBtn = addCard.querySelector('[data-add]');
       const notesInput = addCard.querySelector('[data-notes]');
       addBtn.addEventListener('click', async () => {
+        if (addBtn.disabled) return;
         const who = addCard.querySelector('[data-who]').value;
         const source = addCard.querySelector('[data-source]').value;
         const notes = notesInput.value.trim();
         if (!notes) return;
         addBtn.disabled = true;
+        addBtn.textContent = 'Adding…';
         try {
           await addDoc(collection(db, "manual_tasks"), {
             who,
@@ -733,11 +892,14 @@
             notes,
             created: serverTimestamp(),
           });
-          notesInput.value = "";
+          if (shouldClearTaskDraft(notes, notesInput.value.trim())) notesInput.value = "";
+          addBtn.textContent = 'Added';
         } catch (err) {
           console.error("Failed to add manual task", err);
-          alert("Failed to add task");
+          alert("Could not add the task. Your draft is still here.");
         } finally {
+          if (addBtn.textContent === 'Added') setTimeout(() => { if (addBtn.textContent === 'Added') addBtn.textContent = 'Add'; }, 1500);
+          else addBtn.textContent = 'Add';
           addBtn.disabled = false;
         }
       });
@@ -749,6 +911,8 @@
       const container = document.getElementById('content');
       container.innerHTML = '';
       container.appendChild(root);
+      applyOverviewWriteAccess();
+      restoreOverviewDrafts(activeOverviewDrafts);
     }
 
     function renderThermostats(data) {
@@ -829,23 +993,10 @@
 
     fetch('./thermostat/latest.json', { cache: 'no-cache' })
       .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
-      .then(renderThermostats)
+      .then(data => { latestClimate = data; renderThermostats(data); })
       .catch(err => {
         document.getElementById('thermostat-section').innerHTML =
           `<div class="card error" style="margin-bottom:1rem">Thermostat data unavailable (${err.message}).</div>`;
-      });
-
-    fetch('./data/occupancy.json', { cache: 'no-cache' })
-      .then(r => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
-      })
-      .then(renderOccupancy)
-      .catch(err => {
-        document.getElementById('occupancy-updated').textContent = 'Occupancy unavailable';
-        document.getElementById('occupancy-content').innerHTML =
-          `<div class="card error">Failed to load occupancy.json (${err.message}).</div>`;
-        console.error(err);
       });
 
     fetch('./data/latest.json', { cache: 'no-cache' })
@@ -853,78 +1004,207 @@
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
       })
-      .then(render)
+      .then(data => {
+        publicSnapshot = data;
+        const run = data.run_status || {};
+        const sources = run.sources || {};
+        const rows = [['Overall', run], ['Messages', sources.messages], ['Statistics', sources.stats], ['Occupancy', sources.occupancy]];
+        const health = document.getElementById('health-content');
+        health.replaceChildren();
+        rows.forEach(([name, source]) => {
+          const row = document.createElement('p');
+          row.textContent = `${name}: ${healthLabel(source)} · observed ${healthTime(source?.scraped_at || (name === 'Overall' ? run.run_scraped_at : null))}`;
+          health.appendChild(row);
+        });
+        const last = document.createElement('p');
+        last.textContent = `Last complete collection: ${healthTime(run.last_complete_success)}`;
+        health.appendChild(last);
+        const config = document.createElement('p');
+        config.textContent = 'Integration configuration and connectivity: not reported by this snapshot.';
+        health.appendChild(config);
+        render(privateSnapshot || data);
+      })
       .catch(err => {
-        document.getElementById('content').innerHTML =
-          `<div class="card error">Failed to load latest.json (${err.message}).</div>`;
+        document.getElementById('health-content').textContent = 'Collection status unavailable.';
+        if (!privateSnapshot) document.getElementById('content').innerHTML =
+          `<div class="card error">Failed to load latest.json (${escapeText(err.message)}).</div>`;
         console.error(err);
       });
 
-    // Real-time Firestore listeners (gated behind auth)
-    function initFirestore() {
-    const q = query(collection(db, "task_messages"), orderBy("created", "asc"));
-    onSnapshot(q, (snapshot) => {
-      snapshot.docChanges().forEach(change => {
-        if (change.type === "added" || change.type === "modified") {
-          upsertTaskMessage(change.doc.id, change.doc.data());
-        }
-        if (change.type === "removed") {
-          removeTaskMessage(change.doc.id);
-        }
-      });
-    });
+    // Owner-only listeners. Drafts remain in this tab's memory for the same account.
+    const OWNER_UID = '8jOJNgLoxpfyseZ0RY1PDZ1DXbi2';
+    let activeOverviewDrafts = null;
+    let stopFirestore = () => {};
+    let notesHandlersReady = false;
 
-    // ── Notes ────────────────────────────────────────────────────────────────
-    (function initNotes(pageId) {
-      const NOTES_DOC = doc(db, 'notes', pageId);
+    function captureOverviewDrafts() {
+      const pending = activeOverviewDrafts || {};
+      const discussions = { ...(pending.discussions || {}) };
+      document.querySelectorAll('.chat-box[data-task-id]').forEach(box => {
+        const input = box.querySelector('[data-msg]');
+        if (input) discussions[box.dataset.taskId] = {
+          text: input.value, role: box.querySelector('[data-role]').value,
+          status: box.querySelector('[data-status]').value
+        };
+      });
+      const notes = document.getElementById('notes-textarea');
+      const manual = document.querySelector('[data-notes]');
+      return {
+        discussions,
+        notes: notes.dataset.dirty === 'true' ? notes.value : pending.notes,
+        manual: manual ? { text: manual.value, who: document.querySelector('[data-who]').value,
+          source: document.querySelector('[data-source]').value } : pending.manual
+      };
+    }
+    function restoreOverviewDrafts(state) {
+      if (!state || !overviewSession.currentUid()) return;
+      const notes = document.getElementById('notes-textarea');
+      if (state.notes != null) { notes.value = state.notes; notes.dataset.dirty = 'true'; state.notes = null; }
+      const manual = document.querySelector('[data-notes]');
+      if (manual && state.manual) {
+        manual.value = state.manual.text; document.querySelector('[data-who]').value = state.manual.who;
+        document.querySelector('[data-source]').value = state.manual.source; state.manual = null;
+      }
+      document.querySelectorAll('.chat-box[data-task-id]').forEach(box => {
+        const draft = state.discussions?.[box.dataset.taskId];
+        const input = box.querySelector('[data-msg]');
+        if (!draft || !input) return;
+        input.value = draft.text; box.querySelector('[data-role]').value = draft.role;
+        box.querySelector('[data-status]').value = draft.status; delete state.discussions[box.dataset.taskId];
+      });
+    }
+    function applyOverviewWriteAccess() {
+      const enabled = !!overviewSession.currentUid();
+      document.querySelectorAll('#content [data-role], #content [data-status], #content [data-msg], #content [data-send], #content [data-who], #content [data-source], #content [data-notes], #content [data-add]').forEach(control => { control.disabled = !enabled; });
+      ['notes-textarea','notes-save-btn','notes-copy-btn'].forEach(id => { document.getElementById(id).disabled = !enabled; });
+      document.getElementById('overview-signin').hidden = enabled;
+    }
+    function setupOverviewNotes() {
+      if (notesHandlersReady) return;
+      notesHandlersReady = true;
       const ta = document.getElementById('notes-textarea');
       const saveBtn = document.getElementById('notes-save-btn');
       const copyBtn = document.getElementById('notes-copy-btn');
-      onSnapshot(NOTES_DOC, snap => {
-        if (snap.exists() && document.activeElement !== ta)
-          ta.value = snap.data().text || '';
-      });
+      ta.addEventListener('input', () => { ta.dataset.dirty = 'true'; });
       saveBtn.addEventListener('click', async () => {
+        if (!overviewSession.currentUid() || saveBtn.disabled) return;
+        const uid = overviewSession.currentUid();
         saveBtn.textContent = 'Saving…'; saveBtn.disabled = true;
-        try { await setDoc(NOTES_DOC, { text: ta.value }, { merge: true }); saveBtn.textContent = 'Saved!'; }
-        catch { saveBtn.textContent = 'Error'; }
-        setTimeout(() => { saveBtn.textContent = 'Save'; saveBtn.disabled = false; }, 1500);
+        try {
+          const savedText = ta.value;
+          await setDoc(doc(db, 'notes', 'dashboard'), { text: savedText }, { merge: true });
+          if (uid === overviewSession.currentUid() && ta.value === savedText) ta.dataset.dirty = 'false';
+          if (uid === overviewSession.currentUid()) saveBtn.textContent = 'Saved!';
+        } catch { if (uid === overviewSession.currentUid()) saveBtn.textContent = 'Error'; }
+        setTimeout(() => { if (uid === overviewSession.currentUid()) { saveBtn.textContent = 'Save'; saveBtn.disabled = false; } }, 1500);
       });
       copyBtn.addEventListener('click', () => {
+        if (!overviewSession.currentUid()) return;
         navigator.clipboard.writeText(ta.value).then(() => {
-          copyBtn.classList.add('copied');
-          setTimeout(() => copyBtn.classList.remove('copied'), 1500);
+          copyBtn.classList.add('copied'); setTimeout(() => copyBtn.classList.remove('copied'), 1500);
         });
       });
-    })('dashboard');
-
-    const manualQ = query(collection(db, "manual_tasks"), orderBy("created", "asc"));
-    onSnapshot(manualQ, (snapshot) => {
-      snapshot.docChanges().forEach(change => {
-        const taskId = change.doc.id;
-        if (change.type === "added") {
-          const d = change.doc.data();
-          const existing = manualTaskRows.get(taskId);
-          if (existing) existing.remove();
-          const row = buildManualTaskRow(taskId, d);
-          manualTaskRows.set(taskId, row);
-          if (manualTasksDiv) {
-            manualTasksDiv.prepend(row);
-            updateManualBadgeCount();
+    }
+    function initFirestore() {
+      const unsubs = [];
+      const sessionUid = overviewSession.currentUid();
+      const q = query(collection(db, 'task_messages'), orderBy('created', 'asc'));
+      unsubs.push(onSnapshot(q, snapshot => {
+        if (overviewSession.currentUid() !== sessionUid) return;
+        document.getElementById('discussion-sync').textContent = listenerMessage('discussion', 'ready');
+        snapshot.docChanges().forEach(change => {
+          if (change.type === 'added' || change.type === 'modified') upsertTaskMessage(change.doc.id, change.doc.data());
+          if (change.type === 'removed') removeTaskMessage(change.doc.id);
+        });
+      }, err => {
+        if (overviewSession.currentUid() !== sessionUid) return;
+        document.getElementById('discussion-sync').textContent = listenerMessage('discussion', err.code === 'permission-denied' ? 'denied' : 'error');
+      }));
+      const ta = document.getElementById('notes-textarea');
+      unsubs.push(onSnapshot(doc(db, 'notes', 'dashboard'), snap => {
+        if (overviewSession.currentUid() !== sessionUid) return;
+        document.getElementById('overview-notes-status').textContent = 'Shared notes connected.';
+        if (snap.exists() && document.activeElement !== ta && ta.dataset.dirty !== 'true') ta.value = snap.data().text || '';
+      }, err => {
+        if (overviewSession.currentUid() !== sessionUid) return;
+        document.getElementById('overview-notes-status').textContent = err.code === 'permission-denied' ? 'Shared notes unavailable: permission denied.' : 'Shared notes unavailable.';
+      }));
+      const manualQ = query(collection(db, 'manual_tasks'), orderBy('created', 'asc'));
+      unsubs.push(onSnapshot(manualQ, snapshot => {
+        if (overviewSession.currentUid() !== sessionUid) return;
+        manualTasksLoaded = true;
+        document.getElementById('manual-sync').textContent = listenerMessage('manual', 'ready');
+        updateManualBadgeCount();
+        snapshot.docChanges().forEach(change => {
+          const taskId = change.doc.id;
+          if (change.type === 'added') {
+            const existing = manualTaskRows.get(taskId); if (existing) existing.remove();
+            const row = buildManualTaskRow(taskId, change.doc.data()); manualTaskRows.set(taskId, row);
+            if (manualTasksDiv) { manualTasksDiv.prepend(row); updateManualBadgeCount(); applyTaskFilter(); restoreOverviewDrafts(activeOverviewDrafts); }
           }
-        }
-        if (change.type === "removed") {
-          const existing = manualTaskRows.get(taskId);
-          if (existing) existing.remove();
-          manualTaskRows.delete(taskId);
-          taskMessageContainers.delete(taskId);
-          updateManualBadgeCount();
-        }
-      });
+          if (change.type === 'removed') {
+            const existing = manualTaskRows.get(taskId); if (existing) existing.remove();
+            manualTaskRows.delete(taskId); taskMessageContainers.delete(taskId); updateManualBadgeCount();
+          }
+        });
+      }, err => {
+        if (overviewSession.currentUid() !== sessionUid) return;
+        manualTasksLoaded = false; updateManualBadgeCount();
+        document.getElementById('manual-sync').textContent = listenerMessage('manual', err.code === 'permission-denied' ? 'denied' : 'error');
+      }));
+      return () => unsubs.forEach(unsubscribe => unsubscribe());
+    }
+    const overviewSession = createOverviewSession({
+      canAccess: user => user?.uid === OWNER_UID,
+      captureDrafts: captureOverviewDrafts,
+      stopListeners: () => { stopFirestore(); stopFirestore = () => {}; },
+      clearPrivate: () => {
+        propertyDetail.clear(); privateSnapshot = null;
+        document.getElementById('occupancy-search').value = '';
+        clearOccupancy('Sign in as the owner to load private occupancy.');
+        taskMessagesById.clear(); taskMessagesByTaskId.clear(); taskMessageContainers.clear();
+        manualTaskRows.forEach(row => row.remove()); manualTaskRows.clear(); manualTasksLoaded = false;
+        const ta = document.getElementById('notes-textarea'); ta.value = ''; ta.dataset.dirty = 'false';
+        document.getElementById('notes-save-btn').textContent = 'Save';
+        document.getElementById('overview-notes-status').textContent = 'Sign in to access shared notes.';
+        document.getElementById('discussion-sync').textContent = 'Sign in to load internal discussions.';
+        document.getElementById('manual-sync').textContent = 'Sign in to load manual tasks.';
+        if (publicSnapshot) render(publicSnapshot);
+        else { document.getElementById('content').replaceChildren(); }
+        applyOverviewWriteAccess();
+      },
+      restoreDrafts: state => { activeOverviewDrafts = state; applyOverviewWriteAccess(); restoreOverviewDrafts(state); },
+      startListeners: () => { setupOverviewNotes(); stopFirestore = initFirestore(); }
     });
-    } // end initFirestore
-
-    initFirestore();
+    setupOverviewNotes();
+    onAuthStateChanged(auth, async user => {
+      const status = document.getElementById('private-sync');
+      const changed = overviewSession.transition(user);
+      const generation = changed ? ++privateGeneration : privateGeneration;
+      if (!user || user.uid !== OWNER_UID) {
+        status.textContent = user ? 'Private tasks unavailable: this account lacks access.' : 'Sign in to load private task details.';
+        applyOverviewWriteAccess(); return;
+      }
+      if (!changed) return;
+      status.textContent = 'Loading private task details…';
+      clearOccupancy('Loading private occupancy…');
+      try {
+        const snapshot = await readPrivateSnapshot(async path => {
+          const result = await getDoc(doc(db, path)); return result.exists() ? result.data() : null;
+        });
+        if (generation !== privateGeneration || overviewSession.currentUid() !== OWNER_UID) return;
+        if (!snapshot) { status.textContent = 'Private task snapshot is not available.'; clearOccupancy('Private occupancy snapshot is not available.'); return; }
+        activeOverviewDrafts = captureOverviewDrafts();
+        privateSnapshot = snapshot; render(snapshot);
+        if (snapshot.occupancy) renderOccupancy(snapshot.occupancy);
+        else clearOccupancy('This private snapshot does not contain occupancy.');
+        status.textContent = `Private task snapshot observed ${fmtDate(snapshot.scraped_at)}.`;
+      } catch (err) {
+        if (generation !== privateGeneration) return;
+        status.textContent = err.code === 'permission-denied' ? 'Private tasks unavailable: this account lacks access.' : 'Private task snapshot unavailable.';
+        clearOccupancy(err.code === 'permission-denied' ? 'Private occupancy unavailable: this account lacks access.' : 'Private occupancy snapshot unavailable.');
+      }
+    });
 
     document.getElementById('signout-btn').addEventListener('click', () => signOut(auth));
   </script>

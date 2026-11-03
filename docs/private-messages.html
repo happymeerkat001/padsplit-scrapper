@@ -108,7 +108,20 @@
     .thread-msg { font-size: 0.88rem; line-height: 1.5; padding: 0.3rem 0; border-bottom: 1px solid rgba(148,163,184,0.08); }
     .thread-msg:last-child { border-bottom: none; }
     .thread-msg .t-meta { font-size: 0.73rem; color: var(--muted); margin-top: 0.15rem; }
-    .loading { text-align: center; padding: 3rem; color: var(--muted); }
+    .loading { text-align: center; padding: 1.5rem; color: var(--muted); }
+    .inbox-layout { display:grid; grid-template-columns:minmax(230px, 320px) minmax(0, 1fr); gap:1rem; align-items:start; }
+    .inbox-list-pane { max-height:72vh; overflow:auto; }
+    .conversation-pane { min-height:15rem; max-height:72vh; overflow:auto; }
+    .conversation-entry { display:block; width:100%; text-align:left; color:var(--text); cursor:pointer; font:inherit; }
+    .conversation-entry[aria-pressed="true"] { border-color:var(--ops-accent); outline:2px solid var(--ops-accent); outline-offset:-2px; }
+    .conversation-entry .message-text { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .conversation-pane h2 { margin:0 0 .35rem; font-size:1.2rem; }
+    .conversation-pane .thread { margin:1rem 0; }
+    .draft-label { display:block; margin:1rem 0 .35rem; font-weight:600; }
+    .inbox-draft { width:100%; min-height:7rem; padding:.7rem; border:1px solid var(--ops-line); background:#101c22; color:var(--ops-text); border-radius:.4rem; resize:vertical; }
+    .draft-note { color:var(--ops-muted); font-size:.85rem; }
+    @media(max-width:760px) { .inbox-layout { grid-template-columns:minmax(0,1fr); } .inbox-list-pane { max-height:18rem; } .conversation-pane { max-height:none; } }
+
     .error { color: #f87171; padding: 1rem; }
     footer { margin-top: 2.5rem; color: var(--muted); font-size: 0.82rem; }
     .notes-section { margin-top: 2rem; padding: 0 clamp(1rem,4vw,2.5rem); }
@@ -124,6 +137,9 @@
     .notes-copy-btn.copied { color: #22c55e; border-color: #22c55e; }
     .notes-copy-btn svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
   </style>
+  <link rel="stylesheet" href="./operations.css">
+  <link rel="stylesheet" href="./password-reset.css">
+  <script defer src="./navigation.js"></script>
 </head>
 <body>
   <div id="gate-overlay" style="position:fixed;inset:0;z-index:100;background:#0f172a;display:flex;align-items:center;justify-content:center;padding:2rem">
@@ -131,11 +147,14 @@
       <h2 style="margin:0 0 0.35rem;font-size:1.2rem;color:#e2e8f0">Sign In</h2>
       <p style="margin:0 0 1rem;color:#94a3b8;font-size:0.9rem">PadSplit Dashboard</p>
       <form id="gate-form" style="display:flex;flex-direction:column;gap:0.5rem">
-        <input id="gate-email" type="email" placeholder="Email" autocomplete="email" style="background:#0b1222;border:1px solid rgba(148,163,184,0.35);color:#e2e8f0;border-radius:8px;padding:0.45rem 0.6rem;font-size:0.95rem;outline:none;font-family:inherit"/>
-        <input id="gate-password" type="password" placeholder="Password" autocomplete="current-password" style="background:#0b1222;border:1px solid rgba(148,163,184,0.35);color:#e2e8f0;border-radius:8px;padding:0.45rem 0.6rem;font-size:0.95rem;outline:none;font-family:inherit"/>
+        <label for="gate-email" class="gate-label">Email</label>
+        <input aria-label="Email" id="gate-email" type="email" placeholder="Email" autocomplete="email" style="background:#0b1222;border:1px solid rgba(148,163,184,0.35);color:#e2e8f0;border-radius:8px;padding:0.45rem 0.6rem;font-size:0.95rem;outline:none;font-family:inherit"/>
+        <label for="gate-password" class="gate-label">Password</label>
+        <input aria-label="Password" id="gate-password" type="password" placeholder="Password" autocomplete="current-password" style="background:#0b1222;border:1px solid rgba(148,163,184,0.35);color:#e2e8f0;border-radius:8px;padding:0.45rem 0.6rem;font-size:0.95rem;outline:none;font-family:inherit"/>
+        <button type="button" class="password-toggle" aria-controls="gate-password" aria-pressed="false">Show password</button>
         <button type="submit" style="border:none;border-radius:8px;background:#38bdf8;color:#0b1222;font-weight:700;padding:0.45rem 0.9rem;cursor:pointer;margin-top:0.25rem;font-family:inherit">Sign In</button>
       </form>
-      <div id="gate-error" style="color:#f87171;font-size:0.9rem;margin-top:0.6rem;display:none">Incorrect email or password.</div>
+      <div role="alert" id="gate-error" style="color:#f87171;font-size:0.9rem;margin-top:0.6rem;display:none">Sign-in failed. Check your credentials and connection, then try again.</div>
     </div>
   </div>
   <header>
@@ -143,40 +162,55 @@
     <span class="pill">PRIVATE</span>
     <div class="header-meta">
       <span class="updated" id="updated"></span>
-      <a href="./index.html" class="header-link">Dashboard</a>
-      <a href="./templates.html" class="header-link">Templates</a>
-      <a href="./codes.html" class="header-link">Codes</a>
-      <a href="./stats.html" class="header-link">Stats</a>
       <button id="signout-btn" class="header-link" style="background:none;border:none;cursor:pointer;padding:0">Sign out</button>
     </div>
   </header>
+  <nav class="ops-nav" aria-label="Main navigation">
+    <a href="./index.html">Overview</a>
+    <a href="./private-messages.html" aria-current="page">Messages</a>
+    <a href="./templates.html">Templates</a>
+    <a href="./codes.html">Codes</a>
+    <a href="./stats.html">Stats</a>
+    <a href="./vendors.html">Vendors</a>
+    <a href="./kpi-history.html">History</a>
+  </nav>
+
 
   <div class="filter-bar">
-    <input id="search" type="search" placeholder="Filter by name, address, or message…" />
+    <input id="search" aria-label="Search tenant messages" type="search" placeholder="Filter by name, address, or message…" />
     <span class="count" id="count"></span>
   </div>
 
-  <div id="list" class="list">
-    <div class="loading">Loading…</div>
+  <div class="inbox-layout">
+    <section class="inbox-list-pane" aria-label="Conversations">
+      <div id="list" class="list"><div class="loading">Loading…</div></div>
+    </section>
+    <section id="conversation-pane" class="conversation-pane card" aria-label="Selected conversation" aria-live="polite">
+      <p class="muted">Select a conversation to read it.</p>
+    </section>
   </div>
 
   <section class="notes-section">
     <h2>Notes</h2>
     <div class="notes-card">
-      <textarea class="notes-textarea" id="notes-textarea" placeholder="Add shared notes…"></textarea>
+      <textarea aria-label="Shared notes" class="notes-textarea" id="notes-textarea" placeholder="Add shared notes…"></textarea>
       <div class="notes-footer">
         <button class="notes-save-btn" id="notes-save-btn">Save</button>
-        <button class="notes-copy-btn" id="notes-copy-btn" title="Copy notes"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+        <button class="notes-copy-btn" id="notes-copy-btn" aria-label="Copy notes" title="Copy notes"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
       </div>
     </div>
   </section>
 
-  <footer>Private view — not indexed by search engines. Source: <code>data/latest.json</code></footer>
+  <footer>Messages are read from the authenticated private snapshot when available.</footer>
 
+  <script src="./draft-guard.js"></script>
+  <script src="./auth-listeners.js"></script>
+  <script src="./private-snapshot.js"></script>
+  <script src="./password-reset.js"></script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCSWOHI6QLqugy_Fao2p4bBehg02_fu3No",
@@ -197,76 +231,108 @@
     }
 
     let allMessages = [];
+    let privateContentOmitted = true;
+    let privateGeneration = 0;
+    let activeUid;
+    let selectedMessage = null;
+    let selectedKey = null;
+    const drafts = new Map();
+    const draftStorageKey = uid => `padsplit-inbox-drafts:${uid}`;
+    function messageKey(msg) { return typeof msg.id === 'string' && msg.id ? msg.id : msg; }
+    function saveDraftSession() {
+      if (!activeUid) return false;
+      try {
+        const values = [...drafts.entries()].filter(([key]) => typeof key === 'string');
+        sessionStorage.setItem(draftStorageKey(activeUid), JSON.stringify({values, selectedKey}));
+        return true;
+      } catch { return false; }
+    }
+    function restoreDraftSession(uid) {
+      try {
+        const saved = JSON.parse(sessionStorage.getItem(draftStorageKey(uid)) || '{}');
+        for (const item of Array.isArray(saved.values) ? saved.values : []) {
+          if (Array.isArray(item) && typeof item[0] === 'string' && typeof item[1] === 'string') drafts.set(item[0], item[1]);
+        }
+        selectedKey = typeof saved.selectedKey === 'string' ? saved.selectedKey : null;
+      } catch { selectedKey = null; }
+    }
 
+    function messageName(msg) {
+      return String(msg.title || [msg.occupancy?.user?.firstName, msg.occupancy?.user?.lastName].filter(Boolean).join(' ') || 'Unknown tenant');
+    }
+    function messageAddress(msg) {
+      const address = [msg.property?.address?.street1, msg.property?.address?.city?.name,
+        msg.property?.address?.city?.state?.name].filter(Boolean).join(', ') || msg.property?.name || 'Property not reported';
+      const room = msg.occupancy?.room?.roomNumber;
+      return room != null ? `${address} — Room ${room}` : address;
+    }
+    function selectConversation(msg) {
+      selectedMessage = msg;
+      const key = messageKey(msg);
+      selectedKey = typeof key === 'string' ? key : null;
+      saveDraftSession();
+      const pane = document.getElementById('conversation-pane');
+      pane.replaceChildren();
+      const title = document.createElement('h2'); title.textContent = messageName(msg); pane.appendChild(title);
+      const address = document.createElement('p'); address.className = 'address'; address.textContent = messageAddress(msg); pane.appendChild(address);
+      const thread = document.createElement('div'); thread.className = 'thread';
+      const messages = (Array.isArray(msg.recent_messages) ? [...msg.recent_messages] : [])
+        .filter(m => m && !m.deleted && String(m.text ?? '').trim())
+        .sort((a, b) => new Date(a.created) - new Date(b.created));
+      if (!messages.length) {
+        const last = msg.lastMessage || {};
+        const entry = document.createElement('p'); entry.className = 'message-text';
+        entry.textContent = last.text || last.body || 'No message text is available.'; thread.appendChild(entry);
+        if (last.created || last.createdAt) {
+          const time = document.createElement('p'); time.className = 't-meta'; time.textContent = fmtDate(last.created || last.createdAt); thread.appendChild(time);
+        }
+      } else {
+        messages.forEach(m => {
+          const entry = document.createElement('div'); entry.className = 'thread-msg';
+          const sender = document.createElement('strong'); sender.textContent = `${m.sender?.displayName || [m.sender?.firstName, m.sender?.lastName].filter(Boolean).join(' ') || 'Unknown'}: `;
+          entry.appendChild(sender); entry.appendChild(document.createTextNode(String(m.text)));
+          const time = document.createElement('div'); time.className = 't-meta'; time.textContent = fmtDate(m.created); entry.appendChild(time);
+          thread.appendChild(entry);
+        });
+      }
+      pane.appendChild(thread);
+      const label = document.createElement('label'); label.className = 'draft-label'; label.htmlFor = 'conversation-draft'; label.textContent = 'Draft only'; pane.appendChild(label);
+      const note = document.createElement('p'); note.className = 'draft-note'; note.textContent = 'Draft only: kept in this browser tab for reloads; it is not sent. Signing out clears it.'; pane.appendChild(note);
+      const draft = document.createElement('textarea'); draft.id = 'conversation-draft'; draft.className = 'inbox-draft'; draft.value = drafts.get(key) || '';
+      draft.addEventListener('input', () => { drafts.set(key, draft.value); if (!saveDraftSession() || typeof key !== 'string') note.textContent = 'Draft only: not sent. This draft cannot be retained on reload; copy it before leaving.'; }); pane.appendChild(draft);
+    }
     function renderList(messages) {
       const list = document.getElementById('list');
-      document.getElementById('count').textContent = `${messages.length} thread${messages.length !== 1 ? 's' : ''}`;
-      if (!messages.length) {
-        list.innerHTML = '<div class="loading">No matching threads.</div>';
+      if (privateContentOmitted) {
+        document.getElementById('count').textContent = '';
+        list.innerHTML = '<div class="loading" role="status">Message content is unavailable in this private snapshot.</div>';
         return;
       }
+      document.getElementById('count').textContent = `${messages.length} thread${messages.length !== 1 ? 's' : ''}`;
+      if (!messages.length) { list.innerHTML = '<div class="loading">No matching threads.</div>'; return; }
       list.innerHTML = '';
+      if (!selectedMessage) selectConversation(messages.find(msg => messageKey(msg) === selectedKey) || messages[0]);
       messages.forEach(msg => {
         const unread = msg.member?.isUnread || msg.unread || (msg.unreadCount > 0);
-        const tenantName = msg.title
-          || msg.occupancy?.user?.firstName + ' ' + (msg.occupancy?.user?.lastName || '')
-          || 'Unknown Tenant';
-        const address = [
-          msg.property?.address?.street1,
-          msg.property?.address?.city?.name,
-          msg.property?.address?.city?.state?.name,
-        ].filter(Boolean).join(', ') || msg.property?.name || '—';
-        const roomNumber = msg.occupancy?.room?.roomNumber;
-        const addressLine = roomNumber != null ? `${address} — Room ${roomNumber}` : address;
-        const card = document.createElement('div');
-        card.className = 'card' + (unread ? ' unread' : '');
-        card.innerHTML = `
-          <div class="card-header">
-            <span class="tenant-name">${tenantName.trim()}</span>
-            ${unread ? '<span class="badge-unread">Unread</span>' : ''}
-          </div>
-          <div class="address">${addressLine}</div>
-        `;
-
-        const threadData = Array.isArray(msg.recent_messages) ? [...msg.recent_messages] : [];
-        const filtered = threadData
-          .filter(m => m && !m.deleted && (m.text ?? '').toString().trim() !== '')
-          .sort((a, b) => new Date(a.created) - new Date(b.created));
-
-        if (filtered.length) {
-          const thread = document.createElement('div');
-          thread.className = 'thread';
-          filtered.forEach(m => {
-            const senderLabel = (m.sender?.displayName || `${m.sender?.firstName || ''} ${m.sender?.lastName || ''}`).trim();
-            const msgDiv = document.createElement('div');
-            msgDiv.className = 'thread-msg';
-            msgDiv.innerHTML = `
-              <div><strong>${senderLabel || 'Unknown'}:</strong> ${m.text}</div>
-              <div class="t-meta">${fmtDate(m.created)}</div>
-            `;
-            thread.appendChild(msgDiv);
-          });
-          card.appendChild(thread);
-        } else {
-          const lastText = msg.lastMessage?.text || msg.lastMessage?.body || '(no text)';
-          const lastDate = msg.lastMessage?.created || msg.lastMessage?.createdAt;
-          const senderFirst = msg.lastMessage?.sender?.firstName || '';
-          const senderDisplay = msg.lastMessage?.sender?.displayName || '';
-          const senderLabel = senderDisplay || senderFirst || '';
-          const msgTextDiv = document.createElement('div');
-          msgTextDiv.className = 'message-text';
-          msgTextDiv.textContent = lastText;
-          card.appendChild(msgTextDiv);
-
-          const metaDiv = document.createElement('div');
-          metaDiv.className = 'meta';
-          metaDiv.innerHTML = `${senderLabel ? `<span class="sender">${senderLabel} · </span>` : ''}${fmtDate(lastDate)}`;
-          card.appendChild(metaDiv);
-        }
-
-        list.appendChild(card);
+        const button = document.createElement('button'); button.type = 'button';
+        button.className = 'card conversation-entry' + (unread ? ' unread' : '');
+        button.setAttribute('aria-pressed', String(msg === selectedMessage));
+        const header = document.createElement('div'); header.className = 'card-header';
+        const name = document.createElement('span'); name.className = 'tenant-name'; name.textContent = messageName(msg); header.appendChild(name);
+        if (unread) { const badge = document.createElement('span'); badge.className = 'badge-unread'; badge.textContent = 'Unread'; header.appendChild(badge); }
+        button.appendChild(header);
+        const address = document.createElement('div'); address.className = 'address'; address.textContent = messageAddress(msg); button.appendChild(address);
+        const preview = document.createElement('div'); preview.className = 'message-text'; preview.textContent = msg.lastMessage?.text || msg.lastMessage?.body || 'No message preview'; button.appendChild(preview);
+        button.addEventListener('click', () => {
+          selectConversation(msg);
+          list.querySelectorAll('.conversation-entry').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+        });
+        list.appendChild(button);
       });
     }
+    window.addEventListener('beforeunload', event => {
+      if ([...drafts.values()].some(value => value.trim())) { event.preventDefault(); event.returnValue = ''; }
+    });
 
     function initApp() {
       document.getElementById('search').addEventListener('input', e => {
@@ -281,30 +347,16 @@
         }));
       });
 
-      fetch('./data/latest.json', { cache: 'no-cache' })
-        .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
-        .then(data => {
-          document.getElementById('updated').textContent = `Updated ${fmtDate(data.scraped_at)}`;
-          allMessages = (data.messages || []).sort((a, b) => {
-            const ta = new Date(a.lastMessage?.created || 0);
-            const tb = new Date(b.lastMessage?.created || 0);
-            return tb - ta;
-          });
-          renderList(allMessages);
-        })
-        .catch(err => {
-          document.getElementById('list').innerHTML =
-            `<div class="error">Failed to load latest.json: ${err.message}</div>`;
-        });
-
       const NOTES_DOC = doc(db, 'notes', 'messages');
       const ta = document.getElementById('notes-textarea');
       const saveBtn = document.getElementById('notes-save-btn');
+      const status = document.createElement('p'); status.id = 'notes-status'; status.setAttribute('role', 'status'); ta.before(status);
       const copyBtn = document.getElementById('notes-copy-btn');
-      onSnapshot(NOTES_DOC, snap => { if (snap.exists() && document.activeElement !== ta) ta.value = snap.data().text || ''; });
+      ta.addEventListener('input', () => markDraft(ta));
+      authListeners.add(() => onSnapshot(NOTES_DOC, snap => { if (snap.exists() && canApplyRemote(ta, document.activeElement)) ta.value = snap.data().text || ''; }, () => { document.getElementById('notes-status').textContent = 'Notes could not be loaded. Check your access and retry signing in.'; }));
       saveBtn.addEventListener('click', async () => {
         saveBtn.textContent = 'Saving…'; saveBtn.disabled = true;
-        try { await setDoc(NOTES_DOC, { text: ta.value }, { merge: true }); saveBtn.textContent = 'Saved!'; }
+        try { const saved = ta.value; await setDoc(NOTES_DOC, { text: saved }, { merge: true }); markDraftSaved(ta, saved); saveBtn.textContent = 'Saved!'; }
         catch { saveBtn.textContent = 'Error'; }
         setTimeout(() => { saveBtn.textContent = 'Save'; saveBtn.disabled = false; }, 1500);
       });
@@ -315,30 +367,91 @@
 
     const gateOverlay = document.getElementById('gate-overlay');
     const gateForm = document.getElementById('gate-form');
+    mountPasswordReset({auth, sender: sendPasswordResetEmail, form: gateForm, signInEmail: document.getElementById('gate-email')});
     const gateError = document.getElementById('gate-error');
 
     gateForm.addEventListener('submit', async (e) => {
       e.preventDefault();
+      const submit = gateForm.querySelector('button[type="submit"]');
+      if (submit.disabled) return;
+      submit.disabled = true;
+      const label = submit.textContent;
+      submit.textContent = 'Signing in…';
       try {
         await signInWithEmailAndPassword(auth, document.getElementById('gate-email').value.trim(), document.getElementById('gate-password').value);
         gateError.style.display = 'none';
       } catch (err) {
         console.error(err);
         gateError.style.display = 'block';
+      } finally {
+        submit.disabled = false;
+        submit.textContent = label;
       }
     });
 
+    const authListeners = createAuthListeners();
     let appInited = false;
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
+      const uid = user?.uid || null;
+      if (uid === activeUid) return;
+      if (activeUid && activeUid !== uid) {
+        try { sessionStorage.removeItem(draftStorageKey(activeUid)); } catch { /* storage can be unavailable */ }
+      }
+      activeUid = uid;
+      const generation = ++privateGeneration;
+      allMessages = [];
+      selectedMessage = null;
+      selectedKey = null;
+      drafts.clear();
+      if (uid) restoreDraftSession(uid);
+      document.getElementById('conversation-pane').replaceChildren();
+      privateContentOmitted = true;
+      renderList([]);
       if (user) {
         gateOverlay.style.display = 'none';
         if (!appInited) { appInited = true; initApp(); }
+        document.getElementById('list').textContent = 'Loading private messages…';
       } else {
         gateOverlay.style.display = 'flex';
       }
+      authListeners.setUser(user);
+      if (!user) return;
+      try {
+        const snapshot = await readPrivateSnapshot(async path => {
+          const result = await getDoc(doc(db, path));
+          return result.exists() ? result.data() : null;
+        });
+        if (generation !== privateGeneration) return;
+        if (!snapshot) { document.getElementById('list').textContent = 'Private message snapshot is not available.'; return; }
+        privateContentOmitted = false;
+        allMessages = snapshot.messages.slice().sort((a, b) =>
+          new Date(b.lastMessage?.created || 0) - new Date(a.lastMessage?.created || 0));
+        document.getElementById('updated').textContent = `Observed ${fmtDate(snapshot.scraped_at)}`;
+        document.getElementById('search').dispatchEvent(new Event('input'));
+      } catch (err) {
+        if (generation !== privateGeneration) return;
+        document.getElementById('list').textContent = err.code === 'permission-denied'
+          ? 'Private messages unavailable: this account lacks access.' : 'Private message snapshot unavailable.';
+      }
     });
 
-    document.getElementById('signout-btn').addEventListener('click', () => signOut(auth));
+    document.getElementById('signout-btn').addEventListener('click', () => {
+      if ([...drafts.values()].some(value => value.trim()) && !confirm('Signing out discards unsaved drafts in this tab. Continue?')) return;
+      signOut(auth);
+    });
+  </script>
+
+  <script>
+    (() => {
+      const toggle = document.querySelector('.password-toggle');
+      const input = document.getElementById('gate-password');
+      toggle.addEventListener('click', () => {
+        const show = input.type === 'password';
+        input.type = show ? 'text' : 'password';
+        toggle.setAttribute('aria-pressed', String(show));
+        toggle.textContent = show ? 'Hide password' : 'Show password';
+      });
+    })();
   </script>
 </body>
 </html>

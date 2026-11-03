@@ -167,7 +167,7 @@ LOCKOUT_PACK_MARKER = "Sorry you’re locked out — here’s entry for"
 LOCKBOX_PACK_MARKER = "Sorry you’re locked out — here’s the room/lockbox for"
 LOCKBOX_LINE_MARKER = "Room / lockbox:"
 # Member-thread fail ladder only. Never put these on Discord.
-JOE_FIELD_PHONE = "+1 (469) 373-2048"
+JOE_FIELD_PHONE = os.getenv("LOCKOUT_FIELD_PHONE", "")
 PADSPLIT_MEMBER_SUPPORT_PHONE = "+1 (770) 373-7863"
 
 # Member lockout phrases. Keep these about entry, not general maintenance.
@@ -287,6 +287,8 @@ class RunResult:
 
 def load_environment() -> None:
     load_dotenv(ENV_PATH)
+    global JOE_FIELD_PHONE
+    JOE_FIELD_PHONE = os.getenv("LOCKOUT_FIELD_PHONE", "")
 
 
 def running_in_ci() -> bool:
@@ -574,6 +576,8 @@ def codes_from_property_doc(
 
 
 def _fail_ladder_lines() -> List[str]:
+    if not re.fullmatch(r"\+?1?[2-9]\d{9}", re.sub(r"[^\d+]", "", JOE_FIELD_PHONE)):
+        raise RuntimeError("LOCKOUT_FIELD_PHONE must be configured before sending")
     return [
         "If that still fails:",
         f"1) Call {JOE_FIELD_PHONE}",

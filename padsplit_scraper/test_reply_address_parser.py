@@ -7,7 +7,7 @@ def _sample_tasks():
             {
                 "id": 101,
                 "property_address": {
-                    "street1": "1025 Broken Crest Rd",
+                    "street1": "102 Broken Crest Rd",
                     "city": "Fort Worth",
                     "state": "TX",
                 },
@@ -15,7 +15,7 @@ def _sample_tasks():
             {
                 "id": 102,
                 "property_address": {
-                    "street1": "3541 Parker Road East",
+                    "street1": "107 Parker Road East",
                     "city": "Haltom City",
                     "state": "TX",
                 },
@@ -38,14 +38,14 @@ def run_tests() -> int:
     matcher = _build_address_matcher(_sample_tasks())
 
     cases = [
-        ("1025 Broken Crest Complete", [101]),
-        ("Complete 1025 broken crest rd", [101]),
+        ("102 Broken Crest Complete", [101]),
+        ("Complete 102 broken crest rd", [101]),
         ("Please complete at 1025, broken crest road", [101]),
         ("3541 parker rd east complete", [102]),
         ("Complete 4100 N Main Street", [201]),
         ("4100 north main st complete", [201]),
         ("complete 999 fake st", []),
-        ("1025 broken crest is done", []),
+        ("102 broken crest is done", []),
     ]
 
     failures = []

@@ -59,7 +59,7 @@ def env(**overrides: str) -> dict:
 def thread(
     booking_id: str = "b1",
     status: str = "PENDING",
-    street: str = "3414 Pebbleshores Drive",
+    street: str = "106 Pebbleshores Drive",
     room: str = "2",
     move_in: str = "2026-11-01",
     cancelled: bool = False,
@@ -96,7 +96,7 @@ def listing(
     price: int = 174,
     status: str = "listed",
     promo=None,
-    house: str = "3414 Pebbleshores Drive",
+    house: str = "106 Pebbleshores Drive",
     number: str = "2",
     move_in=None,
     new_price=None,
@@ -118,7 +118,7 @@ def listing(
     }
 
 
-def occupancy(next_move_in=None, house: str = "3414 Pebbleshores Drive", room: str = "2") -> dict:
+def occupancy(next_move_in=None, house: str = "106 Pebbleshores Drive", room: str = "2") -> dict:
     return {
         "rooms": [
             {
@@ -210,7 +210,7 @@ class FrontloadWebhookTests(unittest.TestCase):
         assert_safe(self, event)
         self.assertEqual(event["event_type"], "new_booking")
         self.assertEqual(event["booking_id"], "b9")
-        self.assertEqual(event["house"], "3414 Pebbleshores Drive")
+        self.assertEqual(event["house"], "106 Pebbleshores Drive")
         self.assertEqual(event["room"], "2")
         self.assertEqual(event["move_in_date"], "2026-11-01")
         self.assertTrue(event["observed_at"].endswith("+00:00"))
@@ -280,7 +280,7 @@ class FrontloadWebhookTests(unittest.TestCase):
         self.assertEqual(kinds.count("move_in"), 1)
         move = next(event for event in result["events"] if event["event_type"] == "move_in")
         self.assertEqual(move["move_in_date"], "2026-12-01")
-        self.assertEqual(move["house"], "3414 Pebbleshores Drive")
+        self.assertEqual(move["house"], "106 Pebbleshores Drive")
         self.assertEqual(move["booking_id"], "b1")
         assert_safe(self, move)
 
@@ -466,7 +466,7 @@ class FrontloadWebhookTests(unittest.TestCase):
         blob = json.dumps(saved["failed"])
         for secret in FORBIDDEN:
             self.assertNotIn(secret, blob)
-        self.assertNotIn("3414 Pebbleshores", blob)
+        self.assertNotIn("106 Pebbleshores", blob)
 
         again = self.emit(
             messages=[thread(booking_id="nope")],
@@ -562,13 +562,13 @@ class FrontloadWebhookTests(unittest.TestCase):
             "bookings": {},
             "occupancy": {},
             "message_move_ins": {},
-            "listings": {"1": {"base_price": 100, "promo_pct": None, "promo_weeks": None, "new_price": None, "detailed_status": "occupied", "house": "3414 Pebbleshores Drive", "room": "2", "move_in_date": None}},
+            "listings": {"1": {"base_price": 100, "promo_pct": None, "promo_weeks": None, "new_price": None, "detailed_status": "occupied", "house": "106 Pebbleshores Drive", "room": "2", "move_in_date": None}},
         }
         current = {
             "bookings": {},
             "occupancy": {},
             "message_move_ins": {},
-            "listings": {"1": {"base_price": 200, "promo_pct": None, "promo_weeks": None, "new_price": None, "detailed_status": "occupied", "house": "3414 Pebbleshores Drive", "room": "2", "move_in_date": None}},
+            "listings": {"1": {"base_price": 200, "promo_pct": None, "promo_weeks": None, "new_price": None, "detailed_status": "occupied", "house": "106 Pebbleshores Drive", "room": "2", "move_in_date": None}},
         }
         morning = hook.diff_projection(
             previous, current, observed_at="2026-10-08T09:00:00+00:00", listings_refreshed=True, occupancy_refreshed=False

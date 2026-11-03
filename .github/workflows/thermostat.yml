@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   scrape:
@@ -29,19 +29,7 @@ jobs:
           TCC_PASSWORD: ${{ secrets.TCC_PASSWORD }}
         run: python thermostat/scraper.py
 
-      - name: Copy latest snapshot for Pages
-        run: |
-          mkdir -p docs/thermostat
-          cp thermostat/output/latest.json docs/thermostat/latest.json
-
-      - name: Commit snapshots
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add thermostat/output/ docs/thermostat/latest.json
-          git diff --cached --quiet || git commit -m "chore: thermostat scrape $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          git pull --rebase
-          git push
+      # Readings stay on the runner. They must not be committed to the public repository.
 
       - name: Notify Discord on failure
         if: failure()

@@ -196,17 +196,23 @@
     .hidden { display: none; }
     .error { color: var(--error); }
   </style>
+  <link rel="stylesheet" href="./operations.css">
+  <link rel="stylesheet" href="./password-reset.css">
+  <script defer src="./navigation.js"></script>
 </head>
 <body>
   <div id="gate-wrap" class="card hidden">
     <h2 class="gate-title">Stats Access</h2>
     <div class="muted">Stats-only login. The Codes password will not unlock this tab.</div>
     <form id="gate-form" class="gate-form">
-      <input id="gate-email" type="email" placeholder="Email" autocomplete="email" />
-      <input id="gate-input" type="password" placeholder="Password" autocomplete="current-password" />
+      <label for="gate-email" class="gate-label">Email</label>
+        <input aria-label="Email" id="gate-email" type="email" placeholder="Email" autocomplete="email" />
+      <label for="gate-input" class="gate-label">Password</label>
+        <input aria-label="Password" id="gate-input" type="password" placeholder="Password" autocomplete="current-password" />
+        <button type="button" class="password-toggle" aria-controls="gate-input" aria-pressed="false">Show password</button>
       <button type="submit">Unlock</button>
     </form>
-    <div id="gate-error" class="error hidden" style="margin-top:0.6rem">Incorrect email or password.</div>
+    <div role="alert" id="gate-error" class="error hidden" style="margin-top:0.6rem">Sign-in failed. Check your credentials and connection, then try again.</div>
   </div>
 
   <div id="app-wrap" class="hidden">
@@ -216,11 +222,19 @@
       <div class="header-link" style="font-size:0.85rem;color:var(--muted);margin-top:0.2rem" id="updated-label">Loading…</div>
     </div>
     <div class="header-meta">
-      <a href="./stats.html" class="header-link">← Stats</a>
-      <a href="./index.html" class="header-link">Dashboard</a>
       <button id="signout-btn" class="header-link" style="background:none;border:none;cursor:pointer;padding:0">Sign out</button>
     </div>
   </header>
+  <nav class="ops-nav" aria-label="Main navigation">
+    <a href="./index.html">Overview</a>
+    <a href="./private-messages.html">Messages</a>
+    <a href="./templates.html">Templates</a>
+    <a href="./codes.html">Codes</a>
+    <a href="./stats.html">Stats</a>
+    <a href="./vendors.html">Vendors</a>
+    <a href="./kpi-history.html" aria-current="page">History</a>
+  </nav>
+
 
   <div class="stack">
     <!-- Latest snapshot KPIs -->
@@ -565,9 +579,10 @@
     }
 
   </script>
+  <script src="./password-reset.js"></script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const STATS_UID = "TXSU0LOpmDWNBbbv0x3uHHBnZb12";
@@ -585,6 +600,7 @@
     const gateWrap = document.getElementById("gate-wrap");
     const appWrap = document.getElementById("app-wrap");
     const gateForm = document.getElementById("gate-form");
+    mountPasswordReset({auth, sender: sendPasswordResetEmail, form: gateForm, signInEmail: document.getElementById('gate-email')});
     const gateError = document.getElementById("gate-error");
 
     function showApp() {
@@ -610,9 +626,15 @@
           document.getElementById("gate-email").value.trim(),
           document.getElementById("gate-input").value
         );
-        gateError.classList.add("hidden");
+        if (auth.currentUser?.uid === STATS_UID) {
+          gateError.classList.add("hidden");
+        } else {
+          gateError.textContent = 'This account does not have access to statistics. Sign in with the authorized statistics account.';
+          gateError.classList.remove("hidden");
+        }
       } catch (err) {
         console.error(err);
+        gateError.textContent = 'Sign-in failed. Check your credentials and connection, then try again.';
         gateError.classList.remove("hidden");
       }
     });
@@ -626,9 +648,26 @@
         });
       } else {
         showGate();
+        if (user) {
+          gateError.textContent = 'This account does not have access to statistics. Sign in with the authorized statistics account.';
+          gateError.classList.remove('hidden');
+        }
       }
     });
     document.getElementById("signout-btn").addEventListener("click", () => signOut(auth));
+  </script>
+
+  <script>
+    (() => {
+      const toggle = document.querySelector('.password-toggle');
+      const input = document.getElementById('gate-input');
+      toggle.addEventListener('click', () => {
+        const show = input.type === 'password';
+        input.type = show ? 'text' : 'password';
+        toggle.setAttribute('aria-pressed', String(show));
+        toggle.textContent = show ? 'Hide password' : 'Show password';
+      });
+    })();
   </script>
 </body>
 </html>

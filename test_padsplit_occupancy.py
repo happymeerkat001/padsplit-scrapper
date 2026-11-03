@@ -38,7 +38,7 @@ FORBIDDEN_KEYS = {
 }
 
 
-def curtis_chat(*, street: str = "1025 Broken Crest") -> dict:
+def curtis_chat(*, street: str = "102 Broken Crest") -> dict:
     return {
         "id": "chat-curtis",
         "title": "Curtis Palmer",
@@ -64,7 +64,7 @@ def curtis_chat(*, street: str = "1025 Broken Crest") -> dict:
     }
 
 
-def eviction_433568(*, street: str = "1025 Broken Crest") -> dict:
+def eviction_433568(*, street: str = "102 Broken Crest") -> dict:
     return {
         "id": 433568,
         "status": "eviction",
@@ -108,7 +108,7 @@ class PadSplitOccupancyTests(unittest.TestCase):
             {"Eviction": [eviction_433568()]},
             NOW,
         )
-        row = find_room(payload, address_contains="1025 Broken Crest", room_number=3)
+        row = find_room(payload, address_contains="102 Broken Crest", room_number=3)
         assert_allowlist(self, row)
         self.assertEqual(row["property_id"], 31523)
         self.assertTrue(row["occupant_present"])
@@ -124,8 +124,8 @@ class PadSplitOccupancyTests(unittest.TestCase):
 
     def test_broken_crest_rd_joins_same_row(self) -> None:
         payload = occupancy.compute_occupancy(
-            [curtis_chat(street="1025 Broken Crest")],
-            {"Eviction": [eviction_433568(street="1025 Broken Crest Rd")]},
+            [curtis_chat(street="102 Broken Crest")],
+            {"Eviction": [eviction_433568(street="102 Broken Crest Rd")]},
             NOW,
         )
         self.assertEqual(len(payload["rooms"]), 1)
@@ -321,7 +321,7 @@ class PadSplitOccupancyTests(unittest.TestCase):
             "category": "room-turn",
             "room_number": 8,
             "property_id": 31523,
-            "property_address": {"street1": "1025 Broken Crest"},
+            "property_address": {"street1": "102 Broken Crest"},
             "extra_data": {},
             "moveout_photos_count": 0,
         }
@@ -339,7 +339,7 @@ class PadSplitOccupancyTests(unittest.TestCase):
                 "user": None,
                 "room": {"roomNumber": 3},
             },
-            "property": {"address": {"street1": "1025 Broken Crest"}},
+            "property": {"address": {"street1": "102 Broken Crest"}},
             "lastMessage": {"created": "2026-08-01T00:00:00"},
         }
         payload = occupancy.compute_occupancy([present, incoming], {}, NOW)
@@ -386,7 +386,7 @@ class PadSplitOccupancyTests(unittest.TestCase):
                         "user": {"firstName": "Incoming"},
                         "room": {"roomNumber": 7},
                     },
-                    "property": {"address": {"street1": "5509 Burton Avenue"}},
+                    "property": {"address": {"street1": "108 Burton Avenue"}},
                     "lastMessage": {"created": "2026-08-26T20:00:00"},
                 },
             ],
@@ -398,7 +398,7 @@ class PadSplitOccupancyTests(unittest.TestCase):
                         "status": "completed",
                         "category": "room-turn",
                         "room_number": 4,
-                        "property_address": {"street1": "1404 Pioneer Lane"},
+                        "property_address": {"street1": "103 Pioneer Lane"},
                         "extra_data": {"move_out_date": "2026-08-10"},
                         "moveout_photos_count": 2,
                     }
@@ -408,7 +408,7 @@ class PadSplitOccupancyTests(unittest.TestCase):
         )
         lists = occupancy.operator_lists(payload["rooms"], NOW.date())
         incoming_keys = [(row["address"], row["room_number"], row["next_move_in"]) for row in lists["incoming"]]
-        self.assertEqual(incoming_keys, [("5509 Burton Avenue", 7, "2026-08-29")])
+        self.assertEqual(incoming_keys, [("108 Burton Avenue", 7, "2026-08-29")])
         holdover = find_room({"rooms": lists["occupied_after_move_out"]}, address_contains="Broken Crest", room_number=3)
         self.assertTrue(holdover["occupant_present"])
         self.assertFalse(holdover["rent_ready"])
@@ -420,7 +420,7 @@ class PadSplitOccupancyTests(unittest.TestCase):
     def test_past_next_move_in_is_not_incoming(self) -> None:
         rooms = [
             {
-                "address": "5509 Burton Avenue",
+                "address": "108 Burton Avenue",
                 "room_number": 7,
                 "occupant_present": True,
                 "listed_move_out": None,
@@ -432,31 +432,65 @@ class PadSplitOccupancyTests(unittest.TestCase):
         lists = occupancy.operator_lists(rooms, NOW.date())
         self.assertEqual(lists["incoming"], [])
 
-    def test_live_occupancy_json_broken_crest_rm3_and_incoming(self) -> None:
+    def test_published_occupancy_snapshot_schema_and_list_invariants(self) -> None:
+        """Rolling data can change; every published row must still be safe and consistent."""
         from pathlib import Path
         import json
 
         path = Path(__file__).resolve().parent / "docs" / "data" / "occupancy.json"
         payload = json.loads(path.read_text())
-        row = find_room(payload, address_contains="1025 Broken Crest", room_number=3)
+        self.assertIsInstance(payload["rooms"], list)
+        for room in payload["rooms"]:
+            with self.subTest(address=room.get("address"), room=room.get("room_number")):
+                assert_allowlist(self, room)
+                if room["rent_ready"]:
+                    self.assertTrue(room["vacant"])
+                    self.assertTrue(room["turned"])
+                    self.assertFalse(room["occupant_present"])
+
+        scraped = datetime.fromisoformat(payload["scraped_at"].replace("Z", "+00:00")).astimezone(CHICAGO).date()
+        lists = occupancy.operator_lists(payload["rooms"], scraped)
+        for row in lists["incoming"]:
+            self.assertGreaterEqual(row["next_move_in"], scraped.isoformat())
+        for row in lists["occupied_after_move_out"]:
+            self.assertTrue(row["occupant_present"])
+            self.assertLess(row["listed_move_out"], scraped.isoformat())
+        for row in lists["rent_ready"]:
+            self.assertTrue(row["rent_ready"])
+            self.assertTrue(row["vacant"])
+
+    def test_historical_broken_crest_rm3_and_incoming_scenario(self) -> None:
+        """Keep the original specific assertions on deterministic synthetic inputs."""
+        incoming_chat = {
+            "occupancy": {
+                "moveInDate": "2026-08-29",
+                "moveOutDate": "2026-08-25",
+                "user": {"firstName": "Incoming"},
+                "room": {"roomNumber": 7},
+            },
+            "property": {"address": {"street1": "108 Burton Avenue"}},
+            "lastMessage": {"created": "2026-08-26T20:00:00"},
+        }
+        payload = occupancy.compute_occupancy(
+            [curtis_chat(), incoming_chat], {"Eviction": [eviction_433568()]}, NOW
+        )
+        row = find_room(payload, address_contains="102 Broken Crest", room_number=3)
         assert_allowlist(self, row)
         self.assertEqual(row["property_id"], 31523)
         self.assertTrue(row["occupant_present"])
         self.assertFalse(row["rent_ready"])
         self.assertFalse(row["seo_eligible"])
-        self.assertNotIn("room_code", row)
         for room in payload["rooms"]:
-            self.assertNotIn("room_code", room)
-            self.assertEqual(set(room.keys()), ROW_KEYS)
+            assert_allowlist(self, room)
         scraped = datetime.fromisoformat(payload["scraped_at"].replace("Z", "+00:00")).astimezone(CHICAGO).date()
         lists = occupancy.operator_lists(payload["rooms"], scraped)
-        incoming_dates = {row["next_move_in"] for row in lists["incoming"]}
+        incoming_dates = {room["next_move_in"] for room in lists["incoming"]}
         self.assertTrue(incoming_dates)
         self.assertTrue(all(move_in >= scraped.isoformat() for move_in in incoming_dates if move_in))
-        incoming_keys = {(row["address"], row["room_number"], row["next_move_in"]) for row in lists["incoming"]}
-        self.assertIn(("5509 Burton Avenue", 7, "2026-08-29"), incoming_keys)
-        holdover_keys = {(row["address"], row["room_number"]) for row in lists["occupied_after_move_out"]}
-        self.assertIn(("1025 Broken Crest", 3), holdover_keys)
+        incoming_keys = {(room["address"], room["room_number"], room["next_move_in"]) for room in lists["incoming"]}
+        self.assertIn(("108 Burton Avenue", 7, "2026-08-29"), incoming_keys)
+        holdover_keys = {(room["address"], room["room_number"]) for room in lists["occupied_after_move_out"]}
+        self.assertIn(("102 Broken Crest", 3), holdover_keys)
 
 
 if __name__ == "__main__":

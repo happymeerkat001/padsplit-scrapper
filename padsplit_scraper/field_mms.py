@@ -6,7 +6,7 @@ morning window when PadSplit host messages and/or Discord #ai-tasks-temp have
 something to say. Skip when both sources are empty.
 Never send from GitHub Actions / CI. Do not send from a box/VPS IP.
 
-Primary send path is Quo SMS from +1 (469) 373-2048 (A2P) to Don, Dad,
+Primary send path is Quo SMS from the configured sender to Don, Dad,
 and Ang GV as one group conversation (one POST, ``to`` is the full list).
 Fallbacks are Google Voice group SMS (Ang's Mac Chrome) then the
 Messages.app chat named exactly "Don Field". Prefer the Mac launchd job;
@@ -63,12 +63,12 @@ FIELD_MMS_CHAT_NAME_DEFAULT = "Don Field"
 FIELD_MMS_TRANSPORT_DEFAULT = "auto"
 
 # Thread owner (From) for GV / Messages group fallback.
-ANG_VOICE_PHONE = "+14696267260"
+ANG_VOICE_PHONE = os.getenv("FIELD_MMS_ANG_VOICE_PHONE", "")
 ANG_GV_PHONE = ANG_VOICE_PHONE
-DAD_PHONE = "+19452413070"
-JOE_PHONE = "+14693732048"
-DON_PHONE = "+12147798338"
-DON_WRONG_PHONE = "+12144541768"
+DAD_PHONE = os.getenv("FIELD_MMS_DAD_PHONE", "")
+JOE_PHONE = os.getenv("FIELD_MMS_JOE_PHONE", "")
+DON_PHONE = os.getenv("FIELD_MMS_DON_PHONE", "")
+DON_WRONG_PHONE = os.getenv("FIELD_MMS_DON_WRONG_PHONE", "")
 GROUP_RECIPIENTS = (DAD_PHONE, JOE_PHONE, DON_PHONE)
 # Quo blast defaults: Don + Dad + Ang GV in one group conversation.
 # Joe is not on this list. Override with FIELD_MMS_QUO_TO.
@@ -79,7 +79,7 @@ QUO_RECIPIENTS_DEFAULT = (DON_PHONE, DAD_PHONE, ANG_GV_PHONE)
 QUO_API_BASE = "https://api.quo.com"
 QUO_MESSAGES_URL = f"{QUO_API_BASE}/v1/messages"
 QUO_API_VERSION = "2026-03-30"
-QUO_FROM_NUMBER_DEFAULT = "+14693732048"
+QUO_FROM_NUMBER_DEFAULT = os.getenv("FIELD_MMS_FROM_NUMBER", "")
 QUO_MAX_RECIPIENTS = 10
 QUO_SUCCESS_STATUSES = {200, 201, 202}
 
@@ -134,12 +134,22 @@ class SendPlan:
     body: str = ""
     host_lines: List[str] = field(default_factory=list)
     task_lines: List[str] = field(default_factory=list)
-    recipients: Sequence[str] = QUO_RECIPIENTS_DEFAULT
-    thread_owner: str = ANG_VOICE_PHONE
+    recipients: Sequence[str] = field(default_factory=lambda: QUO_RECIPIENTS_DEFAULT)
+    thread_owner: str = field(default_factory=lambda: ANG_VOICE_PHONE)
 
 
 def load_environment() -> None:
     load_dotenv(ENV_PATH)
+    global ANG_VOICE_PHONE, ANG_GV_PHONE, DAD_PHONE, JOE_PHONE, DON_PHONE, DON_WRONG_PHONE
+    global GROUP_RECIPIENTS, QUO_RECIPIENTS_DEFAULT, QUO_FROM_NUMBER_DEFAULT
+    ANG_VOICE_PHONE = ANG_GV_PHONE = os.getenv("FIELD_MMS_ANG_VOICE_PHONE", "")
+    DAD_PHONE = os.getenv("FIELD_MMS_DAD_PHONE", "")
+    JOE_PHONE = os.getenv("FIELD_MMS_JOE_PHONE", "")
+    DON_PHONE = os.getenv("FIELD_MMS_DON_PHONE", "")
+    DON_WRONG_PHONE = os.getenv("FIELD_MMS_DON_WRONG_PHONE", "")
+    GROUP_RECIPIENTS = (DAD_PHONE, JOE_PHONE, DON_PHONE)
+    QUO_RECIPIENTS_DEFAULT = (DON_PHONE, DAD_PHONE, ANG_GV_PHONE)
+    QUO_FROM_NUMBER_DEFAULT = os.getenv("FIELD_MMS_FROM_NUMBER", "")
 
 
 def running_in_ci() -> bool:
@@ -171,7 +181,15 @@ def normalize_phone(value: str) -> str:
     return "+" + digits
 
 
+def _require_phone_configuration() -> None:
+    values = [ANG_VOICE_PHONE, DAD_PHONE, JOE_PHONE, DON_PHONE, DON_WRONG_PHONE]
+    normalized = [normalize_phone(value) for value in values]
+    if any(not re.fullmatch(r"\+1[2-9]\d{9}", value) for value in normalized) or values != normalized or len(set(normalized)) != len(normalized):
+        raise RuntimeError("Field MMS requires five distinct configured US E.164 phone numbers")
+
+
 def assert_group_recipients(recipients: Sequence[str]) -> List[str]:
+    _require_phone_configuration()
     normalized = [normalize_phone(item) for item in recipients]
     if DON_WRONG_PHONE in normalized:
         raise RuntimeError("Refusing send: wrong Don number")
@@ -183,7 +201,7 @@ def assert_group_recipients(recipients: Sequence[str]) -> List[str]:
         raise RuntimeError("Refusing send: group MMS only (Dad + Joe + Don); never solo Don")
     extra = have - required - {ANG_VOICE_PHONE}
     if extra:
-        raise RuntimeError(f"Refusing send: unexpected group numbers: {sorted(extra)}")
+        raise RuntimeError("Refusing send: unexpected group recipient")
     if have == {DON_PHONE} or (len(have) == 1 and DON_PHONE in have):
         raise RuntimeError("Refusing send: never a 1:1 to Don")
     return [DAD_PHONE, JOE_PHONE, DON_PHONE]
@@ -194,6 +212,7 @@ def assert_quo_recipients(recipients: Sequence[str]) -> List[str]:
 
     Extra E.164 numbers from FIELD_MMS_QUO_TO are allowed.
     """
+    _require_phone_configuration()
     unique: List[str] = []
     seen: Set[str] = set()
     for item in recipients:
@@ -715,7 +734,7 @@ def send_group_mms(body: str, recipients: Optional[Sequence[str]] = None) -> Non
     quo_to = assert_quo_recipients(recipients or resolve_quo_recipients())
     group = assert_group_recipients(GROUP_RECIPIENTS)
     if normalize_phone(DON_PHONE) not in {normalize_phone(item) for item in quo_to}:
-        raise RuntimeError("Refusing send: Don number must be 214-779-8338")
+        raise RuntimeError("Refusing send: configured Don recipient is missing")
     custom = (os.getenv("FIELD_MMS_SEND_COMMAND") or "").strip()
     if custom:
         import shlex

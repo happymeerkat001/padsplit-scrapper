@@ -138,6 +138,9 @@
       font-size: 0.9rem;
     }
   </style>
+  <link rel="stylesheet" href="./operations.css">
+  <link rel="stylesheet" href="./password-reset.css">
+  <script defer src="./navigation.js"></script>
 </head>
 <body>
   <div id="gate-overlay" style="position:fixed;inset:0;z-index:100;background:#0f172a;display:flex;align-items:center;justify-content:center;padding:2rem">
@@ -145,24 +148,32 @@
       <h2 style="margin:0 0 0.35rem;font-size:1.2rem;color:#e2e8f0">Sign In</h2>
       <p style="margin:0 0 1rem;color:#94a3b8;font-size:0.9rem">PadSplit Dashboard</p>
       <form id="gate-form" style="display:flex;flex-direction:column;gap:0.5rem">
-        <input id="gate-email" type="email" placeholder="Email" autocomplete="email" style="background:#0b1222;border:1px solid rgba(148,163,184,0.35);color:#e2e8f0;border-radius:8px;padding:0.45rem 0.6rem;font-size:0.95rem;outline:none;font-family:inherit"/>
-        <input id="gate-password" type="password" placeholder="Password" autocomplete="current-password" style="background:#0b1222;border:1px solid rgba(148,163,184,0.35);color:#e2e8f0;border-radius:8px;padding:0.45rem 0.6rem;font-size:0.95rem;outline:none;font-family:inherit"/>
+        <label for="gate-email" class="gate-label">Email</label>
+        <input aria-label="Email" id="gate-email" type="email" placeholder="Email" autocomplete="email" style="background:#0b1222;border:1px solid rgba(148,163,184,0.35);color:#e2e8f0;border-radius:8px;padding:0.45rem 0.6rem;font-size:0.95rem;outline:none;font-family:inherit"/>
+        <label for="gate-password" class="gate-label">Password</label>
+        <input aria-label="Password" id="gate-password" type="password" placeholder="Password" autocomplete="current-password" style="background:#0b1222;border:1px solid rgba(148,163,184,0.35);color:#e2e8f0;border-radius:8px;padding:0.45rem 0.6rem;font-size:0.95rem;outline:none;font-family:inherit"/>
+        <button type="button" class="password-toggle" aria-controls="gate-password" aria-pressed="false">Show password</button>
         <button type="submit" style="border:none;border-radius:8px;background:#38bdf8;color:#0b1222;font-weight:700;padding:0.45rem 0.9rem;cursor:pointer;margin-top:0.25rem;font-family:inherit">Sign In</button>
       </form>
-      <div id="gate-error" style="color:#f87171;font-size:0.9rem;margin-top:0.6rem;display:none">Incorrect email or password.</div>
+      <div role="alert" id="gate-error" style="color:#f87171;font-size:0.9rem;margin-top:0.6rem;display:none">Sign-in failed. Check your credentials and connection, then try again.</div>
     </div>
   </div>
   <header>
     <h1>Vendors</h1>
     <div class="header-meta">
-      <a href="./index.html" class="header-link">Dashboard</a>
-      <a href="./private-messages.html" class="header-link">Tenant Messages</a>
-      <a href="./templates.html" class="header-link">Templates</a>
-      <a href="./codes.html" class="header-link">Codes</a>
-      <a href="./stats.html" class="header-link">Stats</a>
       <button id="signout-btn" class="header-link" style="background:none;border:none;cursor:pointer;padding:0">Sign out</button>
     </div>
   </header>
+  <nav class="ops-nav" aria-label="Main navigation">
+    <a href="./index.html">Overview</a>
+    <a href="./private-messages.html">Messages</a>
+    <a href="./templates.html">Templates</a>
+    <a href="./codes.html">Codes</a>
+    <a href="./stats.html">Stats</a>
+    <a href="./vendors.html" aria-current="page">Vendors</a>
+    <a href="./kpi-history.html">History</a>
+  </nav>
+
 
   <div class="vendor-section">
     <div class="vendor-section-header">
@@ -178,9 +189,12 @@
     Vendor data stored in Firestore. Changes sync in real-time.
   </footer>
 
+  <script src="./draft-guard.js"></script>
+  <script src="./auth-listeners.js"></script>
+  <script src="./password-reset.js"></script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import { getFirestore, collection, addDoc, deleteDoc, doc, setDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -218,6 +232,8 @@
         const inp = document.createElement('input');
         inp.className = 'vendor-input';
         inp.placeholder = placeholder;
+        inp.setAttribute('aria-label', label);
+        inp.addEventListener('input', () => markDraft(inp));
         inp.value = data[key] || '';
         inputs[key] = inp;
         card.appendChild(lbl);
@@ -230,10 +246,14 @@
       const delBtn = document.createElement('button');
       delBtn.className = 'v-del-btn';
       delBtn.title = 'Delete vendor';
+      delBtn.setAttribute('aria-label', 'Delete vendor');
       delBtn.textContent = '✕';
       delBtn.addEventListener('click', async () => {
-        if (!confirm('Delete this vendor?')) return;
-        await deleteDoc(doc(db, 'vendors', docId));
+        if (delBtn.disabled || !confirm('Delete this vendor?')) return;
+        delBtn.disabled = true;
+        try { await deleteDoc(doc(db, 'vendors', docId)); }
+        catch { upsertVendorStatus('Could not delete vendor. Check your access and try again.', 'var(--error)'); }
+        finally { delBtn.disabled = false; }
       });
 
       const saveBtn = document.createElement('button');
@@ -243,12 +263,11 @@
         saveBtn.textContent = 'Saving…';
         saveBtn.disabled = true;
         try {
-          await setDoc(doc(db, 'vendors', docId), {
-            name:      inputs.name.value.trim(),
-            specialty: inputs.specialty.value.trim(),
-            contact:   inputs.contact.value.trim(),
-            location:  inputs.location.value.trim(),
-          }, { merge: true });
+          const submitted = Object.fromEntries(Object.entries(inputs).map(([key, input]) => [key, input.value]));
+          await setDoc(doc(db, 'vendors', docId), Object.fromEntries(
+            Object.entries(submitted).map(([key, value]) => [key, value.trim()])
+          ), { merge: true });
+          Object.entries(inputs).forEach(([key, input]) => markDraftSaved(input, submitted[key]));
           saveBtn.textContent = 'Saved!';
         } catch {
           saveBtn.textContent = 'Error';
@@ -259,6 +278,7 @@
       const copyBtn = document.createElement('button');
       copyBtn.className = 'v-copy-btn';
       copyBtn.title = 'Copy to clipboard';
+      copyBtn.setAttribute('aria-label', 'Copy vendor details');
       copyBtn.innerHTML = COPY_ICON;
       copyBtn.addEventListener('click', () => {
         const text = [
@@ -295,7 +315,7 @@
     }
 
     function initFirestore() {
-    onSnapshot(
+    authListeners.add(() => onSnapshot(
       query(collection(db, 'vendors'), orderBy('name')),
       (snapshot) => {
         if (!snapshot.empty || vendorCards.size > 0) {
@@ -309,19 +329,24 @@
             return;
           }
           const data = change.doc.data();
-          if (change.type === 'added') {
+          if (change.type === 'added' && !vendorCards.has(docId)) {
             const card = buildVendorCard(docId, data);
             vendorCards.set(docId, card);
             vendorGrid.appendChild(card);
-          } else if (change.type === 'modified') {
+          } else if (change.type === 'modified' || change.type === 'added') {
             const card = vendorCards.get(docId);
             if (!card) return;
             const keys = ['name', 'specialty', 'contact', 'location'];
             card.querySelectorAll('.vendor-input').forEach((inp, i) => {
-              if (document.activeElement !== inp) inp.value = data[keys[i]] || '';
+              if (canApplyRemote(inp, document.activeElement)) inp.value = data[keys[i]] || '';
             });
           }
         });
+        const remoteIds = snapshot.docs.map(item => item.id);
+        for (const id of staleListenerIds(vendorCards.keys(), remoteIds)) {
+          vendorCards.get(id)?.remove();
+          vendorCards.delete(id);
+        }
         if (snapshot.empty && vendorCards.size === 0) {
           upsertVendorStatus('No vendors yet. Click + Add Vendor to create one.');
         }
@@ -330,30 +355,52 @@
         console.error('Vendors listener failed:', err);
         upsertVendorStatus(`Vendors failed to load: ${err.message}`, 'var(--error)');
       }
-    );
+    ));
 
-    document.getElementById('add-vendor-btn').addEventListener('click', async () => {
-      await addDoc(collection(db, 'vendors'), {
-        name: '', specialty: '', contact: '', location: '',
-      });
+    const addVendorBtn = document.getElementById('add-vendor-btn');
+    addVendorBtn.addEventListener('click', async () => {
+      if (addVendorBtn.disabled) return;
+      addVendorBtn.disabled = true;
+      const originalText = addVendorBtn.textContent;
+      addVendorBtn.textContent = 'Adding…';
+      try {
+        await addDoc(collection(db, 'vendors'), {
+          name: '', specialty: '', contact: '', location: '',
+        });
+      } catch {
+        upsertVendorStatus('Could not add vendor. Check your access and try again.', 'var(--error)');
+      } finally {
+        addVendorBtn.disabled = false;
+        addVendorBtn.textContent = originalText;
+      }
     });
     } // end initFirestore
 
     const gateOverlay = document.getElementById('gate-overlay');
     const gateForm = document.getElementById('gate-form');
+    mountPasswordReset({auth, sender: sendPasswordResetEmail, form: gateForm, signInEmail: document.getElementById('gate-email')});
     const gateError = document.getElementById('gate-error');
 
     gateForm.addEventListener('submit', async (e) => {
       e.preventDefault();
+      const submit = gateForm.querySelector('button[type="submit"]');
+      if (submit.disabled) return;
+      submit.disabled = true;
+      const label = submit.textContent;
+      submit.textContent = 'Signing in…';
       try {
         await signInWithEmailAndPassword(auth, document.getElementById('gate-email').value.trim(), document.getElementById('gate-password').value);
         gateError.style.display = 'none';
       } catch (err) {
         console.error(err);
         gateError.style.display = 'block';
+      } finally {
+        submit.disabled = false;
+        submit.textContent = label;
       }
     });
 
+    const authListeners = createAuthListeners();
     let firestoreInited = false;
     onAuthStateChanged(auth, (user) => {
       if (user) {
@@ -362,9 +409,23 @@
       } else {
         gateOverlay.style.display = 'flex';
       }
+      authListeners.setUser(user);
     });
 
     document.getElementById('signout-btn').addEventListener('click', () => signOut(auth));
+  </script>
+
+  <script>
+    (() => {
+      const toggle = document.querySelector('.password-toggle');
+      const input = document.getElementById('gate-password');
+      toggle.addEventListener('click', () => {
+        const show = input.type === 'password';
+        input.type = show ? 'text' : 'password';
+        toggle.setAttribute('aria-pressed', String(show));
+        toggle.textContent = show ? 'Hide password' : 'Show password';
+      });
+    })();
   </script>
 </body>
 </html>

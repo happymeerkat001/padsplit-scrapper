@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import sys
+import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -51,8 +52,15 @@ def _docs_occupancy_path() -> Path:
 
 
 def _persist_occupancy_payload(payload: Dict[str, Any]) -> None:
+    # Direct scraper runs write into docs/ too; apply the same boundary as CI
+    # before a local server or a later publish can expose an unexpected field.
+    try:
+        from padsplit_scraper.public_snapshot import make_public_occupancy
+    except ModuleNotFoundError:
+        from public_snapshot import make_public_occupancy
+    projected = make_public_occupancy(payload)
     _write_json(_occupancy_output_path(), payload)
-    _write_json(_docs_occupancy_path(), payload)
+    _write_json(_docs_occupancy_path(), projected)
 
 
 def _timestamped_output_path(scraped_at: str) -> Path:
@@ -82,8 +90,18 @@ def seed_private_monthly_history() -> None:
 
 
 def _write_json(path: Path, payload: Dict[str, Any]) -> None:
+    """Replace a snapshot atomically so failures never truncate the previous file."""
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, indent=2))
+    temp_path = None
+    try:
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=path.parent,
+                                         prefix=".snapshot-", delete=False) as stream:
+            temp_path = Path(stream.name)
+            json.dump(payload, stream, indent=2)
+        os.replace(temp_path, path)
+    finally:
+        if temp_path is not None:
+            temp_path.unlink(missing_ok=True)
 
 
 def _load_json_if_exists(path: Path) -> Optional[Dict[str, Any]]:

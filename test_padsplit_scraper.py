@@ -164,7 +164,7 @@ class PadSplitScraperTests(unittest.TestCase):
             output_dir = root / "output"
             docs_data_dir = root / "docs" / "data"
             output_dir.mkdir(parents=True, exist_ok=True)
-            seeded_occupancy = {"scraped_at": "keep-me", "rooms": [{"address": "1025 Broken Crest", "room_number": 3}]}
+            seeded_occupancy = {"scraped_at": "keep-me", "rooms": [{"address": "102 Broken Crest", "room_number": 3}]}
             (output_dir / "occupancy.json").write_text(json.dumps(seeded_occupancy, indent=2))
 
             with (

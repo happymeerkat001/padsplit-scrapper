@@ -86,7 +86,7 @@ No build step or linter configuration; tests use direct Python execution.
   First send is the next 7:00am CT slot. Quo one group send to Don + Dad +
   Ang GV (`FIELD_MMS_QUO_TO` override). GV / Messages `Don Field` group is
   fallback only. CI must not send.
-  Primary transport is Quo SMS from `+14693732048` (`FIELD_MMS_TRANSPORT=auto`
+  Primary transport is Quo SMS from `[configured privately]` (`FIELD_MMS_TRANSPORT=auto`
   or `quo`; `QUO_API_KEY` required for the Quo path; optional `QUO_FROM_NUMBER`
   / `FIELD_MMS_QUO_FROM`). Prefer the Mac launchd job. Quo HTTP is fine from
   the Mac; it does not have the Google Voice unfamiliar-IP challenge. Fallbacks
@@ -184,10 +184,17 @@ SIFELY_LOCK_ID=          # optional Spanish Moss back-door lock id
 SIFELY_KEYBOARD_PWD_ID=  # optional tenant passcode id
 OBSIDIAN_DAILY_NOTES_DIR=
 FIELD_MMS_TRANSPORT=auto   # auto | quo | google_voice | messages; Quo first, then Mac Chrome Voice, then Messages Don Field
+FIELD_MMS_ANG_VOICE_PHONE= # E.164 private configuration; all five contacts must be distinct
+FIELD_MMS_DAD_PHONE=
+FIELD_MMS_JOE_PHONE=
+FIELD_MMS_DON_PHONE=
+FIELD_MMS_DON_WRONG_PHONE= # disallowed number
+FIELD_MMS_FROM_NUMBER=     # Quo sender; QUO_FROM_NUMBER and FIELD_MMS_QUO_FROM are alternatives
+LOCKOUT_FIELD_PHONE=       # required by lockout and leak emergency replies
 QUO_API_KEY=               # required for Quo path; Authorization header, no Bearer; never log
-# QUO_FROM_NUMBER=         # optional Quo from E.164; default +14693732048
+# QUO_FROM_NUMBER=         # alternative Quo sender in E.164 format
 # FIELD_MMS_QUO_FROM=      # alias for QUO_FROM_NUMBER
-# FIELD_MMS_QUO_TO=        # optional Quo group list; default Don +1 (214) 779-8338, Dad +1 (945) 241-3070, Ang GV +1 (469) 626-7260 (no Joe)
+# FIELD_MMS_QUO_TO=        # optional Quo group list; default Don [configured privately], Dad [configured privately], Ang GV [configured privately] (no Joe)
 FIELD_MMS_CHROME_USER_DATA_DIR=   # persistent Chrome user-data-dir already signed into Voice as mr.angli
 FIELD_MMS_CHROME_PROFILE_DIRECTORY=Default   # optional; mr.angli Chrome profile directory
 
