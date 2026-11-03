@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+const ctx={}; vm.runInNewContext(readFileSync('demo/team-policy.js','utf8'),ctx);
+const members=[{id:'a',role:'owner',active:true},{id:'b',role:'manager',active:true}];
+assert.equal(ctx.demoCanChangeMember(members,'a','manager',true),false,'last owner cannot be demoted');
+assert.equal(ctx.demoCanChangeMember(members,'a','owner',false),false,'last owner cannot be deactivated');
+assert.equal(ctx.demoCanChangeMember(members,'b','owner',true),true,'another active owner may be added');
+assert.equal(ctx.demoCanChangeMember([...members,{id:'c',role:'owner',active:true}],'a','viewer',true),true,'one of two owners may be demoted');
+assert.equal(ctx.demoCanChangeMember(members,'missing','owner',true),false,'unknown members are rejected');
+assert.equal(ctx.demoCanChangeMember(members,'b','administrator',true),false,'unknown roles are rejected');
+assert.equal(ctx.demoCanManageTeam(members,'a'),true);
+assert.equal(ctx.demoCanManageTeam(members,'b'),false,'non-owners cannot administer the team');
+assert.equal(ctx.demoCanManageTeam([{id:'a',role:'owner',active:false}],'a'),false,'inactive owners cannot administer the team');
+console.log('demo team policy protects the last active owner');

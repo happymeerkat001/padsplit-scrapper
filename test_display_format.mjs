@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+const saved = new Map();
+const ctx={localStorage:{getItem:k=>saved.get(k)||null,setItem:(k,v)=>saved.set(k,v)}};
+vm.runInNewContext(readFileSync('docs/display-format.js','utf8'),ctx);
+assert.equal(ctx.setDisplayPreferences({timezone:'UTC',dateFormat:'day-first'}),true);
+assert.equal(ctx.getDisplayPreferences().timezone,'UTC');
+assert.equal(ctx.getDisplayPreferences().dateFormat,'day-first');
+assert.ok(ctx.formatDisplayTime('2026-11-04T00:00:00Z').includes('UTC'));
+assert.equal(ctx.formatDisplayTime('invalid'),'Not reported');
+assert.equal(ctx.setDisplayPreferences({timezone:'invalid',dateFormat:'day-first'}),false);
+assert.equal(ctx.getDisplayPreferences().timezone,'UTC');
+console.log('display preferences validate values and format observation timestamps');

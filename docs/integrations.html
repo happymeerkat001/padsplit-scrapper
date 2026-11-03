@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Integrations · PadSplit Operations</title><link rel="stylesheet" href="./operations.css"><link rel="stylesheet" href="./integrations.css">
+<script defer src="./navigation.js"></script><script defer src="./display-format.js"></script><script defer src="./integration-status.js"></script><script defer src="./integrations.js"></script></head>
+<body><nav class="ops-nav" aria-label="Main navigation"></nav><main>
+<header><h1>Integrations</h1><p class="muted">Review reported collection outcomes and their observation times.</p></header>
+<section class="card integrations-panel" aria-labelledby="integrations-heading"><h2 id="integrations-heading">Collection sources</h2>
+<p class="muted">This view does not check provider credentials or current connectivity.</p>
+<p id="integration-status" role="status" aria-live="polite">Loading source status…</p>
+<div class="integration-table-wrap"><table><thead><tr><th scope="col">Source</th><th scope="col">Collection outcome</th><th scope="col">Observed</th><th scope="col">Configuration</th><th scope="col">Connection</th></tr></thead><tbody id="integration-rows"></tbody></table></div>
+</section></main></body></html>

@@ -1,0 +1,41 @@
+name: Thermostat Scrape
+
+on:
+  schedule:
+    - cron: "0 11 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r thermostat/requirements.txt
+
+      - name: Run scraper
+        env:
+          TCC_EMAIL: ${{ secrets.TCC_EMAIL }}
+          TCC_PASSWORD: ${{ secrets.TCC_PASSWORD }}
+        run: python thermostat/scraper.py
+
+      # Readings stay on the runner. They must not be committed to the public repository.
+
+      - name: Notify Discord on failure
+        if: failure()
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          curl -sf -X POST "$DISCORD_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d "{\"content\": \"❌ Thermostat scrape failed\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}"

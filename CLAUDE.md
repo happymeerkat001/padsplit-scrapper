@@ -1,0 +1,201 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Purpose
+
+Multi-scraper data collection system for:
+- **Padsplit** (`padsplit_scraper/`): rental property metrics (occupancy, earnings, flip rates) via GraphQL/REST APIs
+- **Thermostat** (`thermostat/`): HVAC data from mytotalconnectcomfort.com
+- **SmartHome** (`smarthome/`): Midea window-AC cloud control (CLI + hourly watcher). Honeywell paths stay separate.
+- Outputs versioned JSON to `padsplit_scraper/output/`, `thermostat/output/`, and `docs/data/` (`latest.json`, `occupancy.json`). Money/stats stay private (`output/stats.json`) and Firestore-gated on the Stats tab.
+
+## Running Scrapers
+
+```bash
+# Activate virtualenv first
+source venv/bin/activate
+
+# Run individual scrapers
+python3 padsplit_scraper/scraper.py
+python3 thermostat/scraper.py
+
+# Scheduled runs (also commit/push rolling output to git)
+./run_morning.sh      # padsplit + thermostat
+./run_afternoon.sh    # padsplit only
+./run_field_mms.sh    # Don+Dad+Ang GV Quo group SMS blast (morning 7am CT only; skip if both sources empty)
+./run_seo_monthly.sh  # monthly SEO / vacancy advice (1st 9:00am CT; CI must not post)
+<!-- Private property-specific operational details withheld. -->
+# Lockout auto-reply runs from morning/afternoon + scraper (LOCKOUT_REPLY_ENABLE; CI no-op)
+# Leak auto-reply runs from morning/afternoon + scraper (LEAK_REPLY_ENABLE; CI no-op)
+# Leak alert Bland calls stay off until LEAK_ALERT_ENABLE=1 and LEAK_ALERT_DRY_RUN=0 (CI no-op)
+# Frontload booking/listing webhook runs from the scraper (FRONTLOAD_WEBHOOK_ENABLE; default off, dry-run on).
+# Sends use runtime.send_enabled("frontload"): also needs PADSPLIT_ENABLE_ACTION_HOOKS and not collection-only.
+# Collection-only jobs skip and do not touch the ledger. Mac launchd owns live POST. CI must not POST.
+
+# Task digest counts only (no Discord post, no tenant names, codes, or amounts)
+python3 slack_task_digest.py --dry-run
+```
+
+## Tests
+
+```bash
+python3 test_padsplit_scraper.py
+python3 test_frontload_webhook.py
+python3 test_padsplit_occupancy.py
+python3 test_stats_freshness.py
+python3 test_slack_task_digest.py
+python3 test_dashboard_occupancy_ui.py
+python3 test_thermostat_scraper.py
+python3 test_thermostat_set_temps.py
+python3 test_thermostat_schedule.py
+python3 test_smarthome_cloud.py
+python3 test_smarthome_clocks.py
+python3 test_smarthome_intent.py
+python3 test_smarthome_cli.py
+python3 test_smarthome_watcher.py
+python3 test_smarthome_identity.py
+python3 test_obsidian_daily_digest.py
+python3 padsplit_scraper/test_reply_address_parser.py
+python3 test_field_mms.py
+python3 test_stats_gate.py
+python3 test_stats_firestore.py
+python3 test_seo_monthly.py
+python3 test_lock_codes.py
+python3 test_codes_history.py
+python3 test_codes_dashboard.py
+python3 test_lockout_reply.py
+python3 test_leak_reply.py
+python3 test_leak_alert.py
+python3 test_quo_sender.py
+python3 test_leak_alert_bland.py
+```
+
+No build step or linter configuration; tests use direct Python execution.
+
+## Operations
+
+- Morning and afternoon scraper runs are scheduled by launchd as
+  `com.padsplit.scraper.morning` and `com.padsplit.scraper.afternoon`; their
+  plist files live in `~/Library/LaunchAgents/` and call `run_morning.sh` and
+  `run_afternoon.sh`.
+- Don-field Quo SMS blast is launchd-managed by `com.padsplit.field-mms`
+  (`launchd/com.padsplit.field-mms.plist`) at 7:00am CT daily (morning only;
+  no 7pm / evening send), including weekends. After merge + Mac pull:
+  `python3 padsplit_scraper/field_mms.py --install-launchd`.
+  First send is the next 7:00am CT slot. Quo one group send to Don + Dad +
+  Ang GV (`FIELD_MMS_QUO_TO` override). GV / Messages `Don Field` group is
+  fallback only. CI must not send.
+  Primary transport is Quo SMS from `[configured privately]` (`FIELD_MMS_TRANSPORT=auto`
+  or `quo`; `QUO_API_KEY` required for the Quo path; optional `QUO_FROM_NUMBER`
+  / `FIELD_MMS_QUO_FROM`). Prefer the Mac launchd job. Quo HTTP is fine from
+  the Mac; it does not have the Google Voice unfamiliar-IP challenge. Fallbacks
+  are Google Voice group SMS from Ang’s Mac Chrome session (`google_voice`;
+  Playwright + `FIELD_MMS_CHROME_USER_DATA_DIR` / optional
+  `FIELD_MMS_CHROME_PROFILE_DIRECTORY`, default the mr.angli Chrome profile
+  already signed into Voice 469) then the Messages.app chat named exactly
+  `Don Field` unless transport is strict `quo` or `google_voice`.
+  `FIELD_MMS_TRANSPORT=messages` forces Messages-only. CI must not send.
+  If Google challenges, use the Messages `Don Field` group. Never paste Quo
+  keys or Google passwords into the repo.
+- Monthly SEO / vacancy advice is launchd-managed by `com.padsplit.seo-monthly`
+  (`launchd/com.padsplit.seo-monthly.plist`) at 9:00am CT on the 1st.
+  After merge + Mac pull: `python3 padsplit_scraper/seo_monthly.py --install-launchd`.
+  Prefers live partner rooms + occupancy; stale `stats.json` is fallback only and is
+  called out. Instant Book = skip. 10% promo / $0 move-in already assumed on.
+  No auto price changes. Optional Discord #ai-tasks-temp @Joe only (never Cindy;
+  never as Ang). CI must not post. Chief Grok Bot cron stays until this agent is live.
+- Thermostat schedule enforcement is launchd-managed by
+  `com.padsplit.thermostat.enforcer`. Do not change `thermostat/set_temps.py`
+  or enforcement behavior without a safe occupied-schedule test window.
+- SmartHome window-AC watcher is launchd label `com.padsplit.smarthome.watcher`
+  (`python3 -m smarthome.watcher` hourly from the repo root). Daytime floor
+  74°F; night off 1:00–5:59. Discord digest at 06:00 / 14:00 / 20:00, once per
+  those hours (`logs/smarthome_digest.json`). Plist is generated by
+  `python3 -m smarthome.watcher write-plist` into `~/Library/LaunchAgents/`.
+  CI must not log in or post.
+- Runtime and LaunchAgent logs belong in the ignored `logs/` directory. Do not
+  add logs or timestamped snapshots to Git; scheduled scripts stage only the
+  rolling JSON outputs they explicitly list.
+
+## Architecture
+
+**Data flow**: `.env` credentials → HTTP session → API auth → scrape (GraphQL or REST) → write JSON → git commit
+
+**Key files:**
+- `padsplit_scraper/scraper.py` — main Padsplit scraper; GraphQL queries, property/earnings/metrics collection
+- `padsplit_scraper/occupancy.py` — presence from messages + tasks (`occupancy.json`). `kpis.vacancy_rooms` is listed-status, not presence. Dashboard incoming / rent-ready / occupied-after-move-out lists read occupancy.json. `docs/stats.html` labels stats.json stale when degraded or older than 48h and does not treat vacancy_rooms as live occupancy.
+- `thermostat/scraper.py` — thermostat portal scraper; HTTP session + fallback logic
+- `padsplit_scraper/discord_notifier.py` — Discord bot alerts on error
+- `padsplit_scraper/field_mms.py` — morning 7am CT Don+Dad+Ang GV Quo group SMS blast (PadSplit host inbox + Discord #ai-tasks-temp; no Joe). Sends via Quo SMS (`QUO_API_KEY`) first (one POST, `to` is the full recipient list), then `google_voice_chrome.py` (Mac Chrome / Voice), then Messages `Don Field`.
+- `padsplit_scraper/seo_monthly.py` — 1st 9:00am CT SEO / vacancy advice pack (live rooms + occupancy; Joe-only Discord dry-run in CI)
+<!-- Private property-specific operational details withheld. -->
+<!-- Private property-specific operational details withheld. -->
+- `padsplit_scraper/leak_reply.py` — member water-leak auto-SEND on PadSplit for active water emergencies only (burst / pipe / main / flooding / wall-ceiling). Slow leak, drip, seepage, and toilet-only cases do not fire (no curb-key shutoff). Body is a 1:1 adaptation of Firestore `templates/shared` t5 (Water leak announcement) plus Quo; baked t5 fallback. Emits `WATER_KEY_ORDER` on `#ai-automations` for Cart (house + full ship-to; digit-free except address). No Amazon purchase here. Default off until Mac `.env` sets `LEAK_REPLY_ENABLE=1`. CI must not send. Discord posts never include codes. Nest interim-handles until enable is live.
+- `slack_task_digest.py` — DFW weather and task digest for Discord `#ai-tasks-temp` (`DISCORD_WEBHOOK_TASKS`). The PadSplit scrape workflow posts it once during 05:00–07:59 America/Chicago after a successful scrape. `docs/data/task_digest_ledger.json` stores that Chicago date (no ticket text) so later scrapes skip. The 11:00 UTC Discord Digests workflow is the backup and skips when the ledger already shows today. Counts-only preview: `python3 slack_task_digest.py --dry-run` (no post; no tenant names, codes, or amounts). Morning list buckets stay Requests and Open.
+- `padsplit_scraper/firestore_status_monitor.py` — Firestore integration
+- `obsidian_daily_digest.py` — daily note generation from scraped data
+- `smarthome/` — MSmartHome window-AC CLI (`python3 -m smarthome`) and watcher (`python3 -m smarthome.watcher`). Reads Honeywell `schedules.json` as data only.
+- `docs/data/` — public Pages outputs: `latest.json`, `occupancy.json`. Stats/earnings are Firestore-gated (`docs/stats.html`) and not published.
+
+**Error handling pattern**: scrapers use partial-success logic — if one property fails, continue and report via Discord rather than aborting entirely. `.env` is loaded from project root by all scripts.
+
+## Environment
+
+Copy `.env.example` (if present) or create `.env` at project root with:
+
+```
+PADSPLIT_EMAIL=
+PADSPLIT_PASSWORD=
+TCC_EMAIL=
+TCC_PASSWORD=
+SMARTHOME_EMAIL=
+SMARTHOME_PASSWORD=
+ANTHROPIC_API_KEY=
+ANTHROPIC_MODEL=claude-3-5-haiku-latest
+MINIMAX_API_KEY=
+MINIMAX_MODEL=MiniMax-M2.5
+DISCORD_WEBHOOK_MESSAGES=
+<!-- Private property-specific operational details withheld. -->
+DISCORD_WEBHOOK_URL=     # scrape / events failure alerts only
+DISCORD_WEBHOOK_NEW_TENANTS= # #new-tenants pack (Joe only; CI must not post)
+DISCORD_JOE_USER_ID=     # Discord snowflake for @Joe on #new-tenants (never @ Cindy)
+DISCORD_BOT_TOKEN=
+DISCORD_CHANNEL_ID=
+DISCORD_AUTOMATIONS_CHANNEL_ID= # optional #ai-automations; lockout drafts + leak WATER_KEY_ORDER, no digits
+LOCKOUT_REPLY_ENABLE=          # default off; Mac .env sets 1 to auto-SEND lockout door then lockbox
+LEAK_REPLY_ENABLE=             # default off; Mac .env sets 1 to auto-SEND water-leak shut-off pack + WATER_KEY_ORDER
+LEAK_ALERT_ENABLE=             # default off. Live Bland also needs LEAK_ALERT_DRY_RUN=0
+LEAK_ALERT_DRY_RUN=            # default on. Set 0 to allow Bland POST and result Quo
+LEAK_ALERT_DON_E164=
+LEAK_ALERT_TOM_E164=
+LEAK_ALERT_GROUP_E164S=
+BLAND_API_KEY=
+BLAND_WEBHOOK_SECRET=      # Bland account signing secret from Dev Portal → Keys
+# LEAK_ALERT_TOOL_BEARER=  # optional confirm_dispatch bearer; falls back to BLAND_WEBHOOK_SECRET
+LEAK_ALERT_BLAND_WEBHOOK_URL=
+LEAK_ALERT_RESULT_POST_ENABLE= # default off; one Quo group result line per call_id
+FRONTLOAD_WEBHOOK_URL=         # Grok Bot routine POST URL. Mac launchd owns live sends; CI must not POST
+FRONTLOAD_WEBHOOK_KEY=         # Grok Bot routine key. Header is Authorization: Bearer <key> (panel copies that full line). Never log
+FRONTLOAD_WEBHOOK_ENABLE=      # default off. Live/dry-run also require send_enabled (not CI, not collection-only, PADSPLIT_ENABLE_ACTION_HOOKS=1)
+FRONTLOAD_WEBHOOK_DRY_RUN=     # default on. Logs payload JSON to logs/frontload_webhook.jsonl instead of POST
+SIFELY_API_KEY=          # raw sk- key, no Bearer; missing = Need-you no-op
+<!-- Private property-specific operational details withheld. -->
+SIFELY_KEYBOARD_PWD_ID=  # optional tenant passcode id
+OBSIDIAN_DAILY_NOTES_DIR=
+FIELD_MMS_TRANSPORT=auto   # auto | quo | google_voice | messages; Quo first, then Mac Chrome Voice, then Messages Don Field
+FIELD_MMS_ANG_VOICE_PHONE= # E.164 private configuration; all five contacts must be distinct
+FIELD_MMS_DAD_PHONE=
+FIELD_MMS_JOE_PHONE=
+FIELD_MMS_DON_PHONE=
+FIELD_MMS_DON_WRONG_PHONE= # disallowed number
+FIELD_MMS_FROM_NUMBER=     # Quo sender; QUO_FROM_NUMBER and FIELD_MMS_QUO_FROM are alternatives
+LOCKOUT_FIELD_PHONE=       # required by lockout and leak emergency replies
+QUO_API_KEY=               # required for Quo path; Authorization header, no Bearer; never log
+# QUO_FROM_NUMBER=         # alternative Quo sender in E.164 format
+# FIELD_MMS_QUO_FROM=      # alias for QUO_FROM_NUMBER
+# FIELD_MMS_QUO_TO=        # optional Quo group list; default Don [configured privately], Dad [configured privately], Ang GV [configured privately] (no Joe)
+FIELD_MMS_CHROME_USER_DATA_DIR=   # persistent Chrome user-data-dir already signed into Voice as mr.angli
+FIELD_MMS_CHROME_PROFILE_DIRECTORY=Default   # optional; mr.angli Chrome profile directory
+
+```

@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+const ctx={};vm.runInNewContext(readFileSync('docs/codes-schema.js','utf8'),ctx);
+const fixture=JSON.parse(readFileSync('tests/fixtures/codes-schema.json','utf8'));
+assert.equal(ctx.validateCodesSchema(fixture).length,9);
+assert.throws(()=>ctx.validateCodesSchema({properties:[{slug:'bad"id',address:'Example',sections:[]}]}));
+assert.throws(()=>ctx.validateCodesSchema({properties:[{slug:'valid',address:'Example',sections:[{label:'Rooms',fields:[{key:'r1',label:'Room',value:'not-empty'}]}]}]}));
+assert.throws(()=>ctx.validateCodesSchema({properties:[fixture.properties[0],fixture.properties[0]]}));
+assert.throws(()=>ctx.validateCodesSchema({properties:[]}));
+console.log('private code schema validates identifiers and rejects embedded values');

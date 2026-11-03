@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Settings · PadSplit Operations</title>
+  <link rel="stylesheet" href="./operations.css">
+  <link rel="stylesheet" href="./settings-display.css">
+  <script defer src="./navigation.js"></script>
+  <script defer src="./display-format.js"></script>
+  <script defer src="./settings.js"></script>
+</head>
+<body class="settings-page">
+  <nav class="ops-nav" aria-label="Main navigation"></nav>
+  <main>
+    <header><h1>Settings</h1><p class="muted">Adjust how this dashboard appears on this browser.</p></header>
+    <section class="card settings-card" aria-labelledby="display-title">
+      <h2 id="display-title">Display</h2>
+      <label class="setting-toggle"><input id="compact-density" type="checkbox"> <span><strong>Compact density</strong><small>Reduce spacing in tables and dashboard panels.</small></span></label>
+      <div class="display-preferences">
+        <label for="display-timezone">Display timezone</label>
+        <select id="display-timezone"><option value="browser">Browser default</option><option value="America/Chicago">Central time (Chicago)</option><option value="UTC">UTC</option></select>
+        <label for="display-date-format">Display date format</label>
+        <select id="display-date-format"><option value="browser">Browser default</option><option value="month-first">Month / day / year</option><option value="day-first">Day / month / year</option></select>
+        <button id="save-display-preferences" type="button">Save display preferences</button>
+      </div>
+      <p class="muted">These settings control displayed timestamps in this browser. Business schedules and occupancy calculations continue to use their configured business timezone.</p>
+      <p id="settings-status" role="status" aria-live="polite" class="muted">This preference is stored in this browser only.</p>
+    </section>
+  </main>
+</body>
+</html>

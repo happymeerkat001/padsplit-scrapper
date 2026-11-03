@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+const html=readFileSync('docs/index.html','utf8');
+const escape=html.match(/function escapeText\(value\) \{[\s\S]*?\n    \}/)[0];
+const build=html.match(/function buildTaskMessageRow\(message\) \{[\s\S]*?\n    \}/)[0];
+const context={document:{createElement(){return {dataset:{},querySelector(){return {addEventListener(){}}}}}},fmtDate:String};
+vm.createContext(context);vm.runInContext(`${escape}\n${build}`,context);
+const row=context.buildTaskMessageRow({id:'id',role:'<img src=x>',status:'<svg>',text:'<script>bad</script>'});
+assert.ok(!row.innerHTML.includes('<script>bad</script>'));
+assert.ok(!row.innerHTML.includes('<img src=x>'));
+assert.ok(row.innerHTML.includes('&lt;script&gt;'));
+console.log('task discussion values render as text');

@@ -1,0 +1,37 @@
+# Environment Variables (CRITICAL: Keeps your passwords and API keys safe)
+.env*
+
+# AI Coding Assistant Settings (keep commands/ for project slash commands)
+.claude/*
+!.claude/commands/
+.antigravitycli/
+
+# Scraped Data Output (Ignores timestamped files, keeps latest.json)
+padsplit_scraper/output/202*.json
+padsplit_scraper/output/drafts.json
+padsplit_scraper/output/drafted_messages.json
+padsplit_scraper/output/new_booking_first_messages.json
+padsplit_scraper/output/leftover_compose_tabs.json
+thermostat/output/202*.json
+thermostat/temp_alert_state.json
+
+
+# Python Virtual Environment & Cache
+venv/
+__pycache__/
+*.pyc
+
+# Runtime logs
+logs/
+
+# Private Stage A–B state (never commit)
+.runtime-state/
+.private-config/
+
+*.log
+padsplit_scraper/output/latest.json
+
+# Raw operational and financial snapshots must never be committed.
+padsplit_scraper/output/stats.json
+padsplit_scraper/output/monthly_history.json
+thermostat/output/*.json

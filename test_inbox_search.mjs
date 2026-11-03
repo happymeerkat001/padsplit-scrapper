@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+const context={};
+vm.runInNewContext(readFileSync('docs/inbox-search.js','utf8'),context);
+const item={name:'Alex Morgan',property:'Maple House',preview:'Flickering light',room:4,unread:true};
+assert.equal(context.inboxMatches(item,' MAPLE ',false),true);
+assert.equal(context.inboxMatches(item,'4',false),true);
+assert.equal(context.inboxMatches(item,'missing',false),false);
+assert.equal(context.inboxMatches({...item,unread:false},'',true),false);
+assert.equal(context.inboxMatches(item,'',true),true);
+console.log('inbox search supports shared normalized fields and explicit unread state');

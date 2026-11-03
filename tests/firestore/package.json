@@ -1,0 +1,12 @@
+{
+  "name": "padsplit-firestore-rules-tests",
+  "private": true,
+  "scripts": {
+    "test": "cd ../.. && tests/firestore/node_modules/.bin/firebase emulators:exec --config firebase.emulator-test.json --project demo-padsplit --only firestore,auth 'node --test --test-concurrency=1 tests/firestore/rules.test.cjs tests/firestore/auth-workflows.test.cjs tests/firestore/team-rules.test.cjs && GCLOUD_PROJECT=demo-padsplit PYTHONPATH=. venv/bin/python tests/firestore/team_admin_emulator.py'"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "6.0.0",
+    "firebase": "^13.0.0",
+    "firebase-tools": "14.22.0"
+  }
+}

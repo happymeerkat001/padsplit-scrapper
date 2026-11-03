@@ -1,0 +1,121 @@
+name: PadSplit Scrape
+
+on:
+  schedule:
+    - cron: '17,47 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: padsplit-scrape
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r padsplit_scraper/requirements.txt
+
+      - name: Run scraper
+        env:
+          PADSPLIT_EMAIL: ${{ secrets.PADSPLIT_EMAIL }}
+          PADSPLIT_PASSWORD: ${{ secrets.PADSPLIT_PASSWORD }}
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+        run: python padsplit_scraper/scraper.py
+
+      - name: Inspect scrape status
+        id: scrape_status
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          from pathlib import Path
+
+          latest_path = Path("padsplit_scraper/output/latest.json")
+          state = "missing"
+          mode = ""
+          failed_phase = ""
+          if latest_path.exists():
+              payload = json.loads(latest_path.read_text())
+              run_status = payload.get("run_status") or {}
+              state = run_status.get("state") or "ok"
+              mode = run_status.get("mode") or ""
+              failed_phase = run_status.get("failed_phase") or ""
+
+          print(f"state={state}")
+          print(f"mode={mode}")
+          print(f"failed_phase={failed_phase}")
+          PY
+
+      - name: Warn on degraded scrape
+        if: steps.scrape_status.outputs.state == 'degraded'
+        run: |
+          echo "::warning title=PadSplit scrape degraded::Mode=${{ steps.scrape_status.outputs.mode }} failed_phase=${{ steps.scrape_status.outputs.failed_phase }}. Some collection results may be incomplete or reused; inspect run_status sources for details."
+
+      - name: Copy latest snapshot for Pages
+        run: |
+          mkdir -p docs/data
+          python -m padsplit_scraper.public_snapshot padsplit_scraper/output/latest.json docs/data/latest.json
+          if [ -f padsplit_scraper/output/occupancy.json ]; then
+            python -m padsplit_scraper.public_snapshot --occupancy padsplit_scraper/output/occupancy.json docs/data/occupancy.json
+          fi
+
+      # Posts once per Chicago day during 05:00–07:59. Later scrapes no-op.
+      # A Discord failure must not block the snapshot commit; the 11:00 UTC
+      # Discord Digests workflow is the backup.
+      - name: Post morning task digest
+        continue-on-error: true
+        env:
+          DISCORD_WEBHOOK_TASKS: ${{ secrets.DISCORD_WEBHOOK_TASKS }}
+        run: python slack_task_digest.py --after-scrape --latest padsplit_scraper/output/latest.json
+
+      - name: Diagnose token permissions
+        run: |
+          echo "=== Token write check ==="
+          curl -s -o /dev/null -w "HTTP %{http_code}" \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${{ github.repository }}"
+          echo ""
+          echo "=== Branch protection check ==="
+          curl -s -w "\nHTTP %{http_code}\n" \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${{ github.repository }}/branches/${{ github.ref_name }}/protection"
+          echo "=== Git credential helper ==="
+          git config --list | grep -i "credential\|url\|helper" || echo "No credential config found"
+          echo "=== Git remote ==="
+          git remote -v
+
+      - name: Commit and push snapshot
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git pull --rebase --autostash
+          python -m padsplit_scraper.publication_guard
+          git add docs/data/latest.json docs/data/occupancy.json
+          if [ -f docs/data/task_digest_ledger.json ]; then
+            git add docs/data/task_digest_ledger.json
+          fi
+          git diff --cached --quiet || git commit -m "chore: scrape $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git push origin HEAD:${{ github.ref_name }}
+
+      - name: Notify Discord on failure
+        if: failure()
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          curl -sf -X POST "$DISCORD_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d "{\"content\": \"❌ PadSplit scrape failed\nRepo: ${{ github.repository }}\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}"

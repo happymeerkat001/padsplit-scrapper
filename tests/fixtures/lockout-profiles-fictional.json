@@ -1,0 +1,50 @@
+{
+  "fictional_alpha": {
+    "label": "Fictional Alpha",
+    "aliases": [
+      "fictional alpha"
+    ],
+    "require_front": true,
+    "require_back": false,
+    "sifely_back": false,
+    "front_keys": [
+      "front_door"
+    ],
+    "back_keys": [],
+    "expect_room_code": true
+  },
+  "fictional_beta": {
+    "label": "Fictional Beta",
+    "aliases": [
+      "fictional beta"
+    ],
+    "require_front": true,
+    "require_back": true,
+    "sifely_back": false,
+    "front_keys": [
+      "front_door"
+    ],
+    "back_keys": [
+      "back_door"
+    ],
+    "expect_room_code": true
+  },
+  "fictional_gamma": {
+    "label": "Fictional Gamma",
+    "aliases": [
+      "fictional gamma"
+    ],
+    "require_front": true,
+    "require_back": true,
+    "sifely_back": false,
+    "front_keys": [
+      "front_back",
+      "front_door"
+    ],
+    "back_keys": [
+      "front_back",
+      "back_door"
+    ],
+    "expect_room_code": true
+  }
+}

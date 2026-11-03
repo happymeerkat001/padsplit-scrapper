@@ -1,0 +1,10 @@
+import { readFileSync } from 'node:fs';
+import assert from 'node:assert/strict';
+const html=readFileSync('docs/private-messages.html','utf8');
+assert.match(html,/id="conversation-pane"/, 'separate conversation pane exists');
+assert.match(html,/id="list"[\s\S]*id="conversation-pane"/, 'list and details are distinct');
+assert.match(html,/Draft only/, 'draft is explicitly labelled');
+assert.match(html,/sessionStorage/, 'drafts can survive a tab reload');
+assert.match(html,/removeItem/, 'draft storage is cleared on account exit');
+assert.doesNotMatch(html,/data-send-reply/, 'no unsupported send action');
+console.log('inbox layout and draft labelling present');

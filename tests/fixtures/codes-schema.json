@@ -1,0 +1,1143 @@
+{
+  "properties": [
+    {
+      "slug": "example_house_1",
+      "address": "1 Example Lane",
+      "sections": [
+        {
+          "label": "Door Codes",
+          "fields": [
+            {
+              "key": "front_door",
+              "label": "Front Door",
+              "value": ""
+            },
+            {
+              "key": "admin",
+              "label": "Admin",
+              "value": ""
+            },
+            {
+              "key": "thermo",
+              "label": "Thermo",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "label": "WiFi",
+          "fields": [
+            {
+              "key": "wifi_primary",
+              "label": "Wifi Primary",
+              "value": ""
+            },
+            {
+              "key": "wifi_tmobile",
+              "label": "Wifi Tmobile",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "label": "Rooms",
+          "fields": [
+            {
+              "key": "r1",
+              "label": "R1",
+              "value": ""
+            },
+            {
+              "key": "r2",
+              "label": "R2",
+              "value": ""
+            },
+            {
+              "key": "r3",
+              "label": "R3",
+              "value": ""
+            },
+            {
+              "key": "r4",
+              "label": "R4",
+              "value": ""
+            },
+            {
+              "key": "r5",
+              "label": "R5",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "label": "Contact",
+          "fields": [
+            {
+              "key": "responsible_tenant",
+              "label": "Responsible Tenant",
+              "value": "",
+              "placeholder": "example"
+            },
+            {
+              "key": "ac_filter_date",
+              "label": "Ac Filter Date",
+              "value": "",
+              "type": "date"
+            },
+            {
+              "key": "ac_filter_size",
+              "label": "Ac Filter Size",
+              "value": "",
+              "placeholder": "example"
+            },
+            {
+              "key": "dryer_lint_date",
+              "label": "Dryer Lint Date",
+              "value": "",
+              "type": "date"
+            },
+            {
+              "key": "dryer_lint_notes",
+              "label": "Dryer Lint Notes",
+              "value": "",
+              "placeholder": "example"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "example_house_2",
+      "address": "2 Example Lane",
+      "sections": [
+        {
+          "label": "Door Codes",
+          "fields": [
+            {
+              "key": "front_door",
+              "label": "Front Door",
+              "value": ""
+            },
+            {
+              "key": "thermo",
+              "label": "Thermo",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "label": "WiFi",
+          "fields": [
+            {
+              "key": "wifi_primary",
+              "label": "Wifi Primary",
+              "value": ""
+            },
+            {
+              "key": "wifi_tmobile",
+              "label": "Wifi Tmobile",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "label": "Rooms",
+          "fields": [
+            {
+              "key": "r1",
+              "label": "R1",
+              "value": ""
+            },
+            {
+              "key": "r2",
+              "label": "R2",
+              "value": ""
+            },
+            {
+              "key": "r3",
+              "label": "R3",
+              "value": ""
+            },
+            {
+              "key": "r4",
+              "label": "R4",
+              "value": ""
+            },
+            {
+              "key": "r5",
+              "label": "R5",
+              "value": ""
+            },
+            {
+              "key": "r6",
+              "label": "R6",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "label": "Contact",
+          "fields": [
+            {
+              "key": "responsible_tenant",
+              "label": "Responsible Tenant",
+              "value": "",
+              "placeholder": "example"
+            },
+            {
+              "key": "ac_filter_date",
+              "label": "Ac Filter Date",
+              "value": "",
+              "type": "date"
+            },
+            {
+              "key": "ac_filter_size",
+              "label": "Ac Filter Size",
+              "value": "",
+              "placeholder": "example"
+            },
+            {
+              "key": "dryer_lint_date",
+              "label": "Dryer Lint Date",
+              "value": "",
+              "type": "date"
+            },
+            {
+              "key": "dryer_lint_notes",
+              "label": "Dryer Lint Notes",
+              "value": "",
+              "placeholder": "example"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "example_house_3",
+      "address": "3 Example Lane",
+      "sections": [
+        {
+          "label": "Door Codes",
+          "fields": [
+            {
+              "key": "front_door",
+              "label": "Front Door",
+              "value": ""
+            },
+            {
+              "key": "back_door",
+              "label": "Back Door",
+              "value": ""
+            },
+            {
+              "key": "front_master",
+              "label": "Front Master",
+              "value": ""
+            },
+            {
+              "key": "back_master",
+              "label": "Back Master",
+              "value": ""
+            },
+            {
+              "key": "room_master",
+              "label": "Room Master",
+              "value": ""
+            },
+            {
+              "key": "thermo",
+              "label": "Thermo",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "label": "WiFi",
+          "fields": [
+            {
+              "key": "wifi_primary",
+              "label": "Wifi Primary",
+              "value": ""
+            },
+            {
+              "key": "tenant_login",
+              "label": "Tenant Login",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "label": "Rooms",
+          "fields": [
+            {
+              "key": "r1",
+              "label": "R1",
+              "value": ""
+            },
+            {
+              "key": "r2",
+              "label": "R2",
+              "value": ""
+            },
+            {
+              "key": "r3",
+              "label": "R3",
+              "value": ""
+            },
+            {
+              "key": "r4",
+              "label": "R4",
+              "value": ""
+            },
+            {
+              "key": "r5",
+              "label": "R5",
+              "value": ""
+            },
+            {
+              "key": "r6",
+              "label": "R6",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "label": "Contact",
+          "fields": [
+            {
+              "key": "responsible_tenant",
+              "label": "Responsible Tenant",
+              "value": "",
+              "placeholder": "example"
+            },
+            {
+              "key": "ac_filter_date",
+              "label": "Ac Filter Date",
+              "value": "",
+              "type": "date"
+            },
+            {
+              "key": "ac_filter_size",
+              "label": "Ac Filter Size",
+              "value": "",
+              "placeholder": "example"
+            },
+            {
+              "key": "dryer_lint_date",
+              "label": "Dryer Lint Date",
+              "value": "",
+              "type": "date"
+            },
+            {
+              "key": "dryer_lint_notes",
+              "label": "Dryer Lint Notes",
+              "value": "",
+              "placeholder": "example"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "example_house_4",
+      "address": "4 Example Lane",
+      "sections": [
+        {
+          "label": "Door Codes",
+          "fields": [
+            {
+              "key": "front_back",
+              "label": "Front Back",
+              "value": ""
+            },
+            {
+              "key": "outside_master",
+              "label": "Outside Master",
+              "value": ""
+            },
+            {
+              "key": "room_master",
+              "label": "Room Master",
+              "value": ""
+            },
+            {
+              "key": "thermo",
+              "label": "Thermo",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "label": "WiFi",
+          "fields": [
+            {
+              "key": "wifi_primary",
+              "label": "Wifi Primary",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "label": "Rooms",
+          "fields": [
+            {
+              "key": "r1",
+              "label": "R1",
+              "value": ""
+            },
+            {
+              "key": "r2",
+              "label": "R2",
+              "value": ""
+            },
+            {
+              "key": "r3",
+              "label": "R3",
+              "value": ""
+            },
+            {
+              "key": "r4",
+              "label": "R4",
+              "value": ""
+            },
+            {
+              "key": "r5",
+              "label": "R5",
+              "value": ""
+            },
+            {
+              "key": "r6",
+              "label": "R6",
+              "value": ""
+            },
+            {
+              "key": "r7",
+              "label": "R7",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "label": "Contact",
+          "fields": [
+            {
+              "key": "responsible_tenant",
+              "label": "Responsible Tenant",
+              "value": "",
+              "placeholder": "example"
+            },
+            {
+              "key": "ac_filter_date",
+              "label": "Ac Filter Date",
+              "value": "",
+              "type": "date"
+            },
+            {
+              "key": "ac_filter_size",
+              "label": "Ac Filter Size",
+              "value": "",
+              "placeholder": "example"
+            },
+            {
+              "key": "dryer_lint_date",
+              "label": "Dryer Lint Date",
+              "value": "",
+              "type": "date"
+            },
+            {
+              "key": "dryer_lint_notes",
+              "label": "Dryer Lint Notes",
+              "value": "",
+              "placeholder": "example"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "example_house_5",
+      "address": "5 Example Lane",
+      "sections": [
+        {
+          "label": "Door Codes",
+          "fields": [
+            {
+              "key": "front_door",
+              "label": "Front Door",
+              "value": ""
+            },
+            {
+              "key": "thermo",
+              "label": "Thermo",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "label": "WiFi",
+          "fields": [
+            {
+              "key": "wifi_tmobile",
+              "label": "Wifi Tmobile",
+              "value": ""
+            },
+            {
+              "key": "wifi_alt",
+              "label": "Wifi Alt",
+              "value": ""
+            },
+            {
+              "key": "tmobile_line",
+              "label": "Tmobile Line",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "label": "Rooms",
+          "fields": [
+            {
+              "key": "r1",
+              "label": "R1",
+              "value": ""
+            },
+            {
+              "key": "r2",
+              "label": "R2",
+              "value": ""
+            },
+            {
+              "key": "r3",
+              "label": "R3",
+              "value": ""
+            },
+            {
+              "key": "r4",
+              "label": "R4",
+              "value": ""
+            },
+            {
+              "key": "r5",
+              "label": "R5",
+              "value": ""
+            },
+            {
+              "key": "r6",
+              "label": "R6",
+              "value": ""
+            },
+            {
+              "key": "r7",
+              "label": "R7",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "label": "Contact",
+          "fields": [
+            {
+              "key": "responsible_tenant",
+              "label": "Responsible Tenant",
+              "value": "",
+              "placeholder": "example"
+            },
+            {
+              "key": "ac_filter_date",
+              "label": "Ac Filter Date",
+              "value": "",
+              "type": "date"
+            },
+            {
+              "key": "ac_filter_size",
+              "label": "Ac Filter Size",
+              "value": "",
+              "placeholder": "example"
+            },
+            {
+              "key": "dryer_lint_date",
+              "label": "Dryer Lint Date",
+              "value": "",
+              "type": "date"
+            },
+            {
+              "key": "dryer_lint_notes",
+              "label": "Dryer Lint Notes",
+              "value": "",
+              "placeholder": "example"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "example_house_6",
+      "address": "6 Example Lane",
+      "sections": [
+        {
+          "label": "Door Codes",
+          "fields": [
+            {
+              "key": "front_door",
+              "label": "Front Door",
+              "value": ""
+            },
+            {
+              "key": "back_door",
+              "label": "Back Door",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "label": "WiFi",
+          "fields": [
+            {
+              "key": "wifi_primary",
+              "label": "Wifi Primary",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "label": "Rooms",
+          "fields": [
+            {
+              "key": "r1",
+              "label": "R1",
+              "value": ""
+            },
+            {
+              "key": "r2",
+              "label": "R2",
+              "value": ""
+            },
+            {
+              "key": "r3",
+              "label": "R3",
+              "value": ""
+            },
+            {
+              "key": "r4",
+              "label": "R4",
+              "value": ""
+            },
+            {
+              "key": "r5",
+              "label": "R5",
+              "value": ""
+            },
+            {
+              "key": "r6",
+              "label": "R6",
+              "value": ""
+            },
+            {
+              "key": "r7",
+              "label": "R7",
+              "value": ""
+            },
+            {
+              "key": "r8",
+              "label": "R8",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "label": "Lockboxes",
+          "fields": [
+            {
+              "key": "lockbox_1",
+              "label": "Lockbox 1",
+              "value": ""
+            },
+            {
+              "key": "lockbox_2",
+              "label": "Lockbox 2",
+              "value": ""
+            },
+            {
+              "key": "lockbox_3",
+              "label": "Lockbox 3",
+              "value": ""
+            },
+            {
+              "key": "lockbox_4",
+              "label": "Lockbox 4",
+              "value": ""
+            },
+            {
+              "key": "lockbox_5",
+              "label": "Lockbox 5",
+              "value": ""
+            },
+            {
+              "key": "lockbox_6",
+              "label": "Lockbox 6",
+              "value": ""
+            },
+            {
+              "key": "lockbox_7",
+              "label": "Lockbox 7",
+              "value": ""
+            },
+            {
+              "key": "lockbox_8",
+              "label": "Lockbox 8",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "label": "Contact",
+          "fields": [
+            {
+              "key": "responsible_tenant",
+              "label": "Responsible Tenant",
+              "value": "",
+              "placeholder": "example"
+            },
+            {
+              "key": "ac_filter_date",
+              "label": "Ac Filter Date",
+              "value": "",
+              "type": "date"
+            },
+            {
+              "key": "ac_filter_size",
+              "label": "Ac Filter Size",
+              "value": "",
+              "placeholder": "example"
+            },
+            {
+              "key": "dryer_lint_date",
+              "label": "Dryer Lint Date",
+              "value": "",
+              "type": "date"
+            },
+            {
+              "key": "dryer_lint_notes",
+              "label": "Dryer Lint Notes",
+              "value": "",
+              "placeholder": "example"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "example_house_7",
+      "address": "7 Example Lane",
+      "sections": [
+        {
+          "label": "Door Codes",
+          "fields": [
+            {
+              "key": "front_door",
+              "label": "Front Door",
+              "value": ""
+            },
+            {
+              "key": "back_door",
+              "label": "Back Door",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "label": "WiFi",
+          "fields": [
+            {
+              "key": "wifi_primary",
+              "label": "Wifi Primary",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "label": "Rooms",
+          "fields": [
+            {
+              "key": "r1",
+              "label": "R1",
+              "value": ""
+            },
+            {
+              "key": "r2",
+              "label": "R2",
+              "value": ""
+            },
+            {
+              "key": "r3",
+              "label": "R3",
+              "value": ""
+            },
+            {
+              "key": "r4",
+              "label": "R4",
+              "value": ""
+            },
+            {
+              "key": "r5",
+              "label": "R5",
+              "value": ""
+            },
+            {
+              "key": "r6",
+              "label": "R6",
+              "value": ""
+            },
+            {
+              "key": "r7",
+              "label": "R7",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "label": "Other",
+          "fields": [
+            {
+              "key": "keys_1",
+              "label": "Keys 1",
+              "value": ""
+            },
+            {
+              "key": "keys_2",
+              "label": "Keys 2",
+              "value": ""
+            },
+            {
+              "key": "keys_3",
+              "label": "Keys 3",
+              "value": ""
+            },
+            {
+              "key": "keys_4",
+              "label": "Keys 4",
+              "value": ""
+            },
+            {
+              "key": "keys_5",
+              "label": "Keys 5",
+              "value": ""
+            },
+            {
+              "key": "keys_6",
+              "label": "Keys 6",
+              "value": ""
+            },
+            {
+              "key": "keys_7",
+              "label": "Keys 7",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "label": "Contact",
+          "fields": [
+            {
+              "key": "responsible_tenant",
+              "label": "Responsible Tenant",
+              "value": "",
+              "placeholder": "example"
+            },
+            {
+              "key": "ac_filter_date",
+              "label": "Ac Filter Date",
+              "value": "",
+              "type": "date"
+            },
+            {
+              "key": "ac_filter_size",
+              "label": "Ac Filter Size",
+              "value": "",
+              "placeholder": "example"
+            },
+            {
+              "key": "dryer_lint_date",
+              "label": "Dryer Lint Date",
+              "value": "",
+              "type": "date"
+            },
+            {
+              "key": "dryer_lint_notes",
+              "label": "Dryer Lint Notes",
+              "value": "",
+              "placeholder": "example"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "example_house_8",
+      "address": "8 Example Lane",
+      "sections": [
+        {
+          "label": "Door Codes",
+          "fields": [
+            {
+              "key": "front_door",
+              "label": "Front Door",
+              "value": ""
+            },
+            {
+              "key": "thermo",
+              "label": "Thermo",
+              "value": ""
+            },
+            {
+              "key": "spectrum_code",
+              "label": "Spectrum Code",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "label": "WiFi",
+          "fields": [
+            {
+              "key": "wifi_primary",
+              "label": "Wifi Primary",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "label": "Rooms",
+          "fields": [
+            {
+              "key": "r1",
+              "label": "R1",
+              "value": ""
+            },
+            {
+              "key": "r2",
+              "label": "R2",
+              "value": ""
+            },
+            {
+              "key": "r3",
+              "label": "R3",
+              "value": ""
+            },
+            {
+              "key": "r4",
+              "label": "R4",
+              "value": ""
+            },
+            {
+              "key": "r5",
+              "label": "R5",
+              "value": ""
+            },
+            {
+              "key": "r6",
+              "label": "R6",
+              "value": ""
+            },
+            {
+              "key": "r7",
+              "label": "R7",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "label": "Lockboxes",
+          "fields": [
+            {
+              "key": "lockbox_1",
+              "label": "Lockbox 1",
+              "value": ""
+            },
+            {
+              "key": "lockbox_2",
+              "label": "Lockbox 2",
+              "value": ""
+            },
+            {
+              "key": "lockbox_3",
+              "label": "Lockbox 3",
+              "value": ""
+            },
+            {
+              "key": "lockbox_4",
+              "label": "Lockbox 4",
+              "value": ""
+            },
+            {
+              "key": "lockbox_5",
+              "label": "Lockbox 5",
+              "value": ""
+            },
+            {
+              "key": "lockbox_6",
+              "label": "Lockbox 6",
+              "value": ""
+            },
+            {
+              "key": "lockbox_7",
+              "label": "Lockbox 7",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "label": "Contact",
+          "fields": [
+            {
+              "key": "responsible_tenant",
+              "label": "Responsible Tenant",
+              "value": "",
+              "placeholder": "example"
+            },
+            {
+              "key": "ac_filter_date",
+              "label": "Ac Filter Date",
+              "value": "",
+              "type": "date"
+            },
+            {
+              "key": "ac_filter_size",
+              "label": "Ac Filter Size",
+              "value": "",
+              "placeholder": "example"
+            },
+            {
+              "key": "dryer_lint_date",
+              "label": "Dryer Lint Date",
+              "value": "",
+              "type": "date"
+            },
+            {
+              "key": "dryer_lint_notes",
+              "label": "Dryer Lint Notes",
+              "value": "",
+              "placeholder": "example"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "example_house_9",
+      "address": "9 Example Lane",
+      "sections": [
+        {
+          "label": "Door Codes",
+          "fields": [
+            {
+              "key": "front_door",
+              "label": "Front Door",
+              "value": ""
+            },
+            {
+              "key": "thermo",
+              "label": "Thermo",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "label": "WiFi",
+          "fields": [
+            {
+              "key": "wifi_primary",
+              "label": "Wifi Primary",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "label": "Rooms",
+          "fields": [
+            {
+              "key": "r1",
+              "label": "R1",
+              "value": ""
+            },
+            {
+              "key": "r2",
+              "label": "R2",
+              "value": ""
+            },
+            {
+              "key": "r3",
+              "label": "R3",
+              "value": ""
+            },
+            {
+              "key": "r4",
+              "label": "R4",
+              "value": ""
+            },
+            {
+              "key": "r5",
+              "label": "R5",
+              "value": ""
+            },
+            {
+              "key": "r6",
+              "label": "R6",
+              "value": ""
+            },
+            {
+              "key": "r7",
+              "label": "R7",
+              "value": ""
+            },
+            {
+              "key": "r8",
+              "label": "R8",
+              "value": ""
+            },
+            {
+              "key": "r9",
+              "label": "R9",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "label": "Contact",
+          "fields": [
+            {
+              "key": "responsible_tenant",
+              "label": "Responsible Tenant",
+              "value": "",
+              "placeholder": "example"
+            },
+            {
+              "key": "ac_filter_date",
+              "label": "Ac Filter Date",
+              "value": "",
+              "type": "date"
+            },
+            {
+              "key": "ac_filter_size",
+              "label": "Ac Filter Size",
+              "value": "",
+              "placeholder": "example"
+            },
+            {
+              "key": "dryer_lint_date",
+              "label": "Dryer Lint Date",
+              "value": "",
+              "type": "date"
+            },
+            {
+              "key": "dryer_lint_notes",
+              "label": "Dryer Lint Notes",
+              "value": "",
+              "placeholder": "example"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
