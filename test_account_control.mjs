@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+const scope={};vm.runInNewContext(readFileSync('docs/account-control.js','utf8'),scope);
+const status={textContent:''}, signIn={hidden:true}, signOut={hidden:true};
+scope.updateAccountControl({status,signIn,signOut},null,'owner');
+assert.equal(status.textContent,'Signed out');assert.equal(signIn.hidden,false);assert.equal(signOut.hidden,true);
+scope.updateAccountControl({status,signIn,signOut},{uid:'other'},'owner');
+assert.equal(status.textContent,'Signed in · access not granted');assert.equal(signOut.hidden,false);assert.equal(signIn.hidden,true);
+scope.updateAccountControl({status,signIn,signOut},{uid:'owner'},'owner');
+assert.equal(status.textContent,'Owner session');
+console.log('account control reflects sign-in and permission state');

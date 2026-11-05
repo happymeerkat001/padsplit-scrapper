@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 'node:vm';
+const ctx={};ctx.globalThis=ctx;vm.createContext(ctx);vm.runInContext(fs.readFileSync('docs/codes-schema.js','utf8'),ctx);vm.runInContext(fs.readFileSync('docs/codes-api.js','utf8'),ctx);
+const prop={slug:'fixture_house',address:'Example house',sections:[{label:'Main',fields:[{key:'front',label:'Front',value:''}]}]};
+const parsed=ctx.parseApiCodesSchema({properties:[prop],versions:{fixture_house:3}});assert.equal(parsed.properties[0].slug,'fixture_house');assert.equal(parsed.versions.fixture_house,3);
+assert.throws(()=>ctx.parseApiCodesSchema({properties:[prop],versions:{fixture_house:3,extra:1}}),/mismatch/i);
+assert.throws(()=>ctx.parseApiCodesSchema({properties:[prop],versions:{fixture_house:0}}),/invalid/i);
+assert.equal(ctx.parseApiCodesSchema({properties:[],versions:{}}).properties.length,0);
+const fields=ctx.mergeApiCodeDraft({front:'fictional-code',legacy_hidden:'keep'},[{key:'front',value:'new-code',dirty:true},{key:'missing',value:'',dirty:false}]);
+assert.equal(fields.front,'new-code');assert.equal(fields.legacy_hidden,'keep');assert.equal(Object.hasOwn(fields,'missing'),false);
+assert.throws(()=>ctx.mergeApiCodeDraft(null,[]),/reveal/i);
+assert.throws(()=>ctx.mergeApiCodeDraft({front:'••••'},[{key:'front',value:'',dirty:false}]),/mask/i);
+console.log('Codes API schema/version alignment and draft merge fail closed');

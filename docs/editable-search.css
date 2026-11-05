@@ -1,0 +1,11 @@
+.vendor-card[hidden], .template-card[hidden] { display: none !important; }
+.list-search { display: flex; align-items: end; gap: 1rem; flex-wrap: wrap; margin: 0 0 1rem; }
+.list-search label { display: grid; gap: .35rem; font-weight: 600; }
+.list-search input { width: min(22rem, 80vw); min-height: 42px; padding: .55rem .75rem; border: 1px solid #c8d1dd; border-radius: 6px; color: #17212f; background: white; }
+.list-search p { color: #526174; margin: .5rem 0; }
+#vendor-dialog { width: min(32rem, calc(100% - 2rem)); border: 1px solid #e1e6ed; border-radius: 8px; padding: 1.5rem; color: #17212f; }
+#vendor-dialog::backdrop { background: rgb(23 33 47 / 45%); }
+.vendor-form-fields { display: grid; gap: .85rem; }
+.vendor-form-fields label { display: grid; gap: .35rem; font-weight: 600; }
+.vendor-form-fields input { width: 100%; min-height: 42px; border: 1px solid #c8d1dd; border-radius: 6px; padding: .55rem .75rem; }
+.vendor-form-actions { display: flex; justify-content: flex-end; gap: .5rem; }

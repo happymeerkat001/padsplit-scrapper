@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';import vm from 'node:vm';
+const ctx={URL,URLSearchParams,AbortController};ctx.globalThis=ctx;vm.createContext(ctx);
+vm.runInContext(fs.readFileSync('docs/templates-api.js','utf8'),ctx);
+const pages=[];const api={templates:async({offset,limit})=>{pages.push(offset);return {items:[{id:'template_shared_0',name:'',body:'Test',version:1},{id:'template_shared_8',name:'Last',body:'End',version:3}]}}};
+const slots=await ctx.loadTemplateSlots(api);assert.equal(slots.length,9);assert.equal(slots[0].name,'');assert.equal(slots[8].version,3);assert.equal(slots[1],null);assert.deepEqual(pages,[0]);
+await assert.rejects(ctx.loadTemplateSlots({templates:async()=>({items:[{id:'random-record',name:'x',body:'y',version:1}]})}),/unmapped/i);
+await assert.rejects(ctx.loadTemplateSlots({templates:async()=>({items:[{id:'template_shared_1',name:'x',body:'y',version:1},{id:'template_shared_1',name:'x',body:'y',version:1}]})}),/duplicate/i);
+await assert.rejects(ctx.loadTemplateSlots({templates:async()=>({items:[{id:'template_shared_1',name:'x',body:'y',version:0}]})}),/invalid/i);
+console.log('Template API mode preserves canonical slots and rejects ambiguous or invalid records');

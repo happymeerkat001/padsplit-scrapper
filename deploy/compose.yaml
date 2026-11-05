@@ -1,0 +1,84 @@
+# Preparation template: inspect the actual VPS, replace required inputs, and
+# run a staging deployment before use. This file does not enable workers.
+services:
+  database:
+    image: ${PADSPLIT_POSTGRES_IMAGE:?Supply an approved pinned PostgreSQL image}
+    mem_limit: ${PADSPLIT_DB_MEMORY_LIMIT:?Set a reviewed database memory limit}
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${PADSPLIT_DB_NAME:?Set a database name}
+      POSTGRES_USER: ${PADSPLIT_DB_ADMIN_USER:?Set the bootstrap administrator user}
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_admin_password
+    secrets:
+      - postgres_admin_password
+    volumes:
+      - database_data:/var/lib/postgresql/data
+    networks:
+      - database_private
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+    logging:
+      driver: local
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  api:
+    image: ${PADSPLIT_API_IMAGE:?Supply a reviewed API image}
+    mem_limit: ${PADSPLIT_API_MEMORY_LIMIT:?Set a reviewed API memory limit}
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=64m
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 128
+    env_file:
+      - ${PADSPLIT_API_ENV_FILE:?Set an external private API env file}
+    environment:
+      API_CONTAINER_PORT: ${PADSPLIT_API_CONTAINER_PORT:?Choose an unoccupied container port}
+      GOOGLE_APPLICATION_CREDENTIALS: /run/secrets/firebase_admin_credentials
+    secrets:
+      - firebase_admin_credentials
+    command: ["sh", "-c", "exec uvicorn backend.api.app:app --host 0.0.0.0 --port $$API_CONTAINER_PORT --no-access-log --workers 1"]
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      database_private: {}
+      outbound: {}
+      proxy_private:
+        aliases:
+          - padsplit-operations-api
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import os,urllib.request; urllib.request.urlopen(\"http://127.0.0.1:\"+os.environ[\"API_CONTAINER_PORT\"]+\"/health/ready\", timeout=3)' "]
+      interval: 15s
+      timeout: 5s
+      retries: 4
+    logging:
+      driver: local
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  database_private:
+    internal: true
+  outbound: {}
+  # Join a dedicated, reviewed Docker network also attached to the existing
+  # Caddy container. Do not attach the database to this network.
+  proxy_private:
+    external: true
+    name: ${PADSPLIT_CADDY_NETWORK_NAME:?Set the dedicated reviewed Caddy network}
+volumes:
+  database_data: {}
+secrets:
+  postgres_admin_password:
+    file: ${PADSPLIT_POSTGRES_ADMIN_PASSWORD_FILE:?Set an external private password file}
+  firebase_admin_credentials:
+    file: ${PADSPLIT_FIREBASE_ADMIN_CREDENTIALS_FILE:?Set an external private Firebase credential file}

@@ -1,0 +1,21 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const {parseHTML}=require(require('node:path').join(process.env.PADSPLIT_UI_TEST_MODULES,'linkedom'));
+const page=fs.readFileSync('deploy/frontend-api/integrations.html','utf8');
+for(const name of ['runtime-config.js','api-client.js','integrations-api.js','PADSPLIT_RUNTIME_CONFIG','padsplit-data-mode'])assert.ok(page.includes(name));
+assert.doesNotMatch(page,/firebase-firestore|getFirestore\s*\(/);
+const {window}=parseHTML('<p id="integration-status"></p><tbody id="integration-rows"></tbody><button id="integration-refresh"></button>');
+const document=window.document;
+const context={window,document,console,Date,Object};vm.createContext(context);
+vm.runInContext(fs.readFileSync('docs/integration-status.js','utf8')+';window.integrationSourceStatus=integrationSourceStatus;',context);
+vm.runInContext(fs.readFileSync('docs/integrations-api.js','utf8'),context);
+(async()=>{
+ let uid='owner',calls=0,forbidden=false,missing=false,lost=0;
+ const api={me:async()=>({uid,role:'owner'}),report:async()=>{calls++;if(forbidden||missing){let e=Error();e.status=forbidden?403:404;throw e}return {id:'latest',json:JSON.stringify({run_status:{sources:{messages:{state:'ok',scraped_at:'2026-01-01T00:00:00Z'}}}})};}};
+ const ws=window.createIntegrationsWorkspace({api,document,getUid:()=>uid,isCurrent:()=>true,onAccessLost:()=>lost++});
+ await ws.start();assert.equal(calls,1);assert.match(document.getElementById('integration-rows').textContent,/Successful/);assert.match(document.getElementById('integration-rows').textContent,/Not reported/);
+ missing=true;await ws.refresh();assert.match(document.getElementById('integration-status').textContent,/no collection observations/i);assert.doesNotMatch(document.getElementById('integration-rows').textContent,/Successful/);
+ forbidden=true;await ws.refresh();assert.equal(lost,1);ws.stop();assert.equal(document.getElementById('integration-rows').textContent,'');
+ let requested=false;const denied=window.createIntegrationsWorkspace({api:{me:async()=>({uid:'owner',role:'viewer'}),report:async()=>{requested=true}},document,getUid:()=>uid,isCurrent:()=>true,onAccessLost:()=>{}});
+ await assert.rejects(denied.start());assert.equal(requested,false);
+ console.log('Integrations API: owner gate, observations, revoked access and cleanup passed');
+})().catch(e=>{console.error(e);process.exit(1)});

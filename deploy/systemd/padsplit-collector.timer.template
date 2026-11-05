@@ -1,0 +1,11 @@
+# Template only. Do not enable until the schedule and Linux compatibility are reviewed.
+[Unit]
+Description=PadSplit collection-only worker schedule
+
+[Timer]
+OnCalendar=@REVIEWED_SCHEDULE@
+Persistent=false
+Unit=padsplit-collector.service
+
+[Install]
+WantedBy=timers.target

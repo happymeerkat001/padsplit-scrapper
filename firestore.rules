@@ -1,0 +1,108 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function teamOwner() {
+      return request.auth != null
+        && request.auth.token.get('padsplit_legacy_owner', false) == true;
+    }
+    function statsReader() {
+      return request.auth != null
+        && request.auth.token.get('padsplit_legacy_stats', false) == true;
+    }
+    function assignedTo(propertyId) {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/team_members/$(request.auth.uid))
+        && get(/databases/$(database)/documents/team_members/$(request.auth.uid)).data.active == true
+        && get(/databases/$(database)/documents/team_members/$(request.auth.uid)).data.role in ['manager', 'operator', 'viewer']
+        && propertyId in get(/databases/$(database)/documents/team_members/$(request.auth.uid)).data.properties;
+    }
+    // Team membership, invitations and audit events are created only by the trusted service.
+    match /team_members/{uid} {
+      allow get: if teamOwner() || (request.auth != null && request.auth.uid == uid);
+      allow list: if teamOwner();
+      allow write: if false;
+    }
+    match /team_invitations/{uid} {
+      allow get: if teamOwner() || (request.auth != null && request.auth.uid == uid);
+      allow list: if teamOwner();
+      allow write: if false;
+    }
+    match /team_admin_audit/{id} {
+      allow read: if teamOwner();
+      allow write: if false;
+    }
+    // New scoped task data uses a separate boundary. Legacy all-property data remains owner-only.
+    match /property_workspace/{propertyId}/tasks/{taskId} {
+      allow read: if teamOwner() || assignedTo(propertyId);
+      allow write: if false;
+    }
+    match /property_codes/{slug} {
+      allow read, write: if teamOwner();
+      match /code_versions/{id} {
+        allow get: if teamOwner();
+        allow list: if teamOwner()
+          && request.query.limit != null
+          && request.query.limit <= 50;
+        allow create: if teamOwner()
+          && request.resource.data.keys().hasOnly(['fields', 'contentHash', 'createdAt', 'expireAt', 'source'])
+          && request.resource.data.keys().hasAll(['fields', 'contentHash', 'createdAt', 'expireAt', 'source'])
+          && request.resource.data.fields is map
+          && request.resource.data.contentHash is string
+          && request.resource.data.createdAt is timestamp
+          && request.resource.data.expireAt is timestamp
+          && request.resource.data.source is string;
+        allow update, delete: if false;
+      }
+    }
+    match /notes/{document} {
+      allow read: if teamOwner();
+      allow write: if teamOwner();
+    }
+    match /task_messages/{id} {
+      allow read: if teamOwner();
+      allow write: if teamOwner();
+    }
+    match /manual_tasks/{id} {
+      allow read: if teamOwner();
+      allow write: if teamOwner();
+    }
+    match /vendors/{id} {
+      allow read: if teamOwner();
+      allow write: if teamOwner();
+    }
+    match /templates/{document} {
+      allow read: if teamOwner();
+      allow write: if teamOwner();
+    }
+    match /stats/{document} {
+      allow read, write: if statsReader();
+    }
+    // Private snapshot pointer and versioned chunks: owner reads only.
+    // All writes must use the Admin SDK; clients cannot list generations.
+    match /private_dashboard/{id} {
+      allow get: if id == 'current' && teamOwner();
+      allow list, write: if false;
+    }
+    // Property names and field layout are private, provisioned only via Admin SDK.
+    match /private_configuration/{id} {
+      allow get: if id == 'codes_schema' && teamOwner();
+      allow list, write: if false;
+    }
+    match /private_dashboard_runs/{runId}/chunks/{chunkId} {
+      allow get: if teamOwner();
+      allow list, write: if false;
+    }
+    match /leak_alert_calls/{incident}/roles/{role} {
+      allow read, write: if false;
+    }
+    match /leak_alert_pending/{callId} {
+      allow read, write: if false;
+    }
+    match /leak_alert_result_queue/{callId} {
+      allow read, write: if false;
+    }
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

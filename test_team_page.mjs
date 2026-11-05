@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 'node:vm';
+const c={};c.globalThis=c;vm.createContext(c);vm.runInContext(fs.readFileSync('docs/team-page.js','utf8'),c);
+const row={uid:'fictional-user',role:'operator',active:true,properties:['property-a'],version:2};
+assert.equal(c.validateTeamRow(row).uid,'fictional-user');
+assert.throws(()=>c.validateTeamRow({...row,version:0}),/invalid/i);
+assert.throws(()=>c.validateTeamRow({...row,properties:['property-a','property-a']}),/invalid/i);
+assert.throws(()=>c.validateTeamCommand({...row,expected_version:2,properties:[]}),/propert/i);
+assert.throws(()=>c.validateTeamCommand({...row,active:false,expected_version:2}),/propert/i);
+assert.equal(c.validateTeamCommand({role:'owner',active:true,properties:[],expected_version:0}).expected_version,0);
+let calls=[];const rows=await c.loadTeamRoster({teamMembers:async({offset})=>{calls.push(offset);return {items:offset?[]:Array.from({length:100},(_,i)=>({...row,uid:'fictional-'+i}))}}});assert.equal(rows.length,100);assert.equal(calls.length,2);
+await assert.rejects(c.loadTeamRoster({teamMembers:async()=>({items:[row,row]})}),/duplicate/i);
+console.log('Team UI validates scoped access and paginated member data');

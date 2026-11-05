@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import vm from 'node:vm';
+const c={};vm.createContext(c);vm.runInContext(readFileSync('docs/api-climate.js','utf8'),c);
+const row={device_key:'device1',property_id:'p1',property_name:'Example',observed_at:'2026-01-01T00:00:00Z',data:{location_name:'<img src=x>',name:'device',temp:0,heat_setpoint:null,cool_setpoint:72,humidity:null,outdoor_temp:null,mode:'cool',equipment_status:null}};
+const api=items=>({climate:async()=>({items,ingestion:'staging_only'})});
+assert.equal(await c.loadApiClimate(api([])),null);
+const result=await c.loadApiClimate(api([row]));assert.equal(result.locations[0].property_id,'p1');assert.equal(result.locations[0].devices[0].temp,0);
+assert.doesNotMatch(c.renderClimateRows(result),/<img src=x>/);assert.match(c.renderClimateRows(result),/&lt;img/);
+await assert.rejects(c.loadApiClimate(api([row,row])),/duplicate/i);
+await assert.rejects(c.loadApiClimate(api([row,{...row,device_key:'other',observed_at:'2026-01-02T00:00:00Z'}])),/mixed/i);
+console.log('Climate adapter preserves zero, reviewed scope, and safely renders source text');

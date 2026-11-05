@@ -1,0 +1,32 @@
+CREATE TABLE app_users(firebase_uid TEXT PRIMARY KEY, email TEXT, active BOOLEAN NOT NULL DEFAULT true, created_at TIMESTAMPTZ NOT NULL DEFAULT now());
+CREATE TABLE user_roles(firebase_uid TEXT PRIMARY KEY REFERENCES app_users(firebase_uid), role TEXT NOT NULL CHECK (role IN ('owner','manager','operator','viewer')));
+CREATE TABLE properties(id TEXT PRIMARY KEY, name TEXT NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT now());
+CREATE TABLE property_access(firebase_uid TEXT NOT NULL REFERENCES app_users(firebase_uid), property_id TEXT NOT NULL REFERENCES properties(id), PRIMARY KEY(firebase_uid,property_id));
+CREATE TABLE rooms(id TEXT PRIMARY KEY, property_id TEXT NOT NULL REFERENCES properties(id), label TEXT NOT NULL, source_path TEXT UNIQUE, UNIQUE(property_id,label));
+CREATE TABLE occupancy_observations(id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, room_id TEXT NOT NULL REFERENCES rooms(id), observed_at TIMESTAMPTZ NOT NULL, occupant_present BOOLEAN, rent_ready BOOLEAN, source_path TEXT, UNIQUE(room_id,observed_at));
+CREATE INDEX occupancy_room_observed ON occupancy_observations(room_id, observed_at DESC);
+CREATE TABLE tasks(id TEXT PRIMARY KEY, property_id TEXT REFERENCES properties(id), title TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'open', priority TEXT, assignee_uid TEXT REFERENCES app_users(firebase_uid), version BIGINT NOT NULL DEFAULT 1 CHECK(version>0), created_at TIMESTAMPTZ NOT NULL DEFAULT now(), updated_at TIMESTAMPTZ NOT NULL DEFAULT now(), source_path TEXT UNIQUE);
+CREATE INDEX tasks_property_status ON tasks(property_id,status,updated_at DESC);
+CREATE TABLE task_discussions(id TEXT PRIMARY KEY, task_id TEXT NOT NULL REFERENCES tasks(id), author_uid TEXT REFERENCES app_users(firebase_uid), body TEXT NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), source_path TEXT UNIQUE);
+CREATE INDEX task_discussions_order ON task_discussions(task_id,created_at,id);
+CREATE TABLE conversations(id TEXT PRIMARY KEY, property_id TEXT REFERENCES properties(id), room_id TEXT REFERENCES rooms(id), source_path TEXT UNIQUE, updated_at TIMESTAMPTZ NOT NULL DEFAULT now());
+CREATE TABLE messages(id TEXT PRIMARY KEY, conversation_id TEXT NOT NULL REFERENCES conversations(id), body TEXT NOT NULL, sent_at TIMESTAMPTZ, source_path TEXT UNIQUE);
+CREATE INDEX messages_conversation_time ON messages(conversation_id,sent_at,id);
+CREATE TABLE vendors(id TEXT PRIMARY KEY, name TEXT NOT NULL, data JSONB NOT NULL DEFAULT '{}', version BIGINT NOT NULL DEFAULT 1, source_path TEXT UNIQUE);
+CREATE TABLE templates(id TEXT PRIMARY KEY, name TEXT NOT NULL, body TEXT NOT NULL, version BIGINT NOT NULL DEFAULT 1, source_path TEXT UNIQUE);
+CREATE TABLE access_codes(property_id TEXT PRIMARY KEY REFERENCES properties(id), ciphertext BYTEA NOT NULL, nonce BYTEA NOT NULL CHECK(octet_length(nonce)=12), key_version TEXT NOT NULL, version BIGINT NOT NULL DEFAULT 1, updated_at TIMESTAMPTZ NOT NULL DEFAULT now());
+CREATE TABLE code_history(id TEXT PRIMARY KEY, property_id TEXT NOT NULL REFERENCES properties(id), ciphertext BYTEA NOT NULL, nonce BYTEA NOT NULL CHECK(octet_length(nonce)=12), key_version TEXT NOT NULL, created_at TIMESTAMPTZ NOT NULL, source_path TEXT UNIQUE);
+CREATE INDEX code_history_property_time ON code_history(property_id,created_at DESC,id);
+CREATE FUNCTION reject_history_mutation() RETURNS TRIGGER LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'code history is immutable'; END $$;
+CREATE TRIGGER code_history_immutable BEFORE UPDATE OR DELETE ON code_history FOR EACH ROW EXECUTE FUNCTION reject_history_mutation();
+CREATE TABLE statistics(id TEXT PRIMARY KEY, data JSONB NOT NULL, observed_at TIMESTAMPTZ, source_path TEXT UNIQUE);
+CREATE TABLE historical_kpis(id TEXT PRIMARY KEY, property_id TEXT REFERENCES properties(id), period DATE NOT NULL, value NUMERIC(20,4), data JSONB NOT NULL DEFAULT '{}', source_path TEXT UNIQUE);
+CREATE TABLE integration_state(id TEXT PRIMARY KEY, state TEXT NOT NULL, observed_at TIMESTAMPTZ, data JSONB NOT NULL DEFAULT '{}');
+CREATE TABLE job_runs(id TEXT PRIMARY KEY, job TEXT NOT NULL, state TEXT NOT NULL, started_at TIMESTAMPTZ NOT NULL DEFAULT now(), finished_at TIMESTAMPTZ);
+CREATE TABLE outbox_records(id TEXT PRIMARY KEY, kind TEXT NOT NULL, state TEXT NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), claimed_at TIMESTAMPTZ, idempotency_key TEXT UNIQUE);
+CREATE TABLE audit_events(id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, actor_uid TEXT REFERENCES app_users(firebase_uid), action TEXT NOT NULL, target_type TEXT NOT NULL, target_id TEXT NOT NULL, occurred_at TIMESTAMPTZ NOT NULL DEFAULT now(), redacted_metadata JSONB NOT NULL DEFAULT '{}');
+CREATE TABLE idempotency_keys(actor_uid TEXT NOT NULL REFERENCES app_users(firebase_uid), key TEXT NOT NULL, request_hash TEXT NOT NULL, response_json JSONB NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), PRIMARY KEY(actor_uid,key));
+-- This encrypted staging table is deliberately separate from the typed application tables.
+-- Imports do not claim that every Firestore document has been mapped to its final entity.
+CREATE TABLE source_documents(source_path TEXT PRIMARY KEY, collection_path TEXT NOT NULL, document_id TEXT NOT NULL, source_update_time TIMESTAMPTZ, payload_ciphertext BYTEA NOT NULL, payload_nonce BYTEA NOT NULL CHECK(octet_length(payload_nonce)=12), key_version TEXT NOT NULL, fingerprint BYTEA NOT NULL, imported_at TIMESTAMPTZ NOT NULL DEFAULT now(), UNIQUE(collection_path,document_id));
+CREATE INDEX source_documents_collection ON source_documents(collection_path,document_id);

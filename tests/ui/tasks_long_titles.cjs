@@ -1,0 +1,14 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+const {parseHTML}=require(path.join(process.env.PADSPLIT_UI_TEST_MODULES,'linkedom'));
+const {window}=parseHTML(fs.readFileSync('docs/tasks.html','utf8')),document=window.document;
+let currentStatus='open';Object.defineProperty(document.getElementById('task-state'),'value',{get:()=>currentStatus,set:value=>{currentStatus=value}});
+const original='A'.repeat(201)+'\nOriginal detail', updates=[];
+const api={me:async()=>({uid:'owner',role:'owner'}),properties:async()=>({items:[]}),tasks:async()=>({items:[{id:'legacy-1',property_id:null,title:original,status:'open',version:1}]}),discussion:async()=>({items:[]}),updateTask:async(id,body)=>{updates.push({id,body});return {id,version:body.expected_version+1}}};
+const ctx={window,document,console,crypto:{randomUUID:()=> 'fixture'},setTimeout,clearTimeout};vm.createContext(ctx);vm.runInContext(fs.readFileSync('docs/tasks-api.js','utf8'),ctx);
+const tick=()=>new Promise(r=>setImmediate(r));
+(async()=>{const work=window.createTasksWorkspace({api,document,getUid:()=> 'owner',isCurrent:()=>true,onAccessLost:()=>{throw Error('unexpected denial')}});await work.start();
+assert.match(document.getElementById('tasks-list').textContent,/AAA/);
+document.querySelector('[data-open-task]').click();await tick();const title=document.getElementById('task-title');assert.equal(title.value,original);assert.equal(title.localName,'textarea');assert.match(document.getElementById('task-title-limit').textContent,/200/);
+currentStatus='done';document.getElementById('task-edit-form').dispatchEvent(new window.Event('submit',{cancelable:true}));await tick();assert.equal(updates.length,1);assert.deepEqual(Object.keys(updates[0].body).sort(),['expected_version','status']);assert.equal(title.value,original);
+title.value='C'.repeat(201);title.dispatchEvent(new window.Event('input'));document.getElementById('task-edit-form').dispatchEvent(new window.Event('submit',{cancelable:true}));await tick();assert.equal(updates.length,1);assert.equal(title.value,'C'.repeat(201));assert.match(document.getElementById('tasks-status').textContent,/200/);
+title.value='B'.repeat(200);title.dispatchEvent(new window.Event('input'));document.getElementById('task-edit-form').dispatchEvent(new window.Event('submit',{cancelable:true}));await tick();assert.equal(updates.length,2);assert.equal(updates[1].body.title,'B'.repeat(200));work.stop();console.log('Status-only changes preserve imported titles and title changes require explicit shortening.');})().catch(e=>{console.error(e);process.exit(1)});

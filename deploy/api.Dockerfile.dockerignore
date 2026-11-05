@@ -1,0 +1,9 @@
+**
+!backend/
+!backend/api/
+!backend/api/*.py
+backend/api/test_*.py
+!backend/api/requirements.lock
+!backend/storage/
+!backend/storage/__init__.py
+!backend/storage/secrets.py

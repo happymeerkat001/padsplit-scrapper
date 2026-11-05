@@ -1,0 +1,1227 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manager KPI Dashboard</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --text: #e2e8f0;
+      --warn: #fbbf24;
+      --error: #f87171;
+      --success: #22c55e;
+      --line: rgba(148, 163, 184, 0.2);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at 20% 20%, rgba(56,189,248,0.08), transparent 35%),
+                  radial-gradient(circle at 80% 0%, rgba(34,197,94,0.08), transparent 30%),
+                  var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem clamp(1rem, 4vw, 2.5rem);
+    }
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.1rem;
+    }
+    h1 { margin: 0; font-size: 1.55rem; letter-spacing: 0.01em; }
+    h2 { margin: 0 0 0.8rem; font-size: 1.1rem; }
+    .header-meta {
+      margin-left: auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .header-link {
+      color: var(--muted);
+      text-decoration: underline;
+      font-size: 0.95rem;
+    }
+    .header-link:hover { color: var(--accent); }
+    .muted { color: var(--muted); }
+    .error { color: var(--error); }
+
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 1rem;
+      box-shadow: 0 14px 40px rgba(15,23,42,0.4);
+    }
+    .stack { display: grid; gap: 0.9rem; }
+    .score-grid {
+      display: grid;
+      grid-template-columns: minmax(220px, 280px) 1fr;
+      gap: 0.9rem;
+    }
+    .score-pill {
+      border: 1px solid rgba(148,163,184,0.25);
+      border-radius: 12px;
+      padding: 0.8rem;
+      display: grid;
+      gap: 0.25rem;
+      align-content: center;
+      justify-items: center;
+      text-align: center;
+      background: rgba(15, 23, 42, 0.35);
+    }
+    .score-pill .label {
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    .score-pill .value {
+      font-size: 2.3rem;
+      line-height: 1;
+      font-weight: 800;
+    }
+    .score-pill .value.compact {
+      font-size: 1.7rem;
+      line-height: 1.2;
+    }
+    .score-pill .sub {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .score-pill .formula {
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.35;
+      max-width: 22rem;
+    }
+    .manual-entry {
+      margin-top: 1rem;
+      border-top: 1px solid rgba(148,163,184,0.15);
+      padding-top: 1rem;
+      display: grid;
+      gap: 0.9rem;
+    }
+    .manual-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.6rem;
+    }
+    .manual-header h3 {
+      margin: 0;
+      font-size: 0.95rem;
+    }
+    .manual-status {
+      font-size: 0.8rem;
+      color: var(--muted);
+      padding: 0.25rem 0.55rem;
+      border: 1px solid rgba(148,163,184,0.18);
+      border-radius: 999px;
+      background: rgba(15,23,42,0.3);
+    }
+    .manual-status.active {
+      color: var(--warn);
+      border-color: rgba(251,191,36,0.35);
+      background: rgba(251,191,36,0.08);
+    }
+    .manual-form {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 0.75rem;
+    }
+    .manual-field {
+      display: grid;
+      gap: 0.3rem;
+    }
+    .manual-field label {
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+    .manual-field input {
+      width: 100%;
+      padding: 0.55rem 0.65rem;
+      border-radius: 8px;
+      border: 1px solid rgba(148,163,184,0.18);
+      background: rgba(15,23,42,0.45);
+      color: var(--text);
+      font: inherit;
+    }
+    .manual-checklist {
+      display: grid;
+      gap: 0.45rem;
+      grid-column: 1 / -1;
+      padding: 0.8rem;
+      border: 1px solid rgba(148,163,184,0.16);
+      border-radius: 10px;
+      background: rgba(15,23,42,0.28);
+    }
+    .manual-checklist-title {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    .manual-checklist-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 0.55rem 0.8rem;
+    }
+    .manual-check {
+      display: grid;
+      gap: 0.35rem;
+      font-size: 0.88rem;
+    }
+    .manual-check input {
+      width: 100%;
+      margin: 0;
+      accent-color: var(--accent);
+    }
+    .manual-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      align-items: center;
+    }
+    .manual-btn {
+      border-radius: 8px;
+      border: 1px solid rgba(148,163,184,0.2);
+      background: rgba(15,23,42,0.45);
+      color: var(--text);
+      font: inherit;
+      font-size: 0.88rem;
+      padding: 0.55rem 0.8rem;
+      cursor: pointer;
+    }
+    .manual-btn:hover {
+      border-color: rgba(56,189,248,0.4);
+      color: var(--accent);
+    }
+    .manual-btn.secondary:hover {
+      border-color: rgba(34,197,94,0.45);
+      color: var(--success);
+    }
+    .manual-help {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    .score-green { color: var(--success); }
+    .score-yellow { color: var(--warn); }
+    .score-red { color: var(--error); }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.8rem;
+    }
+    .mini-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 0.35rem;
+      font-size: 0.9rem;
+    }
+    .mini-list li {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      border-bottom: 1px solid rgba(148,163,184,0.12);
+      padding-bottom: 0.3rem;
+    }
+    .mini-list li:last-child { border-bottom: none; }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 0.75rem;
+    }
+    .stat {
+      border: 1px solid rgba(148,163,184,0.16);
+      border-radius: 10px;
+      padding: 0.75rem;
+      background: rgba(15,23,42,0.3);
+    }
+    .stat-label {
+      color: var(--muted);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.2rem;
+    }
+    .stat-value { font-size: 1.2rem; font-weight: 700; }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: rgba(15,23,42,0.25);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 760px;
+    }
+    th, td {
+      padding: 0.55rem 0.65rem;
+      border-bottom: 1px solid rgba(148,163,184,0.12);
+      font-size: 0.9rem;
+      text-align: right;
+      white-space: nowrap;
+    }
+    th {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      background: rgba(15,23,42,0.55);
+    }
+    th:first-child, td:first-child {
+      text-align: left;
+      white-space: normal;
+      min-width: 220px;
+    }
+    tr:last-child td { border-bottom: none; }
+    .warn-row { background: rgba(248,113,113,0.12); }
+
+    .histogram {
+      display: grid;
+      gap: 0.5rem;
+    }
+    .hist-row {
+      display: grid;
+      grid-template-columns: 80px 1fr 44px;
+      gap: 0.6rem;
+      align-items: center;
+      font-size: 0.9rem;
+    }
+    .hist-track {
+      height: 0.72rem;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.25);
+      background: rgba(148,163,184,0.12);
+      overflow: hidden;
+    }
+    .hist-fill {
+      height: 100%;
+      background: linear-gradient(90deg, rgba(56,189,248,0.8), rgba(34,197,94,0.8));
+    }
+
+    .section-grid {
+      display: grid;
+      gap: 0.9rem;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    }
+    .empty { color: var(--muted); font-size: 0.92rem; }
+    .stale-banner {
+      border: 1px solid rgba(251,191,36,0.4);
+      background: rgba(251,191,36,0.1);
+      color: var(--warn);
+      border-radius: 12px;
+      padding: 0.85rem 1rem;
+    }
+    .stale-banner strong { color: var(--warn); }
+    .stale-banner a { color: var(--accent); }
+    .stale-label {
+      display: inline-block;
+      margin-left: 0.45rem;
+      padding: 0.12rem 0.45rem;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      background: rgba(251,191,36,0.16);
+      color: var(--warn);
+    }
+    .fresh-label {
+      display: inline-block;
+      margin-left: 0.45rem;
+      padding: 0.12rem 0.45rem;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      background: rgba(34,197,94,0.14);
+      color: var(--success);
+    }
+    body.stats-stale .listed-status-card {
+      outline: 1px solid rgba(251,191,36,0.35);
+    }
+
+    @media (max-width: 900px) {
+      .score-grid { grid-template-columns: 1fr; }
+      .two-col { grid-template-columns: 1fr; }
+      .section-grid { grid-template-columns: 1fr; }
+    }
+    .notes-section { margin-top: 2rem; }
+    .notes-section h2 { margin: 0 0 0.75rem; font-size: 1.2rem; }
+    .notes-card { background: linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0)); border: 1px solid rgba(148,163,184,.15); border-radius: 12px; padding: 1rem; }
+    .notes-textarea { width: 100%; min-height: 120px; background: rgba(255,255,255,.04); border: 1px solid rgba(148,163,184,.2); border-radius: 8px; color: var(--text); font-family: inherit; font-size: .9rem; line-height: 1.5; padding: .65rem .75rem; resize: vertical; outline: none; transition: border-color .15s; box-sizing: border-box; }
+    .notes-textarea:focus { border-color: var(--accent); }
+    .notes-footer { display: flex; align-items: center; justify-content: flex-end; gap: .5rem; margin-top: .5rem; }
+    .notes-save-btn { background: none; border: 1px solid rgba(148,163,184,.25); border-radius: 6px; color: var(--muted); cursor: pointer; font-size: .8rem; padding: .3rem .65rem; transition: color .15s, border-color .15s; }
+    .notes-save-btn:hover { color: var(--success); border-color: var(--success); }
+    .notes-copy-btn { background: none; border: 1px solid rgba(148,163,184,.25); border-radius: 6px; color: var(--muted); cursor: pointer; padding: .3rem .5rem; display: flex; align-items: center; transition: color .15s, border-color .15s; }
+    .notes-copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+    .notes-copy-btn.copied { color: var(--success); border-color: var(--success); }
+    .notes-copy-btn svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    #gate-wrap {
+      max-width: 430px;
+      margin: 12vh auto 0;
+    }
+    .gate-title { margin-top: 0; margin-bottom: 0.35rem; }
+    .gate-form {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 0.8rem;
+    }
+    .gate-form input {
+      flex: 1;
+      min-width: 180px;
+      background: #0b1222;
+      border: 1px solid rgba(148,163,184,0.35);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 0.45rem 0.6rem;
+    }
+    .gate-form button {
+      border: none;
+      border-radius: 8px;
+      background: var(--accent);
+      color: #0b1222;
+      font-weight: 700;
+      padding: 0.45rem 0.9rem;
+      cursor: pointer;
+    }
+    .hidden { display: none; }
+    .shake {
+      animation: shake 240ms linear 2;
+    }
+    @keyframes shake {
+      0% { transform: translateX(0); }
+      25% { transform: translateX(-4px); }
+      50% { transform: translateX(4px); }
+      75% { transform: translateX(-4px); }
+      100% { transform: translateX(0); }
+    }
+  </style>
+  <link rel="stylesheet" href="./operations.css">
+  <link rel="stylesheet" href="./password-reset.css">
+  <script defer src="./navigation.js"></script>
+  <script src="./display-format.js"></script>
+  <script src="./runtime-config.js"></script>
+</head>
+<body>
+  <div id="gate-wrap" class="card hidden">
+    <h2 class="gate-title">Stats Access</h2>
+    <div class="muted">Stats-only login. The Codes password will not unlock this tab.</div>
+    <form id="gate-form" class="gate-form">
+      <label for="gate-email" class="gate-label">Email</label>
+        <input aria-label="Email" id="gate-email" type="email" placeholder="Email" autocomplete="email" />
+      <label for="gate-input" class="gate-label">Password</label>
+        <input aria-label="Password" id="gate-input" type="password" placeholder="Password" autocomplete="current-password" />
+        <button type="button" class="password-toggle" aria-controls="gate-input" aria-pressed="false">Show password</button>
+      <button type="submit">Unlock</button>
+    </form>
+    <div role="alert" id="gate-error" class="error hidden" style="margin-top:0.6rem">Sign-in failed. Check your credentials and connection, then try again.</div>
+  </div>
+
+  <div id="app-wrap" class="hidden">
+  <header>
+    <h1>Manager KPI Dashboard</h1>
+    <div class="header-meta">
+      <span class="muted" id="updated">Loading...</span>
+      <a href="./index.html#occupancy-section" class="header-link">Live occupancy</a>
+      <button id="signout-btn" class="header-link" style="background:none;border:none;cursor:pointer;padding:0">Sign out</button>
+    </div>
+  </header>
+  <nav class="ops-nav" aria-label="Main navigation">
+    <a href="./index.html">Overview</a>
+    <a href="./private-messages.html">Messages</a>
+    <a href="./templates.html">Templates</a>
+    <a href="./codes.html">Codes</a>
+    <a href="./stats.html" aria-current="page">Stats</a>
+    <a href="./vendors.html">Vendors</a>
+    <a href="./kpi-history.html">History</a>
+  </nav>
+
+
+  <div class="stack">
+    <section class="stale-banner" id="stats-freshness" hidden>
+      <strong>Stats are stale.</strong>
+      <span id="stats-freshness-detail"></span>
+      Live presence is on the <a href="./index.html#occupancy-section">dashboard occupancy lists</a>, not this page.
+    </section>
+    <section class="card">
+      <h2>Manager Score Card</h2>
+      <div class="score-grid">
+        <div class="score-pill">
+          <div class="label" id="score-avg-label">Month Avg Score</div>
+          <div class="value" id="score-avg-value">--</div>
+          <div class="formula" id="score-avg-formula">Current: --</div>
+          <div class="sub" id="score-avg-sub">Score (Naira payout)</div>
+        </div>
+        <div class="score-pill">
+          <div class="label">Avg Days to Flip</div>
+          <div class="value" id="avg-flip-value">--</div>
+          <div class="sub">Current flip-room avg</div>
+        </div>
+        <div class="two-col">
+          <div>
+            <div class="muted" style="margin-bottom:0.35rem">Bonuses</div>
+            <ul class="mini-list" id="bonus-list"><li><span class="empty">No data</span><span></span></li></ul>
+          </div>
+          <div>
+            <div class="muted" style="margin-bottom:0.35rem">Penalties</div>
+            <ul class="mini-list" id="penalty-list"><li><span class="empty">No data</span><span></span></li></ul>
+          </div>
+        </div>
+      </div>
+      <div class="manual-entry">
+        <div class="manual-header">
+          <div>
+            <h3>Manual Today Inputs</h3>
+            <div class="manual-help">Temporary calculator only. Does not save or change scraped data.</div>
+          </div>
+          <div class="manual-status" id="manual-status">Using scraped values</div>
+        </div>
+        <form class="manual-form" id="manual-score-form">
+          <div class="manual-field"><label for="manual-occupancy_pct">Occupancy %</label><input id="manual-occupancy_pct" name="occupancy_pct" type="number" step="0.1" min="0"></div>
+          <div class="manual-field"><label for="manual-avg_tenure_days">Avg tenure days</label><input id="manual-avg_tenure_days" name="avg_tenure_days" type="number" step="0.1" min="0"></div>
+          <div class="manual-checklist">
+            <div class="manual-checklist-title">Daily Hustle: rate each category from 0 to 5, 20 max total</div>
+            <div class="manual-checklist-grid">
+              <label class="manual-check" for="manual-daily_calls"><span>Daily phone call/text</span><input id="manual-daily_calls" name="daily_calls" type="number" step="1" min="0" max="5"></label>
+              <label class="manual-check" for="manual-todo_completion"><span>Transfer and completion of todo</span><input id="manual-todo_completion" name="todo_completion" type="number" step="1" min="0" max="5"></label>
+              <label class="manual-check" for="manual-ownership"><span>Ownership (emergencies, vendors, etc.)</span><input id="manual-ownership" name="ownership" type="number" step="1" min="0" max="5"></label>
+              <label class="manual-check" for="manual-other_hustle"><span>Others (communication, tenant satisfaction, etc.)</span><input id="manual-other_hustle" name="other_hustle" type="number" step="1" min="0" max="5"></label>
+            </div>
+          </div>
+          <div class="manual-field"><label for="manual-rooms_over_14d">Rooms listed &gt;14d</label><input id="manual-rooms_over_14d" name="rooms_over_14d" type="number" step="1" min="0"></div>
+          <div class="manual-field"><label for="manual-listed_count">Listed rooms total</label><input id="manual-listed_count" name="listed_count" type="number" step="1" min="0"></div>
+          <div class="manual-field"><label for="manual-rooms_over_21d">Rooms listed &gt;21d</label><input id="manual-rooms_over_21d" name="rooms_over_21d" type="number" step="1" min="0"></div>
+          <div class="manual-field"><label for="manual-avg_flip_days">Avg flip days</label><input id="manual-avg_flip_days" name="avg_flip_days" type="number" step="0.1" min="0"></div>
+          <div class="manual-field"><label for="manual-flip_rooms_over_5d">Flip rooms &gt;5d</label><input id="manual-flip_rooms_over_5d" name="flip_rooms_over_5d" type="number" step="1" min="0"></div>
+          <div class="manual-field"><label for="manual-open_tickets">Open tickets</label><input id="manual-open_tickets" name="open_tickets" type="number" step="1" min="0"></div>
+          <div class="manual-field"><label for="manual-tickets_over_7d">Tickets &gt;7d</label><input id="manual-tickets_over_7d" name="tickets_over_7d" type="number" step="1" min="0"></div>
+          <div class="manual-field"><label for="manual-tickets_over_14d">Tickets &gt;14d</label><input id="manual-tickets_over_14d" name="tickets_over_14d" type="number" step="1" min="0"></div>
+        </form>
+        <div class="manual-actions">
+          <button class="manual-btn" id="manual-apply-btn" type="button">Apply manual inputs</button>
+          <button class="manual-btn secondary" id="manual-reset-btn" type="button">Reset to scraped values</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" id="history-section" style="padding:0.75rem 1rem">
+      <a href="./kpi-history.html" style="display:flex;align-items:center;justify-content:space-between;text-decoration:none;color:var(--text);">
+        <span style="font-size:0.95rem">Previous History &amp; KPI Trends</span>
+        <span style="color:var(--accent);font-size:0.9rem">View Charts →</span>
+      </a>
+    </section>
+
+    <section class="card listed-status-card">
+      <h2>Listed-status summary <span id="occupancy-stale-label"></span></h2>
+      <p class="muted" id="occupancy-source-note" style="margin-top:-0.35rem">Partner listed-status from stats.json. This is not live occupancy from messages and tasks.</p>
+      <div class="stats-grid" id="occupancy-cards"></div>
+    </section>
+
+    <div class="section-grid">
+      <section class="card listed-status-card">
+        <h2>Listed rooms (not live occupancy) <span id="vacancy-stale-label"></span></h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Property</th>
+                <th>Room</th>
+                <th>Days Listed</th>
+                <th>Base Price</th>
+                <th>Last Price</th>
+              </tr>
+            </thead>
+            <tbody id="vacancy-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Tenant Retention</h2>
+        <div class="stats-grid" id="retention-cards"></div>
+        <div class="histogram" id="retention-hist" style="margin-top:0.8rem"></div>
+      </section>
+
+      <section class="card">
+        <h2>Room Turn (Flip-Room)</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Property</th>
+                <th>Room</th>
+                <th>Days In Flip</th>
+              </tr>
+            </thead>
+            <tbody id="flip-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Maintenance Tickets (Open)</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Property</th>
+                <th>Room</th>
+                <th>Category</th>
+                <th>Status</th>
+                <th>Age (days)</th>
+              </tr>
+            </thead>
+            <tbody id="tickets-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Per-Property Scorecard</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Property</th>
+                <th>Rooms</th>
+                <th>Occ %</th>
+                <th>Listed</th>
+                <th>Flip</th>
+                <th>Mini Score</th>
+              </tr>
+            </thead>
+            <tbody id="property-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const HUSTLE_FIELDS = [
+      "daily_calls",
+      "todo_completion",
+      "ownership",
+      "other_hustle",
+    ];
+
+    const MANUAL_SCORE_FIELDS = [
+      "occupancy_pct",
+      "avg_tenure_days",
+      "rooms_over_14d",
+      "listed_count",
+      "rooms_over_21d",
+      "avg_flip_days",
+      "flip_rooms_over_5d",
+      "open_tickets",
+      "tickets_over_7d",
+      "tickets_over_14d",
+      ...HUSTLE_FIELDS,
+    ];
+
+    let scrapedKpis = null;
+    let manualModeActive = false;
+
+    function toNum(v) {
+      const n = Number(v);
+      return Number.isFinite(n) ? n : 0;
+    }
+
+    function money(v) {
+      return `$${toNum(v).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+    }
+
+    function naira(v) {
+      return new Intl.NumberFormat("en-NG", {
+        style: "currency",
+        currency: "NGN",
+        maximumFractionDigits: 0,
+      }).format(toNum(v));
+    }
+
+    function pct(v) {
+      return `${toNum(v).toFixed(1)}%`;
+    }
+
+    function fmtDate(s) {
+      if (!s) return "-";
+      return formatDisplayTime(s);
+    }
+
+    function statsFreshness(data, now = new Date()) {
+      const run = data && typeof data.run_status === "object" && data.run_status ? data.run_status : {};
+      const scraped = data && data.scraped_at ? new Date(data.scraped_at) : null;
+      const degraded = run.state === "degraded" || run.fallback_used === true;
+      const missing = !scraped || Number.isNaN(scraped.getTime());
+      const ageMs = missing ? Infinity : (now.getTime() - scraped.getTime());
+      const stale = degraded || missing || ageMs > 48 * 60 * 60 * 1000;
+      return {
+        stale,
+        degraded,
+        scrapedAt: data && data.scraped_at,
+        runScrapedAt: run.run_scraped_at,
+        failedPhase: run.failed_phase,
+        state: run.state,
+      };
+    }
+
+    function applyStatsFreshness(data) {
+      const info = statsFreshness(data);
+      const banner = document.getElementById("stats-freshness");
+      const detail = document.getElementById("stats-freshness-detail");
+      const updated = document.getElementById("updated");
+      const occLabel = document.getElementById("occupancy-stale-label");
+      const vacLabel = document.getElementById("vacancy-stale-label");
+      if (info.stale) {
+        document.body.classList.add("stats-stale");
+        banner.hidden = false;
+        const parts = [];
+        if (info.scrapedAt) parts.push(`stats.json scraped ${fmtDate(info.scrapedAt)}`);
+        if (info.degraded) parts.push(`run ${info.state || "degraded"}` + (info.failedPhase ? ` (${info.failedPhase})` : ""));
+        if (info.runScrapedAt) parts.push(`last rewrite ${fmtDate(info.runScrapedAt)}`);
+        detail.textContent = parts.join(" · ");
+        updated.textContent = `Stale ${fmtDate(info.scrapedAt)}`;
+        occLabel.className = "stale-label";
+        occLabel.textContent = "Stale";
+        vacLabel.className = "stale-label";
+        vacLabel.textContent = "Stale listed-status";
+      } else {
+        document.body.classList.remove("stats-stale");
+        banner.hidden = true;
+        updated.textContent = `Updated ${fmtDate(info.scrapedAt)}`;
+        occLabel.className = "fresh-label";
+        occLabel.textContent = "Listed-status";
+        vacLabel.className = "fresh-label";
+        vacLabel.textContent = "Listed-status";
+      }
+      return info;
+    }
+
+    function scoreClass(score) {
+      if (score >= 90) return "score-green";
+      if (score >= 70) return "score-yellow";
+      return "score-red";
+    }
+
+    function normalizeScore(rawScore) {
+      return Math.max(0, Math.min(100, toNum(rawScore)));
+    }
+
+    function payoutForScore(rawScore) {
+      const score = normalizeScore(rawScore);
+      if (score <= 80) return score * 1000;
+      return 80000 + ((score - 80) * 11000);
+    }
+
+    function formatScorePayout(rawScore, digits = 0) {
+      const score = normalizeScore(rawScore);
+      return `${score.toFixed(digits)} (${naira(payoutForScore(score))})`;
+    }
+
+    function formatScoreFormula(kpis) {
+      const base = toNum(kpis.base_score);
+      const bonus = toNum(kpis.bonus_points);
+      const penalty = Math.abs(toNum(kpis.penalty_points));
+      const score = normalizeScore(kpis.score);
+      return `Current: ${score.toFixed(0)} (${naira(payoutForScore(score))}) from ${base} base + ${bonus} bonus - ${penalty} penalties`;
+    }
+
+    function setManualStatus(active) {
+      const statusEl = document.getElementById("manual-status");
+      statusEl.textContent = active ? "Manual mode active" : "Using scraped values";
+      statusEl.classList.toggle("active", active);
+    }
+
+    function setScoreCard(kpis, options = {}) {
+      const active = Boolean(options.manualActive);
+      const displayScore = active ? normalizeScore(kpis.score) : normalizeScore(kpis.avg_score_30d);
+      const avgEl = document.getElementById("score-avg-value");
+      avgEl.textContent = formatScorePayout(displayScore, active ? 0 : 1);
+      avgEl.classList.add("compact");
+      avgEl.classList.remove("score-green", "score-yellow", "score-red");
+      avgEl.classList.add(scoreClass(displayScore));
+      document.getElementById("score-avg-label").textContent = active ? "Today's Manual Score" : "Month Avg Score";
+      document.getElementById("score-avg-sub").textContent = active ? "Manual score (not saved)" : "Score (Naira payout)";
+      document.getElementById("score-avg-formula").textContent = active
+        ? `Manual: ${formatScoreFormula(kpis).replace(/^Current:\s*/, "")}`
+        : formatScoreFormula(kpis);
+      document.getElementById("avg-flip-value").textContent = `${toNum(kpis.avg_flip_days).toFixed(1)}d`;
+      setManualStatus(active);
+
+      const bonusList = document.getElementById("bonus-list");
+      const penaltyList = document.getElementById("penalty-list");
+      bonusList.innerHTML = "";
+      penaltyList.innerHTML = "";
+
+      const bonuses = Array.isArray(kpis.bonuses) ? kpis.bonuses : [];
+      const penalties = Array.isArray(kpis.penalties) ? kpis.penalties : [];
+
+      if (!bonuses.length) {
+        bonusList.innerHTML = '<li><span class="empty">No bonus triggers</span><span></span></li>';
+      } else {
+        for (const b of bonuses) {
+          const li = document.createElement("li");
+          li.innerHTML = `<span>${b.label || "bonus"}</span><span class="score-green">+${toNum(b.points)}</span>`;
+          bonusList.appendChild(li);
+        }
+      }
+
+      if (!penalties.length) {
+        penaltyList.innerHTML = '<li><span class="empty">No penalty triggers</span><span></span></li>';
+      } else {
+        for (const p of penalties) {
+          const li = document.createElement("li");
+          const count = p.count ? ` (${p.count})` : "";
+          li.innerHTML = `<span>${p.label || "penalty"}${count}</span><span class="score-red">${toNum(p.points)}</span>`;
+          penaltyList.appendChild(li);
+        }
+      }
+    }
+
+    function deriveManualDefaults(kpis) {
+      const vacancyRooms = Array.isArray(kpis.vacancy_rooms) ? kpis.vacancy_rooms : [];
+      const flipRooms = Array.isArray(kpis.flip_rooms) ? kpis.flip_rooms : [];
+      let remainingHustle = Math.min(20, Math.max(0, Math.round(toNum(kpis.subjective_score))));
+      return {
+        occupancy_pct: toNum(kpis.occupancy_pct),
+        avg_tenure_days: toNum(kpis.avg_tenure_days),
+        rooms_over_14d: Math.round(toNum(kpis.rooms_over_14d)),
+        listed_count: Math.round(toNum(kpis.listed)),
+        rooms_over_21d: vacancyRooms.filter(room => toNum(room.days_listed) > 21).length,
+        avg_flip_days: toNum(kpis.avg_flip_days),
+        flip_rooms_over_5d: flipRooms.filter(room => toNum(room.days_in_flip) > 5).length,
+        open_tickets: Math.round(toNum(kpis.open_tickets)),
+        tickets_over_7d: Math.round(toNum(kpis.tickets_over_7d)),
+        tickets_over_14d: Math.round(toNum(kpis.tickets_over_14d)),
+        daily_calls: Math.min(5, remainingHustle),
+        todo_completion: Math.min(5, Math.max(0, remainingHustle - 5)),
+        ownership: Math.min(5, Math.max(0, remainingHustle - 10)),
+        other_hustle: Math.min(5, Math.max(0, remainingHustle - 15)),
+      };
+    }
+
+    function fillManualForm(values) {
+      for (const field of MANUAL_SCORE_FIELDS) {
+        const input = document.getElementById(`manual-${field}`);
+        if (!input) continue;
+        input.value = values[field] ?? 0;
+      }
+    }
+
+    function readManualForm() {
+      const values = {};
+      for (const field of MANUAL_SCORE_FIELDS) {
+        const input = document.getElementById(`manual-${field}`);
+        values[field] = input ? toNum(input.value) : 0;
+      }
+      return values;
+    }
+
+    function computeManualKpis(baseKpis, values) {
+      let score = 80;
+      const bonuses = [];
+      const penalties = [];
+
+      if (values.occupancy_pct >= 90) {
+        score += 20;
+        bonuses.push({ label: "occupancy >= 90%", points: 20 });
+      } else if (values.occupancy_pct >= 80) {
+        score += 10;
+        bonuses.push({ label: "occupancy 80-89%", points: 10 });
+      } else if (values.occupancy_pct >= 75) {
+        // neutral anchor
+      } else if (values.occupancy_pct >= 70) {
+        score -= 10;
+        penalties.push({ label: "occupancy 70-74%", points: -10, count: 1 });
+      } else {
+        score -= 20;
+        penalties.push({ label: "occupancy < 70%", points: -20, count: 1 });
+      }
+
+      if (values.avg_tenure_days >= 180) {
+        score += 20;
+        bonuses.push({ label: "avg tenure >= 180d", points: 20 });
+      } else if (values.avg_tenure_days >= 160) {
+        score += 10;
+        bonuses.push({ label: "avg tenure 160-179d", points: 10 });
+      } else if (values.avg_tenure_days >= 152) {
+        // neutral anchor
+      } else if (values.avg_tenure_days >= 140) {
+        score -= 10;
+        penalties.push({ label: "avg tenure 140-151d", points: -10, count: 1 });
+      } else {
+        score -= 20;
+        penalties.push({ label: "avg tenure < 140d", points: -20, count: 1 });
+      }
+
+      const clampedSubj = Math.min(20, HUSTLE_FIELDS.reduce((sum, field) => sum + Math.max(0, Math.min(5, Math.round(toNum(values[field])))), 0));
+      if (clampedSubj) {
+        score += clampedSubj;
+        bonuses.push({ label: "daily hustle (subjective)", points: clampedSubj });
+      }
+
+      const listedPenalty = Math.max(0, Math.round(values.rooms_over_21d)) * 1;
+      if (listedPenalty) {
+        score -= listedPenalty;
+        penalties.push({ label: "rooms listed > 21d", points: -listedPenalty, count: Math.round(values.rooms_over_21d) });
+      }
+
+      const flipPenalty = Math.max(0, Math.round(values.flip_rooms_over_5d)) * 2;
+      if (flipPenalty) {
+        score -= flipPenalty;
+        penalties.push({ label: "flip rooms > 5d", points: -flipPenalty, count: Math.round(values.flip_rooms_over_5d) });
+      }
+
+      const ticketPenalty = Math.max(0, Math.round(values.tickets_over_14d)) * 2;
+      if (ticketPenalty) {
+        score -= ticketPenalty;
+        penalties.push({
+          label: "open tickets > 14d",
+          points: -ticketPenalty,
+          count: Math.round(values.tickets_over_14d),
+        });
+      }
+
+      const rawScore = Math.max(0, Math.min(125, Math.round(score)));
+      return {
+        ...baseKpis,
+        occupancy_pct: values.occupancy_pct,
+        avg_tenure_days: values.avg_tenure_days,
+        avg_flip_days: values.avg_flip_days,
+        listed: Math.round(values.listed_count),
+        rooms_over_14d: Math.round(values.rooms_over_14d),
+        open_tickets: Math.round(values.open_tickets),
+        tickets_over_7d: Math.round(values.tickets_over_7d),
+        tickets_over_14d: Math.round(values.tickets_over_14d),
+        subjective_score: clampedSubj,
+        score: rawScore,
+        avg_score_30d: rawScore,
+        base_score: 80,
+        bonus_points: bonuses.reduce((sum, item) => sum + toNum(item.points), 0),
+        penalty_points: -penalties.reduce((sum, item) => sum + Math.abs(toNum(item.points)), 0),
+        bonuses,
+        penalties,
+      };
+    }
+
+    function applyManualInputs() {
+      if (!scrapedKpis) return;
+      manualModeActive = true;
+      setScoreCard(computeManualKpis(scrapedKpis, readManualForm()), { manualActive: true });
+    }
+
+    function resetManualInputs() {
+      if (!scrapedKpis) return;
+      manualModeActive = false;
+      fillManualForm(deriveManualDefaults(scrapedKpis));
+      setScoreCard(scrapedKpis, { manualActive: false });
+    }
+
+    function setOccupancyCards(kpis) {
+      const cards = document.getElementById("occupancy-cards");
+      const rows = [
+        ["Listed occupancy %", pct(kpis.occupancy_pct)],
+        ["Total Rooms", Math.round(toNum(kpis.total_rooms))],
+        ["Marked occupied", Math.round(toNum(kpis.occupied))],
+        ["Listed", Math.round(toNum(kpis.listed))],
+        ["Flip", Math.round(toNum(kpis.flip))],
+        ["Move-in", Math.round(toNum(kpis.move_in))],
+        ["Avg Listed Days", toNum(kpis.avg_listed_days).toFixed(1)],
+        ["Rooms >14d listed", Math.round(toNum(kpis.rooms_over_14d))],
+      ];
+      cards.innerHTML = "";
+      for (const [label, value] of rows) {
+        const div = document.createElement("div");
+        div.className = "stat";
+        div.innerHTML = `<div class="stat-label">${label}</div><div class="stat-value">${value}</div>`;
+        cards.appendChild(div);
+      }
+    }
+
+    function renderVacancy(kpis) {
+      const body = document.getElementById("vacancy-body");
+      body.innerHTML = "";
+      const rooms = Array.isArray(kpis.vacancy_rooms) ? kpis.vacancy_rooms : [];
+      if (!rooms.length) {
+        body.innerHTML = '<tr><td colspan="5" class="empty">No listed rooms in stale stats.json.</td></tr>';
+        return;
+      }
+      for (const room of rooms) {
+        const days = toNum(room.days_listed);
+        const tr = document.createElement("tr");
+        if (days > 14) tr.className = "warn-row";
+        tr.innerHTML = `
+          <td>${room.property || "-"}</td>
+          <td>${room.room_number ?? "-"}</td>
+          <td>${days.toFixed(1)}</td>
+          <td>${money(room.base_price)}</td>
+          <td>${money(room.last_room_price)}</td>
+        `;
+        body.appendChild(tr);
+      }
+    }
+
+    function renderRetention(kpis) {
+      const cards = document.getElementById("retention-cards");
+      cards.innerHTML = "";
+      const rows = [
+        ["Avg Tenure (days)", toNum(kpis.avg_tenure_days).toFixed(1)],
+        ["Median Tenure", Math.round(toNum(kpis.median_tenure_days))],
+        ["Avg Flip Days", toNum(kpis.avg_flip_days).toFixed(1)],
+        ["Max Flip Days", Math.round(toNum(kpis.max_flip_days))],
+      ];
+      for (const [label, value] of rows) {
+        const div = document.createElement("div");
+        div.className = "stat";
+        div.innerHTML = `<div class="stat-label">${label}</div><div class="stat-value">${value}</div>`;
+        cards.appendChild(div);
+      }
+
+      const hist = document.getElementById("retention-hist");
+      hist.innerHTML = "";
+      const bins = kpis.retention_histogram && typeof kpis.retention_histogram === "object"
+        ? kpis.retention_histogram
+        : { "0-30": 0, "31-90": 0, "91-180": 0, "181+": 0 };
+      const maxVal = Math.max(1, ...Object.values(bins).map(toNum));
+      for (const [label, valueRaw] of Object.entries(bins)) {
+        const value = toNum(valueRaw);
+        const width = (value / maxVal) * 100;
+        const row = document.createElement("div");
+        row.className = "hist-row";
+        row.innerHTML = `
+          <div class="muted">${label}</div>
+          <div class="hist-track"><div class="hist-fill" style="width:${width}%"></div></div>
+          <div>${Math.round(value)}</div>
+        `;
+        hist.appendChild(row);
+      }
+    }
+
+    function renderFlipRooms(kpis) {
+      const body = document.getElementById("flip-body");
+      body.innerHTML = "";
+      const rooms = Array.isArray(kpis.flip_rooms) ? kpis.flip_rooms : [];
+      if (!rooms.length) {
+        body.innerHTML = '<tr><td colspan="3" class="empty">No flip-room items.</td></tr>';
+        return;
+      }
+      for (const room of rooms) {
+        const days = toNum(room.days_in_flip);
+        const tr = document.createElement("tr");
+        if (days > 5) tr.className = "warn-row";
+        tr.innerHTML = `
+          <td>${room.property || "-"}</td>
+          <td>${room.room_number ?? "-"}</td>
+          <td>${days.toFixed(1)}</td>
+        `;
+        body.appendChild(tr);
+      }
+    }
+
+    function renderTickets(kpis) {
+      const body = document.getElementById("tickets-body");
+      body.innerHTML = "";
+      const tickets = Array.isArray(kpis.open_ticket_items) ? kpis.open_ticket_items : [];
+      if (!tickets.length) {
+        body.innerHTML = '<tr><td colspan="5" class="empty">No open tickets.</td></tr>';
+        return;
+      }
+      for (const t of tickets) {
+        const age = toNum(t.age_days);
+        const tr = document.createElement("tr");
+        if (age > 7) tr.className = "warn-row";
+        tr.innerHTML = `
+          <td>${t.property_address || "-"}</td>
+          <td>${t.room_number ?? "-"}</td>
+          <td>${t.category || "-"}</td>
+          <td>${t.status || "-"}</td>
+          <td>${age.toFixed(1)}</td>
+        `;
+        body.appendChild(tr);
+      }
+    }
+
+    function renderPerProperty(kpis) {
+      const body = document.getElementById("property-body");
+      body.innerHTML = "";
+      const rows = Array.isArray(kpis.per_property) ? kpis.per_property : [];
+      if (!rows.length) {
+        body.innerHTML = '<tr><td colspan="6" class="empty">No per-property rows.</td></tr>';
+        return;
+      }
+      for (const row of rows) {
+        const mini = toNum(row.mini_score);
+        const tr = document.createElement("tr");
+        if (mini < 70) tr.className = "warn-row";
+        tr.innerHTML = `
+          <td>${row.property || "-"}</td>
+          <td>${Math.round(toNum(row.rooms))}</td>
+          <td>${pct(row.occupancy_pct)}</td>
+          <td>${Math.round(toNum(row.listed))}</td>
+          <td>${Math.round(toNum(row.flip))}</td>
+          <td>${mini.toFixed(1)}</td>
+        `;
+        body.appendChild(tr);
+      }
+    }
+
+    function renderStats(data) {
+      try {
+        const kpis = data && typeof data.kpis === "object" ? data.kpis : {};
+        scrapedKpis = kpis;
+        applyStatsFreshness(data);
+        fillManualForm(deriveManualDefaults(kpis));
+        setScoreCard(kpis, { manualActive: false });
+        setOccupancyCards(kpis);
+        renderVacancy(kpis);
+        renderRetention(kpis);
+        renderFlipRooms(kpis);
+        renderTickets(kpis);
+        renderPerProperty(kpis);
+        document.getElementById("manual-apply-btn").addEventListener("click", applyManualInputs);
+        document.getElementById("manual-reset-btn").addEventListener("click", resetManualInputs);
+      } catch (err) {
+        document.getElementById("updated").textContent = "Failed to load stats";
+        document.body.insertAdjacentHTML("beforeend", `<div class="error" style="margin-top:1rem">Failed to load stats/latest: ${err.message}</div>`);
+      }
+    }
+  </script>
+
+  <section class="notes-section" style="padding:0 clamp(1rem,4vw,2.5rem) 2rem">
+    <h2>Notes</h2>
+    <div class="notes-card">
+      <textarea aria-label="Shared notes" class="notes-textarea" id="notes-textarea" placeholder="Add shared notes…"></textarea>
+      <div class="notes-footer">
+        <button class="notes-save-btn" id="notes-save-btn">Save</button>
+        <button class="notes-copy-btn" id="notes-copy-btn" aria-label="Copy notes" title="Copy notes"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+      </div>
+    </div>
+  </section>
+
+  <script src="./draft-guard.js"></script>
+  <script src="./owner-notes.js"></script>
+  <script src="./password-reset.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    // Default app is the operator session; stats-auth remains an independent named app.
+    const operatorApp = initializeApp(window.PADSPLIT_RUNTIME_CONFIG?.firebase ?? null);
+    const db = getFirestore(operatorApp);
+    const NOTES_DOC = doc(db, 'notes', 'stats');
+    const ta = document.getElementById('notes-textarea');
+    const status = document.createElement('p'); status.setAttribute('role', 'status'); ta.before(status);
+    const notes = createOwnerNotesSession({
+      ownerUid: null, ta,
+      saveBtn: document.getElementById('notes-save-btn'), copyBtn: document.getElementById('notes-copy-btn'), status,
+      subscribe: (next, error) => onSnapshot(NOTES_DOC, next, error),
+      save: text => setDoc(NOTES_DOC, { text }, { merge: true }),
+      copy: text => navigator.clipboard.writeText(text)
+    });
+    onAuthStateChanged(getAuth(operatorApp), user => notes.setUser(user));
+  </script>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const STATS_UID = null;
+    const firebaseConfig = window.PADSPLIT_RUNTIME_CONFIG?.firebase ?? null;
+    const statsApp = initializeApp(firebaseConfig, "stats-auth");
+    const auth = getAuth(statsApp);
+    const db = getFirestore(statsApp);
+    const gateWrap = document.getElementById("gate-wrap");
+    const appWrap = document.getElementById("app-wrap");
+    const gateForm = document.getElementById("gate-form");
+    mountPasswordReset({auth, sender: sendPasswordResetEmail, form: gateForm, signInEmail: document.getElementById('gate-email')});
+    const gateError = document.getElementById("gate-error");
+
+    function showApp() {
+      gateWrap.classList.add("hidden");
+      appWrap.classList.remove("hidden");
+    }
+    function showGate() {
+      gateWrap.classList.remove("hidden");
+      appWrap.classList.add("hidden");
+    }
+    async function loadStats() {
+      const snap = await getDoc(doc(db, "stats", "latest"));
+      if (!snap.exists()) throw new Error("stats/latest missing");
+      const raw = snap.data().json;
+      renderStats(typeof raw === "string" ? JSON.parse(raw) : raw);
+    }
+
+    gateForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      try {
+        await signInWithEmailAndPassword(
+          auth,
+          document.getElementById("gate-email").value.trim(),
+          document.getElementById("gate-input").value
+        );
+        if (auth.currentUser?.uid === STATS_UID) {
+          gateError.classList.add("hidden");
+        } else {
+          gateError.textContent = 'This account does not have access to statistics. Sign in with the authorized statistics account.';
+          gateError.classList.remove("hidden");
+        }
+      } catch (err) {
+        console.error(err);
+        gateError.textContent = 'Sign-in failed. Check your credentials and connection, then try again.';
+        gateError.classList.remove("hidden");
+        gateWrap.classList.remove("shake");
+        void gateWrap.offsetWidth;
+        gateWrap.classList.add("shake");
+      }
+    });
+    showGate();
+    await signOut(auth);
+    onAuthStateChanged(auth, (user) => {
+      if (user && user.uid === STATS_UID) {
+        showApp();
+        loadStats().catch((err) => {
+          document.getElementById("updated").textContent = "Failed to load stats";
+          document.body.insertAdjacentHTML("beforeend", `<div class="error" style="margin-top:1rem">Failed to load stats/latest: ${err.message}</div>`);
+        });
+      } else {
+        showGate();
+        if (user) {
+          gateError.textContent = 'This account does not have access to statistics. Sign in with the authorized statistics account.';
+          gateError.classList.remove('hidden');
+        }
+      }
+    });
+    document.getElementById("signout-btn").addEventListener("click", () => signOut(auth));
+  </script>
+
+  <script>
+    (() => {
+      const toggle = document.querySelector('.password-toggle');
+      const input = document.getElementById('gate-input');
+      toggle.addEventListener('click', () => {
+        const show = input.type === 'password';
+        input.type = show ? 'text' : 'password';
+        toggle.setAttribute('aria-pressed', String(show));
+        toggle.textContent = show ? 'Hide password' : 'Show password';
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+const context={}; vm.runInNewContext(readFileSync('functions/team_ui/logic.js','utf8'),context);
+const invite=context.teamMemberCommand('invite',{uid:' viewer ',role:'viewer',properties:' house_a, house_b '},'owner');
+assert.equal(invite.uid,'viewer'); assert.deepEqual(Array.from(invite.properties),['house_a','house_b']);
+assert.equal('actor' in invite,false);
+const accept=context.teamMemberCommand('accept_invitation',{},'viewer'); assert.equal(accept.uid,'viewer');
+const update=context.teamTaskCommand('update_task',{property:' house_a ',task:'x',title:' Ready ',status:'done',expected_version:'2'});
+assert.equal(update.property,'house_a'); assert.equal(update.title,'Ready'); assert.equal(update.expected_version,2);
+const remove=context.teamTaskCommand('delete_task',{property:'house_a',task:'x',expected_version:'3'});
+assert.equal('title' in remove,false); assert.equal(remove.expected_version,3);
+const app=readFileSync('functions/team_ui/app.js','utf8');
+assert.ok(!/localStorage|sessionStorage|console\./.test(app),'tokens are not persisted or logged by the UI');
+console.log('emulator team form sends only action fields and does not store tokens');

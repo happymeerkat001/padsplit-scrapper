@@ -1,0 +1,28 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const {parseHTML}=require(process.env.PADSPLIT_UI_TEST_MODULES+'/linkedom');
+const html=fs.readFileSync('deploy/frontend-api/stats.html','utf8');
+assert.match(html,/padsplit-data-mode/);assert.doesNotMatch(html,/firebase-firestore|getFirestore\s*\(/);
+const {window}=parseHTML(html),document=window.document;
+const code=html.match(/<script type="module">([\s\S]*?)<\/script>/)[1].replace(/^import .*;\s*$/gm,'');
+const auth={currentUser:null};let listener,role='owner',reportAllowed=false,calls=[],resolveLatest,delay=false,stopped=0,copied=null;
+const api={clearSession(){},me:async()=>({uid:auth.currentUser.uid,role}),reportAccess:async()=>({allowed:reportAllowed}),report:id=>{calls.push(id);if(id==='latest'&&delay)return new Promise(resolve=>{resolveLatest=resolve});return Promise.resolve(id==='latest'?{id,json:'{"scraped_at":"2026-01-01T00:00:00Z","kpis":{"occupancy_pct":0,"avg_score_30d":90}}',observed_at:null}:{id,json:'{"months":[{"month":"2026-01","score":90}]}',observed_at:null});}};
+window.PADSPLIT_RUNTIME_CONFIG={dataMode:'api'};
+const context={window,document,console,navigator:{clipboard:{async writeText(value){copied=value;}}},initializeApp:()=>({}),getAuth:()=>auth,signInWithEmailAndPassword:async()=>{},sendPasswordResetEmail:async()=>{},onAuthStateChanged:(_,fn)=>{listener=fn},signOut:async()=>{},resolveOperationsRuntime:()=>({mode:'api',firebase:{},apiOrigin:'https://api.invalid'}),createOperationsApi:()=>api,mountPasswordReset:()=>{},createApiNoteBinding:()=>({start(){},stop(){stopped++},async save(){return true}})};
+vm.createContext(context);vm.runInContext(fs.readFileSync('docs/stats-api.js','utf8'),context);for(const name of ['mountManualScore','renderHistory','parseHistoryResponse','renderReport','renderReportDetails','renderScoreCard','parseReportResponse'])context[name]=window[name];vm.runInContext(code,context);
+const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
+(async()=>{
+ auth.currentUser={uid:'fictional-owner'};await listener(auth.currentUser);assert.equal(calls.length,2);assert.equal(document.getElementById('report-workspace').hidden,false);assert.match(document.getElementById('report-score-summary').textContent,/190,000/);
+ const form=document.getElementById('report-score-form');
+ const inputs={occupancy_pct:90,avg_tenure_days:180,rooms_over_14d:2,listed_count:4,rooms_over_21d:2,avg_flip_days:4,flip_rooms_over_5d:1,open_tickets:4,tickets_over_7d:3,tickets_over_14d:3,daily_calls:5,todo_completion:5,ownership:5,other_hustle:5};
+ for(const [name,value] of Object.entries(inputs))form.querySelector(`[name="${name}"]`).value=String(value);
+ form.dispatchEvent(new window.Event('submit',{cancelable:true}));
+ assert.match(document.getElementById('report-score-summary').textContent,/Manual score.*100.*300,000/);
+ assert.match(document.getElementById('report-score-breakdown').textContent,/open tickets > 14d.*-6/);
+ document.getElementById('report-score-reset').dispatchEvent(new window.Event('click'));
+ assert.match(document.getElementById('report-score-summary').textContent,/Month average.*190,000/);
+ document.getElementById('report-note').value='fictional note';document.getElementById('report-note-copy').dispatchEvent(new window.Event('click'));await tick();assert.equal(copied,'fictional note');
+ role='viewer';auth.currentUser={uid:'fictional-viewer'};await listener(auth.currentUser);assert.equal(calls.length,2);assert.equal(document.getElementById('report-workspace').hidden,true);assert.equal(document.getElementById('report-source').textContent,'');assert.ok(stopped>0);
+ reportAllowed=true;auth.currentUser={uid:'fictional-reporter'};await listener(auth.currentUser);assert.equal(calls.length,4);assert.equal(document.getElementById('report-workspace').hidden,false);assert.equal(document.getElementById('report-notes-section').hidden,true);
+ role='owner';delay=true;auth.currentUser={uid:'fictional-owner'};const pending=listener(auth.currentUser);await tick();auth.currentUser=null;await listener(null);resolveLatest({id:'latest',json:'{"kpis":{"sensitive":"stale-value"}}',observed_at:null});await pending;assert.equal(document.getElementById('report-source').textContent,'');
+ console.log('Report page: owner gate, synthetic API data, viewer denial and stale-session cleanup passed');
+})().catch(e=>{console.error(e);process.exitCode=1});

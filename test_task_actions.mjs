@@ -1,0 +1,21 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+
+const context = {};
+vm.runInNewContext(readFileSync('docs/task-actions.js', 'utf8'), context);
+assert.equal(context.validDiscussionText('  '), false);
+assert.equal(context.validDiscussionText('  Ready  '), true);
+let release, calls=0, errors=[];
+const button={disabled:false};
+const pending=new Promise(resolve=>{release=resolve;});
+const first=context.deleteTaskRecord(button,()=>{calls++;return pending;}, message=>errors.push(message),'Delete failed.');
+await context.deleteTaskRecord(button,()=>{calls++;}, message=>errors.push(message),'Delete failed.');
+assert.equal(calls,1,'repeated delete must not submit twice');
+assert.equal(button.disabled,true);
+release(); await first;
+assert.equal(button.disabled,false);
+await context.deleteTaskRecord(button,async()=>{throw new Error('offline');},message=>errors.push(message),'Delete failed.');
+assert.equal(errors[0],'Delete failed.');
+assert.equal(button.disabled,false,'failed delete remains retryable');
+console.log('task discussion requires text and delete failures remain visible and retryable');

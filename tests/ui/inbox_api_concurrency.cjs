@@ -1,0 +1,16 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+const {parseHTML}=require(path.join(process.env.PADSPLIT_UI_TEST_MODULES,'linkedom'));
+const {window}=parseHTML(fs.readFileSync('docs/inbox.html','utf8'));
+const {document}=window,tick=()=>new Promise(resolve=>setImmediate(resolve));
+let filter='all';Object.defineProperty(document.getElementById('inbox-unread'),'value',{get:()=>filter,set:value=>{filter=value}});
+const deferred=()=>{let resolve;const promise=new Promise(r=>resolve=r);return{promise,resolve}};
+const conversation=(i)=>({id:'c'+i,property_id:'home',property_name:'Home',source_title:'Thread '+i,source_unread:false,source_observed_at:null});
+const message=(i)=>({id:'m'+i,body:'Message '+i,sender_label:null,source_deleted:false,attachments:[]});
+const listWait=deferred(),messageWait=deferred(),oldWait=deferred();let listCalls=0,messageCalls=0;
+const api={me:async()=>({uid:'synthetic',role:'viewer'}),conversations:async({offset})=>{listCalls++;return offset===0?{items:Array.from({length:100},(_,i)=>conversation(i)),ingestion:'not_configured'}:listWait.promise},messages:async(id,{offset,order})=>{assert.equal(order,'desc','inbox requests newest stored messages first');messageCalls++;if(id==='c1')return oldWait.promise;if(id==='c2')return{items:[message(999)]};return offset===0?{items:Array.from({length:100},(_,i)=>message(i))}:messageWait.promise}};
+const context={window,document,setTimeout,clearTimeout};context.globalThis=context;vm.createContext(context);vm.runInContext(fs.readFileSync('docs/inbox-api.js','utf8'),context);
+(async()=>{const workspace=window.createInboxWorkspace({api,document,getUid:()=> 'synthetic',isCurrent:()=>true,onAccessLost:()=>assert.fail('unexpected access loss'),storage:null});await workspace.start();
+const more=document.getElementById('inbox-more');more.click();more.click();assert.equal(listCalls,2,'duplicate conversation-page requests must be coalesced');listWait.resolve({items:[conversation(100)],ingestion:'not_configured'});await tick();assert.equal(document.querySelectorAll('[data-conversation]').length,101);
+document.querySelector('[data-conversation="c0"]').click();await tick();const messageMore=document.getElementById('inbox-message-more');messageMore.click();messageMore.click();assert.equal(messageCalls,2,'duplicate message-page requests must be coalesced');messageWait.resolve({items:[message(100)]});await tick();assert.equal(document.querySelectorAll('#inbox-messages .inbox-entry').length,101);assert.match(document.querySelector('#inbox-messages .inbox-entry').textContent,/Message 100/,'older pages prepend before the initially loaded newest messages');
+document.querySelector('[data-conversation="c1"]').click();document.querySelector('[data-conversation="c2"]').click();await tick();oldWait.resolve({items:[message(777)]});await tick();assert.match(document.getElementById('inbox-messages').textContent,/Message 999/);assert.doesNotMatch(document.getElementById('inbox-messages').textContent,/Message 777/);
+workspace.stop();console.log('Inbox pagination coalescing and stale conversation response checks passed');})().catch(error=>{console.error(error);process.exit(1)});

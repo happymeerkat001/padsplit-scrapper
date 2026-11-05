@@ -1,0 +1,1409 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PadSplit Dashboard</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --success: #22c55e;
+      --warn: #fbbf24;
+      --error: #f87171;
+      --text: #e2e8f0;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at 20% 20%, rgba(56,189,248,0.08), transparent 35%),
+                  radial-gradient(circle at 80% 0%, rgba(34,197,94,0.08), transparent 30%),
+                  var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem clamp(1rem, 4vw, 2.5rem);
+    }
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    h1 { margin: 0; font-size: 1.6rem; letter-spacing: 0.01em; }
+    .pill {
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
+      background: rgba(56,189,248,0.12);
+      color: var(--accent);
+      font-size: 0.9rem;
+    }
+    .muted { color: var(--muted); font-size: 0.95rem; }
+    .header-meta {
+      margin-left: auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.75rem;
+    }
+    .header-link {
+      color: var(--muted);
+      text-decoration: underline;
+      font-size: 0.95rem;
+    }
+    .header-link:hover { color: var(--accent); }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+    .section {
+      margin-bottom: 2rem;
+    }
+    .section h2 {
+      margin: 0 0 0.75rem;
+      font-size: 1.2rem;
+      letter-spacing: 0.01em;
+    }
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00));
+      border: 1px solid rgba(148,163,184,0.2);
+      border-radius: 12px;
+      padding: 1rem;
+      box-shadow: 0 14px 40px rgba(15,23,42,0.4);
+    }
+    .card h3 { margin: 0 0 0.35rem; font-size: 1rem; }
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.5rem;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      background: rgba(56,189,248,0.15);
+      color: var(--accent);
+      margin-left: 0.4rem;
+    }
+    .flex-between { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
+    .chips { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.4rem; }
+    .chip {
+      padding: 0.25rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      background: rgba(148,163,184,0.2);
+      color: var(--muted);
+    }
+    .status {
+      font-weight: 600;
+      color: var(--text);
+    }
+    .error { color: var(--error); }
+    .warn { color: var(--warn); }
+    .success { color: var(--success); }
+    footer {
+      margin-top: 2rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    .loading { text-align: center; padding: 2rem; color: var(--muted); }
+    .chat-box { margin-top: 0.75rem; padding: 0.75rem; border: 1px solid rgba(148,163,184,0.25); border-radius: 10px; background: rgba(255,255,255,0.02); }
+    .chat-controls { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
+    .chat-controls select, .chat-controls input { padding: 0.35rem 0.5rem; border-radius: 8px; border: 1px solid rgba(148,163,184,0.35); background: #0b1222; color: var(--text); }
+    .chat-controls button { padding: 0.4rem 0.85rem; border-radius: 8px; border: none; background: var(--accent); color: #0b1222; font-weight: 600; cursor: pointer; }
+    .chat-controls button:disabled { opacity: 0.6; cursor: not-allowed; }
+    .chat-messages { display: flex; flex-direction: column; gap: 0.3rem; max-height: 200px; overflow-y: auto; }
+    .chat-msg { padding: 0.4rem 0.6rem; border-radius: 8px; background: rgba(148,163,184,0.12); }
+    .role-owner { color: #38bdf8; }
+    .role-manager { color: #22c55e; }
+    .role-repairman { color: #f59e0b; }
+    .delete-msg-btn {
+      background: none;
+      border: none;
+      color: #ef4444;
+      cursor: pointer;
+      font-size: 0.75rem;
+      margin-left: 0.4rem;
+      padding: 0 2px;
+      opacity: 0.6;
+      vertical-align: middle;
+    }
+    .delete-msg-btn:hover { opacity: 1; }
+    .msg-meta { font-size: 0.75rem; color: var(--muted); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th { text-align: left; padding: 0.4rem 0.6rem; color: var(--muted); font-weight: 500; border-bottom: 1px solid rgba(148,163,184,0.15); }
+    td { padding: 0.4rem 0.6rem; border-bottom: 1px solid rgba(148,163,184,0.08); }
+    .temp-high { color: var(--error); }
+    .temp-ok   { color: var(--success); }
+    details summary {
+      cursor: pointer;
+      user-select: none;
+      list-style: none;
+    }
+    details summary::-webkit-details-marker { display: none; }
+    details summary h2 { display: inline-block; margin: 0 0 0.75rem; }
+    .weather-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .weather-day {
+      flex: 1;
+      min-width: 76px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(148,163,184,0.2);
+      border-radius: 10px;
+      padding: 0.65rem 0.5rem;
+      text-align: center;
+    }
+    .weather-day.heat-warn {
+      background: rgba(248,113,113,0.12);
+      border-color: rgba(248,113,113,0.4);
+    }
+    .weather-day.freeze-warn {
+      background: rgba(56,189,248,0.1);
+      border-color: rgba(56,189,248,0.4);
+    }
+    .wd-label { font-size: 0.72rem; color: var(--muted); margin-bottom: 0.3rem; }
+    .wd-high { font-size: 1rem; font-weight: 600; }
+    .wd-low { font-size: 0.85rem; color: var(--muted); margin-top: 0.15rem; }
+    .weather-day.heat-warn .wd-high { color: var(--error); }
+    .weather-day.freeze-warn .wd-low { color: var(--accent); }
+    .occupancy-split {
+      margin-bottom: 2rem;
+    }
+    .occupancy-split .source-note {
+      margin: -0.35rem 0 0.85rem;
+      font-size: 0.9rem;
+    }
+    .occupancy-counts {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    .occupancy-lists {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1rem;
+    }
+    .occupancy-lists table { min-width: 0; }
+    .stale-pill {
+      background: rgba(251, 191, 36, 0.14);
+      color: var(--warn);
+    }
+    .notes-section { margin-top: 2rem; }
+    .notes-section h2 { margin: 0 0 0.75rem; font-size: 1.2rem; }
+    .notes-card { background: linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0)); border: 1px solid rgba(148,163,184,.15); border-radius: 12px; padding: 1rem; }
+    .notes-textarea { width: 100%; min-height: 120px; background: rgba(255,255,255,.04); border: 1px solid rgba(148,163,184,.2); border-radius: 8px; color: var(--text); font-family: inherit; font-size: .9rem; line-height: 1.5; padding: .65rem .75rem; resize: vertical; outline: none; box-sizing: border-box; }
+    .notes-copy-btn svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+  </style>
+  <link rel="stylesheet" href="./operations.css">
+  <link rel="stylesheet" href="./overview-layout.css">
+  <link rel="stylesheet" href="./property-summary.css">
+  <link rel="stylesheet" href="./property-detail.css">
+  <script defer src="./navigation.js"></script>
+  <script src="./display-format.js"></script>
+  <script defer src="./overview-views.js"></script>
+</head>
+<body>
+  <nav class="ops-nav" aria-label="Main navigation">
+    <a href="./index.html" aria-current="page">Overview</a>
+    <a href="./private-messages.html">Messages</a>
+    <a href="./templates.html">Templates</a>
+    <a href="./codes.html">Codes</a>
+    <a href="./stats.html">Stats</a>
+    <a href="./vendors.html">Vendors</a>
+  </nav>
+  <header>
+    <div><h1 id="view-title">Operations overview</h1><p class="muted" id="view-description">Occupancy, tasks and property conditions at a glance.</p></div>
+    <div class="header-meta">
+      <span class="pill" id="last-updated">Loading…</span>
+      <span class="muted" id="refresh-info">Auto-refresh in 300s</span>
+      <details class="account-menu"><summary>Account</summary><div class="account-popover"><p id="account-status" role="status">Checking session…</p><a id="account-signin" href="./private-messages.html" hidden>Sign in</a><button id="signout-btn" type="button" hidden>Sign out</button></div></details>
+    </div>
+  </header>
+
+  <section id="overview-summary" aria-label="Operations summary">
+    <div class="overview-metrics">
+      <article class="card"><h2>Rooms seen</h2><p id="summary-rooms">—</p><span class="muted">From the occupancy snapshot</span></article>
+      <article class="card"><h2>Incoming move-ins</h2><p id="summary-incoming">—</p><span class="muted">Upcoming activity</span></article>
+      <article class="card"><h2>Needs a turn</h2><p id="summary-turn">—</p><span class="muted">Vacant and not rent-ready</span></article>
+    </div>
+    <div class="overview-workspace">
+      <div class="card overview-actions"><div class="property-summary-heading"><h2>Property operations</h2><a id="overview-all-properties" href="#occupancy-section">All properties</a></div><div id="summary-property-list" role="status">Sign in to load private occupancy.</div></div>
+      <div class="card overview-actions"><div class="overview-panel-heading"><h2>Needs attention</h2><a href="#occupancy-section">View rooms</a></div><div class="overview-list" id="summary-attention" role="status">Sign in to load private occupancy.</div></div>
+    </div>
+    <div class="overview-followups">
+      <div class="card overview-actions"><div class="overview-panel-heading"><h2>Upcoming move-ins</h2><a href="#occupancy-section">View rooms</a></div><div class="overview-list" id="summary-upcoming" role="status">Sign in to load private occupancy.</div></div>
+      <div class="card overview-actions"><div class="overview-panel-heading"><h2>Collection health</h2><a href="#system-health">View details</a></div><p class="muted" id="summary-health" role="status">Loading collection status…</p></div>
+    </div>
+  </section>
+
+  <section class="occupancy-split" id="occupancy-section">
+    <div class="flex-between">
+      <h2>Occupancy</h2>
+      <span class="pill" id="occupancy-updated">Private occupancy unavailable</span>
+    </div>
+    <p class="muted source-note">
+      Presence from the owner-only occupancy snapshot derived from messages and tasks.
+      This is not <code>stats.json</code> listed-status.
+      <a href="./stats.html" class="header-link">Stale KPI stats</a> stay on the Stats page.
+    </p>
+    <label class="search-label" for="occupancy-search">Search rooms or properties</label>
+    <input id="occupancy-search" type="search" placeholder="Filter by property or room" autocomplete="off">
+    <p id="occupancy-scope" hidden><span id="occupancy-scope-label"></span> <button type="button" id="clear-occupancy-scope">Show all properties</button></p>
+    <div id="occupancy-content">
+      <div class="loading">Sign in to load private occupancy.</div>
+    </div>
+  </section>
+
+  <div class="sync-status" id="task-sync" aria-live="polite">
+    <span id="discussion-sync">Loading internal discussions…</span>
+    <span id="manual-sync">Loading manual tasks…</span>
+    <span id="private-sync">Sign in to load private task details.</span>
+    <a href="./private-messages.html" id="overview-signin">Sign in</a>
+  </div>
+  <section id="api-task-summary" class="card" hidden aria-labelledby="api-task-heading">
+    <div class="flex-between"><h2 id="api-task-heading">Internal tasks</h2><a href="./tasks.html">Open tasks and discussions</a></div>
+    <p id="api-task-status" role="status">Sign in to load task status.</p>
+  </section>
+  <div id="content">
+    <div class="loading">Fetching latest.json …</div>
+  </div>
+
+  <details open id="climate-section">
+    <summary><h2>Thermostats &amp; Weather Check</h2></summary>
+    <div id="thermostat-section">
+      <div class="loading">Fetching thermostat data…</div>
+    </div>
+
+    <h3>DFW Weather Forecast</h3>
+    <div id="weather-section">
+      <div class="loading">Fetching weather…</div>
+    </div>
+  </details>
+
+  <section class="section" id="system-health" aria-labelledby="system-health-title">
+    <h2 id="system-health-title">System health</h2>
+    <div class="card" id="health-content" role="status">Loading collection status…</div>
+  </section>
+
+  <section class="notes-section" id="overview-notes">
+    <h2>Notes</h2>
+    <div class="notes-card">
+      <p id="overview-notes-status" role="status">Sign in to access shared notes.</p>
+      <textarea disabled aria-label="Shared notes" class="notes-textarea" id="notes-textarea" placeholder="Add shared notes…"></textarea>
+      <div class="notes-footer">
+        <button disabled class="notes-save-btn" id="notes-save-btn">Save</button>
+        <button disabled class="notes-copy-btn" id="notes-copy-btn" title="Copy notes" aria-label="Copy notes"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Snapshot data refreshes every 5 minutes. The observation time is shown above; refreshing the page does not run a scrape.
+  </footer>
+
+  <script src="./runtime-config.js"></script>
+  <script src="./api-client.js"></script>
+  <script src="./api-note.js"></script>
+  <script src="./api-occupancy.js"></script>
+  <script src="./api-climate.js"></script>
+  <script src="./api-provider-tasks.js"></script>
+  <script src="./api-reviewed-links.js"></script>
+  <script src="./vendors-api.js"></script>
+  <script src="./refresh-guard.js"></script>
+  <script src="./occupancy-view.js"></script>
+  <script src="./property-summary.js"></script>
+  <script src="./overview-insights.js"></script>
+  <script src="./listener-status.js"></script>
+  <script src="./system-health.js"></script>
+  <script src="./task-filter.js"></script>
+  <script src="./task-actions.js"></script>
+  <script src="./property-detail.js"></script>
+  <script src="./private-snapshot.js"></script>
+  <script src="./overview-session.js"></script>
+  <script src="./overview-api-access.js"></script>
+  <script src="./overview-api-tasks.js"></script>
+  <script src="./overview-api-refresh.js"></script>
+  <script src="./account-control.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, collection, addDoc, deleteDoc, doc, getDoc, setDoc, serverTimestamp, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    // Paste your Firebase config keys here (all fields required)
+    const legacyFirebaseConfig = window.PADSPLIT_RUNTIME_CONFIG?.firebase ?? null;
+    const runtimeConfig = window.PADSPLIT_RUNTIME_CONFIG;
+    const apiRequired = document.querySelector('meta[name="padsplit-data-mode"]')?.content === 'api';
+    const runtime = resolveOperationsRuntime(runtimeConfig, apiRequired);
+    const apiMode = runtime.mode === 'api';
+    const firebaseConfig = apiMode ? runtime.firebase : legacyFirebaseConfig;
+    if (apiMode) {
+      document.getElementById('account-signin').href = './vendors.html';
+      document.getElementById('overview-signin').href = './vendors.html';
+      document.getElementById('api-task-summary').hidden = false;
+    }
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    const operationsApi = apiMode ? createOperationsApi({baseUrl:runtime.apiOrigin, getUser:() => auth.currentUser}) : null;
+    let apiNotes = null;
+    let apiRole = null;
+
+    const REFRESH_SEC = 300;
+    let counter = REFRESH_SEC;
+    const refreshInfo = document.getElementById('refresh-info');
+    const taskMessageContainers = new Map();
+    const taskMessagesById = new Map();
+    const taskMessagesByTaskId = new Map();
+    const manualTaskRows = new Map();
+    let manualTasksDiv = null;
+    let manualCountBadge = null;
+    let manualTasksLoaded = false;
+    let publicSnapshot = null;
+    let privateSnapshot = null;
+    let reviewedRoomTaskLinks = null;
+    let privateGeneration = 0;
+    let latestClimate = null;
+    const propertyDetail = attachPropertyDetail({
+      root: document.getElementById('occupancy-content'),
+      getContext: () => ({ rooms: latestOccupancy?.rooms || [], occupancyObserved: latestOccupancy?.scraped_at,
+        tasks: privateSnapshot?.tasks, tasksAuthorized: !!privateSnapshot && (!apiMode || reviewedRoomTaskLinks !== null),
+        taskLinkMode: apiMode ? 'reviewed' : 'legacy', reviewedLinks: reviewedRoomTaskLinks,
+        taskUnavailableReason: apiMode && privateSnapshot ? 'Reviewed room links are unavailable.' : null, climate: latestClimate,
+        climateLinkMode: apiMode ? 'reviewed' : 'legacy' })
+    });
+
+    if (!apiMode) setInterval(() => {
+      counter -= 1;
+      if (counter <= 0) {
+        const active = document.activeElement;
+        const editing = active && active.matches('input, textarea, select');
+        const draft = Array.from(document.querySelectorAll('[data-msg], [data-notes]')).some(input => input.value.trim());
+        const notesDirty = document.getElementById('notes-textarea').dataset.dirty === 'true';
+        if (shouldDeferRefresh({ editing, draft, notesDirty })) {
+          refreshInfo.textContent = 'Refresh paused while editing';
+        } else {
+          location.reload();
+        }
+      } else {
+        refreshInfo.textContent = `Auto-refresh in ${counter}s`;
+      }
+    }, 1000);
+
+    function fmtDate(s) {
+      if (!s) return '—';
+      return formatDisplayTime(s);
+    }
+
+    function chicagoToday(now = new Date()) {
+      return new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'America/Chicago',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      }).format(now);
+    }
+
+    function escapeText(value) {
+      return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;',
+      }[ch]));
+    }
+
+    function roomLabel(room) {
+      const address = room.address || 'Unknown address';
+      return room.room_number == null || room.room_number === ''
+        ? address
+        : `${address} Rm ${room.room_number}`;
+    }
+
+    function operatorLists(rooms, today) {
+      const incoming = [];
+      const rentReady = [];
+      const occupiedAfterMoveOut = [];
+      const vacantNotReady = [];
+      for (const room of Array.isArray(rooms) ? rooms : []) {
+        const nextMoveIn = room.next_move_in || null;
+        const listed = room.listed_move_out || null;
+        if (nextMoveIn && nextMoveIn >= today) incoming.push(room);
+        if (room.rent_ready === true) rentReady.push(room);
+        if (room.occupant_present === true && listed && listed < today) occupiedAfterMoveOut.push(room);
+        if (room.vacant === true && room.rent_ready !== true) vacantNotReady.push(room);
+      }
+      incoming.sort((a, b) => String(a.next_move_in || '').localeCompare(String(b.next_move_in || ''))
+        || String(a.address || '').localeCompare(String(b.address || '')));
+      return { incoming, rentReady, occupiedAfterMoveOut, vacantNotReady };
+    }
+
+    function occupancyTable(headers, rowsHtml, emptyText, colSpan) {
+      return `
+        <div class="table-wrap">
+          <table>
+            <thead><tr>${headers.map((h) => `<th>${h}</th>`).join('')}</tr></thead>
+            <tbody>${rowsHtml || `<tr><td colspan="${colSpan}" class="muted">${emptyText}</td></tr>`}</tbody>
+          </table>
+        </div>`;
+    }
+
+    let latestOccupancy = null;
+    let selectedPropertyScope = null;
+    document.getElementById('summary-property-list').addEventListener('click', event => {
+      const button = event.target.closest('[data-property-scope]');
+      if (!button || !latestOccupancy) return;
+      selectedPropertyScope = button.dataset.propertyScope;
+      document.getElementById('occupancy-search').value = '';
+      document.getElementById('occupancy-scope-label').textContent = `Property: ${button.textContent}`;
+      document.getElementById('occupancy-scope').hidden = false;
+      renderOccupancy(latestOccupancy);
+      location.hash = 'occupancy-section';
+    });
+    function clearPropertyScope() {
+      selectedPropertyScope = null;
+      document.getElementById('occupancy-scope').hidden = true;
+      if (latestOccupancy) renderOccupancy(latestOccupancy);
+    }
+    document.getElementById('clear-occupancy-scope').addEventListener('click', clearPropertyScope);
+    document.getElementById('overview-all-properties').addEventListener('click', clearPropertyScope);
+    document.getElementById('occupancy-search').addEventListener('input', () => { if (latestOccupancy) renderOccupancy(latestOccupancy); });
+    function clearOccupancy(message) {
+      latestOccupancy = null;
+      selectedPropertyScope = null;
+      document.getElementById('occupancy-scope').hidden = true;
+      document.getElementById('occupancy-scope-label').textContent = '';
+      ['summary-rooms','summary-incoming','summary-turn'].forEach(id => { document.getElementById(id).textContent = '—'; });
+      document.getElementById('summary-property-list').textContent = message;
+      document.getElementById('summary-attention').textContent = message;
+      document.getElementById('summary-upcoming').textContent = message;
+      document.getElementById('occupancy-updated').textContent = 'Private occupancy unavailable';
+      const notice = document.createElement('div'); notice.className = 'card'; notice.setAttribute('role', 'status'); notice.textContent = message;
+      document.getElementById('occupancy-content').replaceChildren(notice);
+    }
+    function renderOccupancy(data) {
+      if (!data || data.private_content_omitted || !Array.isArray(data.rooms)) return clearOccupancy('Room data is unavailable in this private snapshot.');
+      latestOccupancy = data;
+      const rooms = data.rooms;
+      document.getElementById('summary-property-list').innerHTML = renderPropertySummary(summarizePropertyRooms(rooms), {selectable:true});
+      const today = chicagoToday();
+      const lists = operatorLists(rooms, today);
+      const overview = renderOverviewInsights(buildOverviewInsights(lists));
+      document.getElementById('summary-attention').innerHTML = overview.attention;
+      document.getElementById('summary-upcoming').innerHTML = overview.upcoming;
+      const scopedRooms = rooms.filter(room => matchesPropertyScope(room, selectedPropertyScope));
+      const scopedLists = selectedPropertyScope == null ? lists : operatorLists(scopedRooms, today);
+      const present = scopedRooms.filter((room) => room.occupant_present === true).length;
+      const unknownPresence = scopedRooms.filter((room) => room.occupant_present !== true && room.occupant_present !== false).length;
+      const vacant = scopedRooms.filter((room) => room.vacant === true).length;
+      document.getElementById('summary-rooms').textContent = String(rooms.length);
+      document.getElementById('summary-incoming').textContent = String(lists.incoming.length);
+      document.getElementById('summary-turn').textContent = String(lists.vacantNotReady.length);
+      document.getElementById('occupancy-updated').textContent = `Observed ${fmtDate(data.scraped_at)}`;
+
+      const counts = [
+        ['Rooms seen', scopedRooms.length],
+        ['Present', present],
+        ['Presence unknown', unknownPresence],
+        ['Vacant', vacant],
+        ['Incoming', scopedLists.incoming.length],
+        ['Occupied after move-out', scopedLists.occupiedAfterMoveOut.length],
+        ['Rent-ready', scopedLists.rentReady.length],
+      ];
+      const filter = document.getElementById('occupancy-search').value.trim().toLowerCase();
+      const matches = room => matchesPropertyScope(room, selectedPropertyScope) && roomLabel(room).toLowerCase().includes(filter);
+      const incomingRows = scopedLists.incoming.filter(matches).map((room) => `
+        <tr>
+          <td>${escapeText(roomLabel(room))}</td>
+          <td>${escapeText(room.next_move_in)}</td>
+          <td>${presenceLabel(room)}</td>
+        </tr>`).join('');
+      const holdoverRows = scopedLists.occupiedAfterMoveOut.filter(matches).map((room) => `
+        <tr>
+          <td>${escapeText(roomLabel(room))}</td>
+          <td>${escapeText(room.listed_move_out || '—')}</td>
+          <td>${room.open_eviction_ticket_ids?.length ? 'Eviction open' : (room.open_hold_ticket_ids?.length ? 'Hold open' : 'Present')}</td>
+        </tr>`).join('');
+      const readyRows = scopedLists.rentReady.filter(matches).map((room) => `
+        <tr>
+          <td>${escapeText(roomLabel(room))}</td>
+          <td>${escapeText(displayDays(room))}</td>
+        </tr>`).join('');
+      const vacantRows = scopedLists.vacantNotReady.filter(matches).map((room) => `
+        <tr>
+          <td>${escapeText(roomLabel(room))}</td>
+          <td>${escapeText(displayDays(room))}</td>
+          <td>${room.turned ? 'Turned' : 'Not turned'}</td>
+        </tr>`).join('');
+
+      const workspaceRows = rooms.map((room, index) => ({room, index})).filter(({room}) => matches(room)).map(({room, index}) => `
+        <tr><td>${escapeText(room.address || 'Unknown property')}</td>
+        <td>${escapeText(room.room_number ?? '—')}</td>
+        <td>${escapeText(presenceLabel(room))}</td>
+        <td>${escapeText(roomActionLabel(room))}</td>
+        <td>${escapeText(room.next_move_in || '—')}</td>
+        <td><button type="button" data-room-detail="${index}" aria-label="View details for ${escapeText(roomLabel(room))}">View</button></td></tr>`).join('');
+      document.getElementById('occupancy-content').innerHTML = `
+        <div class="attention-summary" role="region" aria-label="Rooms needing attention">
+          <strong>Attention</strong>
+          <span>${scopedLists.occupiedAfterMoveOut.length} occupied after listed move-out</span>
+          <span>${scopedLists.vacantNotReady.length} vacant awaiting a turn</span>
+          <span>${scopedLists.incoming.length} incoming move-ins</span>
+        </div>
+        <div class="occupancy-counts">
+          ${counts.map(([label, value]) => `
+            <div class="card">
+              <h3>${label}</h3>
+              <div class="status">${value}</div>
+            </div>`).join('')}
+        </div>
+        <section class="card room-workspace" aria-labelledby="room-workspace-heading">
+          <h3 id="room-workspace-heading">Properties and rooms</h3>
+          <p class="muted">Showing ${scopedRooms.filter(matches).length} of ${scopedRooms.length} rooms in the selected scope.</p>
+          ${occupancyTable(['Property', 'Room', 'Presence', 'Room status', 'Next move-in', 'Details'], workspaceRows, 'No rooms match this search.', 6)}
+        </section>
+        <div class="occupancy-lists">
+          <div class="card">
+            <h3>Incoming move-ins</h3>
+            <div class="muted">Future move-in dates from the occupancy snapshot</div>
+            ${occupancyTable(['Room', 'Move-in', 'Status'], incomingRows, 'No upcoming move-ins.', 3)}
+          </div>
+          <div class="card">
+            <h3>Occupied after listed move-out</h3>
+            <div class="muted">Still present. Not rent-ready until a human marks vacant + turned.</div>
+            ${occupancyTable(['Room', 'Listed move-out', 'Flag'], holdoverRows, 'No holdovers.', 3)}
+          </div>
+          <div class="card">
+            <h3>Rent-ready</h3>
+            <div class="muted">Vacant and turned. Not listed-status from stats.json.</div>
+            ${occupancyTable(['Room', 'Days vacant'], readyRows, 'No rent-ready rooms.', 2)}
+          </div>
+          <div class="card">
+            <h3>Vacant, not rent-ready</h3>
+            <div class="muted">Empty but not turned.</div>
+            ${occupancyTable(['Room', 'Days vacant', 'Turn'], vacantRows, 'No vacant rooms waiting on a turn.', 3)}
+          </div>
+        </div>`;
+    }
+
+    function getImportantIds() {
+      return new Set(JSON.parse(localStorage.getItem('important_task_ids') || '[]'));
+    }
+    function getMessageCreatedValue(created) {
+      if (!created) return 0;
+      if (created?.toMillis) return created.toMillis();
+      const date = created?.toDate ? created.toDate() : new Date(created);
+      return Number.isNaN(date.getTime()) ? 0 : date.getTime();
+    }
+    function sortTaskMessages(taskId) {
+      const messages = taskMessagesByTaskId.get(taskId) || [];
+      messages.sort((a, b) => {
+        const createdDiff = getMessageCreatedValue(a.created) - getMessageCreatedValue(b.created);
+        return createdDiff || a.id.localeCompare(b.id);
+      });
+      taskMessagesByTaskId.set(taskId, messages);
+      return messages;
+    }
+    function removeTaskMessageFromTask(taskId, messageId) {
+      const messages = taskMessagesByTaskId.get(taskId) || [];
+      const next = messages.filter((message) => message.id !== messageId);
+      if (next.length) {
+        taskMessagesByTaskId.set(taskId, next);
+      } else {
+        taskMessagesByTaskId.delete(taskId);
+      }
+    }
+    function buildTaskMessageRow(message) {
+      const roleClass = message.role === "Repairman #1" ? "role-repairman"
+                     : message.role === "Repairman #2" ? "role-repairman"
+                     : "role-owner";
+      const created = message.created?.toDate ? message.created.toDate() : message.created;
+      const msgDiv = document.createElement('div');
+      msgDiv.className = `chat-msg ${roleClass}`;
+      msgDiv.dataset.docId = message.id;
+      msgDiv.innerHTML = `
+        <div>
+          <strong>${escapeText(message.role || 'Role')}${message.status ? ` [${escapeText(message.status)}]` : ''}:</strong> ${escapeText(message.text || '')}
+          <button class="delete-msg-btn" data-doc-id="${escapeText(message.id)}" title="Delete">✕</button>
+        </div>
+        <div class="msg-meta">${created ? escapeText(fmtDate(created)) : ''}</div>
+      `;
+      const deleteBtn = msgDiv.querySelector('.delete-msg-btn');
+      deleteBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        if (apiMode) return;
+        if (!confirm('Delete this message?')) return;
+        await deleteTaskRecord(deleteBtn, () => deleteDoc(doc(db, "task_messages", message.id)),
+          message => window.alert(message), 'Could not delete this discussion. Check your access and try again.');
+      });
+      return msgDiv;
+    }
+    function renderTaskMessages(taskId) {
+      const container = taskMessageContainers.get(taskId);
+      if (!container) return;
+      const follow = shouldFollowDiscussion(container.scrollHeight, container.scrollTop, container.clientHeight);
+      const previousTop = container.scrollTop;
+      container.innerHTML = '';
+      const messages = sortTaskMessages(taskId);
+      messages.forEach((message) => {
+        container.appendChild(buildTaskMessageRow(message));
+      });
+      container.scrollTop = follow ? container.scrollHeight : previousTop;
+    }
+    function upsertTaskMessage(messageId, data) {
+      const previous = taskMessagesById.get(messageId);
+      if (previous && previous.taskId !== data.taskId) {
+        removeTaskMessageFromTask(previous.taskId, messageId);
+        renderTaskMessages(previous.taskId);
+      }
+
+      const message = { ...data, id: messageId };
+      taskMessagesById.set(messageId, message);
+
+      const taskId = data.taskId;
+      const messages = taskMessagesByTaskId.get(taskId) || [];
+      const existingIndex = messages.findIndex((entry) => entry.id === messageId);
+      if (existingIndex >= 0) {
+        messages[existingIndex] = message;
+      } else {
+        messages.push(message);
+      }
+      taskMessagesByTaskId.set(taskId, messages);
+      renderTaskMessages(taskId);
+    }
+    function removeTaskMessage(messageId) {
+      const previous = taskMessagesById.get(messageId);
+      if (!previous) return;
+      taskMessagesById.delete(messageId);
+      removeTaskMessageFromTask(previous.taskId, messageId);
+      renderTaskMessages(previous.taskId);
+    }
+    function buildImportantBtn(taskId) {
+      const important = getImportantIds();
+      const isImportant = important.has(taskId);
+      const btn = document.createElement('button');
+      btn.textContent = '!';
+      btn.title = 'Mark as important';
+      btn.style.cssText = `background:none;border:none;cursor:pointer;font-weight:bold;font-size:1rem;line-height:1;padding:0 0.3rem 0 0;color:#ef4444;opacity:${isImportant ? '1' : '0.15'};transition:opacity 0.15s;`;
+      btn.addEventListener('mouseenter', () => { if (btn.style.opacity === '0.15') btn.style.opacity = '0.5'; });
+      btn.addEventListener('mouseleave', () => { if (btn.style.opacity === '0.5') btn.style.opacity = '0.15'; });
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const ids = getImportantIds();
+        if (ids.has(taskId)) {
+          ids.delete(taskId);
+          btn.style.opacity = '0.15';
+        } else {
+          ids.add(taskId);
+          btn.style.opacity = '1';
+        }
+        localStorage.setItem('important_task_ids', JSON.stringify([...ids]));
+      });
+      return btn;
+    }
+
+    function buildTaskChatBox(taskId) {
+      const chatBox = document.createElement('div');
+      chatBox.className = 'chat-box';
+      chatBox.dataset.taskId = String(taskId);
+      const controls = document.createElement('div');
+      controls.className = 'chat-controls';
+      controls.innerHTML = `
+        <select data-role aria-label="Discussion author">
+          <option value="Don">Don</option>
+          <option value="Repairman #1">Repairman #1</option>
+          <option value="Repairman #2">Repairman #2</option>
+          <option value="Owner">Owner</option>
+          <option value="Manager">Manager</option>
+        </select>
+        <select data-status aria-label="Discussion status">
+          <option value="Done">Done</option>
+          <option value="In Process">In Process</option>
+          <option value="Can't get to it for a bit...">Can't get to it for a bit...</option>
+        </select>
+        <input data-msg aria-label="Internal discussion message" placeholder="Internal discussion" />
+        <button data-send>Post</button>
+      `;
+      const messagesDiv = document.createElement('div');
+      messagesDiv.className = 'chat-messages';
+      messagesDiv.dataset.taskId = taskId;
+      taskMessageContainers.set(taskId, messagesDiv);
+      renderTaskMessages(taskId);
+
+      const sendBtn = controls.querySelector('[data-send]');
+      const msgInput = controls.querySelector('[data-msg]');
+
+      sendBtn.addEventListener('click', async () => {
+        if (apiMode || sendBtn.disabled) return;
+        const role = controls.querySelector('[data-role]').value;
+        const status = controls.querySelector('[data-status]').value;
+        const text = msgInput.value.trim();
+        if (!validDiscussionText(text)) {
+          alert('Enter an internal discussion message before posting.');
+          msgInput.focus();
+          return;
+        }
+        sendBtn.disabled = true;
+        sendBtn.textContent = 'Posting…';
+        try {
+          await addDoc(collection(db, "task_messages"), {
+            taskId,
+            role,
+            status,
+            text,
+            created: serverTimestamp(),
+          });
+          if (shouldClearTaskDraft(text, msgInput.value.trim())) msgInput.value = "";
+          sendBtn.textContent = 'Posted';
+        } catch (err) {
+          console.error("Failed to send message", err);
+          alert("Could not post the internal discussion. Your draft is still here.");
+        } finally {
+          if (sendBtn.textContent === 'Posted') setTimeout(() => { if (sendBtn.textContent === 'Posted') sendBtn.textContent = 'Post'; }, 1500);
+          else sendBtn.textContent = 'Post';
+          sendBtn.disabled = false;
+        }
+      });
+
+      chatBox.appendChild(controls);
+      chatBox.appendChild(messagesDiv);
+      return chatBox;
+    }
+
+    function buildManualTaskRow(taskId, d) {
+      const row = document.createElement('div');
+      row.style.marginTop = '0.5rem';
+      row.className = 'task-row';
+      row.dataset.taskId = taskId;
+      row.innerHTML = `
+        <div class="flex-between">
+          <div class="status">${escapeText(d.who || 'Task')}</div>
+          <span class="chip">${escapeText(d.source || 'Other')}</span>
+          <button class="delete-msg-btn" title="Delete task">✕</button>
+        </div>
+        <div class="muted">${escapeText(d.notes || 'No details')}</div>
+      `;
+      row.querySelector('.flex-between').prepend(buildImportantBtn(taskId));
+      const deleteBtn = row.querySelector('.delete-msg-btn');
+      deleteBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        if (apiMode) return;
+        if (!confirm('Delete this task?')) return;
+        await deleteTaskRecord(deleteBtn, () => deleteDoc(doc(db, "manual_tasks", taskId)),
+          message => window.alert(message), 'Could not delete this task. Check your access and try again.');
+      });
+      row.appendChild(buildTaskChatBox(taskId));
+      return row;
+    }
+
+    function applyTaskFilter() {
+      const search = document.getElementById('task-search');
+      if (!search) return;
+      const status = document.getElementById('task-status-filter')?.value || '';
+      document.querySelectorAll('#content .task-row').forEach(row => {
+        row.hidden = !matchesTask(search.value, row.textContent) || !taskMatchesStatus(status, row.dataset.status);
+      });
+      const sort = document.getElementById('task-sort')?.value || 'source';
+      document.querySelectorAll('#content .task-bucket').forEach(bucket => {
+        const rows = Array.from(bucket.querySelectorAll(':scope > .task-row'));
+        rows.sort((a, b) => sort === 'property'
+          ? (a.dataset.property || '').localeCompare(b.dataset.property || '')
+          : Number(a.dataset.order) - Number(b.dataset.order));
+        rows.forEach(row => bucket.appendChild(row));
+      });
+    }
+
+    function updateManualBadgeCount() {
+      if (!manualCountBadge) return;
+      manualCountBadge.textContent = manualCountLabel(manualTasksLoaded, manualTaskRows.size);
+    }
+
+    function render(data) {
+      if (overviewSession.currentUid()) activeOverviewDrafts = captureOverviewDrafts();
+      const root = document.createElement('div');
+      taskMessageContainers.clear();
+      manualTasksDiv = null;
+      manualCountBadge = null;
+
+      // Header info
+      const last = document.getElementById('last-updated');
+      const runState = data.run_status?.state;
+      last.textContent = `Scraped ${fmtDate(data.scraped_at)}${runState && runState !== 'ok' ? ` · ${runState}` : ''}`;
+
+      // Tasks
+      const taskSection = document.createElement('div');
+      taskSection.className = 'section';
+      const taskDetails = document.createElement('div');
+      const taskHeader = document.createElement('h2');
+      taskHeader.textContent = 'Tasks';
+      taskDetails.appendChild(taskHeader);
+      const searchLabel = document.createElement('label');
+      searchLabel.className = 'search-label';
+      searchLabel.textContent = 'Search tasks';
+      searchLabel.htmlFor = 'task-search';
+      const taskSearch = document.createElement('input');
+      taskSearch.id = 'task-search'; taskSearch.type = 'search';
+      taskSearch.placeholder = 'Filter by property, request or status';
+      taskSearch.addEventListener('input', applyTaskFilter);
+      taskDetails.append(searchLabel, taskSearch);
+      const tasks = data.tasks || {};
+      const taskStatuses = [...new Set(Object.values(tasks).flatMap(items => Array.isArray(items) ? items : [])
+        .map(task => task?.status).filter(value => typeof value === 'string' && value))].sort();
+      const statusLabel = document.createElement('label');
+      statusLabel.className = 'search-label'; statusLabel.htmlFor = 'task-status-filter'; statusLabel.textContent = 'Filter by status';
+      const statusFilter = document.createElement('select'); statusFilter.id = 'task-status-filter';
+      [['', 'All statuses'], ...taskStatuses.map(value => [value, value])].forEach(([value, label]) => {
+        const option = document.createElement('option'); option.value = value; option.textContent = label; statusFilter.appendChild(option);
+      });
+      statusFilter.addEventListener('change', applyTaskFilter);
+      const sortLabel = document.createElement('label');
+      sortLabel.className = 'search-label'; sortLabel.htmlFor = 'task-sort'; sortLabel.textContent = 'Sort tasks within each group';
+      const taskSort = document.createElement('select'); taskSort.id = 'task-sort';
+      [['source', 'Source order'], ['property', 'Property']].forEach(([value, label]) => {
+        const option = document.createElement('option'); option.value = value; option.textContent = label; taskSort.appendChild(option);
+      });
+      taskSort.addEventListener('change', applyTaskFilter);
+      taskDetails.append(statusLabel, statusFilter, sortLabel, taskSort);
+      if (data.private_content_omitted) {
+        const notice = document.createElement('p');
+        notice.className = 'card';
+        notice.textContent = 'Task details are unavailable in the public snapshot. Internal manual tasks remain available below.';
+        taskDetails.appendChild(notice);
+      }
+      const dismissed = new Set(JSON.parse(localStorage.getItem('dismissed_task_ids') || '[]'));
+      Object.keys(tasks).forEach(bucket => {
+        if (bucket === 'Complete') return;
+        const bucketTasks = tasks[bucket].filter(t => t && typeof t === 'object' && t.id && !dismissed.has(t.id));
+        if (bucketTasks.length === 0) return;
+
+        const bucketDiv = document.createElement('div');
+        bucketDiv.className = 'card task-bucket';
+        const header = document.createElement('div');
+        header.className = 'flex-between';
+        header.innerHTML = `<h3>${escapeText(bucket)}</h3><span class="badge">${bucketTasks.length}</span>`;
+
+        bucketDiv.appendChild(header);
+        bucketTasks.forEach((t, taskIndex) => {
+          const taskId = t.id || `${bucket}-${Math.random().toString(16).slice(2)}`;
+          const row = document.createElement('div');
+          row.style.marginTop = '0.5rem';
+          row.className = 'task-row';
+          row.dataset.status = t.status || '';
+          row.dataset.property = t.property_address?.street1 || '';
+          row.dataset.order = String(taskIndex);
+          row.innerHTML = `
+            <div class="flex-between">
+              <div class="status">${escapeText(t.category || 'Task')}</div>
+              <span class="chip">${escapeText(t.status || 'unknown')}</span>
+            </div>
+            <div class="muted">${escapeText(t.details || t.description || 'No details')}</div>
+            <div class="chips">
+              ${t.property_address?.street1 ? `<span class="chip">${escapeText(t.property_address.street1)}</span>` : ''}
+              ${t.location ? `<span class="chip">${escapeText(t.location)}${t.room_number != null ? ` #${escapeText(t.room_number)}` : ''}</span>` : ''}
+            </div>
+          `;
+          row.querySelector('.flex-between').prepend(buildImportantBtn(taskId));
+
+          row.appendChild(buildTaskChatBox(taskId));
+          bucketDiv.appendChild(row);
+          renderTaskMessages(taskId);
+        });
+        taskDetails.appendChild(bucketDiv);
+      });
+
+      const manualBucketDiv = document.createElement('div');
+      manualBucketDiv.className = 'card';
+      manualBucketDiv.innerHTML = `<div class="flex-between"><h3>Manual</h3><span class="badge">0</span></div>`;
+      manualCountBadge = manualBucketDiv.querySelector('.badge');
+      manualTasksDiv = document.createElement('div');
+      manualBucketDiv.appendChild(manualTasksDiv);
+      manualTaskRows.forEach((row, taskId) => {
+        manualTasksDiv.appendChild(row);
+        const messages = row.querySelector('.chat-messages');
+        if (messages) taskMessageContainers.set(String(taskId), messages);
+        renderTaskMessages(taskId);
+      });
+      updateManualBadgeCount();
+      taskDetails.appendChild(manualBucketDiv);
+
+      const addCard = document.createElement('div');
+      addCard.className = 'card';
+      addCard.style.marginTop = '1rem';
+      addCard.innerHTML = `
+        <div class="flex-between">
+          <h3>Add Task</h3>
+        </div>
+        <div class="chat-box">
+          <div class="chat-controls">
+            <select data-who aria-label="Assigned to">
+              <option>Don</option>
+              <option>Repairman #1</option>
+              <option>Repairman #2</option>
+              <option>Owner</option>
+              <option>Manager</option>
+            </select>
+            <select data-source aria-label="Task source">
+              <option>Chat</option>
+              <option>In-Person</option>
+              <option>Other</option>
+            </select>
+            <input data-notes aria-label="Task notes" placeholder="Notes" style="flex:1" />
+            <button data-add>Add</button>
+          </div>
+        </div>
+      `;
+      const addBtn = addCard.querySelector('[data-add]');
+      const notesInput = addCard.querySelector('[data-notes]');
+      addBtn.addEventListener('click', async () => {
+        if (apiMode || addBtn.disabled) return;
+        const who = addCard.querySelector('[data-who]').value;
+        const source = addCard.querySelector('[data-source]').value;
+        const notes = notesInput.value.trim();
+        if (!notes) return;
+        addBtn.disabled = true;
+        addBtn.textContent = 'Adding…';
+        try {
+          await addDoc(collection(db, "manual_tasks"), {
+            who,
+            source,
+            notes,
+            created: serverTimestamp(),
+          });
+          if (shouldClearTaskDraft(notes, notesInput.value.trim())) notesInput.value = "";
+          addBtn.textContent = 'Added';
+        } catch (err) {
+          console.error("Failed to add manual task", err);
+          alert("Could not add the task. Your draft is still here.");
+        } finally {
+          if (addBtn.textContent === 'Added') setTimeout(() => { if (addBtn.textContent === 'Added') addBtn.textContent = 'Add'; }, 1500);
+          else addBtn.textContent = 'Add';
+          addBtn.disabled = false;
+        }
+      });
+      taskDetails.appendChild(addCard);
+
+      taskSection.appendChild(taskDetails);
+      root.appendChild(taskSection);
+
+      const container = document.getElementById('content');
+      container.innerHTML = '';
+      container.appendChild(root);
+      applyOverviewWriteAccess();
+      restoreOverviewDrafts(activeOverviewDrafts);
+    }
+
+    function renderThermostats(data) {
+      const section = document.getElementById('thermostat-section');
+      let html = `
+        <div class="section">
+          <div class="flex-between" style="margin-bottom:0.75rem">
+            <h2>Thermostats</h2>
+            <span class="muted" style="font-size:0.85rem">Observed ${escapeText(fmtDate(data.scraped_at))}${apiMode ? ' · staging snapshot' : ''}</span>
+          </div>
+          <div class="card">
+            <table>
+              <thead>
+                <tr>
+                  <th>Property</th>
+                  <th>Temp</th>
+                  <th>Heat Set</th>
+                  <th>Cool Set</th>
+                  <th>Humidity</th>
+                  <th>Outdoor</th>
+                </tr>
+              </thead>
+              <tbody>`;
+
+      html += renderClimateRows(data);
+
+      html += `</tbody></table></div></div>`;
+      section.innerHTML = html;
+    }
+
+    function renderWeather(data) {
+      const section = document.getElementById('weather-section');
+      const daily = data.daily;
+      const days = daily.time.map((dateStr, i) => {
+        const d = new Date(dateStr + 'T12:00:00');
+        const label = d.toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric' });
+        const high = Math.round(daily.temperature_2m_max[i]);
+        const low  = Math.round(daily.temperature_2m_min[i]);
+        const cls  = high >= 98 ? 'heat-warn' : low <= 60 ? 'freeze-warn' : '';
+        return `
+          <div class="weather-day ${cls}">
+            <div class="wd-label">${label}</div>
+            <div class="wd-high">${high}°F</div>
+            <div class="wd-low">${low}°F</div>
+          </div>`;
+      });
+      section.innerHTML = `
+        <div class="section">
+          <div class="card">
+            <div class="weather-row">${days.join('')}</div>
+          </div>
+        </div>`;
+    }
+
+    fetch('https://api.open-meteo.com/v1/forecast?latitude=33.1507&longitude=-96.8236&daily=temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit&timezone=America%2FChicago', { cache: 'no-cache' })
+      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+      .then(renderWeather)
+      .catch(err => {
+        document.getElementById('weather-section').innerHTML =
+          `<div class="card error" style="margin-bottom:1rem">Weather unavailable (${err.message}).</div>`;
+      });
+
+    if (!apiMode) fetch('./thermostat/latest.json', { cache: 'no-cache' })
+      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+      .then(data => { latestClimate = data; renderThermostats(data); })
+      .catch(err => {
+        document.getElementById('thermostat-section').innerHTML =
+          `<div class="card error" style="margin-bottom:1rem">Thermostat data unavailable (${err.message}).</div>`;
+      });
+
+    fetch('./data/latest.json', { cache: 'no-cache' })
+      .then(r => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .then(data => {
+        publicSnapshot = data;
+        const run = data.run_status || {};
+        document.getElementById('summary-health').textContent = `Overall: ${healthLabel(run)} · last complete collection: ${healthTime(run.last_complete_success)}`;
+        const sources = run.sources || {};
+        const rows = [['Overall', run], ['Messages', sources.messages], ['Statistics', sources.stats], ['Occupancy', sources.occupancy]];
+        const health = document.getElementById('health-content');
+        health.replaceChildren();
+        rows.forEach(([name, source]) => {
+          const row = document.createElement('p');
+          row.textContent = `${name}: ${healthLabel(source)} · observed ${healthTime(source?.scraped_at || (name === 'Overall' ? run.run_scraped_at : null))}`;
+          health.appendChild(row);
+        });
+        const last = document.createElement('p');
+        last.textContent = `Last complete collection: ${healthTime(run.last_complete_success)}`;
+        health.appendChild(last);
+        const config = document.createElement('p');
+        config.textContent = 'Integration configuration and connectivity: not reported by this snapshot.';
+        health.appendChild(config);
+        render(privateSnapshot || data);
+      })
+      .catch(err => {
+        document.getElementById('health-content').textContent = 'Collection status unavailable.';
+        document.getElementById('summary-health').textContent = 'Collection status unavailable.';
+        if (!privateSnapshot) document.getElementById('content').innerHTML =
+          `<div class="card error">Failed to load latest.json (${escapeText(err.message)}).</div>`;
+        console.error(err);
+      });
+
+    // Owner-only listeners. Drafts remain in this tab's memory for the same account.
+    const OWNER_UID = null;
+    let activeOverviewDrafts = null;
+    let stopFirestore = () => {};
+    let stopApiObservations = () => {};
+    let notesHandlersReady = false;
+
+    function captureOverviewDrafts() {
+      const pending = activeOverviewDrafts || {};
+      const discussions = { ...(pending.discussions || {}) };
+      document.querySelectorAll('.chat-box[data-task-id]').forEach(box => {
+        const input = box.querySelector('[data-msg]');
+        if (input) discussions[box.dataset.taskId] = {
+          text: input.value, role: box.querySelector('[data-role]').value,
+          status: box.querySelector('[data-status]').value
+        };
+      });
+      const notes = document.getElementById('notes-textarea');
+      const manual = document.querySelector('[data-notes]');
+      return {
+        discussions,
+        notes: notes.dataset.dirty === 'true' ? notes.value : pending.notes,
+        notesVersion: apiNotes?.version() ?? pending.notesVersion ?? null,
+        manual: manual ? { text: manual.value, who: document.querySelector('[data-who]').value,
+          source: document.querySelector('[data-source]').value } : pending.manual
+      };
+    }
+    function restoreOverviewDrafts(state) {
+      if (!state || !overviewSession.currentUid()) return;
+      const notes = document.getElementById('notes-textarea');
+      if (state.notes != null) { notes.value = state.notes; notes.dataset.dirty = 'true'; state.notes = null; }
+      const manual = document.querySelector('[data-notes]');
+      if (manual && state.manual) {
+        manual.value = state.manual.text; document.querySelector('[data-who]').value = state.manual.who;
+        document.querySelector('[data-source]').value = state.manual.source; state.manual = null;
+      }
+      document.querySelectorAll('.chat-box[data-task-id]').forEach(box => {
+        const draft = state.discussions?.[box.dataset.taskId];
+        const input = box.querySelector('[data-msg]');
+        if (!draft || !input) return;
+        input.value = draft.text; box.querySelector('[data-role]').value = draft.role;
+        box.querySelector('[data-status]').value = draft.status; delete state.discussions[box.dataset.taskId];
+      });
+    }
+    function applyOverviewWriteAccess() {
+      const signedIn = !!overviewSession.currentUid();
+      const enabled = signedIn && !apiMode;
+      document.querySelectorAll('#content [data-role], #content [data-status], #content [data-msg], #content [data-send], #content [data-who], #content [data-source], #content [data-notes], #content [data-add]').forEach(control => { control.disabled = !enabled; });
+      applyOverviewNotesAccess(document, {signedIn,apiMode,role:apiRole,overviewVisible:!location.hash || location.hash==='#overview'});
+      document.getElementById('overview-signin').hidden = signedIn;
+    }
+    function setupOverviewNotes() {
+      if (notesHandlersReady) return;
+      notesHandlersReady = true;
+      const ta = document.getElementById('notes-textarea');
+      const saveBtn = document.getElementById('notes-save-btn');
+      const copyBtn = document.getElementById('notes-copy-btn');
+      ta.addEventListener('input', () => { ta.dataset.dirty = 'true'; });
+      saveBtn.addEventListener('click', async () => {
+        if (!overviewSession.currentUid() || saveBtn.disabled) return;
+        const uid = overviewSession.currentUid();
+        saveBtn.textContent = 'Saving…'; saveBtn.disabled = true;
+        try {
+          const savedText = ta.value;
+          if (apiMode) { if (!(await apiNotes.save())) return; }
+          else await setDoc(doc(db, 'notes', 'dashboard'), { text: savedText }, { merge: true });
+          if (uid === overviewSession.currentUid() && ta.value === savedText) ta.dataset.dirty = 'false';
+          if (uid === overviewSession.currentUid()) saveBtn.textContent = 'Saved!';
+        } catch (error) {
+          if (uid === overviewSession.currentUid()) {
+            if (apiMode && (error.status === 401 || error.status === 403)) { revokeApiOverview(); return; }
+            saveBtn.textContent = 'Error';
+            if (apiMode && error.status === 409) document.getElementById('overview-notes-status').textContent = 'Notes changed elsewhere. Your draft is preserved; copy it before refreshing.';
+          }
+        }
+        setTimeout(() => { if (uid === overviewSession.currentUid() && (!apiMode || apiRole === 'owner')) { saveBtn.textContent = 'Save'; saveBtn.disabled = false; } }, 1500);
+      });
+      copyBtn.addEventListener('click', () => {
+        if (!overviewSession.currentUid() || copyBtn.disabled) return;
+        navigator.clipboard.writeText(ta.value).then(() => {
+          copyBtn.classList.add('copied'); setTimeout(() => copyBtn.classList.remove('copied'), 1500);
+        });
+      });
+    }
+    function initFirestore() {
+      if (apiMode) {
+        document.getElementById('discussion-sync').textContent = 'Open Tasks to manage internal discussions.';
+        document.getElementById('manual-sync').textContent = 'Open Tasks to manage internal tasks.';
+        const uid = overviewSession.currentUid();
+        const summary = createOverviewApiTasks({api:operationsApi, output:document.getElementById('api-task-status'),
+          isCurrent:() => overviewSession.currentUid() === uid, onAccessLost:revokeApiOverview});
+        summary.start();
+        return () => summary.stop();
+      }
+      const unsubs = [];
+      const sessionUid = overviewSession.currentUid();
+      const q = query(collection(db, 'task_messages'), orderBy('created', 'asc'));
+      unsubs.push(onSnapshot(q, snapshot => {
+        if (overviewSession.currentUid() !== sessionUid) return;
+        document.getElementById('discussion-sync').textContent = listenerMessage('discussion', 'ready');
+        snapshot.docChanges().forEach(change => {
+          if (change.type === 'added' || change.type === 'modified') upsertTaskMessage(change.doc.id, change.doc.data());
+          if (change.type === 'removed') removeTaskMessage(change.doc.id);
+        });
+      }, err => {
+        if (overviewSession.currentUid() !== sessionUid) return;
+        document.getElementById('discussion-sync').textContent = listenerMessage('discussion', err.code === 'permission-denied' ? 'denied' : 'error');
+      }));
+      const ta = document.getElementById('notes-textarea');
+      if (!apiMode) unsubs.push(onSnapshot(doc(db, 'notes', 'dashboard'), snap => {
+        if (overviewSession.currentUid() !== sessionUid) return;
+        document.getElementById('overview-notes-status').textContent = 'Shared notes connected.';
+        if (snap.exists() && document.activeElement !== ta && ta.dataset.dirty !== 'true') ta.value = snap.data().text || '';
+      }, err => {
+        if (overviewSession.currentUid() !== sessionUid) return;
+        document.getElementById('overview-notes-status').textContent = err.code === 'permission-denied' ? 'Shared notes unavailable: permission denied.' : 'Shared notes unavailable.';
+      }));
+      const manualQ = query(collection(db, 'manual_tasks'), orderBy('created', 'asc'));
+      unsubs.push(onSnapshot(manualQ, snapshot => {
+        if (overviewSession.currentUid() !== sessionUid) return;
+        manualTasksLoaded = true;
+        document.getElementById('manual-sync').textContent = listenerMessage('manual', 'ready');
+        updateManualBadgeCount();
+        snapshot.docChanges().forEach(change => {
+          const taskId = change.doc.id;
+          if (change.type === 'added') {
+            const existing = manualTaskRows.get(taskId); if (existing) existing.remove();
+            const row = buildManualTaskRow(taskId, change.doc.data()); manualTaskRows.set(taskId, row);
+            if (manualTasksDiv) { manualTasksDiv.prepend(row); updateManualBadgeCount(); applyTaskFilter(); restoreOverviewDrafts(activeOverviewDrafts); }
+          }
+          if (change.type === 'removed') {
+            const existing = manualTaskRows.get(taskId); if (existing) existing.remove();
+            manualTaskRows.delete(taskId); taskMessageContainers.delete(taskId); updateManualBadgeCount();
+          }
+        });
+      }, err => {
+        if (overviewSession.currentUid() !== sessionUid) return;
+        manualTasksLoaded = false; updateManualBadgeCount();
+        document.getElementById('manual-sync').textContent = listenerMessage('manual', err.code === 'permission-denied' ? 'denied' : 'error');
+      }));
+      return () => unsubs.forEach(unsubscribe => unsubscribe());
+    }
+    const overviewSession = createOverviewSession({
+      canAccess: user => apiMode ? ['owner','manager','operator','viewer'].includes(user?.apiRole) : user?.uid === OWNER_UID,
+      captureDrafts: captureOverviewDrafts,
+      stopListeners: () => { stopApiObservations(); stopApiObservations = () => {}; stopFirestore(); stopFirestore = () => {}; apiNotes?.stop(); operationsApi?.clearSession(); },
+      clearPrivate: () => {
+        propertyDetail.clear(); privateSnapshot = null; reviewedRoomTaskLinks = null; latestClimate = null; activeOverviewDrafts = null;
+        if (apiMode) document.getElementById('thermostat-section').textContent = 'Sign in to load private climate observations.';
+        document.getElementById('occupancy-search').value = '';
+        clearOccupancy('Sign in as the owner to load private occupancy.');
+        taskMessagesById.clear(); taskMessagesByTaskId.clear(); taskMessageContainers.clear();
+        manualTaskRows.forEach(row => row.remove()); manualTaskRows.clear(); manualTasksLoaded = false;
+        const ta = document.getElementById('notes-textarea'); ta.value = ''; ta.dataset.dirty = 'false';
+        document.getElementById('notes-save-btn').textContent = 'Save';
+        document.getElementById('overview-notes-status').textContent = 'Sign in to access shared notes.';
+        document.getElementById('discussion-sync').textContent = 'Sign in to load internal discussions.';
+        document.getElementById('manual-sync').textContent = 'Sign in to load manual tasks.';
+        if (publicSnapshot) render(publicSnapshot);
+        else { document.getElementById('content').replaceChildren(); }
+        applyOverviewWriteAccess();
+      },
+      restoreDrafts: state => { activeOverviewDrafts = state; applyOverviewWriteAccess(); restoreOverviewDrafts(state); },
+      startListeners: user => { setupOverviewNotes(); const stopTasks = initFirestore(); const stopAccess = apiMode ? startOverviewAccessWatch({api:operationsApi,user:auth.currentUser,identity:user.apiIdentity,onInvalid:revokeApiOverview}) : () => {}; stopFirestore = () => { stopTasks(); stopAccess(); }; if (!apiMode || apiRole === 'owner') apiNotes?.start(activeOverviewDrafts?.notesVersion ?? null); }
+    });
+    let apiAuthGeneration = 0;
+    function revokeApiOverview(reason) {
+      apiAuthGeneration++;
+      const previousUid=overviewSession.currentUid();
+      overviewSession.transition(null);
+      if (previousUid && (reason?.discardDrafts === true || reason?.status === 403)) overviewSession.discardDrafts(previousUid);
+      apiRole=null; applyOverviewWriteAccess();
+      updateAccountControl({status:document.getElementById('account-status'),signIn:document.getElementById('account-signin'),signOut:document.getElementById('signout-btn')}, auth.currentUser, '');
+      document.getElementById('private-sync').textContent = 'Account access expired, changed, or could not be verified.';
+    }
+    if (apiMode) apiNotes = createApiNoteBinding({api:operationsApi, textarea:document.getElementById('notes-textarea'),
+      status:document.getElementById('overview-notes-status'), getUid:() => overviewSession.currentUid(), onAccessLost:revokeApiOverview});
+    setupOverviewNotes();
+    onAuthStateChanged(auth, async user => {
+      if (apiMode) {
+        const requestGeneration = ++apiAuthGeneration;
+        overviewSession.transition(null);
+        apiRole = null; applyOverviewWriteAccess();
+        const account = {status:document.getElementById('account-status'),signIn:document.getElementById('account-signin'),signOut:document.getElementById('signout-btn')};
+        updateAccountControl(account, user, '');
+        const status = document.getElementById('private-sync');
+        status.textContent = user ? 'Verifying account access…' : 'Sign in to access shared notes.';
+        clearOccupancy(user ? 'Loading private occupancy…' : 'Sign in to load private occupancy.');
+        if (!user) return;
+        try {
+          const identity = await operationsApi.me();
+          if (requestGeneration !== apiAuthGeneration || auth.currentUser !== user) return;
+          const access = classifyOverviewIdentity(user, identity);
+          if (!access) {
+            overviewSession.discardDrafts(user.uid);
+            status.textContent = 'This account does not have access to the overview.'; clearOccupancy('This account does not have access to private occupancy.'); return;
+          }
+          if (access.role !== 'owner') overviewSession.discardDrafts(user.uid);
+          apiRole = access.role;
+          updateAccountControl(account, user, user.uid);
+          if (apiRole !== 'owner') account.status.textContent = 'Property-scoped session';
+          overviewSession.transition({uid:user.uid,apiRole,apiIdentity:identity});
+          const refreshApiObservations = async () => {
+          status.textContent = 'Loading provider task observations…';
+          try {
+            const occupancy = await loadApiOccupancy(operationsApi);
+            if (requestGeneration !== apiAuthGeneration || auth.currentUser !== user) return;
+            if (!occupancy) clearOccupancy('No verified occupancy observations have been imported.');
+            else { renderOccupancy(occupancy); document.getElementById('occupancy-updated').textContent += ' · staging snapshot'; }
+          } catch (error) {
+            if (requestGeneration !== apiAuthGeneration || auth.currentUser !== user) return;
+            if (error.status === 401 || error.status === 403) { revokeApiOverview(error); return; }
+            clearOccupancy('Occupancy observations are unavailable or inconsistent.');
+          }
+          try {
+            const climate = await loadApiClimate(operationsApi);
+            if (requestGeneration !== apiAuthGeneration || auth.currentUser !== user) return;
+            latestClimate = climate;
+            if (!climate) document.getElementById('thermostat-section').textContent = 'No verified climate observations have been imported.';
+            else renderThermostats(climate);
+          } catch (error) {
+            if (requestGeneration !== apiAuthGeneration || auth.currentUser !== user) return;
+            if (error.status === 401 || error.status === 403) { revokeApiOverview(error); return; }
+            latestClimate = null; document.getElementById('thermostat-section').textContent = 'Climate observations are unavailable or inconsistent.';
+          }
+          try {
+            const providerTasks = await loadApiProviderTasks(operationsApi);
+            if (requestGeneration !== apiAuthGeneration || auth.currentUser !== user) return;
+            if (!providerTasks) {
+              privateSnapshot = null; reviewedRoomTaskLinks = null;
+              if (publicSnapshot) render(publicSnapshot);
+              else document.getElementById('content').textContent = 'No verified provider task observations have been imported.';
+              status.textContent = 'No verified provider task observations have been imported.';
+            }
+            else {
+              privateSnapshot=providerTasks; render(providerTasks);
+              try {
+                const reviewed=await loadApiReviewedLinks(operationsApi);
+                if (requestGeneration !== apiAuthGeneration || auth.currentUser !== user) return;
+                reviewedRoomTaskLinks=reviewed;
+                status.textContent = `Provider tasks observed ${fmtDate(providerTasks.scraped_at)} · staging snapshot. Room links include reviewed matches only.`;
+              } catch (error) {
+                if (requestGeneration !== apiAuthGeneration || auth.currentUser !== user) return;
+                if (error.status === 401 || error.status === 403) { revokeApiOverview(error); return; }
+                reviewedRoomTaskLinks=null; status.textContent='Provider tasks loaded; reviewed room links are unavailable.';
+              }
+            }
+          } catch (error) {
+            if (requestGeneration !== apiAuthGeneration || auth.currentUser !== user) return;
+            if (error.status === 401 || error.status === 403) { revokeApiOverview(error); return; }
+            privateSnapshot = null; reviewedRoomTaskLinks = null;
+            if (publicSnapshot) render(publicSnapshot);
+            else document.getElementById('content').textContent = 'Provider task observations are unavailable.';
+            status.textContent = 'Provider task observations are unavailable or inconsistent.';
+          }
+          if (requestGeneration === apiAuthGeneration && auth.currentUser === user) refreshInfo.textContent = 'Private observations refresh every 5 minutes.';
+          };
+          await refreshApiObservations();
+          if (requestGeneration !== apiAuthGeneration || auth.currentUser !== user) return;
+          refreshInfo.textContent = 'Private observations refresh every 5 minutes.';
+          const refresh = createOverviewApiRefresh({
+            refresh:refreshApiObservations,
+            isCurrent:() => requestGeneration === apiAuthGeneration && auth.currentUser === user && overviewSession.currentUid() === user.uid,
+            shouldDefer:() => {
+              const active=document.activeElement;
+              return !!(active && active.matches('input, textarea, select')) ||
+                Array.from(document.querySelectorAll('[data-msg], [data-notes]')).some(input => input.value.trim()) ||
+                document.getElementById('notes-textarea').dataset.dirty === 'true';
+            },
+            onDeferred:() => { refreshInfo.textContent = 'Refresh paused while editing.'; },
+            onError:() => { if (overviewSession.currentUid() === user.uid) refreshInfo.textContent = 'Refresh unavailable; retrying.'; }
+          });
+          stopApiObservations = () => refresh.stop();
+        } catch {
+          if (requestGeneration === apiAuthGeneration) { status.textContent = 'Account access could not be verified.'; clearOccupancy('Private occupancy access could not be verified.'); }
+        }
+        return;
+      }
+      updateAccountControl({status:document.getElementById('account-status'),signIn:document.getElementById('account-signin'),signOut:document.getElementById('signout-btn')}, user, OWNER_UID);
+      const status = document.getElementById('private-sync');
+      const changed = overviewSession.transition(user);
+      const generation = changed ? ++privateGeneration : privateGeneration;
+      if (!user || user.uid !== OWNER_UID) {
+        status.textContent = user ? 'Private tasks unavailable: this account lacks access.' : 'Sign in to load private task details.';
+        applyOverviewWriteAccess(); return;
+      }
+      if (!changed) return;
+      status.textContent = 'Loading private task details…';
+      clearOccupancy('Loading private occupancy…');
+      try {
+        const snapshot = await readPrivateSnapshot(async path => {
+          const result = await getDoc(doc(db, path)); return result.exists() ? result.data() : null;
+        });
+        if (generation !== privateGeneration || overviewSession.currentUid() !== OWNER_UID) return;
+        if (!snapshot) { status.textContent = 'Private task snapshot is not available.'; clearOccupancy('Private occupancy snapshot is not available.'); return; }
+        activeOverviewDrafts = captureOverviewDrafts();
+        privateSnapshot = snapshot; render(snapshot);
+        if (snapshot.occupancy) renderOccupancy(snapshot.occupancy);
+        else clearOccupancy('This private snapshot does not contain occupancy.');
+        status.textContent = `Private task snapshot observed ${fmtDate(snapshot.scraped_at)}.`;
+      } catch (err) {
+        if (generation !== privateGeneration) return;
+        status.textContent = err.code === 'permission-denied' ? 'Private tasks unavailable: this account lacks access.' : 'Private task snapshot unavailable.';
+        clearOccupancy(err.code === 'permission-denied' ? 'Private occupancy unavailable: this account lacks access.' : 'Private occupancy snapshot unavailable.');
+      }
+    });
+
+    document.getElementById('signout-btn').addEventListener('click', () => signOut(auth));
+  </script>
+</body>
+</html>

@@ -1,0 +1,300 @@
+#!/usr/bin/env python3
+"""Structure-only tests for the codes dashboard. Never print field values."""
+
+import re
+import json
+import subprocess
+import unittest
+from pathlib import Path
+
+
+HTML_PATH = Path(__file__).resolve().parent / "docs" / "codes.html"
+OCCUPANCY_PATH = Path(__file__).resolve().parent / "docs" / "data" / "occupancy.json"
+
+HOUSE_SLUGS = [f'example_house_{i}' for i in range(1, 4)]
+
+ROOM_COUNTS = {'example_house_1': 2, 'example_house_2': 4, 'example_house_3': 1}
+
+LEGACY_LOCKBOX_COUNTS = {'example_house_2': 3}
+
+CONTACT_OPS_KEYS = (
+    "ac_filter_date",
+    "ac_filter_size",
+    "dryer_lint_date",
+    "dryer_lint_notes",
+)
+
+HOUSE_NOTES_KEYS = (
+    "garage_ac",
+    "garage_ac_filter_date",
+    "garage_ac_filter_size",
+    "other_special",
+)
+
+EXTRA_LOCKBOX_COUNT = 2
+
+SLUG_RE = re.compile(r'slug:\s*"([a-z0-9_]+)"')
+FIELD_KEY_RE = re.compile(r'key:\s*"([a-z0-9_]+)"')
+KEY_VALUE_RE = re.compile(r'key:\s*"([a-z0-9_]+)"[^\n]*value:\s*"([^"]*)"')
+
+
+def _html() -> str:
+    return HTML_PATH.read_text(encoding="utf-8")
+
+
+def _slugs(html: str) -> list[str]:
+    return SLUG_RE.findall(html)
+
+
+def _defaults_block(html: str) -> str:
+    start = html.index("const DEFAULTS = [")
+    end = html.index("];", start)
+    return html[start:end]
+
+
+def _house_blocks(html: str) -> dict[str, str]:
+    block = _defaults_block(html)
+    parts = re.split(r'slug:\s*"', block)
+    houses = {}
+    for part in parts[1:]:
+        slug, rest = part.split('"', 1)
+        houses[slug] = rest
+    return houses
+
+
+def _field_keys(block: str) -> list[str]:
+    return FIELD_KEY_RE.findall(block)
+
+
+def _key_values(block: str) -> dict[str, str]:
+    return dict(KEY_VALUE_RE.findall(block))
+
+
+def room_ops_keys(room_count: int) -> list[str]:
+    keys = []
+    for n in range(1, room_count + 1):
+        keys.extend(
+            [
+                f"r{n}",
+                f"lockbox_{n}",
+                f"lockbox_{n}_location",
+                f"lockbox_{n}_notes",
+                f"r{n}_ac_filter_size",
+            ]
+        )
+    return keys
+
+
+def extra_lockbox_keys(n: int) -> list[str]:
+    return [
+        f"extra_lockbox_{n}_name",
+        f"extra_lockbox_{n}_code",
+        f"extra_lockbox_{n}_location",
+        f"extra_lockbox_{n}_notes",
+    ]
+
+
+def expected_save_ops_keys(room_count: int) -> set[str]:
+    keys = set(room_ops_keys(room_count))
+    keys.update(CONTACT_OPS_KEYS)
+    keys.update(HOUSE_NOTES_KEYS)
+    for n in range(1, EXTRA_LOCKBOX_COUNT + 1):
+        keys.update(extra_lockbox_keys(n))
+    return keys
+
+
+class CodesDashboardStructureTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.html = _html()
+        fixture = json.loads((Path(__file__).parent / "tests/fixtures/codes-schema.json").read_text())
+        cls.properties = fixture["properties"]
+        cls.defaults = json.dumps(cls.properties)
+        cls.houses = {p["slug"]: "\n".join(
+            f'key: "{f["key"]}", value: "{f["value"]}"'
+            for section in p["sections"] for f in section["fields"]
+        ) for p in cls.properties}
+
+    def test_fixture_properties_are_synthetic_and_complete(self):
+        self.assertEqual([p['slug'] for p in self.properties], HOUSE_SLUGS)
+        self.assertEqual(len(self.properties), 3)
+        self.assertTrue(all(p['address'].endswith('Example Lane') for p in self.properties))
+        self.assertIn('const DEFAULTS = []', self.html)
+        self.assertIn("doc(db, 'private_configuration', 'codes_schema')", self.html)
+
+    def test_room_counts_match_defaults(self):
+        for slug, count in ROOM_COUNTS.items():
+            keys = _field_keys(self.houses[slug])
+            room_keys = [k for k in keys if re.fullmatch(r"r\d+", k)]
+            self.assertEqual(
+                room_keys,
+                [f"r{n}" for n in range(1, count + 1)],
+                msg=f"{slug} room keys",
+            )
+
+    def test_contact_ops_keys_on_every_house(self):
+        for slug, block in self.houses.items():
+            keys = set(_field_keys(block))
+            for key in CONTACT_OPS_KEYS:
+                self.assertIn(key, keys, msg=f"{slug} missing {key}")
+        self.assertEqual(set(self.houses), set(HOUSE_SLUGS))
+
+    def test_house_notes_fields_on_every_house(self):
+        self.assertIn("const HOUSE_NOTES_SECTION = {", self.html)
+        self.assertIn("label: 'House notes'", self.html)
+        self.assertIn("body.appendChild(renderLabelValueTable(property, HOUSE_NOTES_SECTION, savedValues))", self.html)
+        for key in HOUSE_NOTES_KEYS:
+            self.assertIn(f"key: '{key}'", self.html)
+        self.assertIn("label: 'Garage AC'", self.html)
+        self.assertIn("label: 'Garage AC filter change date'", self.html)
+        self.assertIn("label: 'Garage AC filter size'", self.html)
+        self.assertIn("label: 'Other special things'", self.html)
+        self.assertIn("placeholder: '16x25x1'", self.html)
+        self.assertIn("type: 'textarea'", self.html)
+        self.assertIn('input[data-prop="${slug}"], textarea[data-prop="${slug}"]', self.html)
+        for key in HOUSE_NOTES_KEYS:
+            self.assertRegex(
+                self.html,
+                rf"key: '{key}'[^\n]*value: ''",
+                msg=f"{key} must have an empty default",
+            )
+
+    def test_new_ops_fields_have_empty_defaults(self):
+        for slug, block in self.houses.items():
+            values = _key_values(block)
+            for key in ("ac_filter_size", "dryer_lint_date", "dryer_lint_notes"):
+                self.assertEqual(values.get(key), "", msg=f"{slug} {key} must be empty")
+
+    def test_rooms_table_columns_exist(self):
+        for header in (
+            "Room",
+            "Room code",
+            "Lockbox code",
+            "Lockbox location",
+            "Lockbox notes",
+            "AC filter size",
+        ):
+            self.assertIn(f"'{header}'", self.html)
+        self.assertIn("function lockboxCodeKey(n) { return `lockbox_${n}`; }", self.html)
+        self.assertIn("function lockboxLocationKey(n) { return `lockbox_${n}_location`; }", self.html)
+        self.assertIn("function lockboxNotesKey(n) { return `lockbox_${n}_notes`; }", self.html)
+        self.assertIn("function roomAcFilterSizeKey(n) { return `r${n}_ac_filter_size`; }", self.html)
+
+    def test_save_payload_includes_new_ops_keys(self):
+        self.assertIn("r${n}_ac_filter_size", self.html)
+        self.assertIn("lockbox_${n}_location", self.html)
+        self.assertIn("lockbox_${n}_notes", self.html)
+        self.assertIn("extra_lockbox_${n}_name", self.html)
+        self.assertIn("extra_lockbox_${n}_code", self.html)
+        for slug, count in ROOM_COUNTS.items():
+            expected = expected_save_ops_keys(count)
+            self.assertTrue(
+                expected.issuperset({"ac_filter_size", "dryer_lint_date", "extra_lockbox_1_code"}),
+                msg=f"{slug} ops keys",
+            )
+            self.assertTrue(expected.issuperset({"r1", "lockbox_1"}))
+            self.assertTrue(expected.issuperset(HOUSE_NOTES_KEYS))
+            self.assertIn(f"lockbox_{count}", expected)
+            self.assertIn(f"r{count}_ac_filter_size", expected)
+
+    def test_legacy_lockbox_n_keys_still_in_defaults(self):
+        for slug, count in LEGACY_LOCKBOX_COUNTS.items():
+            keys = _field_keys(self.houses[slug])
+            for n in range(1, count + 1):
+                self.assertIn(f"lockbox_{n}", keys, msg=f"{slug} missing lockbox_{n}")
+
+    def test_lockbox_n_still_maps_as_code_field(self):
+        self.assertIn("const lockboxKey = lockboxCodeKey(n);", self.html)
+        self.assertIn("defaultFieldValue(property, lockboxKey, '')", self.html)
+        self.assertIn("if (section.label === 'Lockboxes') return;", self.html)
+
+    def test_extra_lockboxes_on_every_house(self):
+        self.assertIn("const EXTRA_LOCKBOX_COUNT = 2;", self.html)
+        self.assertIn("Extra Lockboxes", self.html)
+        for n in range(1, EXTRA_LOCKBOX_COUNT + 1):
+            for key in extra_lockbox_keys(n):
+                template = key.replace(str(n), "${n}")
+                self.assertIn(template, self.html)
+
+    def test_overdue_windows(self):
+        self.assertIn("ac_filter_date: 90", self.html)
+        self.assertIn("dryer_lint_date: 30", self.html)
+        self.assertIn("garage_ac_filter_date: 90", self.html)
+
+    def test_firestore_merge_and_gate_unchanged(self):
+        self.assertIn("collection(db, 'property_codes')", self.html)
+        self.assertIn("doc(db, 'property_codes', slug)", self.html)
+        self.assertIn("{ merge: true }", self.html)
+        self.assertIn("signInWithEmailAndPassword", self.html)
+        self.assertIn("doc(db, 'notes', 'codes')", self.html)
+        self.assertIn('id="gate-wrap"', self.html)
+
+    def test_history_control_and_restore_overwrite(self):
+        self.assertIn("code_versions", self.html)
+        self.assertIn("history-btn", self.html)
+        self.assertIn(".history-panel {", self.html)
+        self.assertIn('id="page-history-btn"', self.html)
+        self.assertIn('id="page-history-panel"', self.html)
+        self.assertLess(
+            self.html.index('id="page-history-btn"'),
+            self.html.index("Values in parentheses indicate known conflicting entries"),
+        )
+        self.assertIn("startAfter", self.html)
+        self.assertIn("history-older", self.html)
+        self.assertIn("async function restoreLiveCodes", self.html)
+        self.assertIn("PADSPLIT_RUNTIME_CONFIG", self.html)
+        self.assertIn("hashCodeFields", self.html)
+        self.assertIn("SHA-256", self.html)
+        self.assertIn("deletes live keys", self.html)
+        self.assertIn("Unsaved edits for this house are lost", self.html)
+        self.assertIn("window.confirm", self.html)
+        restore_fn = self.html.split("async function restoreLiveCodes", 1)[1].split("function bindHouse", 1)[0]
+        self.assertIn("restoreCodeFields(", restore_fn)
+        self.assertIn("runTransaction(db, callback)", restore_fn)
+        restore_helper = (Path(__file__).resolve().parent / "docs" / "codes-restore.js").read_text(encoding="utf-8")
+        self.assertIn("transaction.set(ref,", restore_helper)
+        self.assertNotIn("merge: true", restore_helper)
+        self.assertNotIn("{ merge: true }", restore_fn)
+        save_fn = self.html.split("btn.addEventListener('click', async (e) => {", 1)[1]
+        self.assertIn("{ merge: true }", save_fn)
+
+    def test_occupancy_json_has_no_codes_or_filter_sizes(self):
+        occupancy = OCCUPANCY_PATH.read_text(encoding="utf-8")
+        for forbidden in (
+            "ac_filter_size",
+            "dryer_lint",
+            "lockbox_",
+            "room_code",
+            "wifi_",
+            "code_versions",
+        ):
+            self.assertNotIn(forbidden, occupancy)
+
+    def test_renderer_payload_keys_with_dummy_house(self):
+        result = subprocess.run(
+            ["node", str(Path(__file__).resolve().parent / "test_codes_dashboard_render.mjs")],
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0, msg="renderer structure test failed")
+        self.assertIn("codes dashboard renderer structure ok", result.stdout)
+
+    def test_public_defaults_do_not_embed_sensitive_values(self):
+        # These defaults are served by GitHub Pages before any login; values
+        # must come from Firestore, not public HTML or repository history.
+        self.assertTrue(self.houses)
+        for slug, block in self.houses.items():
+            values = _key_values(block)
+            self.assertTrue(values, msg=f"{slug} has no fields")
+            for key, value in values.items():
+                self.assertEqual(value, "", msg=f"{slug} {key} has a public default")
+
+    def test_fixture_property_field_schema_has_unique_keys(self):
+        for slug, block in self.houses.items():
+            keys = _field_keys(block)
+            self.assertTrue(keys, msg=f"{slug} has no fields")
+            self.assertEqual(len(keys), len(set(keys)), msg=f"{slug} has duplicate keys")
+
+
+if __name__ == "__main__":
+    unittest.main()

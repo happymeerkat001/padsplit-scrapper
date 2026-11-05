@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+const context={};vm.createContext(context);vm.runInContext(readFileSync('docs/api-occupancy.js','utf8'),context);
+const room={room_id:'room1',observation_id:'42',property_id:'house1',observed_at:'2026-01-01T00:00:00Z',data:{property_id:1,address:'Example',room_number:1,occupant_present:true}};
+const page=items=>({items,ingestion:'staging_only'});
+assert.equal(await context.loadApiOccupancy({occupancy:async()=>page([])}),null);
+const data=await context.loadApiOccupancy({occupancy:async()=>page([room])});
+assert.equal(data.rooms.length,1);assert.equal(data.rooms[0].occupant_present,true);assert.equal(data.rooms[0].property_id,'house1');assert.equal(data.rooms[0].api_room_id,'room1');assert.equal(data.rooms[0].api_observation_id,'42');assert.equal(Date.parse(data.scraped_at),Date.parse(room.observed_at));
+await assert.rejects(context.loadApiOccupancy({occupancy:async()=>page([room,{...room,room_id:'room2',observed_at:'2026-01-02T00:00:00Z'}])}),/mixed/i);
+await assert.rejects(context.loadApiOccupancy({occupancy:async()=>page([room,room])}),/duplicate/i);
+await assert.rejects(context.loadApiOccupancy({occupancy:async()=>({items:[room],ingestion:'unknown'})}),/invalid/i);
+console.log('Occupancy API adapter rejects missing identity, mixed observations and duplicate rooms');

@@ -1,0 +1,1245 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PadSplit Codes</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --success: #22c55e;
+      --error: #f87171;
+      --text: #e2e8f0;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at 20% 20%, rgba(56,189,248,0.08), transparent 35%),
+                  radial-gradient(circle at 80% 0%, rgba(34,197,94,0.08), transparent 30%),
+                  var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem clamp(1rem, 4vw, 2.5rem);
+    }
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    h1 { margin: 0; font-size: 1.6rem; letter-spacing: 0.01em; }
+    .header-meta {
+      margin-left: auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .header-link {
+      color: var(--muted);
+      text-decoration: underline;
+      font-size: 0.95rem;
+    }
+    .header-link:hover { color: var(--accent); }
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00));
+      border: 1px solid rgba(148,163,184,0.2);
+      border-radius: 12px;
+      padding: 1rem;
+      box-shadow: 0 14px 40px rgba(15,23,42,0.4);
+    }
+    .muted { color: var(--muted); }
+    .error { color: var(--error); font-size: 0.9rem; }
+    .flex-between {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    details {
+      margin-top: 0.85rem;
+      border: 1px solid rgba(148,163,184,0.2);
+      border-radius: 10px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.015);
+    }
+    summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid rgba(148,163,184,0.14);
+      user-select: none;
+    }
+    summary::-webkit-details-marker { display: none; }
+    .property-title {
+      font-weight: 600;
+      font-size: 1rem;
+    }
+    .save-btn {
+      border: none;
+      border-radius: 8px;
+      background: var(--accent);
+      color: #0b1222;
+      font-weight: 700;
+      padding: 0.4rem 0.75rem;
+      cursor: pointer;
+      min-width: 86px;
+    }
+    .save-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .save-btn.saved {
+      background: var(--success);
+      color: #05220f;
+    }
+    .history-btn {
+      border: 1px solid rgba(148,163,184,0.4);
+      border-radius: 8px;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 600;
+      padding: 0.4rem 0.75rem;
+      cursor: pointer;
+    }
+    .history-btn:hover { color: var(--accent); border-color: var(--accent); }
+    .codes-intro {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .codes-intro .muted { margin: 0; }
+    #page-history-panel { margin-top: 0.85rem; }
+    .history-older { margin-top: 0.35rem; }
+    .history-panel {
+      margin-bottom: 0.85rem;
+      padding: 0.75rem;
+      border: 1px solid rgba(148,163,184,0.2);
+      border-radius: 8px;
+    }
+    .history-row, .history-restore, .history-cancel {
+      border: none;
+      background: none;
+      color: var(--accent);
+      cursor: pointer;
+      padding: 0.25rem 0;
+      display: block;
+      text-align: left;
+    }
+    .history-preview { margin-top: 0.5rem; color: var(--muted); font-size: 0.88rem; white-space: pre-wrap; }
+    .history-actions { display: flex; gap: 0.75rem; margin-top: 0.5rem; }
+    .property-body {
+      padding: 0.85rem 1rem 1rem;
+    }
+    .section-label {
+      margin: 0.9rem 0 0.4rem;
+      color: var(--muted);
+      font-size: 0.86rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+      table-layout: fixed;
+    }
+    td {
+      padding: 0.35rem 0.45rem;
+      border-bottom: 1px solid rgba(148,163,184,0.08);
+      vertical-align: middle;
+    }
+    td:first-child {
+      width: 34%;
+      color: var(--muted);
+      font-weight: 500;
+    }
+    .table-wrap { overflow-x: auto; }
+    table.multi-col {
+      table-layout: auto;
+      min-width: 720px;
+    }
+    table.multi-col th {
+      text-align: left;
+      color: var(--muted);
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 0.4rem 0.45rem 0.5rem;
+      border-bottom: 1px solid rgba(148,163,184,0.2);
+      white-space: nowrap;
+    }
+    table.multi-col td:first-child {
+      width: auto;
+      min-width: 3.2rem;
+      color: var(--text);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    table.multi-col .code-input { min-width: 5.5rem; }
+    .section-hint {
+      margin: 0 0 0.45rem;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+    .code-input {
+      width: 100%;
+      background: #0b1222;
+      border: 1px solid rgba(148,163,184,0.35);
+      color: var(--text);
+      border-radius: 6px;
+      padding: 0.25rem 0.4rem;
+    }
+    textarea.code-input {
+      min-height: 4.5rem;
+      resize: vertical;
+      line-height: 1.4;
+      font-family: inherit;
+    }
+    .code-input.overdue {
+      border-color: #e53e3e;
+      background: #fff5f5;
+      color: #7f1d1d;
+    }
+    #gate-wrap {
+      max-width: 430px;
+      margin: 12vh auto 0;
+    }
+    #app-wrap { max-width: 1200px; margin: 0 auto; }
+    .gate-title { margin-top: 0; margin-bottom: 0.35rem; }
+    .gate-form {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 0.8rem;
+    }
+    .gate-form input {
+      flex: 1;
+      min-width: 180px;
+      background: #0b1222;
+      border: 1px solid rgba(148,163,184,0.35);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 0.45rem 0.6rem;
+    }
+    .gate-form button {
+      border: none;
+      border-radius: 8px;
+      background: var(--accent);
+      color: #0b1222;
+      font-weight: 700;
+      padding: 0.45rem 0.9rem;
+      cursor: pointer;
+    }
+    .hidden { display: none; }
+    .shake {
+      animation: shake 240ms linear 2;
+    }
+    @keyframes shake {
+      0% { transform: translateX(0); }
+      25% { transform: translateX(-4px); }
+      50% { transform: translateX(4px); }
+      75% { transform: translateX(-4px); }
+      100% { transform: translateX(0); }
+    }
+    .notes-section { margin-top: 2rem; }
+    .notes-section h2 { margin: 0 0 0.75rem; font-size: 1.2rem; }
+    .notes-card { background: linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0)); border: 1px solid rgba(148,163,184,.15); border-radius: 12px; padding: 1rem; }
+    .notes-textarea { width: 100%; min-height: 120px; background: rgba(255,255,255,.04); border: 1px solid rgba(148,163,184,.2); border-radius: 8px; color: var(--text); font-family: inherit; font-size: .9rem; line-height: 1.5; padding: .65rem .75rem; resize: vertical; outline: none; transition: border-color .15s; box-sizing: border-box; }
+    .notes-textarea:focus { border-color: var(--accent); }
+    .notes-footer { display: flex; align-items: center; justify-content: flex-end; gap: .5rem; margin-top: .5rem; }
+    .notes-save-btn { background: none; border: 1px solid rgba(148,163,184,.25); border-radius: 6px; color: var(--muted); cursor: pointer; font-size: .8rem; padding: .3rem .65rem; transition: color .15s, border-color .15s; }
+    .notes-save-btn:hover { color: var(--success); border-color: var(--success); }
+    .notes-copy-btn { background: none; border: 1px solid rgba(148,163,184,.25); border-radius: 6px; color: var(--muted); cursor: pointer; padding: .3rem .5rem; display: flex; align-items: center; transition: color .15s, border-color .15s; }
+    .notes-copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+    .notes-copy-btn.copied { color: var(--success); border-color: var(--success); }
+    .notes-copy-btn svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  </style>
+  <link rel="stylesheet" href="./operations.css">
+  <link rel="stylesheet" href="./password-reset.css">
+  <script defer src="./navigation.js"></script>
+  <script src="./display-format.js"></script>
+</head>
+<body>
+  <div id="gate-wrap" class="card hidden">
+    <h2 class="gate-title">Codes Access</h2>
+    <div class="muted">Enter password to view and edit property codes.</div>
+    <form id="gate-form" class="gate-form">
+      <label for="gate-email" class="gate-label">Email</label>
+        <input aria-label="Email" id="gate-email" type="email" placeholder="Email" autocomplete="email" />
+      <label for="gate-input" class="gate-label">Password</label>
+        <input aria-label="Password" id="gate-input" type="password" placeholder="Password" autocomplete="current-password" />
+        <button type="button" class="password-toggle" aria-controls="gate-input" aria-pressed="false">Show password</button>
+      <button type="submit">Unlock</button>
+    </form>
+    <div role="alert" id="gate-error" class="error hidden" style="margin-top:0.6rem">Sign-in failed. Check your credentials and connection, then try again.</div>
+  </div>
+
+  <div id="app-wrap" class="hidden">
+    <header>
+      <h1>Property Codes</h1>
+      <div class="header-meta">
+        <button id="signout-btn" class="header-link" style="background:none;border:none;cursor:pointer;padding:0">Sign out</button>
+      </div>
+    </header>
+  <nav class="ops-nav" aria-label="Main navigation">
+    <a href="./index.html">Overview</a>
+    <a href="./private-messages.html">Messages</a>
+    <a href="./templates.html">Templates</a>
+    <a href="./codes.html" aria-current="page">Codes</a>
+    <a href="./stats.html">Stats</a>
+    <a href="./vendors.html">Vendors</a>
+    <a href="./kpi-history.html">History</a>
+  </nav>
+
+
+    <div class="card">
+      <div class="codes-intro">
+        <button type="button" id="page-history-btn" class="history-btn" disabled>History</button>
+        <button type="button" id="toggle-sensitive" class="history-btn" aria-pressed="false">Reveal sensitive values</button>
+        <div class="muted">Values in parentheses indicate known conflicting entries and can be edited.</div>
+      </div>
+      <div id="page-history-panel" class="history-panel hidden"></div>
+      <div id="codes-list"></div>
+    </div>
+
+    <section class="notes-section">
+      <h2>Notes</h2>
+      <div class="notes-card">
+        <textarea aria-label="Shared notes" class="notes-textarea" id="notes-textarea" placeholder="Add shared notes…"></textarea>
+        <div class="notes-footer">
+          <button class="notes-save-btn" id="notes-save-btn">Save</button>
+          <button class="notes-copy-btn" id="notes-copy-btn" aria-label="Copy notes" title="Copy notes"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="./draft-guard.js"></script>
+  <script src="./owner-notes.js"></script>
+  <script src="./password-reset.js"></script>
+  <script src="./codes-restore.js"></script>
+  <script src="./codes-schema.js"></script>
+  <script src="./runtime-config.js"></script>
+  <script src="./api-client.js"></script>
+  <script src="./vendors-api.js"></script>
+  <script src="./api-note.js"></script>
+  <script src="./codes-api.js"></script>
+  <script src="./codes-api-workspace.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, collection, getDocs, getDoc, setDoc, doc, serverTimestamp, onSnapshot, query, orderBy, limit, startAfter, Timestamp, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const apiRequired = document.querySelector('meta[name="padsplit-data-mode"]')?.content === 'api';
+    let runtime;
+    try { runtime = resolveOperationsRuntime(window.PADSPLIT_RUNTIME_CONFIG, apiRequired); }
+    catch {
+      const error=document.getElementById('gate-error');error.textContent='The private service is not configured. Contact your administrator.';error.classList.remove('hidden');
+      document.getElementById('gate-form').querySelector('button[type="submit"]').disabled=true;
+      throw new Error('API configuration unavailable.');
+    }
+    const apiMode = runtime.mode === 'api';
+    const firebaseConfig = apiMode ? runtime.firebase : window.PADSPLIT_RUNTIME_CONFIG?.firebase ?? null;
+    const app = initializeApp(firebaseConfig);
+    const db = apiMode ? null : getFirestore(app);
+    const auth = getAuth(app);
+    let operationsApi = null;
+    if(apiMode) {
+      try {operationsApi=createOperationsApi({baseUrl:runtime.apiOrigin,getUser:()=>auth.currentUser});}
+      catch {
+        const error=document.getElementById('gate-error');error.textContent='The private service is not available. Contact your administrator.';error.classList.remove('hidden');
+        document.getElementById('gate-form').querySelector('button[type="submit"]').disabled=true;
+        throw new Error('API client unavailable.');
+      }
+    }
+
+    const DEFAULTS = [];
+
+    const gateWrap = document.getElementById('gate-wrap');
+    const appWrap = document.getElementById('app-wrap');
+    const gateForm = document.getElementById('gate-form');
+    mountPasswordReset({auth, sender: sendPasswordResetEmail, form: gateForm, signInEmail: document.getElementById('gate-email')});
+    const gateInput = document.getElementById('gate-input');
+    const gateError = document.getElementById('gate-error');
+    const list = document.getElementById('codes-list');
+    const OPERATOR_UID = null;
+    let codesUid;
+    let codesGeneration = 0;
+    let apiWorkspace = null, apiNotes = null;
+    const apiDraftsByUid = new Map();
+    const codeDrafts = new Map();
+    list.addEventListener('input', event => {
+      if (event.target.matches('input[data-prop][data-field], textarea[data-prop][data-field]')) event.target.dataset.dirty = 'true';
+    });
+    function captureCodeDrafts() {
+      list.querySelectorAll('input[data-prop][data-field], textarea[data-prop][data-field]').forEach(input => {
+        if (input.dataset.dirty === 'true') codeDrafts.set(JSON.stringify([input.dataset.prop, input.dataset.field]), input.value);
+      });
+    }
+    function restoreCodeDrafts() {
+      list.querySelectorAll('input[data-prop][data-field], textarea[data-prop][data-field]').forEach(input => {
+        const key = JSON.stringify([input.dataset.prop, input.dataset.field]);
+        if (codeDrafts.has(key)) { input.value = codeDrafts.get(key); input.dataset.dirty = 'true'; }
+      });
+    }
+    document.getElementById('toggle-sensitive').addEventListener('click', (event) => {
+      if (apiMode) return;
+      const button = event.currentTarget;
+      const reveal = button.getAttribute('aria-pressed') !== 'true';
+      button.setAttribute('aria-pressed', String(reveal));
+      button.textContent = reveal ? 'Hide sensitive values' : 'Reveal sensitive values';
+      list.querySelectorAll('input[data-sensitive="true"]').forEach(input => { input.type = reveal ? 'text' : 'password'; });
+    });
+    if (apiMode) document.getElementById('toggle-sensitive').hidden = true;
+
+    function showApp() {
+      gateWrap.classList.add('hidden');
+      appWrap.classList.remove('hidden');
+      const generation=codesGeneration;
+      (apiMode ? initApiCodes() : initCodes()).catch((err) => {
+        if (generation!==codesGeneration) return;
+        if (!apiMode) console.error(err);
+        list.textContent = apiMode ? 'Private code layouts could not be loaded. Check migration and account access.' : 'Failed to load codes from Firestore.';
+      });
+    }
+
+    function showGate() {
+      gateWrap.classList.remove('hidden');
+      appWrap.classList.add('hidden');
+      gateInput.focus();
+    }
+
+    gateForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('gate-email').value.trim();
+      try {
+        await signInWithEmailAndPassword(auth, email, gateInput.value);
+        gateError.classList.add('hidden');
+      } catch (err) {
+        if (!apiMode) console.error(err);
+        gateError.classList.remove('hidden');
+        gateWrap.classList.remove('shake');
+        void gateWrap.offsetWidth;
+        gateWrap.classList.add('shake');
+        gateInput.select();
+      }
+    });
+
+    const OVERDUE_DAYS = {
+      ac_filter_date: 90,
+      dryer_lint_date: 30,
+      garage_ac_filter_date: 90
+    };
+    const EXTRA_LOCKBOX_COUNT = 2;
+    const ROOM_TABLE_HEADERS = ['Room', 'Room code', 'Lockbox code', 'Lockbox location', 'Lockbox notes', 'AC filter size'];
+    const EXTRA_LOCKBOX_HEADERS = ['Name / number', 'Lockbox code', 'Location', 'Notes'];
+    const HOUSE_NOTES_SECTION = {
+      label: 'House notes',
+      fields: [
+        { key: 'garage_ac', label: 'Garage AC', value: '', placeholder: 'Present / model / location' },
+        { key: 'garage_ac_filter_date', label: 'Garage AC filter change date', value: '', type: 'date' },
+        { key: 'garage_ac_filter_size', label: 'Garage AC filter size', value: '', placeholder: '16x25x1' },
+        { key: 'other_special', label: 'Other special things', value: '', type: 'textarea', placeholder: 'Freeform notes: garage extras, quirks, vendor info…' }
+      ]
+    };
+
+    function roomNumberFromKey(key) {
+      const match = /^r(\d+)$/.exec(key);
+      return match ? Number(match[1]) : null;
+    }
+
+    function lockboxCodeKey(n) { return `lockbox_${n}`; }
+    function lockboxLocationKey(n) { return `lockbox_${n}_location`; }
+    function lockboxNotesKey(n) { return `lockbox_${n}_notes`; }
+    function roomAcFilterSizeKey(n) { return `r${n}_ac_filter_size`; }
+    function extraLockboxKeys(n) {
+      return {
+        name: `extra_lockbox_${n}_name`,
+        code: `extra_lockbox_${n}_code`,
+        location: `extra_lockbox_${n}_location`,
+        notes: `extra_lockbox_${n}_notes`
+      };
+    }
+
+    function defaultFieldValue(property, key, fallback = '') {
+      for (const section of property.sections) {
+        const field = (section.fields || []).find((item) => item.key === key);
+        if (field) return field.value;
+      }
+      return fallback;
+    }
+
+    let currentHasLiveDoc = false;
+
+    function resolveSavedOrDefault(savedValues, key, fallback = '') {
+      if (currentHasLiveDoc) {
+        return Object.prototype.hasOwnProperty.call(savedValues, key)
+          ? savedValues[key]
+          : '';
+      }
+      return Object.prototype.hasOwnProperty.call(savedValues, key)
+        ? savedValues[key]
+        : fallback;
+    }
+
+    const HISTORY_RESERVED = ['updatedAt', 'contentHash', 'source', 'expireAt', 'createdAt', 'fields'];
+
+    function canonicalizeCodeFields(data) {
+      const out = {};
+      Object.keys(data || {}).sort().forEach((key) => {
+        if (HISTORY_RESERVED.includes(key)) return;
+        const value = data[key];
+        out[key] = value == null ? '' : String(value);
+      });
+      return out;
+    }
+
+    async function hashCodeFields(data) {
+      const blob = JSON.stringify(canonicalizeCodeFields(data));
+      const bytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(blob));
+      return [...new Uint8Array(bytes)].map((b) => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    function updateDateOverdueState(input) {
+      const days = OVERDUE_DAYS[input.dataset.field];
+      input.classList.remove('overdue');
+      if (!days || !input.value) return;
+      const parsed = new Date(input.value);
+      if (Number.isNaN(parsed.getTime())) return;
+      const ageMs = Date.now() - parsed.getTime();
+      if (ageMs > days * 24 * 60 * 60 * 1000) input.classList.add('overdue');
+    }
+
+    function createFieldInput(property, fieldKey, value, options = {}) {
+      const isTextarea = options.type === 'textarea';
+      const input = document.createElement(isTextarea ? 'textarea' : 'input');
+      if (!isTextarea) input.type = options.type || 'text';
+      const sensitive = /^(?:r\d+|(?:front|back|outside|room)_(?:door|master)|front_back|admin|thermo|wifi.*|spectrum_code|tmobile_line|tenant_login|keys_\d+|lockbox_\d+|.*_code)$/i.test(fieldKey);
+      if (sensitive && !isTextarea && (!options.type || options.type === 'text')) { input.type = 'password'; input.dataset.sensitive = 'true'; }
+      input.className = isTextarea ? 'code-input code-textarea' : 'code-input';
+      input.dataset.prop = property.slug;
+      input.dataset.field = fieldKey;
+      input.ariaLabel = `${property.address}: ${fieldKey.replace(/_/g, ' ')}`;
+      input.value = value;
+      if (options.placeholder) input.placeholder = options.placeholder;
+      if (isTextarea) input.rows = options.rows || 3;
+      updateDateOverdueState(input);
+      input.addEventListener('input', () => updateDateOverdueState(input));
+      return input;
+    }
+
+    function appendSectionLabel(body, text, hint) {
+      const label = document.createElement('div');
+      label.className = 'section-label';
+      label.textContent = text;
+      body.appendChild(label);
+      if (hint) {
+        const hintEl = document.createElement('div');
+        hintEl.className = 'section-hint';
+        hintEl.textContent = hint;
+        body.appendChild(hintEl);
+      }
+    }
+
+    function renderLabelValueTable(property, section, savedValues) {
+      const table = document.createElement('table');
+      const tbody = document.createElement('tbody');
+      section.fields.forEach((field) => {
+        const tr = document.createElement('tr');
+        const tdLabel = document.createElement('td');
+        tdLabel.textContent = field.label;
+        const tdInput = document.createElement('td');
+        const value = resolveSavedOrDefault(savedValues, field.key, field.value);
+        tdInput.appendChild(createFieldInput(property, field.key, value, {
+          type: field.type,
+          placeholder: field.placeholder
+        }));
+        tr.appendChild(tdLabel);
+        tr.appendChild(tdInput);
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+      return table;
+    }
+
+    function renderHeaderRow(headers) {
+      const thead = document.createElement('thead');
+      const tr = document.createElement('tr');
+      headers.forEach((title) => {
+        const th = document.createElement('th');
+        th.textContent = title;
+        tr.appendChild(th);
+      });
+      thead.appendChild(tr);
+      return thead;
+    }
+
+    function wrapTable(table) {
+      const wrap = document.createElement('div');
+      wrap.className = 'table-wrap';
+      wrap.appendChild(table);
+      return wrap;
+    }
+
+    function renderRoomsTable(property, roomSection, savedValues) {
+      const table = document.createElement('table');
+      table.className = 'multi-col';
+      table.appendChild(renderHeaderRow(ROOM_TABLE_HEADERS));
+      const tbody = document.createElement('tbody');
+
+      roomSection.fields.forEach((field) => {
+        const n = roomNumberFromKey(field.key);
+        if (!n) return;
+        const tr = document.createElement('tr');
+
+        const tdRoom = document.createElement('td');
+        tdRoom.textContent = field.label;
+        tr.appendChild(tdRoom);
+
+        const roomCode = document.createElement('td');
+        roomCode.appendChild(createFieldInput(
+          property,
+          field.key,
+          resolveSavedOrDefault(savedValues, field.key, field.value)
+        ));
+        tr.appendChild(roomCode);
+
+        const lockboxCode = document.createElement('td');
+        const lockboxKey = lockboxCodeKey(n);
+        lockboxCode.appendChild(createFieldInput(
+          property,
+          lockboxKey,
+          resolveSavedOrDefault(savedValues, lockboxKey, defaultFieldValue(property, lockboxKey, ''))
+        ));
+        tr.appendChild(lockboxCode);
+
+        const lockboxLocation = document.createElement('td');
+        const locationKey = lockboxLocationKey(n);
+        lockboxLocation.appendChild(createFieldInput(
+          property,
+          locationKey,
+          resolveSavedOrDefault(savedValues, locationKey, ''),
+          { placeholder: 'Door / mount' }
+        ));
+        tr.appendChild(lockboxLocation);
+
+        const lockboxNotes = document.createElement('td');
+        const notesKey = lockboxNotesKey(n);
+        lockboxNotes.appendChild(createFieldInput(
+          property,
+          notesKey,
+          resolveSavedOrDefault(savedValues, notesKey, ''),
+          { placeholder: 'Keys inside, etc.' }
+        ));
+        tr.appendChild(lockboxNotes);
+
+        const filterSize = document.createElement('td');
+        const sizeKey = roomAcFilterSizeKey(n);
+        filterSize.appendChild(createFieldInput(
+          property,
+          sizeKey,
+          resolveSavedOrDefault(savedValues, sizeKey, ''),
+          { placeholder: '16x25x1' }
+        ));
+        tr.appendChild(filterSize);
+
+        tbody.appendChild(tr);
+      });
+
+      table.appendChild(tbody);
+      return wrapTable(table);
+    }
+
+    function renderExtraLockboxesTable(property, savedValues) {
+      const table = document.createElement('table');
+      table.className = 'multi-col';
+      table.appendChild(renderHeaderRow(EXTRA_LOCKBOX_HEADERS));
+      const tbody = document.createElement('tbody');
+
+      for (let n = 1; n <= EXTRA_LOCKBOX_COUNT; n += 1) {
+        const keys = extraLockboxKeys(n);
+        const tr = document.createElement('tr');
+
+        const tdName = document.createElement('td');
+        tdName.appendChild(createFieldInput(
+          property,
+          keys.name,
+          resolveSavedOrDefault(savedValues, keys.name, ''),
+          { placeholder: n === 1 ? 'Front door' : 'Gate' }
+        ));
+        tr.appendChild(tdName);
+
+        const tdCode = document.createElement('td');
+        tdCode.appendChild(createFieldInput(
+          property,
+          keys.code,
+          resolveSavedOrDefault(savedValues, keys.code, '')
+        ));
+        tr.appendChild(tdCode);
+
+        const tdLocation = document.createElement('td');
+        tdLocation.appendChild(createFieldInput(
+          property,
+          keys.location,
+          resolveSavedOrDefault(savedValues, keys.location, ''),
+          { placeholder: 'Where mounted' }
+        ));
+        tr.appendChild(tdLocation);
+
+        const tdNotes = document.createElement('td');
+        tdNotes.appendChild(createFieldInput(
+          property,
+          keys.notes,
+          resolveSavedOrDefault(savedValues, keys.notes, ''),
+          { placeholder: 'Keys inside, etc.' }
+        ));
+        tr.appendChild(tdNotes);
+
+        tbody.appendChild(tr);
+      }
+
+      table.appendChild(tbody);
+      return wrapTable(table);
+    }
+
+    function renderProperty(property, savedValues = {}, hasLiveDoc = false) {
+      currentHasLiveDoc = Boolean(hasLiveDoc);
+      const details = document.createElement('details');
+      details.open = true;
+      details.dataset.house = property.slug;
+      const summary = document.createElement('summary');
+      const heading = document.createElement('div'); heading.className = 'flex-between';
+      const title = document.createElement('div'); title.className = 'property-title'; title.textContent = property.address;
+      const save = document.createElement('button'); save.type = 'button'; save.className = 'save-btn'; save.dataset.save = property.slug; save.textContent = 'Save';
+      heading.appendChild(title); heading.appendChild(save); summary.appendChild(heading);
+      details.appendChild(summary);
+
+      const body = document.createElement('div');
+      body.className = 'property-body';
+
+      let extrasRendered = false;
+      property.sections.forEach((section) => {
+        if (section.label === 'Lockboxes') return;
+
+        if (section.label === 'Rooms') {
+          appendSectionLabel(
+            body,
+            'Rooms',
+            'Room code and lockbox code are separate. House HVAC filter size is in Contact; room size is for window units or exceptions.'
+          );
+          body.appendChild(renderRoomsTable(property, section, savedValues));
+          appendSectionLabel(
+            body,
+            'Extra Lockboxes',
+            'Non-room boxes such as a front door or gate. Same four fields as room lockboxes.'
+          );
+          body.appendChild(renderExtraLockboxesTable(property, savedValues));
+          extrasRendered = true;
+          return;
+        }
+
+        appendSectionLabel(body, section.label);
+        body.appendChild(renderLabelValueTable(property, section, savedValues));
+      });
+      if (!extrasRendered) {
+        appendSectionLabel(
+          body,
+          'Extra Lockboxes',
+          'Non-room boxes such as a front door or gate. Same four fields as room lockboxes.'
+        );
+        body.appendChild(renderExtraLockboxesTable(property, savedValues));
+      }
+
+      appendSectionLabel(
+        body,
+        HOUSE_NOTES_SECTION.label,
+        'Garage AC and other per-house details. Saved with this house, same as Contact.'
+      );
+      body.appendChild(renderLabelValueTable(property, HOUSE_NOTES_SECTION, savedValues));
+
+      details.appendChild(body);
+      currentHasLiveDoc = false;
+      return details;
+    }
+
+    async function initApiCodes() {
+      const generation=codesGeneration, uid=codesUid;
+      list.textContent='Loading private property configuration…';
+      const workspace=createApiCodesWorkspace({
+        api:operationsApi, list, historyButton:document.getElementById('page-history-btn'),
+        historyPanel:document.getElementById('page-history-panel'), renderProperty,
+        isCurrent:()=>codesGeneration===generation && codesUid===uid && auth.currentUser?.uid===uid,
+        onAccessLost:revokeApiCodesAccess, confirmChange:message=>window.confirm(message),
+        formatTime:value=>value ? formatDisplayTime(value) : 'unknown time',
+        onValue:updateDateOverdueState,
+        initialDrafts:apiDraftsByUid.get(uid) || new Map()
+      });
+      apiWorkspace=workspace;
+      try { await workspace.start(); }
+      catch(error) { if(error.status===401 || error.status===403) revokeApiCodesAccess(); else throw error; }
+    }
+
+    async function initCodes() {
+      const sessionGeneration = codesGeneration;
+      const CODES_UID = null;
+      const isCodesUser = () => auth.currentUser && auth.currentUser.uid === CODES_UID;
+      list.textContent = 'Loading private property configuration…';
+      const schema = await getDoc(doc(db, 'private_configuration', 'codes_schema'));
+      if (sessionGeneration !== codesGeneration || !isCodesUser()) return;
+      if (!schema.exists()) {
+        list.textContent = 'Private property configuration is not available. The owner must provision it before codes can be shown.';
+        return;
+      }
+      const properties = validateCodesSchema(schema.data());
+      DEFAULTS.splice(0, DEFAULTS.length, ...properties);
+      document.getElementById('page-history-btn').disabled = false;
+
+      const liveRef = (slug) => doc(db, 'property_codes', slug);
+      const versionsCol = (slug) => collection(db, 'property_codes', slug, 'code_versions');
+
+      async function writeSnapshot(slug, live, source) {
+        const fields = canonicalizeCodeFields(live);
+        await setDoc(doc(versionsCol(slug)), {
+          fields,
+          contentHash: await hashCodeFields(live),
+          createdAt: serverTimestamp(),
+          expireAt: Timestamp.fromMillis(Date.now() + 90 * 24 * 60 * 60 * 1000),
+          source
+        });
+      }
+
+      async function latestVersionHash(slug) {
+        const snap = await getDocs(query(versionsCol(slug), orderBy('createdAt', 'desc'), limit(1)));
+        if (snap.empty) return '';
+        return snap.docs[0].data().contentHash || '';
+      }
+
+      function collectForm(slug) {
+        const payload = {};
+        list.querySelectorAll(`input[data-prop="${slug}"], textarea[data-prop="${slug}"]`).forEach((input) => {
+          payload[input.dataset.field] = input.value.trim();
+        });
+        return payload;
+      }
+
+      async function refreshHouse(slug) {
+        const property = DEFAULTS.find((item) => item.slug === slug);
+        if (!property) return;
+        const snap = await getDoc(liveRef(slug));
+        if (sessionGeneration !== codesGeneration || !isCodesUser()) return;
+        const hasLive = snap.exists();
+        const node = renderProperty(property, hasLive ? snap.data() : {}, hasLive);
+        const old = list.querySelector(`details[data-house="${slug}"]`);
+        if (old) old.replaceWith(node);
+        else list.appendChild(node);
+        bindHouse(node, slug, property.address);
+      }
+
+      function formatWhen(value) {
+        if (!value) return 'unknown time';
+        return formatDisplayTime(typeof value.toDate === 'function' ? value.toDate() : value);
+      }
+
+      function historyOpts(panel) {
+        return panel.id === 'page-history-panel'
+          ? { onHouses: () => renderHousePicker(panel) }
+          : {};
+      }
+
+      function appendHousesBack(panel, onHouses) {
+        const back = document.createElement('button');
+        back.type = 'button';
+        back.className = 'history-cancel';
+        back.textContent = 'Houses';
+        back.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onHouses();
+        });
+        panel.appendChild(back);
+      }
+
+      function renderHousePicker(panel) {
+        panel.innerHTML = '';
+        DEFAULTS.forEach((property) => {
+          const row = document.createElement('button');
+          row.type = 'button';
+          row.className = 'history-row';
+          row.textContent = property.address;
+          row.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            try {
+              await loadHistory(panel, property.slug, property.address, historyOpts(panel));
+            } catch (err) {
+              console.error(err);
+              panel.textContent = 'Could not load history.';
+            }
+          });
+          panel.appendChild(row);
+        });
+      }
+
+      async function loadHistory(panel, slug, address, opts = {}) {
+        const cursor = opts.cursor || null;
+        const onHouses = opts.onHouses || null;
+        if (!cursor) panel.innerHTML = '';
+        if (!isCodesUser() || DEFAULTS.find(property => property.slug === slug)?.history_enabled === false) {
+          panel.textContent = 'History is unavailable.';
+          return;
+        }
+        const q = cursor
+          ? query(versionsCol(slug), orderBy('createdAt', 'desc'), startAfter(cursor), limit(50))
+          : query(versionsCol(slug), orderBy('createdAt', 'desc'), limit(50));
+        const snap = await getDocs(q);
+        if (sessionGeneration !== codesGeneration || !isCodesUser()) return;
+        if (!cursor && snap.empty) {
+          panel.innerHTML = '';
+          const note = document.createElement('div');
+          note.className = 'muted';
+          note.textContent = 'No previous codes yet. Snapshots start after a Save or the daily Mac catch-up.';
+          panel.appendChild(note);
+          if (onHouses) appendHousesBack(panel, onHouses);
+          return;
+        }
+        if (!cursor && onHouses) appendHousesBack(panel, onHouses);
+        snap.docs.forEach((item) => {
+          const row = document.createElement('button');
+          row.type = 'button';
+          row.className = 'history-row';
+          row.textContent = formatWhen(item.data().createdAt);
+          row.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            showVersion(panel, slug, address, item.id, item.data());
+          });
+          panel.appendChild(row);
+        });
+        const oldOlder = panel.querySelector('.history-older');
+        if (oldOlder) oldOlder.remove();
+        if (snap.docs.length === 50) {
+          const older = document.createElement('button');
+          older.type = 'button';
+          older.className = 'history-row history-older';
+          older.textContent = 'Older';
+          older.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            loadHistory(panel, slug, address, { cursor: snap.docs[snap.docs.length - 1], onHouses });
+          });
+          panel.appendChild(older);
+        }
+      }
+
+      function showVersion(panel, slug, address, versionId, data) {
+        if (sessionGeneration !== codesGeneration || !isCodesUser()) return;
+        const fields = data.fields || {};
+        const when = formatWhen(data.createdAt);
+        const preview = document.createElement('div');
+        preview.className = 'history-preview';
+        const renderPreview = (reveal) => {
+          preview.textContent = Object.keys(fields).sort().map((key) => `${key}: ${reveal ? fields[key] : '••••'}`).join('\n');
+        };
+        renderPreview(false);
+        const revealPreview = document.createElement('button');
+        revealPreview.type = 'button';
+        revealPreview.textContent = 'Reveal snapshot values';
+        revealPreview.setAttribute('aria-pressed', 'false');
+        revealPreview.addEventListener('click', () => {
+          const reveal = revealPreview.getAttribute('aria-pressed') !== 'true';
+          revealPreview.setAttribute('aria-pressed', String(reveal));
+          revealPreview.textContent = reveal ? 'Hide snapshot values' : 'Reveal snapshot values';
+          renderPreview(reveal);
+        });
+        const actions = document.createElement('div');
+        actions.className = 'history-actions';
+        const restoreBtn = document.createElement('button');
+        restoreBtn.type = 'button';
+        restoreBtn.className = 'history-restore';
+        restoreBtn.textContent = 'Restore';
+        restoreBtn.addEventListener('click', async (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (restoreBtn.disabled) return;
+          restoreBtn.disabled = true;
+          try { await restoreLiveCodes(slug, address, versionId, when, panel); }
+          finally { restoreBtn.disabled = false; }
+        });
+        const cancel = document.createElement('button');
+        cancel.type = 'button';
+        cancel.className = 'history-cancel';
+        cancel.textContent = 'Back';
+        cancel.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          loadHistory(panel, slug, address, historyOpts(panel));
+        });
+        panel.innerHTML = '';
+        panel.appendChild(preview);
+        actions.appendChild(revealPreview);
+        actions.appendChild(restoreBtn);
+        actions.appendChild(cancel);
+        panel.appendChild(actions);
+      }
+
+      async function restoreLiveCodes(slug, address, versionId, when, panel) {
+        const confirmCopy = `Restore ${address} from ${when}? This deletes live keys that are not in that snapshot. Unsaved edits for this house are lost.`;
+        if (!window.confirm(confirmCopy)) return;
+        if (!isCodesUser()) return;
+        let restored = false;
+        let saveBtn;
+        try {
+          const before = await getDoc(liveRef(slug));
+          const live = before.exists() ? before.data() : {};
+          const beforeHash = await hashCodeFields(live);
+          if (sessionGeneration !== codesGeneration || !isCodesUser()) return;
+          await writeSnapshot(slug, live, 'page');
+          const version = await getDoc(doc(db, 'property_codes', slug, 'code_versions', versionId));
+          if (!version.exists()) {
+            panel.textContent = 'That snapshot is gone.';
+            return;
+          }
+          if (sessionGeneration !== codesGeneration || !isCodesUser()) return;
+          saveBtn = list.querySelector(`button[data-save="${slug}"]`);
+          if (saveBtn) saveBtn.disabled = true;
+          await restoreCodeFields({
+            run: callback => runTransaction(db, callback), ref: liveRef(slug), expectedHash: beforeHash,
+            hash: hashCodeFields, fields: canonicalizeCodeFields(version.data().fields || {}),
+            timestamp: serverTimestamp, canWrite: () => sessionGeneration === codesGeneration && isCodesUser()
+          });
+          restored = true;
+          await refreshHouse(slug);
+        } catch (err) {
+          console.error('Failed to restore codes', err);
+          panel.textContent = err.code === 'codes/conflict'
+            ? 'Live codes changed. Restore cancelled; review the latest values.'
+            : restored ? 'Codes were restored, but the page could not refresh. Reload to verify.'
+              : 'Restore could not be confirmed. Reload and check the live values before retrying.';
+        } finally {
+          if (saveBtn) saveBtn.disabled = false;
+        }
+      }
+
+      function bindHouse(node, slug, address) {
+        const summaryRow = node.querySelector('.flex-between');
+        if (summaryRow && !summaryRow.querySelector('.history-btn')) {
+          const prev = document.createElement('button');
+          prev.type = 'button';
+          prev.className = 'history-btn';
+          prev.dataset.history = slug;
+          prev.textContent = 'Previous';
+          const saveBtn = summaryRow.querySelector('.save-btn');
+          if (saveBtn) summaryRow.insertBefore(prev, saveBtn);
+          else summaryRow.appendChild(prev);
+          const panel = document.createElement('div');
+          panel.className = 'history-panel hidden';
+          panel.dataset.historyPanel = slug;
+          const body = node.querySelector('.property-body');
+          if (body) body.prepend(panel);
+          prev.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            panel.classList.toggle('hidden');
+            if (!panel.classList.contains('hidden')) {
+              try {
+                await loadHistory(panel, slug, address, historyOpts(panel));
+              } catch (err) {
+                console.error(err);
+                panel.textContent = 'Could not load history.';
+              }
+            }
+          });
+        }
+
+        const btn = node.querySelector('.save-btn');
+        if (!btn || btn.dataset.bound === '1') return;
+        btn.dataset.bound = '1';
+        btn.addEventListener('click', async (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (!isCodesUser()) return;
+          const payload = collectForm(slug);
+          btn.disabled = true;
+          const oldText = btn.textContent;
+          try {
+            await setDoc(liveRef(slug), {
+              ...payload,
+              updatedAt: serverTimestamp()
+            }, { merge: true });
+            if (sessionGeneration !== codesGeneration || !isCodesUser()) return;
+            const after = await getDoc(liveRef(slug));
+            const live = after.exists() ? after.data() : payload;
+            const digest = await hashCodeFields(live);
+            const latest = await latestVersionHash(slug);
+            if (sessionGeneration !== codesGeneration || !isCodesUser()) return;
+            if (digest !== latest) {
+              try {
+                await writeSnapshot(slug, live, 'page');
+              } catch (snapErr) {
+                console.error('Failed to snapshot codes', snapErr);
+                btn.textContent = 'Error';
+                setTimeout(() => { btn.textContent = oldText; }, 1500);
+                return;
+              }
+            }
+            node.querySelectorAll('input[data-prop][data-field], textarea[data-prop][data-field]').forEach(input => {
+              if (input.value.trim() === payload[input.dataset.field]) {
+                delete input.dataset.dirty; codeDrafts.delete(JSON.stringify([input.dataset.prop, input.dataset.field]));
+              }
+            });
+            btn.textContent = 'Saved ✓';
+            btn.classList.add('saved');
+            setTimeout(() => {
+              btn.textContent = 'Save';
+              btn.classList.remove('saved');
+            }, 1500);
+          } catch (err) {
+            console.error('Failed to save codes', err);
+            btn.textContent = 'Error';
+            setTimeout(() => {
+              btn.textContent = oldText;
+            }, 1500);
+          } finally {
+            setTimeout(() => { btn.disabled = false; }, 200);
+          }
+        });
+      }
+
+      const snapshot = await getDocs(collection(db, 'property_codes'));
+      if (sessionGeneration !== codesGeneration || !isCodesUser()) return;
+      const docsBySlug = new Map();
+      snapshot.forEach((d) => docsBySlug.set(d.id, d.data()));
+
+      list.innerHTML = '';
+      DEFAULTS.forEach((property) => {
+        const hasLive = docsBySlug.has(property.slug);
+        const node = renderProperty(property, docsBySlug.get(property.slug) || {}, hasLive);
+        list.appendChild(node);
+        bindHouse(node, property.slug, property.address);
+      });
+      restoreCodeDrafts();
+
+      const pageHistoryBtn = document.getElementById('page-history-btn');
+      const pageHistoryPanel = document.getElementById('page-history-panel');
+      if (pageHistoryBtn && pageHistoryPanel && pageHistoryBtn.dataset.bound !== '1') {
+        pageHistoryBtn.dataset.bound = '1';
+        pageHistoryBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          pageHistoryPanel.classList.toggle('hidden');
+          if (!pageHistoryPanel.classList.contains('hidden')) {
+            renderHousePicker(pageHistoryPanel);
+          }
+        });
+      }
+    }
+
+    const NOTES_DOC = apiMode ? null : doc(db, 'notes', 'codes');
+    const notesTA = document.getElementById('notes-textarea');
+    const notesSave = document.getElementById('notes-save-btn');
+    const notesCopy = document.getElementById('notes-copy-btn');
+    const notesStatus = document.createElement('p'); notesStatus.setAttribute('role', 'status'); notesTA.before(notesStatus);
+    const ownerNotes = apiMode ? null : createOwnerNotesSession({
+      ownerUid: OPERATOR_UID, ta: notesTA, saveBtn: notesSave, copyBtn: notesCopy, status: notesStatus,
+      subscribe: (next, error) => onSnapshot(NOTES_DOC, next, error),
+      save: text => setDoc(NOTES_DOC, { text }, { merge: true }),
+      copy: text => navigator.clipboard.writeText(text)
+    });
+    const apiNoteDraftsByUid = new Map();
+    if(apiMode) {
+      notesTA.disabled=true;notesSave.disabled=true;notesCopy.disabled=true;
+      notesTA.addEventListener('input',()=>{notesTA.dataset.dirty='true';});
+      apiNotes=createApiNoteBinding({api:operationsApi,textarea:notesTA,status:notesStatus,getUid:()=>codesUid,noteId:'codes',onAccessLost:revokeApiCodesAccess});
+      notesSave.addEventListener('click',async()=>{
+        if(!codesUid || notesSave.disabled)return;
+        notesSave.disabled=true;notesStatus.textContent='Saving notes…';
+        try {if(await apiNotes.save()){apiNoteDraftsByUid.delete(codesUid);notesStatus.textContent='Notes saved.';}}
+        catch(error) {
+          if(error.status===401 || error.status===403) revokeApiCodesAccess();
+          else notesStatus.textContent=error.status===409?'Notes changed elsewhere. Your draft is preserved.':'Notes could not be saved. Your draft is preserved.';
+        } finally {if(codesUid)notesSave.disabled=false;}
+      });
+      notesCopy.addEventListener('click',async()=>{
+        if(!codesUid)return;
+        try {await navigator.clipboard.writeText(notesTA.value);notesStatus.textContent='Notes copied.';}
+        catch {notesStatus.textContent='Notes could not be copied.';}
+      });
+    }
+    function revokeApiCodesAccess() {
+      if(!apiMode)return;
+      operationsApi.clearSession();apiWorkspace?.stop();apiWorkspace=null;apiNotes?.stop();
+      apiDraftsByUid.clear();apiNoteDraftsByUid.clear();codesUid=null;codesGeneration++;
+      notesTA.value='';delete notesTA.dataset.dirty;notesTA.disabled=true;notesSave.disabled=true;notesCopy.disabled=true;
+      showGate();gateError.textContent='Account access expired or was revoked. Sign in again.';gateError.classList.remove('hidden');
+    }
+    let apiAuthUid;
+    async function handleApiAuth(user) {
+      const next=user?.uid || null;
+      if(next===apiAuthUid)return;
+      apiAuthUid=next;
+      if(codesUid) {
+        if(apiWorkspace)apiDraftsByUid.set(codesUid,apiWorkspace.captureDrafts());
+        if(notesTA.dataset.dirty==='true')apiNoteDraftsByUid.set(codesUid,{text:notesTA.value,version:apiNotes.version()});
+      }
+      if(next && ((apiDraftsByUid.size && !apiDraftsByUid.has(next)) || (apiNoteDraftsByUid.size && !apiNoteDraftsByUid.has(next)))) {
+        apiDraftsByUid.clear();apiNoteDraftsByUid.clear();
+      }
+      operationsApi.clearSession();apiWorkspace?.stop();apiWorkspace=null;apiNotes.stop();
+      codesUid=null;codesGeneration++;const generation=codesGeneration;
+      notesTA.value='';delete notesTA.dataset.dirty;notesTA.disabled=true;notesSave.disabled=true;notesCopy.disabled=true;
+      document.getElementById('page-history-btn').disabled=true;list.replaceChildren();
+      const history=document.getElementById('page-history-panel');history.replaceChildren();history.classList.add('hidden');
+      showGate();
+      if(!user)return;
+      gateError.textContent='Checking owner access…';gateError.classList.remove('hidden');
+      try {
+        const identity=await operationsApi.me();
+        if(codesGeneration!==generation || auth.currentUser?.uid!==next)return;
+        if(identity?.role!=='owner' || identity.uid!==next) {gateError.textContent='This account does not have access to codes.';return;}
+        codesUid=next;gateError.classList.add('hidden');notesTA.disabled=false;notesSave.disabled=false;notesCopy.disabled=false;
+        const draft=apiNoteDraftsByUid.get(next);
+        if(draft){notesTA.value=draft.text;notesTA.dataset.dirty='true';}
+        apiNotes.start(draft?.version);showApp();
+      } catch {
+        if(codesGeneration===generation && auth.currentUser?.uid===next) {gateError.textContent='Account access could not be verified. Sign in again.';gateError.classList.remove('hidden');}
+      }
+    }
+    onAuthStateChanged(auth, user => {
+      if(apiMode) {handleApiAuth(user);return;}
+      const next = user?.uid === OPERATOR_UID ? user.uid : null;
+      ownerNotes.setUser(user);
+      if (codesUid === next) return;
+      if (codesUid) captureCodeDrafts();
+      codesUid = next; codesGeneration++;
+      DEFAULTS.length = 0;
+      document.getElementById('page-history-btn').disabled = true;
+      list.replaceChildren();
+      const history = document.getElementById('page-history-panel');
+      if (history) { history.replaceChildren(); history.classList.add('hidden'); }
+      if (next) showApp();
+      else {
+        showGate();
+        if (user) { gateError.textContent = 'This account does not have access to codes.'; gateError.classList.remove('hidden'); }
+      }
+    });
+    document.getElementById('signout-btn').addEventListener('click', () => signOut(auth));
+  </script>
+
+  <script>
+    (() => {
+      const toggle = document.querySelector('.password-toggle');
+      const input = document.getElementById('gate-input');
+      toggle.addEventListener('click', () => {
+        const show = input.type === 'password';
+        input.type = show ? 'text' : 'password';
+        toggle.setAttribute('aria-pressed', String(show));
+        toggle.textContent = show ? 'Hide password' : 'Show password';
+      });
+    })();
+  </script>
+</body>
+</html>

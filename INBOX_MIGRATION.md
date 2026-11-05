@@ -1,0 +1,90 @@
+# Private inbox staging projection
+
+`backend.storage.project_inbox` is a **staging-only** importer of a complete private dashboard snapshot already included in an authenticated encrypted Firestore export. It is not a scheduled or production ingestion system. It does not read the live provider or Firestore and does not send messages.
+
+The collector's chat-list query does not supply a reliable property ID. An operator must verify each source chat against an authoritative source and supply a private mapping for **every** chat. A null property ID is an explicit choice to make the conversation owner-only; it is not a guess. The target property must already exist in PostgreSQL. Ambiguous or unreviewed mappings must not be imported. Mappings contain sensitive chat/property identifiers: keep them in an owner-only directory and file outside the checkout (`0700` directory, `0600` file). The required shape is:
+
+```json
+{"version":1,"bindings":[{"chat_id":"fictional-chat-id","property_id":"fictional-existing-property-id"},{"chat_id":"fictional-owner-only-id","property_id":null}]}
+```
+
+First apply the numbered schema migrations and import the **same** encrypted backup into a disposable password-authenticated `padsplit_stage_*` PostgreSQL database, per `MIGRATION_RUNBOOK.md`. The projection authenticates the backup, checks the staged encrypted documents and metadata, and requires a complete valid current pointer and all of its chunks. Then use the same private `DATABASE_URL` and `PADSPLIT_MIGRATION_KEY` already required by the staging importer:
+
+```sh
+python -m backend.storage.project_inbox --input /secure/export.enc --mapping /secure/inbox-mapping.json
+python -m backend.storage.project_inbox --input /secure/export.enc --mapping /secure/inbox-mapping.json --apply
+```
+
+The first invocation is a dry run. The second inserts only after all source and scope checks; repeated identical inputs are idempotent. Changed or conflicting target records fail the entire transaction and require review. No names, identifiers, contents, or keys are printed by the command.
+
+Each conversation and message uses a deterministic hash of the provider identity; raw IDs and the complete source payload remain in the authenticated source backup and encrypted staging source records. Text, sender label, deletion state and timestamp are carried into the private operational tables. Deleted messages have blank bodies. The snapshot contains `lastMessage` and, for some recent chats, up to ten `recent_messages`; it is **not a complete historical message archive**. Absence from a snapshot is never treated as deletion. The initial projector never deletes target data; later staging catch-up is described below. It does not continuously refresh the inbox or retrieve attachment content. Sender/room details not explicitly projected remain only in the encrypted source. Inspect actual provider behavior and design a conflict-safe recurring collector before claiming fresh production data.
+
+A private snapshot must actually exist in the backup. The previous real-source export contained no such snapshot; no inbox data was imported from it. Real owner/browser access and staging permissions must be tested separately. Do not expose the local-only inbox in a release as a complete migration until ingestion, freshness, supported metadata, identity review and cutover controls are verified.
+
+## Later snapshot catch-up in staging
+
+Migration 016 and the optional `--baseline` mode provide an explicit local catch-up rehearsal. The baseline must be the same authenticated backup that was imported to `source_documents` and whose inbox projection was applied. The candidate must be a distinct, fully authenticated encrypted Firestore export with a complete current private-snapshot pointer and chunks and a strictly later source observation time. Each candidate requires its own complete reviewed mapping file; an already mapped conversation cannot change property without separate reconciliation. The code re-verifies the baseline staged source and the existing baseline conversation/message projections before applying anything.
+
+```sh
+python -m backend.storage.project_inbox --baseline /secure/baseline.enc --input /secure/candidate.enc --mapping /secure/candidate-mapping.json
+python -m backend.storage.project_inbox --baseline /secure/baseline.enc --input /secure/candidate.enc --mapping /secure/candidate-mapping.json --apply
+```
+
+The first command is a dry run. Apply updates observed conversation metadata and inserts newly observed messages atomically, while retaining conversations and messages absent from the partial source. It rejects stale observations, reused or conflicting runs, changed previously imported messages (including deletion-state changes), property reassignment, missing source or corrupted encrypted evidence. A repeated identical latest candidate is idempotent. Each accepted complete candidate and its mapping are retained encrypted with the staging migration key in `inbox_snapshot_runs`; the database stores only a keyed fingerprint and encrypted content, and the original encrypted backup must also be retained separately. The staging database and its backups remain sensitive even though this evidence is encrypted.
+
+This is **not an automatic collector, production scheduler, complete historical import, or Firestore change stream**. Because the source is partial, it never infers deletion; changed or deleted existing messages must be reconciled manually before any production plan. Both Firestore exports remain non-atomic, so the catch-up is not proof of a consistent cutover. Verify source completeness, current roles and property scopes, retention, availability, operator mapping and restore procedures in isolated staging before proposing deployment.
+
+### Manual offline provider-capture rehearsal
+
+Once a later encrypted provider capture has been collected separately and its complete mapping has been reviewed, `backend.storage.stage_inbox_capture` can validate and project it against the **already imported and projected** original staging baseline. It does not contact PadSplit, start a scheduler, or perform outbound actions. It requires `PADSPLIT_COLLECTION_ONLY=1`, `--enable-staging-inbox`, the staging migration key and an explicitly loopback `padsplit_stage_*` database accepted by `staging_connect`. It is disabled in CI. The baseline and capture must be bounded owner-only files in owner-only directories outside the repository; the mapping follows the private reviewed format above.
+
+```sh
+python -m backend.storage.stage_inbox_capture --enable-staging-inbox \
+  --baseline /private/staging-baseline.enc --capture /private/later-capture.enc \
+  --mapping /private/reviewed-inbox-mapping.json
+python -m backend.storage.stage_inbox_capture --enable-staging-inbox \
+  --baseline /private/staging-baseline.enc --capture /private/later-capture.enc \
+  --mapping /private/reviewed-inbox-mapping.json --apply
+```
+
+The first invocation is a dry run; apply uses the same transactional catch-up checks described above. The encrypted capture must contain the exact marked provider-collection record set, with filtered/non-atomic provenance; arbitrary exports, missing or mismatched scope, stale captures and conflicting existing messages are rejected. Repeating the same accepted capture is idempotent. Output contains only counts and generic errors, not source data or paths. This workflow does not establish fresh collection, full history, attachment retrieval, automatic synchronization, production readiness, or authorization to cut over.
+
+## Explicit provider collection and attachment metadata
+
+`padsplit_scraper.collect_private_inbox` is a manual, opt-in read-only collector. It uses the existing PadSplit GraphQL chat-list and message-list queries with their `pageInfo` cursors. It requires `--enable-source-read`, `PADSPLIT_COLLECTION_ONLY=1`, private `PADSPLIT_EMAIL` and `PADSPLIT_PASSWORD` environment settings, and the separate base64 `PADSPLIT_MIGRATION_KEY`. No credentials, cursor values, source IDs, source errors, or message contents are printed. It does not send messages or invoke action hooks. Authentication failure stops instead of forcing a login. Never place credentials in chat or the repository.
+
+Use a private directory outside the checkout owned by the operator with mode 0700. Both paths must be absolute; the candidate must not exist. Invoke the command with a bounded page count and rerun with the same paths until it reports completion:
+
+```sh
+python -m padsplit_scraper.collect_private_inbox --enable-source-read \
+  --checkpoint /private/inbox-checkpoint.enc --candidate /private/inbox-capture.enc --max-pages 10
+```
+
+Exit status 2 means the encrypted checkpoint was saved and another invocation is required; 1 is a failure and 0 means a completed encrypted candidate was written. The checkpoint is encrypted, written atomically with a host-local lock and fsync, and bound to a keyed fingerprint of the source account. Cursor cycles, changed duplicate messages and malformed or missing pagination are rejected. If provider cursors expire, restart with a new checkpoint after private review. A crash after the provider returns a page but before the checkpoint is durable may re-fetch that page; no database write occurs in this command. The candidate is marked `provider_graphql_collection_v1`, and is a collected snapshot-shaped staging artifact, **not a Firestore export**.
+
+The existing query filters message types; exhausting its cursors establishes only that this filtered traversal ended, not a complete history range or a point-in-time snapshot. Source updates may occur during the scan. The provider schema exposes attachment ID, type, deletion flag, filename and location. This workflow preserves safe metadata where available, hashes source attachment IDs, strips locations and URL-like filenames, and displays content as unavailable. It does not download, store, proxy or expose provider attachment URLs; attachment authorization and retention still need real-provider verification.
+
+When the authenticated Firestore source backup has no private snapshot, create a **new** encrypted staging baseline combining the unchanged original backup and the explicitly marked provider capture:
+
+```sh
+python -m backend.storage.combine_inbox_capture --source /private/firestore-source.enc \
+  --capture /private/inbox-capture.enc --output /private/staging-combined.enc
+```
+
+This refuses an existing private snapshot, duplicate paths, unmarked captures and any existing destination. Keep the original Firestore backup separately. Import and verify the combined baseline into a **new disposable staging database**, then use the reviewed mapping and `project_inbox` commands above with the combined file. For later manually collected candidates, use `--baseline /private/staging-combined.enc` with `--input /private/later-capture.enc` and a complete reviewed mapping. Never replace the original source backup with a combined artifact. Source collection, account-to-scope mapping and this procedure require staging and real-provider review before a scheduler or cutover is considered.
+
+Migration 019 adds nullable attachment metadata to messages. Null means the source did not report attachment metadata; an empty array means it reported none. Restricted API role grants must include `SELECT (id, conversation_id, body, sent_at, sender_label, source_deleted, source_attachments) ON messages`; the API filters metadata again before responding and hides it for deleted messages. No live grants or storage-provider configuration were changed.
+
+Migration 021 adds nullable `conversations.source_unread`. It preserves a boolean only when the source explicitly supplies `member.isUnread`; null means unknown and is not counted as read or unread. Restricted API grants must include this column as documented in `MIGRATION_RUNBOOK.md`. The collector is still manual and the observation may be stale; this flag is not a live read receipt.
+
+The isolated API inbox supports scoped conversation and message viewing, owner-only shared notes, password reset, per-user session reply drafts, and server-side search over stored titles, property names, and non-deleted message text. It displays attachment metadata without exposing attachment locations or content. Search covers stored records only, so missing history and stale snapshots cannot appear; provider messages remain read-only. It is not a release replacement for the legacy inbox while collection, historical coverage and source-to-property review remain incomplete.
+
+`deploy/frontend-api/private-messages.html` is a review-only copy of the API inbox for the eventual existing deep-link path. It is not selected by the release builder. Its source and dependencies are checked by `test_inbox_release_source.mjs`; the lifecycle test can exercise this exact candidate by setting `PADSPLIT_INBOX_PAGE=deploy/frontend-api/private-messages.html` and `PADSPLIT_UI_TEST_MODULES` to the local DOM-test dependency directory. A temporary diagnostic build with an in-memory source mapping is not an approved release or evidence of live ingestion.
+
+Message timestamps are shown when the stored source supplied a valid timestamp; missing or invalid timestamps are labelled unavailable. Duplicate requests for the same page are coalesced, and late message responses cannot replace the currently selected conversation. Inbox search dispatches the synchronous database work to a worker thread so that a slow query does not block the API event loop; the bounded request body and database timeout remain in force. These changes do not establish live ingestion, complete history, attachment retrieval, or real-owner authorization.
+
+Migration 023 adds nullable `conversations.source_display`, carrying only the source first name, last name, room number, street, city and state when observed. Missing keys remain missing and explicitly supplied nulls remain null; the encrypted source retains the complete original representation. Provider IDs, pictures, locations and URL-like display fields are not carried into this JSON. Existing rows remain null after the migration; reimport of a previously projected source with newly available metadata fails on conflict and requires an isolated rebuild or explicit private reconciliation, never a blind overwrite. The catch-up applies each accepted snapshot's display fields and its observation time without guessing scope. The API searches those allowlisted fields and returns them only after the same conversation property check; the most recent stored message preview is omitted if that message is deleted. None of this establishes current or complete provider history. The restricted API grant in `MIGRATION_RUNBOOK.md` includes `source_display`.
+
+Drafts over 10,000 characters remain intact in memory but are not written to session storage; the interface asks the user to copy them before leaving. The last previously saved draft is retained until all drafts are within the storage limits. Signing out still clears session drafts after confirmation.
+
+The API inbox revalidates the signed-in identity, role and complete property scope every 30 seconds. A changed, invalid or unverifiable identity clears private content and drafts and stops the watcher, matching the overview's fail-closed behavior. A 60-second data refresh updates stored records without replacing the selected reply draft; after older pages have been loaded it keeps that history visible and reports that manual refresh returns to the latest page. Message requests may specify `order=desc` to fetch newest stored messages first; the UI displays each page chronologically and prepends older pages. The API's existing ascending default is unchanged. Offset pages can overlap or miss records when concurrent ingestion changes their order; duplicate IDs fail closed, and these reads do not constitute a consistent history snapshot. Neither polling strategy performs collection or establishes that provider data is current.

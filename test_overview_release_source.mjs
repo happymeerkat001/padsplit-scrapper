@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const html=fs.readFileSync('deploy/frontend-api/index.html','utf8');
+assert.match(html,/PADSPLIT_RUNTIME_CONFIG/);
+assert.match(html,/padsplit-data-mode/);
+assert.doesNotMatch(html,/firebase-firestore|\b(?:getFirestore|onSnapshot|addDoc|deleteDoc|getDoc|setDoc|serverTimestamp)\s*\(/i);
+assert.doesNotMatch(html,/\b(?:projectId|apiKey)\s*:\s*["'][^"']+["']/);
+assert.match(html,/createOverviewApiRefresh/);
+assert.match(html,/tasks\.html/);
+assert.match(html,/Provider task discussions are unavailable/i);
+console.log('API-only overview candidate is isolated from Firestore and labels provider discussions unavailable.');

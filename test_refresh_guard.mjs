@@ -1,0 +1,10 @@
+import { readFileSync } from 'node:fs';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+const context = {};
+vm.runInNewContext(readFileSync('docs/refresh-guard.js', 'utf8'), context);
+assert.equal(context.shouldDeferRefresh({editing: true, draft: false, notesDirty: false}), true);
+assert.equal(context.shouldDeferRefresh({editing: false, draft: true, notesDirty: false}), true);
+assert.equal(context.shouldDeferRefresh({editing: false, draft: false, notesDirty: true}), true);
+assert.equal(context.shouldDeferRefresh({editing: false, draft: false, notesDirty: false}), false);
+console.log('refresh guard preserves active edits and drafts');

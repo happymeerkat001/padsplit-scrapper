@@ -1,0 +1,25 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+const context = {}; vm.createContext(context);
+vm.runInContext(readFileSync('docs/overview-api-tasks.js', 'utf8'), context);
+let load, data, error, canceled = false, current = true, accessLost = false;
+const api = {tasks: async options => ({items:[{id:'t1',title:'Repair',status:'open',property_id:'p1'}]}),
+  poll: (l,d,e) => {load=l; data=d; error=e; return () => {canceled=true;};}};
+const output = {textContent:''};
+const ctrl = context.createOverviewApiTasks({api,output,isCurrent:()=>current,onAccessLost:()=>{accessLost=true;}});
+ctrl.start(); data(await load(new AbortController().signal));
+assert.match(output.textContent, /1 open/);
+assert.match(output.textContent, /first 100/i);
+data({items:[{id:'manual_example',title:'x'.repeat(201),status:'open',property_id:null}]});
+assert.match(output.textContent, /1 open/);
+assert.throws(()=>data({items:[{id:'t1',title:'x',status:'invalid',property_id:'p1'}]}), /invalid/i);
+assert.throws(()=>data({items:[{id:'t1',title:'x',status:'open',property_id:'p1'}, {id:'t1',title:'x',status:'open',property_id:'p1'}]}), /invalid/i);
+error({status:403}); assert.equal(accessLost,true);
+current=false; output.textContent='cleared'; data({items:[]}); assert.equal(output.textContent,'cleared');
+ctrl.stop(); assert.equal(canceled,true); assert.match(output.textContent,/sign in/i);
+const page = readFileSync('docs/index.html', 'utf8');
+assert.match(page, /src="\.\/overview-api-tasks\.js"/);
+assert.match(page, /href="\.\/tasks\.html">Open tasks and discussions/);
+assert.match(page, /stopFirestore = \(\) => \{ stopTasks\(\); stopAccess\(\); \}/);
+console.log('Overview task summary validates scoped pages, clears on stop, and revokes on denied access.');

@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="padsplit-data-mode" content="api">
+  <title>Team &amp; permissions · Operations</title>
+  <link rel="stylesheet" href="./operations-tokens.css">
+  <link rel="stylesheet" href="./operations.css">
+  <link rel="stylesheet" href="./team.css">
+  <script src="./runtime-config.js"></script>
+  <script src="./vendors-api.js"></script>
+  <script src="./api-client.js"></script>
+  <script src="./team-page.js"></script>
+  <script defer src="./navigation.js"></script>
+</head>
+<body>
+  <nav class="ops-nav" aria-label="Main navigation"></nav>
+  <header class="team-header"><div><p class="eyebrow">Administration</p><h1>Team &amp; permissions</h1><p>Manage access for existing Firebase accounts.</p></div><button id="team-signout" type="button" hidden>Sign out</button></header>
+  <main class="team-main">
+    <section id="team-gate" class="team-panel" aria-labelledby="team-gate-title">
+      <h2 id="team-gate-title">Owner sign in</h2>
+      <p id="team-gate-status" role="status">Checking configuration…</p>
+      <form id="team-signin" hidden>
+        <label>Email <input id="team-email" type="email" autocomplete="username" required></label>
+        <label>Password <input id="team-password" type="password" autocomplete="current-password" required></label>
+        <button type="submit">Sign in</button>
+      </form>
+      <button id="team-use-another" type="button" hidden>Use another account</button>
+    </section>
+    <div id="team-workspace" hidden>
+      <p id="team-status" role="status" aria-live="polite"></p>
+      <div class="team-columns">
+        <section class="team-panel" aria-labelledby="team-roster-title"><div class="team-panel-heading"><h2 id="team-roster-title">Members</h2><button id="team-refresh" type="button">Refresh roster</button></div><div id="team-roster"></div></section>
+        <section class="team-panel" aria-labelledby="team-editor-title"><h2 id="team-editor-title">Access settings</h2>
+          <p>Load a Firebase user ID, then choose a role and property scope. Changes are checked by the trusted server.</p>
+          <form id="team-form">
+            <label>Firebase user ID <input id="target-uid" type="text" maxlength="200" autocomplete="off" required></label>
+            <button id="team-load" type="button">Load user</button>
+            <label>Role <select id="target-role"><option value="viewer">Viewer</option><option value="operator">Operator</option><option value="manager">Manager</option><option value="owner">Owner</option></select></label>
+            <label class="team-active"><input id="target-active" type="checkbox" checked> Active account</label>
+            <fieldset><legend>Assigned properties</legend><div id="property-scope"></div></fieldset>
+            <p class="team-help">Active managers, operators and viewers need at least one property. Clear all assignments before deactivating.</p>
+            <button id="team-save" type="submit" disabled>Save access</button>
+          </form>
+        </section>
+      </div>
+    </div>
+  </main>
+  <script type="module">
+    import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+    const config=window.PADSPLIT_RUNTIME_CONFIG, gate=document.getElementById('team-gate'), gateStatus=document.getElementById('team-gate-status');
+    let runtime;
+    try {
+      runtime=resolveOperationsRuntime(config,true);
+      if(runtime.mode!=='api' || config?.teamEnabled!==true)throw new Error('Unavailable');
+    } catch {
+      gateStatus.textContent='Team administration is not enabled for this environment.';
+      throw new Error('Team administration unavailable.');
+    }
+    const auth=getAuth(initializeApp(runtime.firebase));
+    let api;
+    try {api=createOperationsApi({baseUrl:runtime.apiOrigin,getUser:()=>auth.currentUser});}
+    catch {gateStatus.textContent='The private service is not configured.';throw new Error('API unavailable.');}
+    const signin=document.getElementById('team-signin'),password=document.getElementById('team-password'),workspacePanel=document.getElementById('team-workspace'),signoutButton=document.getElementById('team-signout'),another=document.getElementById('team-use-another');
+    let workspace=null,generation=0;
+    window.addEventListener('beforeunload',event=>{if(workspace?.isDirty()){event.preventDefault();event.returnValue='';}});
+    function clearAccess(message){
+      generation++;workspace?.stop();workspace=null;api.clearSession();workspacePanel.hidden=true;gate.hidden=false;signin.hidden=true;signoutButton.hidden=true;another.hidden=false;gateStatus.textContent=message;
+    }
+    signin.addEventListener('submit',async event=>{
+      event.preventDefault();const submit=signin.querySelector('button[type="submit"]');if(submit.disabled)return;
+      submit.disabled=true;gateStatus.textContent='Signing in…';
+      try {await signInWithEmailAndPassword(auth,document.getElementById('team-email').value.trim(),password.value);}
+      catch {gateStatus.textContent='Sign in could not be confirmed.';}
+      finally {password.value='';submit.disabled=false;}
+    });
+    another.addEventListener('click',()=>signOut(auth));signoutButton.addEventListener('click',()=>signOut(auth));
+    onAuthStateChanged(auth,user=>{
+      generation++;const current=generation;workspace?.stop();workspace=null;api.clearSession();workspacePanel.hidden=true;gate.hidden=false;signoutButton.hidden=true;password.value='';
+      if(!user){signin.hidden=false;another.hidden=true;gateStatus.textContent='Sign in with an authorized owner account.';return;}
+      signin.hidden=true;another.hidden=false;gateStatus.textContent='Checking owner access…';
+      const candidate=createTeamWorkspace({api,document,getUid:()=>auth.currentUser?.uid,isCurrent:()=>generation===current && auth.currentUser===user,
+        onAccessLost:()=>clearAccess('Account access expired or was revoked.'),confirmChange:message=>window.confirm(message)});
+      workspace=candidate;
+      candidate.start().then(()=>{
+        if(generation!==current || auth.currentUser!==user)return;
+        gate.hidden=true;another.hidden=true;workspacePanel.hidden=false;signoutButton.hidden=false;
+      }).catch(error=>{
+        if(generation!==current || auth.currentUser!==user)return;
+        candidate.stop();workspace=null;gateStatus.textContent=error?.status===403?'This page requires an authorized owner account.':'Team access could not be verified.';
+      });
+    });
+  </script>
+</body>
+</html>

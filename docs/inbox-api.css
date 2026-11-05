@@ -1,0 +1,5 @@
+.inbox-columns{display:grid;grid-template-columns:minmax(14rem,22rem) minmax(0,1fr);gap:1rem;align-items:start}
+#inbox-list,#inbox-messages{max-height:60vh;overflow:auto}
+.inbox-entry{padding:.75rem;border-bottom:1px solid var(--ops-line);white-space:pre-wrap;overflow-wrap:anywhere}
+#inbox-back{display:none}
+@media(max-width:760px){.inbox-columns{grid-template-columns:1fr}#inbox-list,#inbox-messages{max-height:55vh}#inbox-workspace:not(.is-open) .inbox-detail-pane,#inbox-workspace.is-open .inbox-list-pane{display:none}#inbox-workspace.is-open #inbox-back{display:inline-block}}

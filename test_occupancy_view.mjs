@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import vm from 'node:vm';
+const ctx = {};
+vm.runInNewContext(readFileSync('docs/occupancy-view.js', 'utf8'), ctx);
+assert.equal(ctx.presenceLabel({occupant_present: true}), 'Present');
+assert.equal(ctx.presenceLabel({occupant_present: false}), 'Not present');
+assert.equal(ctx.presenceLabel({}), 'Unknown');
+assert.equal(ctx.displayDays({days_vacant: 0}), '0');
+assert.equal(ctx.displayDays({}), '—');
+assert.equal(ctx.displayDays({days_vacant: null}), '—');
+assert.equal(ctx.displayDays({days_vacant: -1}), '—');
+console.log('occupancy view distinguishes unknowns and zero');
+assert.equal(ctx.roomActionLabel({rent_ready:true,vacant:true}),'Rent-ready');
+assert.equal(ctx.roomActionLabel({vacant:true,rent_ready:false}),'Vacant · awaiting turn');
+assert.equal(ctx.roomActionLabel({occupant_present:true}),'Present');
+assert.equal(ctx.roomActionLabel({}),'Unknown');

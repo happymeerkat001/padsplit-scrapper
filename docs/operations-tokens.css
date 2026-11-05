@@ -1,0 +1,17 @@
+/* Shared tokens for the production dashboard and the isolated local demo. */
+:root {
+  --workspace: #f6f7f9;
+  --surface: #ffffff;
+  --ink: #17212f;
+  --ink-secondary: #526174;
+  --line: #e1e6ed;
+  --blue: #2563eb;
+  --blue-ink: #1d4ed8;
+  --control-radius: 6px;
+  --surface-radius: 8px;
+  --sidebar: #202b39;
+  --sidebar-text: #dbe4ee;
+  --sidebar-muted: #aebdd0;
+  --sidebar-active: #344b66;
+}
+.ops-icon { width:18px; height:18px; flex:none; fill:none; stroke:currentColor; stroke-width:1.75; stroke-linecap:round; stroke-linejoin:round; }

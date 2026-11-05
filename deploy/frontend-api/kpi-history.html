@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="padsplit-data-mode" content="api"><title>KPI history · Operations</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="./operations-tokens.css"><link rel="stylesheet" href="./operations.css"><link rel="stylesheet" href="./team.css"><link rel="stylesheet" href="./password-reset.css">
+<script src="./runtime-config.js"></script><script src="./vendors-api.js"></script><script src="./api-client.js"></script><script src="./stats-api.js"></script><script src="./password-reset.js"></script><script defer src="./navigation.js"></script>
+</head>
+<body>
+<nav class="ops-nav" aria-label="Main navigation"></nav>
+<header class="team-header"><div><p class="eyebrow">Operations</p><h1>KPI history</h1><p>Monthly imported statistics; partial months are marked in the table.</p></div><button id="history-signout" type="button" hidden>Sign out</button></header>
+<main class="team-main"><section id="history-gate" class="team-panel"><h2>Report sign in</h2><p id="history-gate-status" role="status">Checking configuration…</p>
+<form id="history-signin" hidden><label>Email <input id="history-email" type="email" autocomplete="username" required></label><label>Password <input id="history-password" type="password" autocomplete="current-password" required></label><button type="submit">Sign in</button></form><button id="history-other" type="button" hidden>Use another account</button></section>
+<section id="history-workspace" class="team-panel" hidden><div class="team-panel-heading"><h2>Monthly history</h2><button id="history-refresh" type="button">Refresh</button></div><p id="history-status" role="status" aria-live="polite"></p>
+<div class="history-charts"><section><h3>Occupancy % over time</h3><div class="history-chart"><canvas id="history-chart-occupancy" aria-hidden="true"></canvas></div></section><section><h3>Manager payout over time</h3><div class="history-chart"><canvas id="history-chart-payout" aria-hidden="true"></canvas></div></section><section><h3>Average flip days</h3><div class="history-chart"><canvas id="history-chart-flip" aria-hidden="true"></canvas></div></section><section><h3>Average tenant tenure</h3><div class="history-chart"><canvas id="history-chart-tenure" aria-hidden="true"></canvas></div></section></div>
+<p>Interactive chart values are also available in the table below.</p><div id="report-history"></div></section></main>
+<style>#report-history{overflow:auto}.report-bar{display:block;min-height:.5rem;background:#457bd0}.history-charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}.history-chart{height:260px;position:relative}@media(max-width:700px){.history-charts{grid-template-columns:1fr}}table{border-collapse:collapse}th,td{text-align:left;padding:.5rem;border-bottom:1px solid #d5dce6}</style>
+<script type="module">
+import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import {getAuth,signInWithEmailAndPassword,sendPasswordResetEmail,onAuthStateChanged,signOut} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+const $=id=>document.getElementById(id),gate=$('history-gate'),signin=$('history-signin'),gateStatus=$('history-gate-status'),workspace=$('history-workspace'),password=$('history-password');
+let runtime;try{runtime=resolveOperationsRuntime(window.PADSPLIT_RUNTIME_CONFIG,true);if(runtime.mode!=='api')throw Error();}catch{gateStatus.textContent='The private service is not configured.';throw new Error('API unavailable.');}
+const auth=getAuth(initializeApp(runtime.firebase)),api=createOperationsApi({baseUrl:runtime.apiOrigin,getUser:()=>auth.currentUser});
+mountPasswordReset({auth,sender:sendPasswordResetEmail,form:signin,signInEmail:$('history-email')});
+let generation=0,loading=false,charts=null;
+function clear(message){generation++;loading=false;charts?.destroy();charts=null;$('history-refresh').disabled=false;api.clearSession();workspace.hidden=true;gate.hidden=false;signin.hidden=true;$('history-other').hidden=false;$('history-signout').hidden=true;password.value='';$('report-history').replaceChildren();$('history-status').textContent='';gateStatus.textContent=message;}
+async function refresh(){if(loading)return;loading=true;$('history-refresh').disabled=true;const session=generation,user=auth.currentUser;$('history-status').textContent='Loading history…';
+ try{const response=await api.report('monthly_history');if(session!==generation||user!==auth.currentUser)return;const history=parseHistoryResponse(response);renderHistory(document,history);charts?.destroy();charts=null;try{if(typeof window.Chart!=='function')throw Error();charts=createHistoryCharts(document,history,window.Chart);$('history-status').textContent='History loaded.';}catch{$('history-status').textContent='History loaded. Interactive charts unavailable; use the data table.';}}
+ catch(error){if(session!==generation||user!==auth.currentUser)return;if(error.status===401||error.status===403){clear('Your access could not be confirmed.');return;}charts?.destroy();charts=null;$('report-history').replaceChildren();$('history-status').textContent=error.status===404?'No monthly history has been imported yet.':'History unavailable. Try again.';}
+ finally{if(session===generation){loading=false;$('history-refresh').disabled=false;}}
+}
+signin.addEventListener('submit',async event=>{event.preventDefault();const button=signin.querySelector('button[type="submit"]');button.disabled=true;try{await signInWithEmailAndPassword(auth,$('history-email').value.trim(),password.value);}catch{gateStatus.textContent='Sign in could not be confirmed.';}finally{password.value='';button.disabled=false;}});
+$('history-other').addEventListener('click',()=>signOut(auth));$('history-signout').addEventListener('click',()=>signOut(auth));$('history-refresh').addEventListener('click',refresh);
+onAuthStateChanged(auth,async user=>{clear('Sign in to view history.');if(!user){signin.hidden=false;$('history-other').hidden=true;return;}const session=generation;gateStatus.textContent='Checking report access…';try{const identity=await api.me();if(session!==generation||auth.currentUser!==user)return;if(identity?.uid!==user.uid)throw Error();const allowed=identity.role==='owner'||(await api.reportAccess())?.allowed===true;if(session!==generation||auth.currentUser!==user)return;if(!allowed)throw Error();gate.hidden=true;workspace.hidden=false;$('history-signout').hidden=false;await refresh();}catch{if(session===generation)clear('Report access could not be confirmed.');}});
+</script>
+</body>
+</html>

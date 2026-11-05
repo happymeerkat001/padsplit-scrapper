@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 'node:vm';
+const context={};vm.createContext(context);vm.runInContext(fs.readFileSync('docs/api-provider-discussion-links.js','utf8'),context);
+const row={task_observation_id:'obs-a',task_key:'key-a',internal_task_id:'target-a',property_id:'property-a'};
+const links=await context.loadApiProviderDiscussionLinks({providerDiscussionLinks:async()=>({items:[row],ingestion:'staging_only',coverage:'reviewed_links_only'})});
+const task={api_observation_id:'obs-a',api_task_key:'key-a',property_id:'property-a'};
+assert.equal(context.providerDiscussionHref(task,links),'./tasks.html#task=target-a');
+assert.equal(context.providerDiscussionHref({...task,api_observation_id:'new-obs'},links),null);
+assert.equal(context.providerDiscussionHref({...task,property_id:'property-b'},links),null);
+assert.equal(context.providerDiscussionHref(task,null),null);
+await assert.rejects(()=>context.loadApiProviderDiscussionLinks({providerDiscussionLinks:async()=>({items:[row,row],ingestion:'staging_only',coverage:'reviewed_links_only'})}));
+await assert.rejects(()=>context.loadApiProviderDiscussionLinks({providerDiscussionLinks:async()=>({items:[{...row,internal_task_id:'../admin'}],ingestion:'staging_only',coverage:'reviewed_links_only'})}));
+console.log('Provider discussion links require exact current observations, scope and valid ids.');

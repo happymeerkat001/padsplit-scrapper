@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import vm from 'node:vm';
+const context={};vm.createContext(context);vm.runInContext(readFileSync('docs/api-provider-tasks.js','utf8'),context);
+const a={task_key:'hash-a',observation_id:'obs-a',source_id:12,bucket:'Open',property_id:'p1',observed_at:'2026-01-01T00:00:00Z',data:{category:'Repair',property_id:'p1',room_number:2}};
+const page=items=>({items,ingestion:'staging_only'});
+assert.equal(await context.loadApiProviderTasks({providerTasks:async()=>page([])}),null);
+const result=await context.loadApiProviderTasks({providerTasks:async()=>page([a,{...a,task_key:'hash-b',bucket:'Requests'}])});
+assert.equal(result.tasks.Open[0].id,'12');assert.equal(result.tasks.Requests.length,1);assert.equal(result.tasks.Open[0].property_id,'p1');assert.equal(result.tasks.Open[0].api_task_key,'hash-a');assert.equal(result.tasks.Open[0].api_observation_id,'obs-a');
+await assert.rejects(context.loadApiProviderTasks({providerTasks:async()=>page([a,a])}),/duplicate/i);
+await assert.rejects(context.loadApiProviderTasks({providerTasks:async()=>page([a,{...a,task_key:'different'}])}),/duplicate/i);
+await assert.rejects(context.loadApiProviderTasks({providerTasks:async()=>page([a,{...a,task_key:'hash-b',source_id:13,observed_at:'2026-01-02T00:00:00Z'}])}),/mixed/i);
+console.log('Provider task adapter keeps bucket identities and rejects incomplete mixed observations');

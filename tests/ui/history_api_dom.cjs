@@ -1,0 +1,21 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const {parseHTML}=require(process.env.PADSPLIT_UI_TEST_MODULES+'/linkedom');
+const html=fs.readFileSync('deploy/frontend-api/kpi-history.html','utf8');
+assert.match(html,/padsplit-data-mode/);assert.doesNotMatch(html,/firebase-firestore|getFirestore\s*\(/);
+const {window}=parseHTML(html),document=window.document;
+const code=html.match(/<script type="module">([\s\S]*?)<\/script>/)[1].replace(/^import .*;\s*$/gm,'');
+const auth={currentUser:null};let listener,role='owner',reportAllowed=false,calls=0,resolveReport;
+const reportPromise=()=>new Promise(resolve=>{resolveReport=resolve});let response=()=>Promise.resolve({id:'monthly_history',observed_at:null,json:'{"months":[{"month":"2026-01","score":90,"occupancy_pct":0}]}' });
+const api={clearSession(){},me:async()=>({uid:auth.currentUser.uid,role}),reportAccess:async()=>({allowed:reportAllowed}),report:()=>{calls++;return response();}};
+window.PADSPLIT_RUNTIME_CONFIG={dataMode:'api'};
+const charts=[];window.Chart=class {constructor(node,config){this.node=node;this.config=config;charts.push(this);}destroy(){this.destroyed=true;}};
+const context={window,document,console,initializeApp:()=>({}),getAuth:()=>auth,signInWithEmailAndPassword:async()=>{},sendPasswordResetEmail:async()=>{},onAuthStateChanged:(_,fn)=>{listener=fn},signOut:async()=>{},resolveOperationsRuntime:()=>({mode:'api',firebase:{},apiOrigin:'https://api.invalid'}),createOperationsApi:()=>api,mountPasswordReset:()=>{}};
+vm.createContext(context);vm.runInContext(fs.readFileSync('docs/stats-api.js','utf8'),context);context.renderHistory=window.renderHistory;context.parseHistoryResponse=window.parseHistoryResponse;context.createHistoryCharts=window.createHistoryCharts;vm.runInContext(code,context);
+const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
+(async()=>{
+ auth.currentUser={uid:'fictional-owner'};await listener(auth.currentUser);assert.equal(calls,1);assert.equal(document.getElementById('history-workspace').hidden,false);assert.match(document.getElementById('report-history').textContent,/190000/);assert.equal(charts.length,4);
+ role='viewer';auth.currentUser={uid:'fictional-viewer'};await listener(auth.currentUser);assert.equal(calls,1);assert.equal(document.getElementById('history-workspace').hidden,true);assert.equal(document.getElementById('report-history').textContent,'');assert.ok(charts.every(chart=>chart.destroyed));
+ reportAllowed=true;auth.currentUser={uid:'fictional-reporter'};await listener(auth.currentUser);assert.equal(calls,2);assert.equal(document.getElementById('history-workspace').hidden,false);
+ role='owner';response=reportPromise;auth.currentUser={uid:'fictional-owner'};const pending=listener(auth.currentUser);await tick();auth.currentUser=null;await listener(null);resolveReport({id:'monthly_history',observed_at:null,json:'{"months":[{"month":"private-stale"}]}' });await pending;assert.equal(document.getElementById('report-history').textContent,'');
+ console.log('History UI: owner gate, synthetic API read and stale session cleanup passed');
+})().catch(e=>{console.error(e);process.exitCode=1});

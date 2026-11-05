@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+const context={}; vm.createContext(context); vm.runInContext(fs.readFileSync('docs/overview-api-refresh.js','utf8'),context);
+const pending=new Map(); let next=0; const schedule=(fn,delay)=>{const id=++next;pending.set(id,{fn,delay});return id}; const cancel=id=>pending.delete(id);
+const tick=()=>new Promise(resolve=>setImmediate(resolve));
+let active=true,deferred=true,attempts=0,notices=0,release;
+const start=context.createOverviewApiRefresh({refresh:()=>{attempts++;return new Promise(resolve=>release=resolve)},shouldDefer:()=>deferred,isCurrent:()=>active,onDeferred:()=>notices++,schedule,cancel,interval:300000,retryInterval:5000});
+assert.equal(pending.size,1); let job=pending.values().next().value;assert.equal(job.delay,300000); pending.clear();job.fn(); await tick();
+assert.equal(attempts,0);assert.equal(notices,1);job=pending.values().next().value;assert.equal(job.delay,5000);pending.clear();deferred=false;job.fn();await tick();assert.equal(attempts,1);assert.equal(pending.size,0);
+start.stop();release();await tick();assert.equal(pending.size,0,'stop must prevent rescheduling a late result');
+active=true;const stopped=context.createOverviewApiRefresh({refresh:()=>attempts++,shouldDefer:()=>false,isCurrent:()=>active,onDeferred:()=>{},schedule,cancel});job=pending.values().next().value;active=false;pending.clear();job.fn();await tick();assert.equal(attempts,1,'stale session must not refresh');assert.equal(pending.size,0);stopped.stop();
+console.log('Overview refresh defers drafts and stops on session change.');

@@ -1,0 +1,28 @@
+# Template only. Replace @...@ after reviewing the VPS and service account.
+# Keep disabled until collection-only behavior is verified on staging.
+[Unit]
+Description=PadSplit collection-only worker
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=@DEDICATED_SERVICE_USER@
+Group=@DEDICATED_SERVICE_GROUP@
+WorkingDirectory=@ABSOLUTE_CHECKOUT_DIRECTORY@
+EnvironmentFile=@PRIVATE_ENV_FILE@
+Environment=PADSPLIT_COLLECTION_ONLY=1
+Environment=PADSPLIT_ENABLE_ACTION_HOOKS=0
+Environment=PADSPLIT_GIT_PUBLISH=0
+Environment=PADSPLIT_DISABLE_FIRESTORE_UPLOAD=1
+Environment=PADSPLIT_OUTPUT_DIR=@PRIVATE_STATE_DIRECTORY@/output
+Environment=PADSPLIT_STATE_DIR=@PRIVATE_STATE_DIRECTORY@/state
+Environment=PADSPLIT_LOCK_DIR=@PRIVATE_STATE_DIRECTORY@/locks
+UnsetEnvironment=FIREBASE_SERVICE_ACCOUNT_JSON GOOGLE_APPLICATION_CREDENTIALS
+ExecStart=@VENV_PYTHON@ -m padsplit_scraper.locked_collector
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=@PRIVATE_STATE_DIRECTORY@
+TimeoutStartSec=30min

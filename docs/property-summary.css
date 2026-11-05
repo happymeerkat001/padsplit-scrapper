@@ -1,0 +1,10 @@
+.property-summary-wrap { width: 100%; overflow-x: auto; }
+.property-summary-table { border-collapse: collapse; width: 100%; min-width: 32rem; text-align: left; }
+.property-summary-table th, .property-summary-table td { padding: .7rem .8rem; border-bottom: 1px solid #e1e6ed; font-size: .875rem; }
+.property-summary-table thead th { color: #526174; font-size: .75rem; font-weight: 600; }
+.property-summary-table tbody th { color: #17212f; font-weight: 600; text-transform: none; letter-spacing: normal; }
+.property-summary-table tbody tr:last-child > * { border-bottom: 0; }
+.property-summary-empty { color: #526174; font-size: .875rem; }
+.property-summary-heading { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.property-scope-link { border:0; background:transparent; padding:0; color:#245bd0; font:inherit; font-weight:600; text-align:left; cursor:pointer; }
+.property-scope-link:hover { text-decoration:underline; }

@@ -1,0 +1,639 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Templates — PadSplit</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --text: #e2e8f0;
+      --warn: #fbbf24;
+      --success: #4ade80;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem clamp(1rem, 4vw, 2.5rem);
+    }
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.75rem;
+    }
+    h1 { margin: 0; font-size: 1.5rem; }
+    .header-meta {
+      margin-left: auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.75rem;
+    }
+    .header-link {
+      color: var(--muted);
+      text-decoration: underline;
+      font-size: 0.95rem;
+    }
+    .header-link:hover { color: var(--accent); }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1rem;
+    }
+    .template-card {
+      background: var(--card);
+      border: 1px solid rgba(148,163,184,0.15);
+      border-radius: 12px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    .template-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .template-label[contenteditable] {
+      cursor: text;
+      border-radius: 4px;
+      padding: 1px 3px;
+      margin: -1px -3px;
+      outline: none;
+      transition: background 0.15s;
+    }
+    .template-label[contenteditable]:hover {
+      background: rgba(148,163,184,0.1);
+    }
+    .template-label[contenteditable]:focus {
+      background: rgba(56,189,248,0.08);
+    }
+    textarea {
+      width: 100%;
+      min-height: 120px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(148,163,184,0.2);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      padding: 0.65rem 0.75rem;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    textarea:focus {
+      border-color: var(--accent);
+    }
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.5rem;
+    }
+    .save-btn {
+      background: none;
+      border: 1px solid rgba(148,163,184,0.25);
+      border-radius: 6px;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 0.8rem;
+      padding: 0.3rem 0.65rem;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .save-btn:hover { color: var(--success); border-color: var(--success); }
+    .copy-btn {
+      background: none;
+      border: 1px solid rgba(148,163,184,0.25);
+      border-radius: 6px;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 0.3rem 0.5rem;
+      display: flex;
+      align-items: center;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+    .copy-btn svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .copy-btn.copied { color: var(--success); border-color: var(--success); }
+    .notes-section { margin-top: 2rem; }
+    .notes-section h2 { margin: 0 0 0.75rem; font-size: 1.2rem; }
+    .notes-card { background: var(--card); border: 1px solid rgba(148,163,184,.15); border-radius: 12px; padding: 1rem; }
+    .notes-textarea { width: 100%; min-height: 120px; background: rgba(255,255,255,.04); border: 1px solid rgba(148,163,184,.2); border-radius: 8px; color: var(--text); font-family: inherit; font-size: .9rem; line-height: 1.5; padding: .65rem .75rem; resize: vertical; outline: none; transition: border-color .15s; box-sizing: border-box; }
+    .notes-textarea:focus { border-color: var(--accent); }
+    .notes-footer { display: flex; align-items: center; justify-content: flex-end; gap: .5rem; margin-top: .5rem; }
+    .notes-save-btn { background: none; border: 1px solid rgba(148,163,184,.25); border-radius: 6px; color: var(--muted); cursor: pointer; font-size: .8rem; padding: .3rem .65rem; transition: color .15s, border-color .15s; }
+    .notes-save-btn:hover { color: var(--success); border-color: var(--success); }
+    .notes-copy-btn { background: none; border: 1px solid rgba(148,163,184,.25); border-radius: 6px; color: var(--muted); cursor: pointer; padding: .3rem .5rem; display: flex; align-items: center; transition: color .15s, border-color .15s; }
+    .notes-copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+    .notes-copy-btn.copied { color: var(--success); border-color: var(--success); }
+    .notes-copy-btn svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  </style>
+  <link rel="stylesheet" href="./operations.css">
+  <link rel="stylesheet" href="./password-reset.css">
+  <link rel="stylesheet" href="./editable-search.css">
+  <script defer src="./navigation.js"></script>
+</head>
+<body>
+  <div id="gate-overlay" style="position:fixed;inset:0;z-index:100;background:#0f172a;display:flex;align-items:center;justify-content:center;padding:2rem">
+    <div style="max-width:380px;width:100%;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0));border:1px solid rgba(148,163,184,0.2);border-radius:12px;padding:1.5rem;box-shadow:0 14px 40px rgba(15,23,42,0.4)">
+      <h2 style="margin:0 0 0.35rem;font-size:1.2rem;color:#e2e8f0">Sign In</h2>
+      <p style="margin:0 0 1rem;color:#94a3b8;font-size:0.9rem">PadSplit Dashboard</p>
+      <form id="gate-form" style="display:flex;flex-direction:column;gap:0.5rem">
+        <label for="gate-email" class="gate-label">Email</label>
+        <input aria-label="Email" id="gate-email" type="email" placeholder="Email" autocomplete="email" style="background:#0b1222;border:1px solid rgba(148,163,184,0.35);color:#e2e8f0;border-radius:8px;padding:0.45rem 0.6rem;font-size:0.95rem;outline:none;font-family:inherit"/>
+        <label for="gate-password" class="gate-label">Password</label>
+        <input aria-label="Password" id="gate-password" type="password" placeholder="Password" autocomplete="current-password" style="background:#0b1222;border:1px solid rgba(148,163,184,0.35);color:#e2e8f0;border-radius:8px;padding:0.45rem 0.6rem;font-size:0.95rem;outline:none;font-family:inherit"/>
+        <button type="button" class="password-toggle" aria-controls="gate-password" aria-pressed="false">Show password</button>
+        <button type="submit" style="border:none;border-radius:8px;background:#38bdf8;color:#0b1222;font-weight:700;padding:0.45rem 0.9rem;cursor:pointer;margin-top:0.25rem;font-family:inherit">Sign In</button>
+      </form>
+      <div role="alert" id="gate-error" style="color:#f87171;font-size:0.9rem;margin-top:0.6rem;display:none">Sign-in failed. Check your credentials and connection, then try again.</div>
+    </div>
+  </div>
+  <header>
+    <h1>Templates</h1>
+    <div class="header-meta">
+      <button id="signout-btn" class="header-link" style="background:none;border:none;cursor:pointer;padding:0">Sign out</button>
+    </div>
+  </header>
+  <nav class="ops-nav" aria-label="Main navigation">
+    <a href="./index.html">Overview</a>
+    <a href="./private-messages.html">Messages</a>
+    <a href="./templates.html" aria-current="page">Templates</a>
+    <a href="./codes.html">Codes</a>
+    <a href="./stats.html">Stats</a>
+    <a href="./vendors.html">Vendors</a>
+    <a href="./kpi-history.html">History</a>
+  </nav>
+
+
+  <div class="list-search"><label for="template-search">Search templates<input id="template-search" type="search" autocomplete="off" placeholder="Title or message text"></label><p id="template-search-status" role="status" aria-live="polite"></p></div>
+  <div class="grid" id="templates-grid"></div>
+
+  <section class="notes-section">
+    <h2>Notes</h2>
+    <div class="notes-card">
+      <textarea aria-label="Shared notes" class="notes-textarea" id="notes-textarea" placeholder="Add shared notes…"></textarea>
+      <div class="notes-footer">
+        <button class="notes-save-btn" id="notes-save-btn">Save</button>
+        <button class="notes-copy-btn" id="notes-copy-btn" aria-label="Copy notes" title="Copy notes"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+      </div>
+    </div>
+  </section>
+
+  <script src="./draft-guard.js"></script>
+  <script src="./editable-search.js"></script>
+  <script src="./auth-listeners.js"></script>
+  <script src="./password-reset.js"></script>
+  <script src="./runtime-config.js"></script>
+  <script src="./api-client.js"></script>
+  <script src="./vendors-api.js"></script>
+  <script src="./templates-api.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const apiRequired = document.querySelector('meta[name="padsplit-data-mode"]')?.content === 'api';
+    let runtime;
+    try { runtime = resolveOperationsRuntime(window.PADSPLIT_RUNTIME_CONFIG, apiRequired); }
+    catch {
+      document.getElementById('gate-error').textContent = 'The private service is not configured. Contact your administrator.';
+      document.getElementById('gate-error').style.display = 'block';
+      document.getElementById('gate-form').querySelector('button[type="submit"]').disabled = true;
+      throw new Error('API configuration unavailable.');
+    }
+    const apiMode = runtime.mode === 'api';
+    const firebaseConfig = apiMode ? runtime.firebase : window.PADSPLIT_RUNTIME_CONFIG?.firebase ?? null;
+
+    const app = initializeApp(firebaseConfig);
+    const db = apiMode ? null : getFirestore(app);
+    const auth = getAuth(app);
+    let operationsApi = null;
+    if (apiMode) {
+      try { operationsApi = createOperationsApi({baseUrl:runtime.apiOrigin, getUser:() => auth.currentUser}); }
+      catch {
+        document.getElementById('gate-error').textContent = 'The private service is not available. Contact your administrator.';
+        document.getElementById('gate-error').style.display = 'block';
+        document.getElementById('gate-form').querySelector('button[type="submit"]').disabled = true;
+        throw new Error('API client unavailable.');
+      }
+    }
+    const TEMPLATE_DOC = apiMode ? null : doc(db, "templates", "shared");
+    const COUNT = 9;
+
+    const textareas = [];
+    const labels = [];
+    const templateSaveButtons = [];
+    const templateReloadButtons = [];
+    const templateStates = Array(COUNT).fill(null);
+    let templateSequence = 0, templateApplied = 0, noteSequence = 0, noteApplied = 0;
+    let apiStops = () => {}, notesVersion = null, notesConflict = false, templateMappingValid = false;
+    function templateStatus(message) {
+      const status = document.getElementById('templates-status');
+      if (status) status.textContent = message;
+    }
+    function invalidateTemplates() { templateApplied = ++templateSequence; }
+    function invalidateNotes() { noteApplied = ++noteSequence; }
+    function revokeTemplateAccess() {
+      apiStops(); operationsApi.clearSession(); invalidateTemplates(); invalidateNotes();
+      templateStates.fill(null); notesVersion = null; notesConflict = false; templateMappingValid = false;
+      textareas.forEach(ta => { ta.value=''; delete ta.dataset.dirty; ta.disabled=true; });
+      labels.forEach((label,i) => { label.textContent=`Template ${i+1}`; delete label.dataset.dirty; label.contentEditable='false'; });
+      templateSaveButtons.forEach(button => { button.disabled=true; });
+      templateReloadButtons.forEach(button => { button.hidden=true; });
+      const note = document.getElementById('notes-textarea'); note.value=''; delete note.dataset.dirty; note.disabled=true;
+      document.getElementById('notes-save-btn').disabled=true;
+      document.getElementById('notes-reload-btn').hidden=true;
+      templateStatus('Account access expired or was revoked. Sign in again.');
+    }
+    async function saveTemplatePart(index, part, saved, target, button) {
+      const state = templateStates[index], submittingUid = auth.currentUser?.uid;
+      if (!templateMappingValid || !state || state.pending || state.conflict) { templateStatus('Refresh this template before saving.'); return; }
+      state.pending = true;
+      const name = part === 'name' ? saved : state.name;
+      const body = part === 'body' ? saved : state.body;
+      try {
+        const result = await operationsApi.updateTemplate(state.id, {name,body,expected_version:state.version});
+        if (!Number.isSafeInteger(result.version) || result.version < 1) throw new Error('Invalid update response.');
+        if (auth.currentUser?.uid !== submittingUid || templateStates[index] !== state) return;
+        invalidateTemplates(); state.name=name; state.body=body; state.version=result.version;
+        markDraftSaved(target,saved); templateStatus('Template saved.');
+        if (button) button.textContent='Saved!';
+      } catch (error) {
+        if (auth.currentUser?.uid !== submittingUid || templateStates[index] !== state) return;
+        if (error.status === 401 || error.status === 403) { revokeTemplateAccess(); return; }
+        if (error.status === 409) { state.conflict=true; templateReloadButtons[index].hidden=false; }
+        templateStatus(error.status === 409 ? 'Template changed elsewhere. Your drafts are preserved; review and refresh the slot.' : 'Template could not be saved. Your draft is preserved.');
+        if (button) button.textContent='Error';
+      } finally { state.pending=false; }
+    }
+    function applyTemplateSlot(index, row, force=false) {
+      const label=labels[index], textarea=textareas[index], state=templateStates[index];
+      const dirty=!canApplyRemote(label, document.activeElement) || !canApplyRemote(textarea, document.activeElement) || state?.pending;
+      if (!force && state && row && row.version < state.version) return;
+      if (!force && state && dirty) {
+        if (!row || state.version !== row.version) { state.conflict=true; templateReloadButtons[index].hidden=false; }
+        return;
+      }
+      if (!row) {
+        templateStates[index]=null; label.textContent=`Template ${index+1}`; textarea.value='';
+        delete label.dataset.dirty; delete textarea.dataset.dirty;
+        label.contentEditable='false'; textarea.disabled=true; templateSaveButtons[index].disabled=true; templateReloadButtons[index].hidden=true;
+        return;
+      }
+      templateStates[index]={...row,pending:false,conflict:false};
+      label.textContent=row.name || `Template ${index+1}`; textarea.value=row.body;
+      delete label.dataset.dirty; delete textarea.dataset.dirty;
+      label.contentEditable='true'; textarea.disabled=false; templateSaveButtons[index].disabled=false; templateReloadButtons[index].hidden=true;
+    }
+    async function loadApiTemplates(signal) {
+      const sequence=++templateSequence;
+      return {sequence,slots:await loadTemplateSlots(operationsApi,signal)};
+    }
+    function applyApiTemplates({sequence,slots}) {
+      if (sequence<templateApplied) return;
+      templateApplied=sequence;
+      templateMappingValid=true;
+      slots.forEach((row,i)=>applyTemplateSlot(i,row));
+      templateSaveButtons.forEach((button,i)=>{button.disabled=!templateStates[i] || templateStates[i].conflict || templateStates[i].pending;});
+      const conflicts=templateStates.some(state=>state?.conflict);
+      templateStatus(conflicts ? 'A template changed elsewhere. Your drafts are preserved; review and refresh the slot.' :
+        slots.some(row=>!row) ? 'Some template slots have not been migrated and cannot be edited yet.' : 'Templates refreshed.');
+      filterTemplates();
+    }
+    const templateSearch = document.getElementById('template-search');
+    function filterTemplates() {
+      const cards = document.querySelectorAll('#templates-grid .template-card');
+      const count = filterEditableCards(cards, templateSearch.value);
+      document.getElementById('template-search-status').textContent = templateSearch.value.trim() ? `${count} matching templates` : '';
+    }
+    templateSearch.addEventListener('input', filterTemplates);
+
+    function buildGrid() {
+      const grid = document.getElementById('templates-grid');
+      grid.innerHTML = '';
+      textareas.length = 0;
+      labels.length = 0;
+      templateSaveButtons.length = 0;
+      templateReloadButtons.length = 0;
+
+      for (let i = 0; i < COUNT; i++) {
+        const card = document.createElement('div');
+        card.className = 'template-card';
+
+        const label = document.createElement('div');
+        label.className = 'template-label';
+        label.contentEditable = apiMode ? 'false' : 'true';
+        label.spellcheck = false;
+        label.dataset.index = i;
+        label.setAttribute('role', 'textbox');
+        label.setAttribute('aria-label', `Template ${i + 1} title`);
+        label.addEventListener('input', () => markDraft(label));
+        label.textContent = `Template ${i + 1}`;
+        labels.push(label);
+
+        label.addEventListener('blur', async () => {
+          const update = {};
+          const saved = label.textContent.trim();
+          if (apiMode) {
+            if (label.dataset.dirty === 'true') await saveTemplatePart(i, 'name', saved, label);
+            return;
+          }
+          update[`n${i}`] = saved;
+          try { await setDoc(TEMPLATE_DOC, update, { merge: true }); markDraftSaved(label, saved); }
+          catch { label.title = 'Title could not be saved; edit or retry.'; }
+        });
+
+        label.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            label.blur();
+          }
+        });
+
+        const textarea = document.createElement('textarea');
+        textarea.placeholder = `Template ${i + 1}…`;
+        textarea.setAttribute('aria-label', `Template ${i + 1} text`);
+        if (apiMode) textarea.disabled = true;
+        textarea.addEventListener('input', () => markDraft(textarea));
+        textareas.push(textarea);
+
+        const footer = document.createElement('div');
+        footer.className = 'card-footer';
+
+        const saveBtn = document.createElement('button');
+        saveBtn.className = 'save-btn';
+        saveBtn.textContent = 'Save';
+        if (apiMode) saveBtn.disabled = true;
+        templateSaveButtons.push(saveBtn);
+        saveBtn.addEventListener('click', async () => {
+          saveBtn.textContent = 'Saving…';
+          saveBtn.disabled = true;
+          try {
+            if (apiMode) {
+              const saved = textarea.value;
+              await saveTemplatePart(i, 'body', saved, textarea, saveBtn);
+              return;
+            }
+            const update = {};
+            const saved = textarea.value;
+            update[`t${i}`] = saved;
+            await setDoc(TEMPLATE_DOC, update, { merge: true });
+            markDraftSaved(textarea, saved);
+            saveBtn.textContent = 'Saved!';
+          } catch (e) {
+            saveBtn.textContent = 'Error';
+          }
+          finally {
+            setTimeout(() => { saveBtn.textContent = 'Save'; saveBtn.disabled = apiMode && (!templateMappingValid || !templateStates[i] || templateStates[i].conflict); }, 1500);
+          }
+        });
+
+        const reloadBtn = document.createElement('button');
+        reloadBtn.type='button'; reloadBtn.className='template-refresh-btn'; reloadBtn.textContent='Refresh slot'; reloadBtn.hidden=true;
+        reloadBtn.addEventListener('click', async () => {
+          if (!apiMode || !confirm('Refresh this template and discard its unsaved edits?')) return;
+          const beforeName=label.textContent, beforeBody=textarea.value, requestingUid=auth.currentUser?.uid;
+          reloadBtn.disabled=true;
+          try {
+            const slots=await loadTemplateSlots(operationsApi);
+            if (auth.currentUser?.uid!==requestingUid) return;
+            if (label.textContent!==beforeName || textarea.value!==beforeBody) { templateStatus('Draft changed while refreshing and was preserved.'); return; }
+            invalidateTemplates(); applyTemplateSlot(i,slots[i],true);
+            templateStatus(slots[i] ? 'Template refreshed.' : 'This template slot is unavailable.');
+          } catch (error) {
+            if (error.status===401 || error.status===403) revokeTemplateAccess();
+            else templateStatus('Could not refresh the template. Your draft is preserved.');
+          } finally { reloadBtn.disabled=false; }
+        });
+        templateReloadButtons.push(reloadBtn);
+
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'copy-btn';
+        copyBtn.title = 'Copy to clipboard';
+        copyBtn.setAttribute('aria-label', `Copy template ${i + 1}`);
+        copyBtn.innerHTML = `<svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+        copyBtn.addEventListener('click', () => {
+          navigator.clipboard.writeText(textarea.value).then(() => {
+            copyBtn.classList.add('copied');
+            setTimeout(() => copyBtn.classList.remove('copied'), 1500);
+          });
+        });
+
+        footer.appendChild(saveBtn);
+        if (apiMode) footer.appendChild(reloadBtn);
+        footer.appendChild(copyBtn);
+        card.appendChild(label);
+        card.appendChild(textarea);
+        card.appendChild(footer);
+        grid.appendChild(card);
+      }
+    }
+
+    function initApp() {
+    buildGrid();
+    const status = document.createElement('p'); status.id = 'templates-status'; status.setAttribute('role', 'status');
+    document.getElementById('templates-grid').before(status);
+
+    // Real-time sync from Firestore
+    if (!apiMode) {
+    authListeners.add(() => onSnapshot(TEMPLATE_DOC, (snap) => {
+      const data = snap.exists() ? snap.data() : {};
+      textareas.forEach((ta, i) => {
+        // Only update if not focused (don't clobber user mid-edit)
+        if (canApplyRemote(ta, document.activeElement)) {
+          ta.value = data[`t${i}`] ?? '';
+        }
+      });
+      labels.forEach((lbl, i) => {
+        if (canApplyRemote(lbl, document.activeElement)) {
+          lbl.textContent = data[`n${i}`] || `Template ${i + 1}`;
+        }
+      });
+      filterTemplates();
+    }, () => { document.getElementById('templates-status').textContent = 'Templates could not be loaded. Check your access and retry signing in.'; }));
+    }
+
+    // ── Notes ────────────────────────────────────────────────────────────────
+    const NOTES_DOC = apiMode ? null : doc(db, 'notes', 'templates');
+    const notesTA = document.getElementById('notes-textarea');
+    const notesSave = document.getElementById('notes-save-btn');
+    const notesCopy = document.getElementById('notes-copy-btn');
+    const notesReload = document.createElement('button');
+    notesReload.type='button'; notesReload.id='notes-reload-btn'; notesReload.textContent='Refresh notes'; notesReload.hidden=true;
+    if (apiMode) { notesTA.disabled=true; notesSave.disabled=true; notesSave.before(notesReload); }
+    notesTA.addEventListener('input', () => markDraft(notesTA));
+    if (!apiMode) {
+    authListeners.add(() => onSnapshot(NOTES_DOC, snap => {
+      if (snap.exists() && canApplyRemote(notesTA, document.activeElement))
+        notesTA.value = snap.data().text || '';
+    }, () => { document.getElementById('templates-status').textContent = 'Notes could not be loaded. Check your access and retry signing in.'; }));
+    } else {
+      async function loadNote(signal) { const sequence=++noteSequence; return {sequence,note:await operationsApi.note('templates',{signal})}; }
+      function applyNote({sequence,note}) {
+        if (sequence<noteApplied) return;
+        if (!note || !Number.isSafeInteger(note.version) || note.version<0 || typeof note.text!=='string') throw new Error('Invalid note response.');
+        noteApplied=sequence;
+        if (notesVersion !== null && note.version<notesVersion) return;
+        if (notesVersion !== null && !canApplyRemote(notesTA,document.activeElement)) {
+          if (note.version!==notesVersion) { notesConflict=true; notesReload.hidden=false; templateStatus('Notes changed elsewhere. Your draft is preserved; review and refresh notes.'); }
+          return;
+        }
+        notesVersion=note.version; notesConflict=false; notesReload.hidden=true;
+        notesTA.value=note.text; delete notesTA.dataset.dirty; notesTA.disabled=false; notesSave.disabled=false;
+      }
+      notesReload.addEventListener('click',async()=>{
+        if (!confirm('Refresh notes and discard unsaved edits?')) return;
+        const before=notesTA.value, requestingUid=auth.currentUser?.uid;
+        notesReload.disabled=true;
+        try {
+          const note=await operationsApi.note('templates');
+          if (auth.currentUser?.uid!==requestingUid) return;
+          if (notesTA.value!==before) { templateStatus('Notes changed while refreshing and were preserved.'); return; }
+          if (!note || !Number.isSafeInteger(note.version) || note.version<0 || typeof note.text!=='string') throw new Error('Invalid note response.');
+          invalidateNotes(); notesVersion=note.version; notesConflict=false; notesReload.hidden=true;
+          notesTA.value=note.text; delete notesTA.dataset.dirty; notesTA.disabled=false; notesSave.disabled=false;
+          templateStatus('Notes refreshed.');
+        } catch(error) {
+          if (error.status===401 || error.status===403) revokeTemplateAccess();
+          else templateStatus('Could not refresh notes. Your draft is preserved.');
+        } finally { notesReload.disabled=false; }
+      });
+      authListeners.add(() => {
+        let stopped=false, stopTemplates=()=>{}, stopNotes=()=>{};
+        const expectedUser=auth.currentUser;
+        templateStatus('Checking account access…');
+        operationsApi.me().then(identity=>{
+          if(stopped || auth.currentUser!==expectedUser)return;
+          if(identity?.role!=='owner' || identity.uid!==expectedUser?.uid) { templateStatus('This page requires an owner account.'); return; }
+          const onError=error=>{
+            if(error.status===401 || error.status===403) revokeTemplateAccess();
+            else if(error.code==='templates/unmapped') {
+              templateMappingValid=false; templateSaveButtons.forEach(button=>{button.disabled=true;});
+              templateStatus('Template records require migration review; no ambiguous slots were loaded.');
+            }
+            else templateStatus('Some data could not be loaded. Existing drafts are preserved.');
+          };
+          stopTemplates=operationsApi.poll(loadApiTemplates,applyApiTemplates,onError);
+          stopNotes=operationsApi.poll(loadNote,applyNote,onError);
+          apiStops=()=>{stopTemplates();stopNotes();};
+        }).catch(()=>{if(!stopped && auth.currentUser===expectedUser)templateStatus('Account access could not be verified. Try signing in again.');});
+        return ()=>{stopped=true;stopTemplates();stopNotes();apiStops=()=>{};};
+      });
+    }
+    notesSave.addEventListener('click', async () => {
+      if (notesSave.disabled) return;
+      notesSave.textContent = 'Saving…'; notesSave.disabled = true;
+      const submittingUid=auth.currentUser?.uid;
+      try {
+        const saved = notesTA.value;
+        if (apiMode) {
+          if (notesVersion === null || notesConflict) { templateStatus('Refresh notes before saving.'); return; }
+          const result=await operationsApi.saveNote('templates',saved,notesVersion);
+          if (!Number.isSafeInteger(result.version) || result.version<1) throw new Error('Invalid note response.');
+          if (auth.currentUser?.uid!==submittingUid) return;
+          invalidateNotes(); notesVersion=result.version;
+        } else await setDoc(NOTES_DOC, { text: saved }, { merge: true });
+        markDraftSaved(notesTA, saved); notesSave.textContent = 'Saved!';
+      } catch(error) {
+        if (apiMode && (error.status===401 || error.status===403)) revokeTemplateAccess();
+        else if (apiMode && error.status===409) { notesConflict=true; notesReload.hidden=false; templateStatus('Notes changed elsewhere. Your draft is preserved; review and refresh notes.'); }
+        else { notesSave.textContent = 'Error'; if(apiMode)templateStatus('Notes could not be saved. Your draft is preserved.'); }
+      } finally {
+        setTimeout(() => { notesSave.textContent = 'Save'; notesSave.disabled = apiMode && (notesVersion === null || notesConflict); }, 1500);
+      }
+    });
+    notesCopy.addEventListener('click', () => {
+      navigator.clipboard.writeText(notesTA.value).then(() => {
+        notesCopy.classList.add('copied');
+        setTimeout(() => notesCopy.classList.remove('copied'), 1500);
+      });
+    });
+    } // end initApp
+
+    const gateOverlay = document.getElementById('gate-overlay');
+    const gateForm = document.getElementById('gate-form');
+    mountPasswordReset({auth, sender: sendPasswordResetEmail, form: gateForm, signInEmail: document.getElementById('gate-email')});
+    const gateError = document.getElementById('gate-error');
+
+    gateForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const submit = gateForm.querySelector('button[type="submit"]');
+      if (submit.disabled) return;
+      submit.disabled = true;
+      const label = submit.textContent;
+      submit.textContent = 'Signing in…';
+      try {
+        await signInWithEmailAndPassword(auth, document.getElementById('gate-email').value.trim(), document.getElementById('gate-password').value);
+        gateError.style.display = 'none';
+      } catch (err) {
+        console.error(err);
+        gateError.style.display = 'block';
+      } finally {
+        submit.disabled = false;
+        submit.textContent = label;
+      }
+    });
+
+    const authListeners = createAuthListeners({onIdentityChange: () => {
+      if (apiMode) {
+        operationsApi.clearSession(); invalidateTemplates(); invalidateNotes();
+        templateStates.fill(null); notesVersion=null; notesConflict=false; templateMappingValid=false;
+        templateSaveButtons.forEach(button=>{button.disabled=true;});
+        templateReloadButtons.forEach(button=>{button.hidden=true;});
+        document.getElementById('notes-save-btn').disabled=true;
+        document.getElementById('notes-textarea').disabled=true;
+        const reload=document.getElementById('notes-reload-btn'); if(reload) reload.hidden=true;
+      }
+      textareas.forEach(ta => { ta.value = ''; delete ta.dataset.dirty; });
+      labels.forEach((label, i) => { label.textContent = `Template ${i + 1}`; delete label.dataset.dirty; if(apiMode)label.contentEditable='false'; });
+      if(apiMode) textareas.forEach(ta=>{ta.disabled=true;});
+      templateSearch.value = ''; document.getElementById('template-search-status').textContent = '';
+      const notes = document.getElementById('notes-textarea');
+      notes.value = ''; delete notes.dataset.dirty;
+      const status = document.getElementById('templates-status');
+      if (status) status.textContent = 'Loading templates…';
+    }});
+    let appInited = false;
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        gateOverlay.style.display = 'none';
+        if (!appInited) { appInited = true; initApp(); }
+      } else {
+        gateOverlay.style.display = 'flex';
+      }
+      authListeners.setUser(user);
+    });
+
+    document.getElementById('signout-btn').addEventListener('click', () => signOut(auth));
+  </script>
+
+  <script>
+    (() => {
+      const toggle = document.querySelector('.password-toggle');
+      const input = document.getElementById('gate-password');
+      toggle.addEventListener('click', () => {
+        const show = input.type === 'password';
+        input.type = show ? 'text' : 'password';
+        toggle.setAttribute('aria-pressed', String(show));
+        toggle.textContent = show ? 'Hide password' : 'Show password';
+      });
+    })();
+  </script>
+</body>
+</html>

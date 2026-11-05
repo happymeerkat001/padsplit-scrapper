@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Tenant Messages — Private</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --text: #e2e8f0;
+      --warn: #fbbf24;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem clamp(1rem, 4vw, 2.5rem);
+    }
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.75rem;
+    }
+    h1 { margin: 0; font-size: 1.5rem; }
+    .header-meta {
+      margin-left: auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .header-link {
+      color: var(--muted);
+      text-decoration: underline;
+      font-size: 0.95rem;
+    }
+    .header-link:hover { color: var(--accent); }
+    .pill {
+      padding: 0.3rem 0.7rem;
+      border-radius: 999px;
+      background: rgba(251,191,36,0.15);
+      color: var(--warn);
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+    .updated {
+      margin-left: auto;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+    .filter-bar {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.25rem;
+      flex-wrap: wrap;
+    }
+    .filter-bar input {
+      padding: 0.4rem 0.7rem;
+      border-radius: 8px;
+      border: 1px solid rgba(148,163,184,0.3);
+      background: #1e293b;
+      color: var(--text);
+      font-size: 0.9rem;
+      flex: 1;
+      min-width: 180px;
+    }
+    .filter-bar input::placeholder { color: var(--muted); }
+    .count { color: var(--muted); font-size: 0.85rem; align-self: center; }
+    .list { display: flex; flex-direction: column; gap: 0; }
+    .card {
+      background: #1e293b;
+      border: 1px solid rgba(148,163,184,0.15);
+      border-radius: 10px;
+      padding: 0.85rem 1rem;
+    }
+    .card.unread { border-left: 3px solid var(--accent); }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.5rem;
+      margin-bottom: 0.35rem;
+    }
+    .tenant-name { font-weight: 600; font-size: 0.95rem; }
+    .conversation-identity { display:flex; align-items:center; gap:.6rem; min-width:0; }
+    .conversation-avatar { display:grid; place-items:center; flex:none; width:2rem; height:2rem; border-radius:50%; background:#e9eff9; color:#31518c; font-size:.75rem; font-weight:600; }
+    .conversation-time { color:var(--ops-muted); font-size:.75rem; margin-top:.4rem; }
+    .badge-unread {
+      font-size: 0.7rem;
+      padding: 0.15rem 0.45rem;
+      border-radius: 999px;
+      background: rgba(56,189,248,0.18);
+      color: var(--accent);
+      white-space: nowrap;
+    }
+    .address { color: var(--muted); font-size: 0.82rem; margin-bottom: 0.45rem; }
+    .message-text { font-size: 0.9rem; line-height: 1.45; margin-bottom: 0.4rem; }
+    .meta { font-size: 0.78rem; color: var(--muted); }
+    .meta .sender { color: #94a3b8; }
+    .thread { display: flex; flex-direction: column; gap: 0.45rem; margin-top: 0.4rem; }
+    .thread-msg { font-size: 0.88rem; line-height: 1.5; padding: 0.3rem 0; border-bottom: 1px solid rgba(148,163,184,0.08); }
+    .thread-msg:last-child { border-bottom: none; }
+    .thread-msg .t-meta { font-size: 0.73rem; color: var(--muted); margin-top: 0.15rem; }
+    .loading { text-align: center; padding: 1.5rem; color: var(--muted); }
+    .inbox-layout { display:grid; grid-template-columns:minmax(250px, 340px) minmax(0, 1fr); gap:0; align-items:stretch; min-height:32rem; height:min(72vh, 52rem); border:1px solid var(--ops-line); border-radius:.5rem; overflow:hidden; background:var(--ops-panel); }
+    .inbox-list-pane { min-height:0; overflow:auto; border-right:1px solid var(--ops-line); }
+    .conversation-pane.card { min-width:0; min-height:0; display:flex; flex-direction:column; overflow:hidden; padding:1.2rem; border:0 !important; border-radius:0 !important; box-shadow:none !important; }
+    .conversation-entry { display:block; width:100%; text-align:left; color:var(--text); cursor:pointer; font:inherit; }
+    .conversation-entry[aria-pressed="true"] { background:#edf3ff !important; box-shadow:inset 3px 0 0 var(--ops-accent) !important; }
+    .conversation-entry.card { border:0 !important; border-bottom:1px solid var(--ops-line) !important; border-radius:0; box-shadow:none !important; }
+    .conversation-entry .message-text { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .conversation-pane h2 { margin:0 0 .35rem; font-size:1.2rem; }
+    .conversation-pane .thread { margin:1rem 0; flex:1; min-height:0; overflow:auto; padding-right:.5rem; }
+    .thread-msg { max-width:42rem; overflow-wrap:anywhere; white-space:pre-wrap; background:#f4f6f9; border:0; border-radius:.4rem; padding:.65rem .8rem; }
+    .inbox-back { display:none; align-self:flex-start; margin:0 0 .7rem; padding:.4rem .65rem; border:1px solid var(--ops-line); background:#fff; color:var(--ops-text); border-radius:.35rem; }
+    .draft-label { display:block; margin:1rem 0 .35rem; font-weight:600; }
+    .inbox-draft { width:100%; min-height:5rem; max-height:10rem; padding:.7rem; border:1px solid var(--ops-line); background:#fff; color:var(--ops-text); border-radius:.4rem; resize:vertical; }
+    .draft-note { color:var(--ops-muted); font-size:.85rem; }
+    @media(max-width:760px) { .inbox-layout { display:block; height:calc(100dvh - 15rem); min-height:20rem; } .inbox-list-pane,.conversation-pane { height:100%; } .inbox-list-pane { border-right:0; } .inbox-workspace:not(.is-open) .conversation-pane,.inbox-workspace.is-open .inbox-list-pane,.inbox-workspace.is-open .filter-bar { display:none; } .inbox-workspace.is-open .inbox-back { display:inline-block; } }
+
+    .error { color: #f87171; padding: 1rem; }
+    footer { margin-top: 2.5rem; color: var(--muted); font-size: 0.82rem; }
+    .notes-section { margin-top: 2rem; padding: 0 clamp(1rem,4vw,2.5rem); }
+    .notes-section h2 { margin: 0 0 0.75rem; font-size: 1.2rem; }
+    .notes-card { background: linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0)); border: 1px solid rgba(148,163,184,.15); border-radius: 12px; padding: 1rem; }
+    .notes-textarea { width: 100%; min-height: 120px; background: rgba(255,255,255,.04); border: 1px solid rgba(148,163,184,.2); border-radius: 8px; color: var(--text); font-family: inherit; font-size: .9rem; line-height: 1.5; padding: .65rem .75rem; resize: vertical; outline: none; transition: border-color .15s; box-sizing: border-box; }
+    .notes-textarea:focus { border-color: var(--accent); }
+    .notes-footer { display: flex; align-items: center; justify-content: flex-end; gap: .5rem; margin-top: .5rem; }
+    .notes-save-btn { background: none; border: 1px solid rgba(148,163,184,.25); border-radius: 6px; color: var(--muted); cursor: pointer; font-size: .8rem; padding: .3rem .65rem; transition: color .15s, border-color .15s; }
+    .notes-save-btn:hover { color: #22c55e; border-color: #22c55e; }
+    .notes-copy-btn { background: none; border: 1px solid rgba(148,163,184,.25); border-radius: 6px; color: var(--muted); cursor: pointer; padding: .3rem .5rem; display: flex; align-items: center; transition: color .15s, border-color .15s; }
+    .notes-copy-btn:hover { color: #38bdf8; border-color: #38bdf8; }
+    .notes-copy-btn.copied { color: #22c55e; border-color: #22c55e; }
+    .notes-copy-btn svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  </style>
+  <link rel="stylesheet" href="./operations.css">
+  <link rel="stylesheet" href="./password-reset.css">
+  <script defer src="./navigation.js"></script>
+  <script src="./runtime-config.js"></script>
+</head>
+<body>
+  <div id="gate-overlay" style="position:fixed;inset:0;z-index:100;background:#0f172a;display:flex;align-items:center;justify-content:center;padding:2rem">
+    <div style="max-width:380px;width:100%;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0));border:1px solid rgba(148,163,184,0.2);border-radius:12px;padding:1.5rem;box-shadow:0 14px 40px rgba(15,23,42,0.4)">
+      <h2 style="margin:0 0 0.35rem;font-size:1.2rem;color:#e2e8f0">Sign In</h2>
+      <p style="margin:0 0 1rem;color:#94a3b8;font-size:0.9rem">PadSplit Dashboard</p>
+      <form id="gate-form" style="display:flex;flex-direction:column;gap:0.5rem">
+        <label for="gate-email" class="gate-label">Email</label>
+        <input aria-label="Email" id="gate-email" type="email" placeholder="Email" autocomplete="email" style="background:#0b1222;border:1px solid rgba(148,163,184,0.35);color:#e2e8f0;border-radius:8px;padding:0.45rem 0.6rem;font-size:0.95rem;outline:none;font-family:inherit"/>
+        <label for="gate-password" class="gate-label">Password</label>
+        <input aria-label="Password" id="gate-password" type="password" placeholder="Password" autocomplete="current-password" style="background:#0b1222;border:1px solid rgba(148,163,184,0.35);color:#e2e8f0;border-radius:8px;padding:0.45rem 0.6rem;font-size:0.95rem;outline:none;font-family:inherit"/>
+        <button type="button" class="password-toggle" aria-controls="gate-password" aria-pressed="false">Show password</button>
+        <button type="submit" style="border:none;border-radius:8px;background:#38bdf8;color:#0b1222;font-weight:700;padding:0.45rem 0.9rem;cursor:pointer;margin-top:0.25rem;font-family:inherit">Sign In</button>
+      </form>
+      <div role="alert" id="gate-error" style="color:#f87171;font-size:0.9rem;margin-top:0.6rem;display:none">Sign-in failed. Check your credentials and connection, then try again.</div>
+    </div>
+  </div>
+  <header>
+    <h1>Tenant Messages</h1>
+    <span class="pill">PRIVATE</span>
+    <div class="header-meta">
+      <span class="updated" id="updated"></span>
+      <button id="signout-btn" class="header-link" style="background:none;border:none;cursor:pointer;padding:0">Sign out</button>
+    </div>
+  </header>
+  <nav class="ops-nav" aria-label="Main navigation">
+    <a href="./index.html">Overview</a>
+    <a href="./private-messages.html" aria-current="page">Messages</a>
+    <a href="./templates.html">Templates</a>
+    <a href="./codes.html">Codes</a>
+    <a href="./stats.html">Stats</a>
+    <a href="./vendors.html">Vendors</a>
+    <a href="./kpi-history.html">History</a>
+  </nav>
+
+
+  <div id="inbox-workspace" class="inbox-workspace">
+  <div class="filter-bar">
+    <input id="search" aria-label="Search tenant messages" type="search" placeholder="Filter by name, address, or message…" />
+    <select id="unread-filter" aria-label="Filter conversations by unread state"><option value="all">All conversations</option><option value="unread">Unread</option></select>
+    <span class="count" id="count"></span>
+  </div>
+
+  <div class="inbox-layout">
+    <section class="inbox-list-pane" aria-label="Conversations">
+      <div id="list" class="list"><div class="loading">Loading…</div></div>
+    </section>
+    <section id="conversation-pane" class="conversation-pane card" aria-label="Selected conversation" aria-live="polite">
+      <p class="muted">Select a conversation to read it.</p>
+    </section>
+  </div>
+  </div>
+
+  <section class="notes-section">
+    <h2>Notes</h2>
+    <div class="notes-card">
+      <textarea aria-label="Shared notes" class="notes-textarea" id="notes-textarea" placeholder="Add shared notes…"></textarea>
+      <div class="notes-footer">
+        <button class="notes-save-btn" id="notes-save-btn">Save</button>
+        <button class="notes-copy-btn" id="notes-copy-btn" aria-label="Copy notes" title="Copy notes"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+      </div>
+    </div>
+  </section>
+
+  <footer>Messages are read from the authenticated private snapshot when available.</footer>
+
+  <script src="./draft-guard.js"></script>
+  <script src="./auth-listeners.js"></script>
+  <script src="./private-snapshot.js"></script>
+  <script src="./inbox-search.js"></script>
+  <script src="./display-format.js"></script>
+  <script src="./password-reset.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = window.PADSPLIT_RUNTIME_CONFIG?.firebase ?? null;
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    function fmtDate(s) {
+      if (!s) return '—';
+      return formatDisplayTime(s);
+    }
+
+    let allMessages = [];
+    let privateContentOmitted = true;
+    let privateGeneration = 0;
+    let activeUid;
+    let selectedMessage = null;
+    let selectedKey = null;
+    const drafts = new Map();
+    const draftStorageKey = uid => `padsplit-inbox-drafts:${uid}`;
+    function messageKey(msg) { return typeof msg.id === 'string' && msg.id ? msg.id : msg; }
+    function saveDraftSession() {
+      if (!activeUid) return false;
+      try {
+        const values = [...drafts.entries()].filter(([key]) => typeof key === 'string');
+        sessionStorage.setItem(draftStorageKey(activeUid), JSON.stringify({values, selectedKey}));
+        return true;
+      } catch { return false; }
+    }
+    function restoreDraftSession(uid) {
+      try {
+        const saved = JSON.parse(sessionStorage.getItem(draftStorageKey(uid)) || '{}');
+        for (const item of Array.isArray(saved.values) ? saved.values : []) {
+          if (Array.isArray(item) && typeof item[0] === 'string' && typeof item[1] === 'string') drafts.set(item[0], item[1]);
+        }
+        selectedKey = typeof saved.selectedKey === 'string' ? saved.selectedKey : null;
+      } catch { selectedKey = null; }
+    }
+
+    function messageName(msg) {
+      return String(msg.title || [msg.occupancy?.user?.firstName, msg.occupancy?.user?.lastName].filter(Boolean).join(' ') || 'Unknown tenant');
+    }
+    function messageAddress(msg) {
+      const address = [msg.property?.address?.street1, msg.property?.address?.city?.name,
+        msg.property?.address?.city?.state?.name].filter(Boolean).join(', ') || msg.property?.name || 'Property not reported';
+      const room = msg.occupancy?.room?.roomNumber;
+      return room != null ? `${address} — Room ${room}` : address;
+    }
+    function messageIsUnread(msg) {
+      return msg.member?.isUnread === true || msg.unread === true || Number(msg.unreadCount) > 0;
+    }
+    function messageMatches(msg, query, unreadOnly) {
+      return inboxMatches({name:messageName(msg), property:messageAddress(msg), preview:msg.lastMessage?.text || msg.lastMessage?.body || '', room:msg.occupancy?.room?.roomNumber ?? '', unread:messageIsUnread(msg)}, query, unreadOnly);
+    }
+    function selectConversation(msg) {
+      selectedMessage = msg;
+      const key = messageKey(msg);
+      selectedKey = typeof key === 'string' ? key : null;
+      saveDraftSession();
+      const pane = document.getElementById('conversation-pane');
+      pane.replaceChildren();
+      const back = document.createElement('button'); back.type = 'button'; back.className = 'inbox-back'; back.textContent = '← All conversations';
+      back.addEventListener('click', () => {
+        document.getElementById('inbox-workspace').classList.remove('is-open');
+        const entries = document.getElementById('list').querySelectorAll('.conversation-entry');
+        Array.from(entries).find(entry => entry.getAttribute('aria-pressed') === 'true')?.focus();
+      }); pane.appendChild(back);
+      const title = document.createElement('h2'); title.textContent = messageName(msg); pane.appendChild(title);
+      const address = document.createElement('p'); address.className = 'address'; address.textContent = messageAddress(msg); pane.appendChild(address);
+      const thread = document.createElement('div'); thread.className = 'thread';
+      const messages = (Array.isArray(msg.recent_messages) ? [...msg.recent_messages] : [])
+        .filter(m => m && !m.deleted && String(m.text ?? '').trim())
+        .sort((a, b) => new Date(a.created) - new Date(b.created));
+      if (!messages.length) {
+        const last = msg.lastMessage || {};
+        const entry = document.createElement('p'); entry.className = 'message-text';
+        entry.textContent = last.text || last.body || 'No message text is available.'; thread.appendChild(entry);
+        if (last.created || last.createdAt) {
+          const time = document.createElement('p'); time.className = 't-meta'; time.textContent = fmtDate(last.created || last.createdAt); thread.appendChild(time);
+        }
+      } else {
+        messages.forEach(m => {
+          const entry = document.createElement('div'); entry.className = 'thread-msg';
+          const sender = document.createElement('strong'); sender.textContent = `${m.sender?.displayName || [m.sender?.firstName, m.sender?.lastName].filter(Boolean).join(' ') || 'Unknown'}: `;
+          entry.appendChild(sender); entry.appendChild(document.createTextNode(String(m.text)));
+          const time = document.createElement('div'); time.className = 't-meta'; time.textContent = fmtDate(m.created); entry.appendChild(time);
+          thread.appendChild(entry);
+        });
+      }
+      pane.appendChild(thread);
+      const label = document.createElement('label'); label.className = 'draft-label'; label.htmlFor = 'conversation-draft'; label.textContent = 'Draft reply'; pane.appendChild(label);
+      const note = document.createElement('p'); note.className = 'draft-note'; note.textContent = 'Draft only. Kept in this tab; signing out clears it. Sending is unavailable.'; pane.appendChild(note);
+      const draft = document.createElement('textarea'); draft.id = 'conversation-draft'; draft.className = 'inbox-draft'; draft.value = drafts.get(key) || '';
+      draft.addEventListener('input', () => { drafts.set(key, draft.value); if (!saveDraftSession() || typeof key !== 'string') note.textContent = 'Draft only: not sent. This draft cannot be retained on reload; copy it before leaving.'; }); pane.appendChild(draft);
+    }
+    function renderList(messages) {
+      const list = document.getElementById('list');
+      if (privateContentOmitted) {
+        document.getElementById('count').textContent = '';
+        list.innerHTML = '<div class="loading" role="status">Message content is unavailable in this private snapshot.</div>';
+        return;
+      }
+      document.getElementById('count').textContent = `${messages.length} thread${messages.length !== 1 ? 's' : ''}`;
+      if (!messages.length) { list.innerHTML = '<div class="loading">No matching threads.</div>'; return; }
+      list.innerHTML = '';
+      if (!selectedMessage) selectConversation(messages.find(msg => messageKey(msg) === selectedKey) || messages[0]);
+      messages.forEach(msg => {
+        const unread = messageIsUnread(msg);
+        const button = document.createElement('button'); button.type = 'button';
+        button.className = 'card conversation-entry' + (unread ? ' unread' : '');
+        button.setAttribute('aria-pressed', String(msg === selectedMessage));
+        const header = document.createElement('div'); header.className = 'card-header';
+        const identity = document.createElement('span'); identity.className = 'conversation-identity';
+        const nameText = messageName(msg);
+        const avatar = document.createElement('span'); avatar.className = 'conversation-avatar'; avatar.setAttribute('aria-hidden', 'true');
+        avatar.textContent = nameText.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join('').toLocaleUpperCase() || '?'; identity.appendChild(avatar);
+        const name = document.createElement('span'); name.className = 'tenant-name'; name.textContent = nameText; identity.appendChild(name); header.appendChild(identity);
+        if (unread) { const badge = document.createElement('span'); badge.className = 'badge-unread'; badge.textContent = 'Unread'; header.appendChild(badge); }
+        button.appendChild(header);
+        const address = document.createElement('div'); address.className = 'address'; address.textContent = messageAddress(msg); button.appendChild(address);
+        const preview = document.createElement('div'); preview.className = 'message-text'; preview.textContent = msg.lastMessage?.text || msg.lastMessage?.body || 'No message preview'; button.appendChild(preview);
+        const lastTime = msg.lastMessage?.created || msg.lastMessage?.createdAt;
+        if (lastTime) { const time = document.createElement('div'); time.className = 'conversation-time'; time.textContent = fmtDate(lastTime); button.appendChild(time); }
+        button.addEventListener('click', () => {
+          selectConversation(msg);
+          list.querySelectorAll('.conversation-entry').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+          document.getElementById('inbox-workspace').classList.add('is-open');
+          if (window.matchMedia?.('(max-width: 760px)').matches) document.querySelector('.inbox-back')?.focus();
+        });
+        list.appendChild(button);
+      });
+    }
+    window.addEventListener('beforeunload', event => {
+      if ([...drafts.values()].some(value => value.trim())) { event.preventDefault(); event.returnValue = ''; }
+    });
+
+    function initApp() {
+      function filterMessages() {
+        const q = document.getElementById('search').value.trim().toLocaleLowerCase();
+        const unreadOnly = document.getElementById('unread-filter').value === 'unread';
+        renderList(allMessages.filter(msg => messageMatches(msg, q, unreadOnly)));
+      }
+      document.getElementById('search').addEventListener('input', filterMessages);
+      document.getElementById('unread-filter').addEventListener('change', filterMessages);
+
+      const NOTES_DOC = doc(db, 'notes', 'messages');
+      const ta = document.getElementById('notes-textarea');
+      const saveBtn = document.getElementById('notes-save-btn');
+      const status = document.createElement('p'); status.id = 'notes-status'; status.setAttribute('role', 'status'); ta.before(status);
+      const copyBtn = document.getElementById('notes-copy-btn');
+      ta.addEventListener('input', () => markDraft(ta));
+      authListeners.add(() => onSnapshot(NOTES_DOC, snap => { if (snap.exists() && canApplyRemote(ta, document.activeElement)) ta.value = snap.data().text || ''; }, () => { document.getElementById('notes-status').textContent = 'Notes could not be loaded. Check your access and retry signing in.'; }));
+      saveBtn.addEventListener('click', async () => {
+        saveBtn.textContent = 'Saving…'; saveBtn.disabled = true;
+        try { const saved = ta.value; await setDoc(NOTES_DOC, { text: saved }, { merge: true }); markDraftSaved(ta, saved); saveBtn.textContent = 'Saved!'; }
+        catch { saveBtn.textContent = 'Error'; }
+        setTimeout(() => { saveBtn.textContent = 'Save'; saveBtn.disabled = false; }, 1500);
+      });
+      copyBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(ta.value).then(() => { copyBtn.classList.add('copied'); setTimeout(() => copyBtn.classList.remove('copied'), 1500); });
+      });
+    }
+
+    const gateOverlay = document.getElementById('gate-overlay');
+    const gateForm = document.getElementById('gate-form');
+    mountPasswordReset({auth, sender: sendPasswordResetEmail, form: gateForm, signInEmail: document.getElementById('gate-email')});
+    const gateError = document.getElementById('gate-error');
+
+    gateForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const submit = gateForm.querySelector('button[type="submit"]');
+      if (submit.disabled) return;
+      submit.disabled = true;
+      const label = submit.textContent;
+      submit.textContent = 'Signing in…';
+      try {
+        await signInWithEmailAndPassword(auth, document.getElementById('gate-email').value.trim(), document.getElementById('gate-password').value);
+        gateError.style.display = 'none';
+      } catch (err) {
+        console.error(err);
+        gateError.style.display = 'block';
+      } finally {
+        submit.disabled = false;
+        submit.textContent = label;
+      }
+    });
+
+    const authListeners = createAuthListeners({onIdentityChange: () => {
+      const notes = document.getElementById('notes-textarea');
+      notes.value = ''; delete notes.dataset.dirty;
+      const status = document.getElementById('notes-status');
+      if (status) status.textContent = 'Loading notes…';
+    }});
+    let appInited = false;
+    onAuthStateChanged(auth, async (user) => {
+      const uid = user?.uid || null;
+      if (uid === activeUid) return;
+      if (activeUid && activeUid !== uid) {
+        try { sessionStorage.removeItem(draftStorageKey(activeUid)); } catch { /* storage can be unavailable */ }
+      }
+      activeUid = uid;
+      const generation = ++privateGeneration;
+      allMessages = [];
+      selectedMessage = null;
+      selectedKey = null;
+      drafts.clear();
+      document.getElementById('inbox-workspace').classList.remove('is-open');
+      document.getElementById('search').value = '';
+      document.getElementById('unread-filter').value = 'all';
+      document.getElementById('updated').textContent = '';
+      if (uid) restoreDraftSession(uid);
+      document.getElementById('conversation-pane').replaceChildren();
+      privateContentOmitted = true;
+      renderList([]);
+      if (user) {
+        gateOverlay.style.display = 'none';
+        if (!appInited) { appInited = true; initApp(); }
+        document.getElementById('list').textContent = 'Loading private messages…';
+      } else {
+        gateOverlay.style.display = 'flex';
+      }
+      authListeners.setUser(user);
+      if (!user) return;
+      try {
+        const snapshot = await readPrivateSnapshot(async path => {
+          const result = await getDoc(doc(db, path));
+          return result.exists() ? result.data() : null;
+        });
+        if (generation !== privateGeneration) return;
+        if (!snapshot) { document.getElementById('list').textContent = 'Private message snapshot is not available.'; return; }
+        privateContentOmitted = false;
+        allMessages = snapshot.messages.slice().sort((a, b) =>
+          new Date(b.lastMessage?.created || 0) - new Date(a.lastMessage?.created || 0));
+        document.getElementById('updated').textContent = `Observed ${fmtDate(snapshot.scraped_at)}`;
+        document.getElementById('search').dispatchEvent(new Event('input'));
+      } catch (err) {
+        if (generation !== privateGeneration) return;
+        document.getElementById('list').textContent = err.code === 'permission-denied'
+          ? 'Private messages unavailable: this account lacks access.' : 'Private message snapshot unavailable.';
+      }
+    });
+
+    document.getElementById('signout-btn').addEventListener('click', () => {
+      if ([...drafts.values()].some(value => value.trim()) && !confirm('Signing out discards unsaved drafts in this tab. Continue?')) return;
+      signOut(auth);
+    });
+  </script>
+
+  <script>
+    (() => {
+      const toggle = document.querySelector('.password-toggle');
+      const input = document.getElementById('gate-password');
+      toggle.addEventListener('click', () => {
+        const show = input.type === 'password';
+        input.type = show ? 'text' : 'password';
+        toggle.setAttribute('aria-pressed', String(show));
+        toggle.textContent = show ? 'Hide password' : 'Show password';
+      });
+    })();
+  </script>
+</body>
+</html>

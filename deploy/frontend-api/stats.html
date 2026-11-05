@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="padsplit-data-mode" content="api"><title>Reports · Operations</title>
+<link rel="stylesheet" href="./operations-tokens.css"><link rel="stylesheet" href="./operations.css"><link rel="stylesheet" href="./team.css"><link rel="stylesheet" href="./password-reset.css">
+<script src="./runtime-config.js"></script><script src="./vendors-api.js"></script><script src="./api-client.js"></script><script src="./api-note.js"></script><script src="./stats-api.js"></script><script src="./password-reset.js"></script><script defer src="./navigation.js"></script>
+</head>
+<body>
+<nav class="ops-nav" aria-label="Main navigation"></nav>
+<header class="team-header"><div><p class="eyebrow">Operations</p><h1>Reports</h1><p>Most recently imported collector statistics.</p></div><button id="report-signout" type="button" hidden>Sign out</button></header>
+<main class="team-main">
+<section id="report-gate" class="team-panel"><h2>Report sign in</h2><p id="report-gate-status" role="status">Checking configuration…</p>
+<form id="report-signin" hidden><label>Email <input id="report-email" type="email" autocomplete="username" required></label><label>Password <input id="report-password" type="password" autocomplete="current-password" required></label><button type="submit">Sign in</button></form>
+<button id="report-other" type="button" hidden>Use another account</button></section>
+<div id="report-workspace" hidden>
+<section class="team-panel"><div class="team-panel-heading"><h2>Latest statistics</h2><button id="report-refresh" type="button">Refresh</button></div>
+<p>Source values and available history are shown below.</p>
+<p id="report-status" role="status" aria-live="polite"></p><p id="report-freshness"></p><h3>Manager score card</h3><p id="report-score-summary"></p><p id="report-score-formula"></p><p id="report-score-flip"></p><div id="report-score-breakdown"></div>
+<dl id="report-metrics" class="report-metrics"></dl><p>Occupancy and listed-room figures reflect the source report and are not live occupancy.</p>
+<details><summary>Source report data</summary><pre id="report-source" style="white-space:pre-wrap;overflow-wrap:anywhere"></pre></details></section>
+<section class="team-panel"><h2>Temporary score calculator</h2><p>Enter all values to estimate the score and payout. This calculation is not saved and does not change scraped data.</p>
+<form id="report-score-form" class="score-inputs">
+<label>Occupancy % <input name="occupancy_pct" type="number" min="0" max="100" step="0.1" required></label>
+<label>Average tenure, days <input name="avg_tenure_days" type="number" min="0" step="0.1" required></label>
+<label>Rooms listed over 14 days <input name="rooms_over_14d" type="number" min="0" step="1" required></label>
+<label>Listed rooms total <input name="listed_count" type="number" min="0" step="1" required></label>
+<label>Rooms listed over 21 days <input name="rooms_over_21d" type="number" min="0" step="1" required></label>
+<label>Average flip days <input name="avg_flip_days" type="number" min="0" step="0.1" required></label>
+<label>Flip rooms over 5 days <input name="flip_rooms_over_5d" type="number" min="0" step="1" required></label>
+<label>Open tickets <input name="open_tickets" type="number" min="0" step="1" required></label>
+<label>Tickets over 7 days <input name="tickets_over_7d" type="number" min="0" step="1" required></label>
+<label>Open tickets over 14 days <input name="tickets_over_14d" type="number" min="0" step="1" required></label>
+<label>Daily phone calls/texts (0–5) <input name="daily_calls" type="number" min="0" max="5" step="1" required></label>
+<label>Todo completion (0–5) <input name="todo_completion" type="number" min="0" max="5" step="1" required></label>
+<label>Ownership (0–5) <input name="ownership" type="number" min="0" max="5" step="1" required></label>
+<label>Other hustle (0–5) <input name="other_hustle" type="number" min="0" max="5" step="1" required></label>
+<button type="submit">Calculate score</button><button id="report-score-reset" type="button">Reset to source values</button></form><p id="report-score-result" role="status" aria-live="polite"></p></section>
+<section class="team-panel"><h2>Report details</h2><div id="report-detail"></div></section>
+<section class="team-panel"><h2>Historical statistics</h2><p><a href="./kpi-history.html">Open KPI history</a></p><p id="report-history-status" role="status">Not loaded.</p><div id="report-history"></div></section>
+<section id="report-notes-section" class="team-panel" hidden><h2>Shared report notes (owner only)</h2><p id="report-note-status" role="status"></p><label for="report-note">Notes</label><textarea id="report-note" rows="5"></textarea><button id="report-note-save" type="button">Save notes</button><button id="report-note-copy" type="button">Copy notes</button></section>
+</div></main>
+<style>.report-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:1rem}.report-metrics>div{padding:1rem;border:1px solid #d5dce6;border-radius:.6rem}.report-metrics dt{font-size:.85rem}.report-metrics dd{font-size:1.4rem;font-weight:700;margin:.5rem 0 0}#report-note{display:block;width:100%;margin:.5rem 0}.report-bar{display:block;min-height:.5rem;background:#457bd0}#report-detail,#report-history{overflow:auto}table{border-collapse:collapse}th,td{text-align:left;padding:.5rem;border-bottom:1px solid #d5dce6}</style>
+<script type="module">
+import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import {getAuth,signInWithEmailAndPassword,sendPasswordResetEmail,onAuthStateChanged,signOut} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+const $=id=>document.getElementById(id),gate=$('report-gate'),signin=$('report-signin'),gateStatus=$('report-gate-status'),workspace=$('report-workspace'),status=$('report-status'),password=$('report-password'),note=$('report-note');
+let runtime;try{runtime=resolveOperationsRuntime(window.PADSPLIT_RUNTIME_CONFIG,true);}catch{gateStatus.textContent='The private service is not configured.';throw new Error('API unavailable.');}
+const auth=getAuth(initializeApp(runtime.firebase)),api=createOperationsApi({baseUrl:runtime.apiOrigin,getUser:()=>auth.currentUser});
+mountPasswordReset({auth,sender:sendPasswordResetEmail,form:signin,signInEmail:$('report-email')});
+let generation=0,binding=null,loading=false,sourceMetrics=null;
+const manualScore=mountManualScore(document,{onApply:(estimate,values)=>renderScoreCard(document,{score:estimate.score,base_score:80,bonus_points:estimate.bonus,penalty_points:-estimate.penalty,bonuses:estimate.bonuses,penalties:estimate.penalties,avg_flip_days:Number(values.avg_flip_days)},true),onReset:()=>{if(sourceMetrics)renderScoreCard(document,sourceMetrics);}});
+function clear(message){generation++;loading=false;$('report-refresh').disabled=false;manualScore.clear();sourceMetrics=null;binding?.stop();binding=null;api.clearSession();workspace.hidden=true;$('report-notes-section').hidden=true;gate.hidden=false;signin.hidden=true;$('report-other').hidden=false;$('report-signout').hidden=true;note.value='';note.dataset.dirty='false';$('report-metrics').replaceChildren();$('report-score-breakdown').replaceChildren();$('report-detail').replaceChildren();$('report-history').replaceChildren();$('report-history-status').textContent='Not loaded.';$('report-source').textContent='';$('report-score-summary').textContent='';$('report-score-formula').textContent='';$('report-score-flip').textContent='';$('report-freshness').textContent='';status.textContent='';gateStatus.textContent=message;}
+async function refresh(){
+ if(loading)return;loading=true;$('report-refresh').disabled=true;const session=generation,uid=auth.currentUser?.uid;status.textContent='Loading report…';
+ try {const [latest,history]=await Promise.allSettled([api.report('latest'),api.report('monthly_history')]);if(session!==generation||uid!==auth.currentUser?.uid)return;
+ const denied=[latest,history].some(r=>r.status==='rejected' && (r.reason?.status===401||r.reason?.status===403));if(denied){clear('Your access could not be confirmed.');return;}
+ try{if(latest.status==='rejected')throw latest.reason;const data=parseReportResponse(latest.value);sourceMetrics=data.metrics;renderReport(document,data);renderReportDetails(document,data);manualScore.initialize(data.metrics);manualScore.reapply();status.textContent='Report loaded.';}
+ catch(error){sourceMetrics=null;$('report-metrics').replaceChildren();$('report-score-breakdown').replaceChildren();$('report-detail').replaceChildren();$('report-source').textContent='';$('report-score-summary').textContent='';$('report-score-formula').textContent='';$('report-score-flip').textContent='';$('report-freshness').textContent='';status.textContent=error.status===404?'No statistics have been imported yet.':'Report unavailable. Try again.';}
+ try{if(history.status==='rejected')throw history.reason;renderHistory(document,parseHistoryResponse(history.value));$('report-history-status').textContent='History loaded.';}
+ catch(error){$('report-history').replaceChildren();$('report-history-status').textContent=error.status===404?'No monthly history has been imported yet.':'History unavailable. Try again.';}
+ }
+ finally {if(session===generation){loading=false;$('report-refresh').disabled=false;}}
+}
+signin.addEventListener('submit',async event=>{event.preventDefault();const button=signin.querySelector('button[type="submit"]');button.disabled=true;try{await signInWithEmailAndPassword(auth,$('report-email').value.trim(),password.value);}catch{gateStatus.textContent='Sign in could not be confirmed.';}finally{password.value='';button.disabled=false;}});
+$('report-other').addEventListener('click',()=>signOut(auth));$('report-signout').addEventListener('click',()=>signOut(auth));$('report-refresh').addEventListener('click',refresh);
+note.addEventListener('input',()=>{note.dataset.dirty='true';});
+$('report-note-save').addEventListener('click',async()=>{try{if(await binding?.save())$('report-note-status').textContent='Notes saved.';}catch(error){$('report-note-status').textContent=error.status===409?'Notes changed elsewhere. Your draft is preserved.':'Notes could not be saved. Your draft is preserved.';}});
+$('report-note-copy').addEventListener('click',async()=>{if(!auth.currentUser||!binding)return;try{await navigator.clipboard.writeText(note.value);$('report-note-status').textContent='Notes copied.';}catch{$('report-note-status').textContent='Notes could not be copied.';}});
+onAuthStateChanged(auth,async user=>{
+ clear('Sign in to view reports.');if(!user){signin.hidden=false;$('report-other').hidden=true;return;}
+ const session=generation;gateStatus.textContent='Checking report access…';
+ try{const identity=await api.me();if(session!==generation||auth.currentUser!==user)return;if(identity?.uid!==user.uid)throw new Error('Access required.');const allowed=identity.role==='owner'||(await api.reportAccess())?.allowed===true;if(session!==generation||auth.currentUser!==user)return;if(!allowed)throw new Error('Report access required.');
+ gate.hidden=true;workspace.hidden=false;$('report-signout').hidden=false;
+ if(identity.role==='owner'){$('report-notes-section').hidden=false;binding=createApiNoteBinding({api,textarea:note,status:$('report-note-status'),getUid:()=>auth.currentUser?.uid,noteId:'stats',onAccessLost:()=>clear('Your access could not be confirmed.')});binding.start();}await refresh();
+ }catch{if(session===generation)clear('Report access could not be confirmed.');}
+});
+</script>
+</body></html>

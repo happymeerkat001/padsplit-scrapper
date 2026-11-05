@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+const scope={}; vm.runInNewContext(readFileSync('docs/integration-status.js','utf8'),scope);
+const rows=scope.integrationSourceStatus({run_status:{sources:{messages:{state:'ok',scraped_at:'2026-01-01T00:00:00Z'},stats:{state:'failed'},occupancy:{state:'degraded'}}}});
+assert.equal(rows.length,3);
+assert.equal(rows[0].collection,'Successful');
+assert.equal(rows[0].connection,'Not verified');
+assert.equal(rows[1].collection,'Failed');
+assert.equal(rows[2].collection,'Degraded');
+assert.equal(scope.integrationSourceStatus({})[0].collection,'Not reported');
+assert.equal(scope.integrationSourceStatus({run_status:{sources:{messages:{state:'connected'}}}})[0].collection,'Not reported');
+assert.equal(scope.integrationSourceStatus({run_status:{sources:{messages:{state:'constructor'}}}})[0].collection,'Not reported');
+console.log('integration status never equates a collection observation with a verified connection');

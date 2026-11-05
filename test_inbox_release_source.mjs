@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const source=fs.readFileSync('deploy/frontend-api/private-messages.html','utf8');
+const prototype=fs.readFileSync('docs/inbox.html','utf8');
+const assets=JSON.parse(fs.readFileSync('deploy/frontend-assets.json','utf8'));
+assert.equal(source,prototype,'review inbox must exactly match the tested API prototype');
+assert.match(source,/runtime-config\.js/);assert.match(source,/PADSPLIT_RUNTIME_CONFIG/);assert.match(source,/padsplit-data-mode/);
+assert.doesNotMatch(source,/firebase-firestore\.js|firestore\.googleapis\.com|\bgetFirestore\s*\(|\bprojectId\s*:\s*["']|\bapiKey\s*:\s*["']/i,'review source must not access Firestore or hardcode Firebase configuration');
+assert.match(source,/sendPasswordResetEmail/);assert.match(source,/startOverviewAccessWatch/);assert.match(source,/Read-only history\. Sending messages is not connected\./);
+for(const name of ['private-messages.html','inbox-api.js','inbox-api.css','overview-api-access.js','api-client.js','password-reset.js'])assert.ok(assets.includes(name),`${name} must be in the release asset manifest`);
+assert.equal(assets.length,new Set(assets).size,'release asset manifest must not contain duplicates');
+for(const match of source.matchAll(/(?:src|href)="\.\/([^"?#]+)"/g))assert.ok(assets.includes(match[1])||match[1]==='runtime-config.js',`Missing bundled dependency: ${match[1]}`);
+console.log('Review inbox source is API-only, runtime-configured, authenticated, and has bundled dependencies');

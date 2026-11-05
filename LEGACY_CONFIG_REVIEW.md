@@ -1,0 +1,5 @@
+# Legacy Firebase configuration in this review branch
+
+This branch is a work-in-progress migration review, not a deployable replacement for the existing GitHub Pages site. The legacy HTML files no longer embed live Firebase web configuration or fixed owner, codes and report account identifiers. They require an externally supplied `runtime-config.js` for Firebase web configuration. The legacy HTML owner, codes and report UID gates are intentionally disabled and fail closed; API-based release candidates use Firebase Authentication and PostgreSQL role checks instead.
+
+Do not deploy these legacy pages or the accompanying Firestore rules to production. Before a future cutover, finish and verify the API-only overview and inbox, provision and test any required trusted claims or role documents in staging, verify existing accounts and password reset, and obtain approval for the concrete migration and rollback. The current production site and Firebase rules are unchanged by this local review branch.
