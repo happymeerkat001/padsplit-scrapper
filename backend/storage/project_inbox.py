@@ -111,7 +111,7 @@ def _attachments(message):
                     if not safe_attachment_filename(value):continue
                 if field=='mediaType' and not re.fullmatch(r'[A-Za-z0-9.+_-]+(?:/[A-Za-z0-9.+_-]+)?',value):continue
                 entry[field]=value
-        deleted=item.get('deleted',False)
+        deleted=item.get('deleted')
         if type(deleted) is not bool:raise ValueError('Invalid attachment metadata')
         entry['deleted']=deleted
         result.append(entry)
@@ -145,7 +145,7 @@ def projection_rows(payload,bindings):
         unique={}
         for msg in recent+([last] if last else []):
             if not isinstance(msg,dict):raise ValueError('Invalid message')
-            msg_id=_source_id(msg.get('id'));deleted=msg.get('deleted',False)
+            msg_id=_source_id(msg.get('id'));deleted=msg.get('deleted')
             if type(deleted) is not bool:raise ValueError('Invalid deletion flag')
             body=msg.get('text')
             if body is None:body=''

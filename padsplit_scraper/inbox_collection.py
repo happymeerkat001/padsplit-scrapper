@@ -66,14 +66,14 @@ def _attachment(value):
                 if not safe_attachment_filename(text):continue
             if key=='mediaType' and not re.fullmatch(r'[A-Za-z0-9.+_-]+(?:/[A-Za-z0-9.+_-]+)?',text):continue
             result[key]=text
-    deleted=value.get('deleted',False)
+    deleted=value.get('deleted')
     if type(deleted) is not bool:raise SourceError('Invalid attachment metadata')
     result['deleted']=deleted
     return result
 
 def _message(value):
     if not isinstance(value,dict):raise SourceError('Invalid message')
-    ident=_bounded_string(value.get('id'),2000);deleted=value.get('deleted',False)
+    ident=_bounded_string(value.get('id'),2000);deleted=value.get('deleted')
     if type(deleted) is not bool:raise SourceError('Invalid message')
     text=value.get('text')
     if text is not None and (not isinstance(text,str) or len(text)>100000):raise SourceError('Invalid message')
@@ -89,6 +89,37 @@ def _message(value):
         if not isinstance(attachments,list) or len(attachments)>100:raise SourceError('Invalid attachments')
         out['attachments']=[_attachment(item) for item in attachments]
     return out
+
+def _check_last_message_consistency(summary, detail):
+    """Reject changed shared fields without equating partial attachment lists.
+
+    The chat-list query supplies less attachment metadata than the message
+    query. Detail may enrich unknown summary fields, but may not discard
+    observed scalar/sender fields or all observed attachment metadata.
+    """
+    for key in ('id','deleted','text','created','messageType'):
+        if summary.get(key) is not None and (detail.get(key) is None or summary[key]!=detail[key]):
+            raise SourceError('Conflicting last-message observation')
+    first,second=summary.get('sender'),detail.get('sender')
+    if isinstance(first,dict):
+        if any(value is not None and (not isinstance(second,dict) or second.get(key)!=value)
+               for key,value in first.items()):
+            raise SourceError('Conflicting last-message observation')
+    summary_attachments=summary.get('attachments')
+    if summary_attachments is not None:
+        from collections import Counter
+        detail_attachments=detail.get('attachments')
+        if detail_attachments is None or len(summary_attachments)!=len(detail_attachments):
+            raise SourceError('Conflicting last-message observation')
+        # No attachment IDs are present in the summary. Compare aggregate
+        # observed states, without claiming an individual identity match.
+        for deleted in (False,True):
+            left=[a for a in summary_attachments if a['deleted'] is deleted]
+            right=[a for a in detail_attachments if a['deleted'] is deleted]
+            known=Counter(a['mediaType'] for a in left if a.get('mediaType') is not None)
+            available=Counter(a['mediaType'] for a in right if a.get('mediaType') is not None)
+            if len(left)!=len(right) or any(count>available[kind] for kind,count in known.items()):
+                raise SourceError('Conflicting last-message observation')
 
 def graphql_transport(session):
     """Use an already-authenticated session for only the two known read queries.
@@ -227,6 +258,9 @@ def advance_checkpoint(post,path,key,*,account_tag,max_pages=1,observed_at=None)
                 chat=state['chats'][state['chat_index']];page=message_page(post,chat['id'],state['message_cursor']);items=chat.setdefault('recent_messages',[])
                 seen={item['id']:item for item in items}
                 for item in page['items']:
+                    last=chat.get('lastMessage')
+                    if isinstance(last,dict) and last.get('id')==item['id']:
+                        _check_last_message_consistency(last,item)
                     prior=seen.get(item['id'])
                     if prior is not None and prior!=item:raise SourceError('Conflicting message across source pages')
                     if prior is None:items.append(item);seen[item['id']]=item
@@ -237,7 +271,10 @@ def advance_checkpoint(post,path,key,*,account_tag,max_pages=1,observed_at=None)
                 state['message_cursor']=next_cursor
                 if page['exhausted']:
                     last=chat.get('lastMessage')
-                    if isinstance(last,dict) and last.get('id') in seen:chat['lastMessage']=seen[last['id']]
+                    if isinstance(last,dict) and last.get('id') in seen:
+                        detail=seen[last['id']]
+                        _check_last_message_consistency(last,detail)
+                        chat['lastMessage']=detail
                     state['chat_index']+=1;state['message_cursor']=None;state['message_cursors']=[]
                     if state['chat_index']==len(state['chats']):state['phase']='complete'
             _save_checkpoint(target,key,state)

@@ -53,17 +53,25 @@ def secure_api_origin(value: str) -> str:
         port = url.port
         if (url.scheme != 'https' or not host or url.username or url.password or
                 url.path not in ('', '/') or url.query or url.fragment or
-                host.lower() == 'localhost' or host.lower().endswith('.localhost')):
+                host.lower() == 'localhost' or host.lower().endswith('.localhost') or '%' in host):
             raise ValueError
         try: address = ipaddress.ip_address(host)
         except ValueError:
             address = None
             labels = host.lower().split('.')
             if (len(labels) < 2 or labels[-1] in {'local', 'internal', 'localhost'} or
+                    # WHATWG browsers interpret hosts ending in an IPv4
+                    # number (including octal/hex forms) as IP addresses.
+                    # Reject noncanonical forms instead of treating them as DNS.
+                    re.fullmatch(r'(?:[0-9]+|0x[0-9a-f]*)', labels[-1]) or
                     any(not re.fullmatch(r'[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?', label) for label in labels)):
                 raise ValueError
         if address is not None and not address.is_global: raise ValueError
-        authority = f'[{host.lower()}]' if address is not None and address.version == 6 else host.lower()
+        if isinstance(address, ipaddress.IPv6Address) and address.ipv4_mapped is not None:
+            # Avoid alternate representations of the same IPv4 backend and
+            # ambiguous TLS/host-header behavior in preview isolation checks.
+            raise ValueError
+        authority = f'[{address.compressed}]' if isinstance(address, ipaddress.IPv6Address) else str(address) if address is not None else host.lower()
         return f'https://{authority}' + (f':{port}' if port and port != 443 else '')
     except ValueError:
         raise ValueError('API origin must be a public HTTPS origin without path or credentials.') from None

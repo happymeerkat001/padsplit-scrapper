@@ -341,6 +341,8 @@ def create_app(*, repository=None, verify_token=None, allowed_origins=None, rate
     app.include_router(make_reviewed_links_router(actor_dependency=limited, repository_provider=lambda: app.state.repository, run=run))
     from backend.api.climate import make_climate_router
     app.include_router(make_climate_router(actor_dependency=limited, repository_provider=lambda: app.state.repository, run=run))
+    from backend.api.weather import make_weather_router
+    app.include_router(make_weather_router(actor_dependency=limited, repository_provider=lambda: app.state.repository, run=run))
     from backend.api.provider_discussion_links import make_provider_discussion_router
     app.include_router(make_provider_discussion_router(actor_dependency=limited, repository_provider=lambda: app.state.repository, run=run))
 

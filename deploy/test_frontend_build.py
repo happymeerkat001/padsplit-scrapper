@@ -7,7 +7,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
-from frontend_build import build, check_release_sources
+from frontend_build import build, check_release_sources, secure_api_origin
 
 class FrontendReleaseGateTests(unittest.TestCase):
     def setUp(self):
@@ -101,6 +101,31 @@ class FrontendReleaseGateTests(unittest.TestCase):
         with patch('frontend_build.check_publication', return_value=[]):
             for origin in ('http://api.example.com', 'https://127.0.0.1', 'https://10.0.0.5', 'https://user:pass@api.example.com'):
                 self.assertTrue(build(self.root, self.base / 'out', 'demo-private', [], api_origin=origin, environment='production', firebase_web_config=self.web_config))
+
+    def test_browser_numeric_aliases_and_ipv4_mapped_ipv6_are_rejected(self):
+        # Browsers interpret abbreviated, octal, hex and zero-padded numeric
+        # hosts as IPv4 addresses even though Python's ipaddress rejects them.
+        for origin in ('https://127.1', 'https://0177.0.0.1', 'https://127.0.0.01',
+                       'https://0x7f.1', 'https://1.2.3.0x', 'https://[::ffff:8.8.8.8]',
+                       'https://[2606:4700:4700::1111%25en0]'):
+            with self.subTest(origin=origin), self.assertRaises(ValueError): secure_api_origin(origin)
+        self.assertEqual(secure_api_origin('https://8.8.8.8'), 'https://8.8.8.8')
+        self.assertEqual(secure_api_origin('https://API123.EXAMPLE.COM'), 'https://api123.example.com')
+        self.assertEqual(secure_api_origin('https://xn--bcher-kva.example'), 'https://xn--bcher-kva.example')
+        for origin in ('https://example.com.', 'https://bücher.example', 'https://foo.42'):
+            with self.subTest(origin=origin), self.assertRaises(ValueError): secure_api_origin(origin)
+
+    def test_equivalent_ipv6_forms_cannot_evade_preview_isolation(self):
+        short='https://[2606:4700:4700::1111]'
+        expanded='https://[2606:4700:4700:0:0:0:0:1111]'
+        self.assertEqual(secure_api_origin(short), secure_api_origin(expanded))
+        with patch('frontend_build.check_publication', return_value=[]):
+            out=self.base/'ipv6-shared'
+            errors=build(self.root,out,'demo-private',[],api_origin=short,environment='preview',
+                         firebase_web_config=self.web_config,production_api_origin=expanded,
+                         production_firebase_project='live-project',production_firebase_web_config=self.production_web_config)
+            self.assertTrue(any('must differ' in error for error in errors))
+            self.assertFalse(out.exists())
 
     def test_manifest_cannot_escape_docs_directory(self):
         (self.root / 'deploy/frontend-assets.json').write_text('["../secrets.js"]')

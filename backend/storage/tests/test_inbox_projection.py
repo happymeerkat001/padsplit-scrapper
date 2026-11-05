@@ -9,7 +9,7 @@ def record(path, fields):
 
 def fixture():
     payload={'scraped_at':'2026-01-01T00:00:00Z','tasks':{},'messages':[
-      {'id':'chat-example','occupancy':{'user':{'firstName':'Example','lastName':None},'room':{'roomNumber':'2'}},'lastMessage':{'id':'message-example','text':'Hello','created':'2026-01-01T00:00:00Z','sender':{'displayName':'Example'}}}]}
+      {'id':'chat-example','occupancy':{'user':{'firstName':'Example','lastName':None},'room':{'roomNumber':'2'}},'lastMessage':{'id':'message-example','text':'Hello','deleted':False,'created':'2026-01-01T00:00:00Z','sender':{'displayName':'Example'}}}]}
     text=json.dumps(payload,ensure_ascii=True,separators=(',',':')); run='a'*32
     return [record('private_dashboard/current',{'schema_version':1,'run_id':run,'chunk_count':1,'scraped_at':payload['scraped_at']}),
             record('private_dashboard_runs/'+run+'/chunks/0',{'index':0,'data':text})]
@@ -65,6 +65,19 @@ class InboxProjectionShapeTests(unittest.TestCase):
         chat['recent_messages']=[];chat['lastMessage']['deleted']=True
         self.assertEqual(projection_rows(payload,{'chat-example':None})[1][0]['body'],'')
 
+    def test_unknown_deletion_flags_fail_closed(self):
+        for kind in ('message','attachment'):
+            for state in ('missing','null'):
+                with self.subTest(kind=kind,state=state):
+                    payload=snapshot_from_records(fixture());message=payload['messages'][0]['lastMessage']
+                    target=message
+                    if kind == 'attachment':
+                        target={'filename':'fictional-private.jpg'};message['attachments']=[target]
+                    else: target.pop('deleted')
+                    if state == 'null':target['deleted']=None
+                    with self.assertRaises(ValueError) as error:projection_rows(payload,{'chat-example':None})
+                    self.assertNotIn('Hello',str(error.exception));self.assertNotIn('fictional-private.jpg',str(error.exception))
+
     def test_attachment_metadata_excludes_private_locations(self):
         payload=snapshot_from_records(fixture());msg=payload['messages'][0]['lastMessage']
         msg['attachments']=[{'id':'photo-id','mediaType':'image/jpeg','filename':'photo.jpg','deleted':False,'location':'https://private.invalid/token'}]
@@ -112,6 +125,18 @@ class InboxProjectionDatabaseTests(unittest.TestCase):
         self.conn.rollback();self.assertEqual(self.conn.execute('SELECT body FROM messages').fetchone()[0],'different')
         self.conn.rollback()
         with self.assertRaises(ValueError):project(self.conn,self.records,self.key,{'chat-example':None},apply=True)
+    def test_unknown_deletion_does_not_write_any_rows(self):
+        from backend.storage.project_inbox import project
+        payload=snapshot_from_records(self.records)
+        payload['messages'][0]['lastMessage'].pop('deleted')
+        run='b'*32
+        records=[record('private_dashboard/current',{'schema_version':1,'run_id':run,'chunk_count':1,'scraped_at':payload['scraped_at']}),
+                 record('private_dashboard_runs/'+run+'/chunks/0',{'index':0,'data':json.dumps(payload)})]
+        with self.assertRaises(ValueError):project(self.conn,records,self.key,{'chat-example':'property-example'},apply=True)
+        self.conn.rollback()
+        self.assertEqual(self.conn.execute('SELECT count(*) FROM conversations').fetchone()[0],0)
+        self.assertEqual(self.conn.execute('SELECT count(*) FROM messages').fetchone()[0],0)
+
     def test_unknown_property_fails_without_partial_inserts(self):
         from backend.storage.project_inbox import project
         with self.assertRaises(ValueError):project(self.conn,self.records,self.key,{'chat-example':'missing-property'},apply=True)
@@ -125,7 +150,7 @@ class InboxProjectionDatabaseTests(unittest.TestCase):
         payload=snapshot_from_records(self.records);payload['scraped_at']='2026-01-02T00:00:00Z';payload['messages'][0]['member']={'isUnread':True}
         previous=payload['messages'][0]['lastMessage']
         payload['messages'][0]['recent_messages']=[previous]
-        payload['messages'][0]['lastMessage']={'id':'message-2','text':'Second','created':'2026-01-02T00:00:00Z'}
+        payload['messages'][0]['lastMessage']={'id':'message-2','text':'Second','deleted':False,'created':'2026-01-02T00:00:00Z'}
         def as_records(value,run):
             return [record('private_dashboard/current',{'schema_version':1,'run_id':run,'chunk_count':1,'scraped_at':value['scraped_at']}),
                     record('private_dashboard_runs/'+run+'/chunks/0',{'index':0,'data':json.dumps(value,ensure_ascii=True,separators=(',',':'))})]
@@ -153,7 +178,7 @@ class InboxProjectionDatabaseTests(unittest.TestCase):
             self.conn.rollback();self.conn.execute('UPDATE inbox_snapshot_runs SET ciphertext=%s',(bytes(cipher),));self.conn.commit()
             changed=json.loads(json.dumps(payload));changed['scraped_at']='2026-01-03T00:00:00Z';changed['messages'][0]['recent_messages'][0]['text']='Changed'
             changed['messages'][0]['title']='Changed title'
-            changed['messages'][0]['recent_messages'].insert(0,{'id':'message-3','text':'Must roll back','created':'2026-01-03T00:00:00Z'})
+            changed['messages'][0]['recent_messages'].insert(0,{'id':'message-3','text':'Must roll back','deleted':False,'created':'2026-01-03T00:00:00Z'})
             with self.assertRaises(ValueError):catch_up(self.conn,baseline,backup('changed',as_records(changed,'c'*32)),self.key,scope,apply=True)
             self.conn.rollback();self.assertEqual(self.conn.execute('SELECT count(*) FROM inbox_snapshot_runs').fetchone()[0],1)
             self.assertEqual(self.conn.execute('SELECT count(*) FROM messages').fetchone()[0],2)

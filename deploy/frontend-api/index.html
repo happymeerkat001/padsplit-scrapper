@@ -789,39 +789,21 @@
       section.innerHTML = html;
     }
 
-    function renderWeather(data) {
+    function renderWeather(days) {
+      if (!Array.isArray(days) || !days.length || days.length > 7) throw new Error('Invalid forecast');
       const section = document.getElementById('weather-section');
-      const daily = data.daily;
-      const days = daily.time.map((dateStr, i) => {
-        const d = new Date(dateStr + 'T12:00:00');
-        const label = d.toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric' });
-        const high = Math.round(daily.temperature_2m_max[i]);
-        const low  = Math.round(daily.temperature_2m_min[i]);
-        const cls  = high >= 98 ? 'heat-warn' : low <= 60 ? 'freeze-warn' : '';
-        return `
-          <div class="weather-day ${cls}">
-            <div class="wd-label">${label}</div>
-            <div class="wd-high">${high}°F</div>
-            <div class="wd-low">${low}°F</div>
-          </div>`;
-      });
-      section.innerHTML = `
-        <div class="section">
-          <div class="card">
-            <div class="weather-row">${days.join('')}</div>
-          </div>
-        </div>`;
+      const card = document.createElement('div');
+      card.className = 'card';
+      const title = document.createElement('h3'); title.textContent = 'Weather forecast'; card.appendChild(title);
+      for (const day of days) {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(day.date) || !Number.isFinite(day.high) || !Number.isFinite(day.low)) throw new Error('Invalid forecast');
+        const line = document.createElement('div');
+        line.textContent = `${day.date}: High ${Math.round(day.high)}°F / Low ${Math.round(day.low)}°F`;
+        card.appendChild(line);
+      }
+      section.replaceChildren(card);
     }
-
-    fetch('https://api.open-meteo.com/v1/forecast?latitude=33.1507&longitude=-96.8236&daily=temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit&timezone=America%2FChicago', { cache: 'no-cache' })
-      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
-      .then(renderWeather)
-      .catch(err => {
-        const card = document.createElement('div');
-        card.className = 'card error'; card.style.marginBottom = '1rem';
-        card.textContent = `Weather unavailable (${err?.message || 'request failed'}).`;
-        document.getElementById('weather-section').replaceChildren(card);
-      });
+    document.getElementById('weather-section').textContent = 'Sign in to load weather.';
 
     fetch('./data/latest.json', { cache: 'no-cache' })
       .then(r => {
@@ -953,6 +935,7 @@
       captureDrafts: captureOverviewDrafts,
       stopListeners: () => { stopApiObservations(); stopApiObservations = () => {}; stopFirestore(); stopFirestore = () => {}; apiNotes?.stop(); operationsApi?.clearSession(); },
       clearPrivate: () => {
+        document.getElementById('weather-section').textContent = 'Sign in to load weather.';
         propertyDetail.clear(); privateSnapshot = null; reviewedRoomTaskLinks = null; reviewedProviderDiscussionLinks = null; latestClimate = null; activeOverviewDrafts = null;
         if (apiMode) document.getElementById('thermostat-section').textContent = 'Sign in to load private climate observations.';
         document.getElementById('occupancy-search').value = '';
@@ -1007,7 +990,24 @@
           updateAccountControl(account, user, user.uid);
           if (apiRole !== 'owner') account.status.textContent = 'Property-scoped session';
           overviewSession.transition({uid:user.uid,apiRole,apiIdentity:identity});
+          const refreshWeather = async () => {
+          const weatherSection = document.getElementById('weather-section');
+          if (apiRole !== 'owner') {
+            weatherSection.textContent = 'Weather is available to the owner only.';
+          } else {
+            try {
+              const weather = await operationsApi.weather();
+              if (requestGeneration !== apiAuthGeneration || auth.currentUser !== user) return;
+              if (weather.status === 'not_configured') weatherSection.textContent = 'Weather is not configured.';
+              else renderWeather(weather.days);
+            } catch (_) {
+              if (requestGeneration !== apiAuthGeneration || auth.currentUser !== user) return;
+              weatherSection.textContent = 'Weather is unavailable.';
+            }
+          }
+          };
           const refreshApiObservations = async () => {
+          void refreshWeather();
           status.textContent = 'Loading provider task observations…';
           try {
             const occupancy = await loadApiOccupancy(operationsApi);

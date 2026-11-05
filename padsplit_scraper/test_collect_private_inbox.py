@@ -21,7 +21,7 @@ class CollectorCommandTests(unittest.TestCase):
             def post(self,url,**kwargs):
                 self.calls.append((url,kwargs))
                 if 'chatId' not in kwargs['json']['variables']:return Reply(response([{'id':'private-chat','title':'Private person'}]))
-                return Reply(response([{'id':'private-message','text':'secret message','attachments':[{'filename':'photo.jpg','location':'https://private.invalid/token'}]}],message=True))
+                return Reply(response([{'id':'private-message','text':'secret message','deleted':False,'attachments':[{'deleted':False,'filename':'photo.jpg','location':'https://private.invalid/token'}]}],message=True))
             def close(self):pass
         with tempfile.TemporaryDirectory() as directory:
             root=Path(directory);checkpoint=root/'state.enc';candidate=root/'candidate.enc';session=Session();output=io.StringIO()

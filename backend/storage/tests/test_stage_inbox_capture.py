@@ -43,7 +43,7 @@ class CaptureProjectionTests(unittest.TestCase):
   self.conn.execute("INSERT INTO properties(id,name) VALUES ('property-example','Fictional property')");self.conn.commit();project(self.conn,self.records,self.key,{'chat-example':'property-example'},apply=True)
   self.tmp=tempfile.TemporaryDirectory();self.addCleanup(self.tmp.cleanup);self.root=Path(self.tmp.name);self.baseline=self.root/'baseline.enc';self.capture=self.root/'capture.enc';self.checkpoint=self.root/'checkpoint.enc';self.mapping=self.root/'mapping.json'
   migrate.encrypted_backup(self.records,self.baseline,self.key);self.mapping.write_text(json.dumps({'version':1,'bindings':[{'chat_id':'chat-example','property_id':'property-example'}]}));self.mapping.chmod(0o600)
-  chat=snapshot_from_records(self.records)['messages'][0];old=chat['lastMessage'];new={'id':'message-2','text':'Example second','created':'2026-01-02T00:00:00Z'}
+  chat=snapshot_from_records(self.records)['messages'][0];old=chat['lastMessage'];new={'id':'message-2','text':'Example second','deleted':False,'created':'2026-01-02T00:00:00Z'}
   with patch('padsplit_scraper.inbox_collection.chat_page',return_value={'items':[chat],'next_cursor':None,'exhausted':True}),patch('padsplit_scraper.inbox_collection.message_page',return_value={'items':[old,new],'next_cursor':None,'exhausted':True}):
    advance_checkpoint(lambda *_:None,self.checkpoint,self.key,max_pages=2,account_tag='a'*64,observed_at='2026-01-02T00:00:00Z')
   export_candidate(self.checkpoint,self.capture,self.key)

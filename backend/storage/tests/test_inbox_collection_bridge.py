@@ -37,7 +37,7 @@ class InboxCollectionBridgeTests(unittest.TestCase):
                     root=Path(d);baseline=root/'baseline.enc';candidate=root/'candidate.enc';checkpoint=root/'checkpoint.enc'
                     migrate.encrypted_backup(records,baseline,key)
                     chat=snapshot_from_records(records)['messages'][0]
-                    old=chat['lastMessage'];new={'id':'message-2','text':'Example second','created':'2026-01-02T00:00:00Z'}
+                    old=chat['lastMessage'];new={'id':'message-2','text':'Example second','deleted':False,'created':'2026-01-02T00:00:00Z'}
                     with patch('padsplit_scraper.inbox_collection.chat_page',return_value={'items':[chat],'next_cursor':None,'exhausted':True}),patch('padsplit_scraper.inbox_collection.message_page',return_value={'items':[old,new],'next_cursor':None,'exhausted':True}):
                         result=advance_checkpoint(lambda *_:None,checkpoint,key,max_pages=2,account_tag='a'*64,observed_at='2026-01-02T00:00:00Z')
                     self.assertTrue(result['complete']);export_candidate(checkpoint,candidate,key)

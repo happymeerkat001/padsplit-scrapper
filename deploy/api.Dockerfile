@@ -7,5 +7,6 @@ COPY backend/api/requirements.lock /tmp/requirements.lock
 RUN python -m pip install --no-cache-dir -r /tmp/requirements.lock && rm /tmp/requirements.lock
 COPY backend/api/ /app/backend/api/
 COPY backend/storage/__init__.py backend/storage/secrets.py /app/backend/storage/
+COPY padsplit_scraper/weather.py padsplit_scraper/inbox_display.py padsplit_scraper/attachment_metadata.py padsplit_scraper/private_codes_schema.py /app/padsplit_scraper/
 USER 65532:65532
 # Compose sets the explicit reviewed port and disables access logs.

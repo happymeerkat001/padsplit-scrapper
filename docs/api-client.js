@@ -97,6 +97,7 @@
       occupancy: options => paged('/v1/occupancy', options),
       climate: options => paged('/v1/climate', options),
       providerTasks: options => paged('/v1/provider-tasks', options),
+      weather: () => request('/v1/weather'),
       roomTaskLinks: options => paged('/v1/room-task-links', options),
       providerDiscussionLinks: options => paged('/v1/provider-discussion-links', options),
       reportAccess: () => request('/v1/report-access'),

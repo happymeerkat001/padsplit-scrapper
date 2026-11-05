@@ -26,6 +26,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 from zoneinfo import ZoneInfo
+from padsplit_scraper.weather import configured as weather_configured, fetch_weather as load_weather
 import urllib.request
 import urllib.error
 
@@ -233,32 +234,20 @@ def fetch_weather() -> Optional[str]:
         print("Skipping weather (not morning run.)")
         return None
 
-    url = (
-        "https://api.open-meteo.com/v1/forecast"
-        "?latitude=33.1507&longitude=-96.8236"
-        "&daily=temperature_2m_max,temperature_2m_min"
-        "&temperature_unit=fahrenheit"
-        "&timezone=America%2FChicago"
-    )
     try:
-        with urllib.request.urlopen(url) as resp:
-            data = json.loads(resp.read().decode())
-        times = data.get("daily", {}).get("time", []) or []
-        highs = data.get("daily", {}).get("temperature_2m_max", []) or []
-        lows = data.get("daily", {}).get("temperature_2m_min", []) or []
-        lines = ["🌤️  DFW 7-Day Forecast:"]
-        for date_str, high, low in zip(times, highs, lows):
-            d = datetime.strptime(date_str, "%Y-%m-%d")
-            label = d.strftime("%a (%-m/%-d)")
-            flags = ""
-            if high is not None and high >= 98:
-                flags += " 🚨"
-            if low is not None and low <= 60:
-                flags += " ❄️"
-            lines.append(f"{label}: High {round(high)}°F / Low {round(low)}°F{flags}")
+        settings = weather_configured(os.environ)
+        if settings is None:
+            return None
+        days = load_weather(settings)
+        lines = ["🌤️  7-Day Forecast:"]
+        for day in days:
+            d = datetime.strptime(day["date"], "%Y-%m-%d")
+            high, low = day["high"], day["low"]
+            flags = (" 🚨" if high >= 98 else "") + (" ❄️" if low <= 60 else "")
+            lines.append(f"{d.strftime('%a (%-m/%-d)')}: High {round(high)}°F / Low {round(low)}°F{flags}")
         return "\n".join(lines)
-    except Exception as err:
-        print(f"Weather fetch failed: {err}")
+    except Exception:
+        print("Weather fetch failed.")
         return None
 
 

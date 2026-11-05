@@ -74,3 +74,9 @@ Before production cutover, complete the migration runbook, obtain a source write
 ## Current release preparation
 
 The checked API-only sources now include codes, vendors, templates, integrations, reports and KPI history. The build continues to reject the legacy overview and inbox sources; do not bypass the gate or map incomplete replacements merely to obtain a deployment. The scoped report-only Firebase account needs an explicit trusted database capability from migration 017 after identity verification; no account is granted automatically. Staging project/API isolation, an HTTPS proxy, private PostgreSQL, actual restricted grants, live account checks, off-server backup restoration and reviewed source bindings remain required. Migration 016 supports only explicit staging inbox catch-up, not a running collector; migrations 014 and 018 stage reviewed occupancy and provider task observations, not a live feed. Follow `INBOX_MIGRATION.md`, `CODES_HISTORY_MIGRATION.md`, and the occupancy/provider-task projection references before any cutover.
+
+### Optional private weather
+
+Weather is disabled by default, including staging. If explicitly approved, set `PADSPLIT_WEATHER_ENABLE=1`, `PADSPLIT_WEATHER_LATITUDE`, and `PADSPLIT_WEATHER_LONGITUDE` in the private API or worker environment. Values must be finite decimal coordinates, within geographic bounds and at most six decimal places. Do not place them in frontend configuration, commits, or public artifacts. Only owners can access the API forecast; scoped users cannot request it.
+
+Enabling weather sends the configured coordinates to the fixed Open-Meteo provider. App responses and application error messages omit coordinates, but operators must review their external network, proxy, and infrastructure logging before enabling it. The API and digest make no weather provider request while disabled. Disable it again by removing the enable flag and restarting the API and relevant workers.
