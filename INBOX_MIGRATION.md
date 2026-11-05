@@ -41,13 +41,15 @@ Once a later encrypted provider capture has been collected separately and its co
 ```sh
 python -m backend.storage.stage_inbox_capture --enable-staging-inbox \
   --baseline /private/staging-baseline.enc --capture /private/later-capture.enc \
-  --mapping /private/reviewed-inbox-mapping.json
+  --mapping /private/reviewed-inbox-mapping.json --review-receipt /private/review-receipt.json
 python -m backend.storage.stage_inbox_capture --enable-staging-inbox \
   --baseline /private/staging-baseline.enc --capture /private/later-capture.enc \
-  --mapping /private/reviewed-inbox-mapping.json --apply
+  --mapping /private/reviewed-inbox-mapping.json --review-receipt /private/review-receipt.json --apply
 ```
 
-The first invocation is a dry run; apply uses the same transactional catch-up checks described above. The encrypted capture must contain the exact marked provider-collection record set, with filtered/non-atomic provenance; arbitrary exports, missing or mismatched scope, stale captures and conflicting existing messages are rejected. Repeating the same accepted capture is idempotent. Output contains only counts and generic errors, not source data or paths. This workflow does not establish fresh collection, full history, attachment retrieval, automatic synchronization, production readiness, or authorization to cut over.
+The first invocation is a dry run that creates a new owner-only receipt outside the repository; it never overwrites an existing receipt. Apply requires that receipt and rechecks a keyed digest of the exact encrypted baseline and capture files, authenticated records, normalized reviewed mapping, and target PostgreSQL cluster/database/schema and loopback endpoint before running the transactional catch-up checks. Server startup time is also bound, so a database restart requires a fresh dry run and receipt; target details are never stored in the receipt or printed. If the staging role cannot read `pg_control_system()`, the operation fails closed; a trusted operator must review the minimum required function privilege. A changed or re-encrypted input, changed mapping, different target, corrupted receipt, permissive file, or symlink is rejected; a new review and receipt are needed. The receipt binds inputs to the dry run; it **does not prove a human reviewed or approved them**, establish source completeness, or replace the operator's responsibility to verify every mapping. The encrypted capture must contain the exact marked provider-collection record set, with filtered/non-atomic provenance; arbitrary exports, missing or mismatched scope, stale captures and conflicting existing messages are rejected. Repeating the same accepted capture is idempotent. Output contains only counts and generic errors, not source data, paths or the receipt digest. This workflow does not establish fresh collection, full history, attachment retrieval, automatic synchronization, production readiness, or authorization to cut over.
+
+The receipt is enforced only by `stage_inbox_capture` for later provider captures. The legacy `project_inbox --baseline` catch-up rejects provider provenance, including malformed or embedded markers; it still supports legitimate Firestore export catch-up. Initial `combine_inbox_capture` → migration import → `project_inbox --input` is a separate explicit trusted-operator staging baseline procedure and does not require a receipt. These local commands and direct database access are not an authorization boundary against a trusted staging operator; access to the database, encryption key and private files must remain restricted.
 
 ## Explicit provider collection and attachment metadata
 
@@ -64,6 +66,8 @@ Exit status 2 means the encrypted checkpoint was saved and another invocation is
 
 The existing query filters message types; exhausting its cursors establishes only that this filtered traversal ended, not a complete history range or a point-in-time snapshot. Source updates may occur during the scan. The provider schema exposes attachment ID, type, deletion flag, filename and location. This workflow preserves safe metadata where available, hashes source attachment IDs, strips locations and URL-like filenames, and displays content as unavailable. It does not download, store, proxy or expose provider attachment URLs; attachment authorization and retention still need real-provider verification.
 
+Display filenames are validated through repeated decoding and Unicode normalization; unsafe names are omitted, and attachment content retrieval remains unavailable.
+
 When the authenticated Firestore source backup has no private snapshot, create a **new** encrypted staging baseline combining the unchanged original backup and the explicitly marked provider capture:
 
 ```sh
@@ -79,7 +83,7 @@ Migration 021 adds nullable `conversations.source_unread`. It preserves a boolea
 
 The isolated API inbox supports scoped conversation and message viewing, owner-only shared notes, password reset, per-user session reply drafts, and server-side search over stored titles, property names, and non-deleted message text. It displays attachment metadata without exposing attachment locations or content. Search covers stored records only, so missing history and stale snapshots cannot appear; provider messages remain read-only. It is not a release replacement for the legacy inbox while collection, historical coverage and source-to-property review remain incomplete.
 
-`deploy/frontend-api/private-messages.html` is a review-only copy of the API inbox for the eventual existing deep-link path. It is not selected by the release builder. Its source and dependencies are checked by `test_inbox_release_source.mjs`; the lifecycle test can exercise this exact candidate by setting `PADSPLIT_INBOX_PAGE=deploy/frontend-api/private-messages.html` and `PADSPLIT_UI_TEST_MODULES` to the local DOM-test dependency directory. A temporary diagnostic build with an in-memory source mapping is not an approved release or evidence of live ingestion.
+`deploy/frontend-api/private-messages.html` is a review-only copy of the API inbox for the eventual existing deep-link path. The default release builder does not select it; an explicit `--environment preview --review-pages` build may select it for isolated staging review only. Its source and dependencies are checked by `test_inbox_release_source.mjs`; the lifecycle test can exercise this exact candidate by setting `PADSPLIT_INBOX_PAGE=deploy/frontend-api/private-messages.html` and `PADSPLIT_UI_TEST_MODULES` to the local DOM-test dependency directory. A review build is not an approved production release or evidence of live ingestion. Actual attachment retrieval prerequisites are documented in `backend/storage/ATTACHMENT_DELIVERY.md`.
 
 Message timestamps are shown when the stored source supplied a valid timestamp; missing or invalid timestamps are labelled unavailable. Duplicate requests for the same page are coalesced, and late message responses cannot replace the currently selected conversation. Inbox search dispatches the synchronous database work to a worker thread so that a slow query does not block the API event loop; the bounded request body and database timeout remain in force. These changes do not establish live ingestion, complete history, attachment retrieval, or real-owner authorization.
 

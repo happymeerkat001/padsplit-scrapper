@@ -74,6 +74,14 @@ class InboxProjectionShapeTests(unittest.TestCase):
         self.assertTrue(attachment['id'].startswith('attachment_'))
         self.assertNotIn('private.invalid',repr(messages))
 
+    def test_encoded_attachment_paths_are_not_projected(self):
+        payload=snapshot_from_records(fixture());msg=payload['messages'][0]['lastMessage']
+        msg['attachments']=[{'id':'photo-id','filename':'https%253A%252F%252Fprivate.invalid%252Fsecret','deleted':False},
+                            {'id':'safe-id','filename':'100% complete.jpg','deleted':False}]
+        _,messages=projection_rows(payload,{'chat-example':None})
+        self.assertNotIn('filename',messages[0]['attachments'][0])
+        self.assertEqual(messages[0]['attachments'][1]['filename'],'100% complete.jpg')
+
 @unittest.skipUnless(__import__('os').environ.get('DATABASE_URL'),'isolated PostgreSQL test database not supplied')
 class InboxProjectionDatabaseTests(unittest.TestCase):
     def setUp(self):

@@ -44,6 +44,21 @@ class InboxCollectionTests(unittest.TestCase):
         page=message_page(lambda *_:response([item],message=True),'chat')
         self.assertNotIn('private.invalid',repr(page));self.assertNotIn('filename',page['items'][0]['attachments'][0])
 
+    def test_encoded_url_filenames_are_not_returned_but_safe_percent_names_are(self):
+        unsafe=['https%3A%2F%2Fprivate.invalid%2Ffile%3Ftoken%3Dfictional',
+                'https%253A%252F%252Fprivate.invalid%252Ffile',
+                'folder%2Fprivate.jpg','folder\uff0fprivate.jpg','token%3Dfictional-secret']
+        for name in unsafe:
+            with self.subTest(kind='unsafe'):
+                item={'id':'m','attachments':[{'filename':name,'deleted':False}]}
+                page=message_page(lambda *_:response([item],message=True),'chat')
+                self.assertNotIn('filename',page['items'][0]['attachments'][0])
+        for name in ('100% complete.jpg','photo%20one.jpg','photo.jpg'):
+            with self.subTest(kind='safe'):
+                item={'id':'m','attachments':[{'filename':name,'deleted':False}]}
+                page=message_page(lambda *_:response([item],message=True),'chat')
+                self.assertEqual(page['items'][0]['attachments'][0]['filename'],name)
+
     def test_errors_are_generic_and_retry_is_bounded(self):
         calls=[]
         def broken(*_):calls.append(1);raise TimeoutError('PRIVATE TOKEN AND RESPONSE')

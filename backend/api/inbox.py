@@ -5,6 +5,7 @@ from fastapi import APIRouter,Depends,HTTPException,Query,Request
 from starlette.concurrency import run_in_threadpool
 from backend.api.repository import Repository,Forbidden,NotFound
 from padsplit_scraper.inbox_display import validate_display
+from padsplit_scraper.attachment_metadata import safe_attachment_filename
 
 _ID=re.compile(r'^[A-Za-z0-9_.:-]{1,200}$')
 
@@ -67,7 +68,7 @@ def messages(repository,uid,conversation_id,limit,offset,order='asc',before=None
                     clean={'deleted':item['deleted']}
                     if isinstance(item.get('id'),str) and re.fullmatch(r'attachment_[a-f0-9]{64}',item['id']):clean['id']=item['id']
                     name=item.get('filename')
-                    if isinstance(name,str) and len(name)<=500 and not any(ord(c)<32 or c in '/\\:?#' for c in name):clean['filename']=name
+                    if safe_attachment_filename(name):clean['filename']=name
                     mime=item.get('mediaType')
                     if isinstance(mime,str) and len(mime)<=200 and re.fullmatch(r'[A-Za-z0-9.+_-]+(?:/[A-Za-z0-9.+_-]+)?',mime):clean['mediaType']=mime
                     attachments.append(clean)

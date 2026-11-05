@@ -17,6 +17,7 @@ import sys
 from pathlib import Path
 from psycopg.types.json import Jsonb
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from padsplit_scraper.attachment_metadata import safe_attachment_filename
 from padsplit_scraper.inbox_display import source_display
 from backend.storage.migrate import canonical, key_from_env, read_backup, encrypted_backup, source_parts, staging_connect, verify_records
 
@@ -106,7 +107,8 @@ def _attachments(message):
             value=item.get(field)
             if value is not None:
                 if not isinstance(value,str) or len(value)>limit or any(ord(c)<32 for c in value):raise ValueError('Invalid attachment metadata')
-                if field=='filename' and any(c in value for c in '/\\:?#'):continue
+                if field=='filename':
+                    if not safe_attachment_filename(value):continue
                 if field=='mediaType' and not re.fullmatch(r'[A-Za-z0-9.+_-]+(?:/[A-Za-z0-9.+_-]+)?',value):continue
                 entry[field]=value
         deleted=item.get('deleted',False)
@@ -271,6 +273,16 @@ def catch_up(conn, baseline_path, candidate_path, key, bindings, *, apply=False)
     deleted. Any changed existing message or property assignment stops all work.
     """
     baseline=read_backup(baseline_path,key);candidate=read_backup(candidate_path,key)
+    # Provider captures must pass the explicit staging review-receipt path.
+    # Reject the entire reserved marker namespace even if malformed or mixed
+    # into a larger export, and reject the provenance kind under another path.
+    for record in candidate:
+        path=record.get('path') if isinstance(record,dict) else None
+        data=record.get('data') if isinstance(record,dict) else None
+        fields=data.get('value') if isinstance(data,dict) else None
+        if ((isinstance(path,str) and (path=='inbox_collection' or path.startswith('inbox_collection/'))) or
+                (isinstance(fields,dict) and fields.get('kind')=='provider_graphql_collection_v1')):
+            raise ValueError('Provider capture requires reviewed staging workflow')
     return catch_up_records(conn,baseline,candidate,key,bindings,apply=apply)
 
 

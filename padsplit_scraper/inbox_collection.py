@@ -17,6 +17,7 @@ import re
 import stat
 import tempfile
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from padsplit_scraper.attachment_metadata import safe_attachment_filename
 
 class SourceError(RuntimeError):
     """Generic collection failure, deliberately excluding source responses."""
@@ -61,7 +62,8 @@ def _attachment(value):
     for key,limit in (('id',2000),('filename',500),('mediaType',200)):
         if value.get(key) is not None:
             text=_bounded_string(value[key],limit)
-            if key=='filename' and any(c in text for c in '/\\:?#'):continue
+            if key=='filename':
+                if not safe_attachment_filename(text):continue
             if key=='mediaType' and not re.fullmatch(r'[A-Za-z0-9.+_-]+(?:/[A-Za-z0-9.+_-]+)?',text):continue
             result[key]=text
     deleted=value.get('deleted',False)

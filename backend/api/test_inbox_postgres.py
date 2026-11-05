@@ -1,5 +1,5 @@
 """Synthetic isolated PostgreSQL API test, never auto-connects to a remote database."""
-import os,unittest,uuid
+import json,os,unittest,uuid
 from urllib.parse import urlsplit
 import psycopg
 from psycopg import sql
@@ -32,7 +32,12 @@ class InboxPostgresTests(unittest.TestCase):
    db.execute("UPDATE messages SET sender_label='Example sender',source_deleted=true WHERE id='msg-a1'")
    db.execute("UPDATE messages SET sent_at='2026-01-02' WHERE id='msg-a1'")
    db.execute("UPDATE messages SET sent_at='2026-01-01' WHERE id='msg-a2'")
-   db.execute("UPDATE messages SET source_attachments='[{\"filename\":\"photo.jpg\",\"mediaType\":\"image/jpeg\",\"deleted\":false,\"location\":\"https://private.invalid/secret\"}]'::jsonb WHERE id='msg-a2'")
+   metadata=[{'filename':'photo.jpg','mediaType':'image/jpeg','deleted':False,'location':'https://private.invalid/secret'},
+             {'filename':'https%253A%252F%252Fprivate.invalid%252Ftoken%253Dfictional-secret','deleted':False},
+             {'filename':'www%2Eexample%2Einvalid','deleted':False},
+             {'filename':'password%3Dfictional-secret','deleted':False},
+             {'filename':'100% complete.jpg','deleted':False}]
+   db.execute("UPDATE messages SET source_attachments=%s::jsonb WHERE id='msg-a2'",(json.dumps(metadata),))
   with TestClient(create_app(repository=Repository(dsn),verify_token=lambda t:t if t in ('owner','scoped','unscoped') else None,allowed_origins=['http://localhost:9999'])) as client:
    h=lambda uid:{'Authorization':'Bearer '+uid}
    self.assertEqual(client.get('/v1/inbox/conversations').status_code,401)
@@ -57,7 +62,7 @@ class InboxPostgresTests(unittest.TestCase):
    self.assertEqual(client.get('/v1/inbox/conversations/con-b/messages',headers=h('scoped')).status_code,403)
    self.assertEqual(client.get('/v1/inbox/conversations/con-null/messages',headers=h('scoped')).status_code,403)
    page=client.get('/v1/inbox/conversations/con-a/messages?limit=1&offset=0',headers=h('scoped'));self.assertEqual(page.status_code,200);self.assertEqual(page.json()['items'][0]['body'],'Example two')
-   self.assertEqual(page.json()['items'][0]['attachments'],[{'filename':'photo.jpg','mediaType':'image/jpeg','deleted':False}]);self.assertNotIn('private.invalid',page.text)
+   self.assertEqual(page.json()['items'][0]['attachments'],[{'filename':'photo.jpg','mediaType':'image/jpeg','deleted':False},{'deleted':False},{'deleted':False},{'deleted':False},{'filename':'100% complete.jpg','deleted':False}]);self.assertNotIn('private.invalid',page.text);self.assertNotIn('fictional-secret',page.text);self.assertNotIn('example%2Einvalid',page.text)
    page2=client.get('/v1/inbox/conversations/con-a/messages?limit=1&offset=1',headers=h('scoped'));self.assertEqual(page2.json()['items'][0]['body'],'')
    self.assertEqual(page2.json()['items'][0]['sender_label'],'Example sender');self.assertIs(page2.json()['items'][0]['source_deleted'],True)
    newest=client.get('/v1/inbox/conversations/con-a/messages?limit=1&offset=0&order=desc',headers=h('scoped'));self.assertEqual(newest.status_code,200);self.assertEqual(newest.json()['items'][0]['id'],'msg-a1');self.assertEqual(newest.json()['items'][0]['body'],'')
