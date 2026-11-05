@@ -8,6 +8,8 @@ from padsplit_scraper.inbox_display import validate_display
 
 _ID=re.compile(r'^[A-Za-z0-9_.:-]{1,200}$')
 
+class InvalidCursor(Exception): pass
+
 def conversations(repository,uid,limit,offset,q='',unread=False):
     with repository.connect() as conn:
         actor=Repository._identity(conn,uid,lock=True)
@@ -32,7 +34,7 @@ def conversations(repository,uid,limit,offset,q='',unread=False):
         for row in rows:row['source_display']=validate_display(row['source_display'])
         return rows
 
-def messages(repository,uid,conversation_id,limit,offset,order='asc'):
+def messages(repository,uid,conversation_id,limit,offset,order='asc',before=None):
     orders={'asc':'sent_at ASC NULLS LAST,id ASC','desc':'sent_at DESC NULLS LAST,id DESC'}
     if order not in orders:raise ValueError('Invalid message order')
     with repository.connect() as conn:
@@ -41,9 +43,18 @@ def messages(repository,uid,conversation_id,limit,offset,order='asc'):
         conversation=conn.execute('SELECT property_id FROM conversations WHERE id=%s FOR SHARE',(conversation_id,)).fetchone()
         if not conversation:raise NotFound()
         if actor['role']!='owner' and conversation['property_id'] not in actor['properties']:raise Forbidden()
+        condition='';params=[conversation_id]
+        if before is not None:
+            anchor=conn.execute('SELECT sent_at FROM messages WHERE id=%s AND conversation_id=%s',(before,conversation_id)).fetchone()
+            if not anchor:raise InvalidCursor()
+            stamp=anchor['sent_at']
+            if stamp is None:
+                condition=' AND sent_at IS NULL AND id<%s';params.append(before)
+            else:
+                condition=' AND (sent_at<%s OR (sent_at=%s AND id<%s) OR sent_at IS NULL)';params.extend((stamp,stamp,before))
+        params.extend((limit,offset))
         rows=conn.execute('''SELECT id,CASE WHEN source_deleted THEN '' ELSE body END AS body,sent_at,sender_label,source_deleted,source_attachments FROM messages WHERE conversation_id=%s
-            ORDER BY '''+orders[order]+''' LIMIT %s OFFSET %s''',
-            (conversation_id,limit,offset)).fetchall()
+            '''+condition+''' ORDER BY '''+orders[order]+''' LIMIT %s OFFSET %s''',params).fetchall()
         result=[]
         for row in rows:
             raw=row.pop('source_attachments')
@@ -85,7 +96,13 @@ def make_inbox_router(*,actor_dependency,repository_provider,run):
         items=await run_in_threadpool(run,lambda:conversations(repository_provider(),identity['uid'],limit,offset,body['q'].strip(),body['unread']))
         return {'items':items,'limit':limit,'offset':offset,'ingestion':'not_configured'}
     @router.get('/v1/inbox/conversations/{conversation_id}/messages')
-    def list_messages(conversation_id:str,limit:int=Query(default=50,ge=1,le=100),offset:int=Query(default=0,ge=0,le=10000),order:Literal['asc','desc']='asc',identity=Depends(actor_dependency)):
+    def list_messages(conversation_id:str,limit:int=Query(default=50,ge=1,le=100),offset:int=Query(default=0,ge=0,le=10000),order:Literal['asc','desc']='asc',before:str|None=Query(default=None,pattern=_ID.pattern),identity=Depends(actor_dependency)):
         if not _ID.fullmatch(conversation_id):raise HTTPException(422,'Invalid request')
-        return {'items':run(lambda:messages(repository_provider(),identity['uid'],conversation_id,limit,offset,order)),'limit':limit,'offset':offset}
+        if before is not None and (order!='desc' or offset!=0 or before in ('.','..')):raise HTTPException(422,'Invalid page cursor')
+        def read():
+            try:return messages(repository_provider(),identity['uid'],conversation_id,limit,offset,order,before)
+            except InvalidCursor:return None
+        items=run(read)
+        if items is None:raise HTTPException(422,'Invalid page cursor')
+        return {'items':items,'limit':limit,'offset':offset,'next_before':items[-1]['id'] if order=='desc' and len(items)==limit else None}
     return router

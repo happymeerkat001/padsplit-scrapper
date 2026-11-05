@@ -16,6 +16,9 @@ await api.createTask({property_id:'fictional',title:'Test',status:'open',priorit
 assert.equal(observed.options.headers['Idempotency-Key'],'request-1');
 await api.vendors({limit:10,offset:0});assert.equal(observed.url,'https://api.example.test/v1/vendors?limit=10&offset=0');
 await api.messages('fictional',{limit:10,offset:0,order:'desc'});assert.equal(observed.url,'https://api.example.test/v1/inbox/conversations/fictional/messages?limit=10&offset=0&order=desc');
+await api.messages('fictional',{limit:10,order:'desc',before:'message-1'});assert.equal(observed.url,'https://api.example.test/v1/inbox/conversations/fictional/messages?limit=10&offset=0&order=desc&before=message-1');
+assert.throws(()=>api.messages('fictional',{order:'asc',before:'message-1'}),/Invalid page cursor/);
+assert.throws(()=>api.messages('fictional',{order:'desc',before:'../escape'}),/Invalid identifier/);
 assert.throws(()=>api.messages('fictional',{order:'invalid'}),/Invalid message order/);
 await api.occupancy({limit:100,offset:0});assert.equal(observed.url,'https://api.example.test/v1/occupancy?limit=100&offset=0');
 await api.climate({limit:100,offset:0});assert.equal(observed.url,'https://api.example.test/v1/climate?limit=100&offset=0');

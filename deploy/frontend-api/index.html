@@ -469,6 +469,7 @@
     document.getElementById('overview-all-properties').addEventListener('click', clearPropertyScope);
     document.getElementById('occupancy-search').addEventListener('input', () => { if (latestOccupancy) renderOccupancy(latestOccupancy); });
     function clearOccupancy(message) {
+      propertyDetail.clear();
       latestOccupancy = null;
       selectedPropertyScope = null;
       document.getElementById('occupancy-scope').hidden = true;
@@ -483,6 +484,7 @@
     }
     function renderOccupancy(data) {
       if (!data || data.private_content_omitted || !Array.isArray(data.rooms)) return clearOccupancy('Room data is unavailable in this private snapshot.');
+      propertyDetail.clear();
       latestOccupancy = data;
       const rooms = data.rooms;
       document.getElementById('summary-property-list').innerHTML = renderPropertySummary(summarizePropertyRooms(rooms), {selectable:true});
@@ -815,8 +817,10 @@
       .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
       .then(renderWeather)
       .catch(err => {
-        document.getElementById('weather-section').innerHTML =
-          `<div class="card error" style="margin-bottom:1rem">Weather unavailable (${err.message}).</div>`;
+        const card = document.createElement('div');
+        card.className = 'card error'; card.style.marginBottom = '1rem';
+        card.textContent = `Weather unavailable (${err?.message || 'request failed'}).`;
+        document.getElementById('weather-section').replaceChildren(card);
       });
 
     fetch('./data/latest.json', { cache: 'no-cache' })
@@ -1077,10 +1081,11 @@
             shouldDefer:() => {
               const active=document.activeElement;
               return !!(active && active.matches('input, textarea, select')) ||
+                !!document.querySelector('.property-detail-dialog[open]') ||
                 Array.from(document.querySelectorAll('[data-msg], [data-notes]')).some(input => input.value.trim()) ||
                 document.getElementById('notes-textarea').dataset.dirty === 'true';
             },
-            onDeferred:() => { refreshInfo.textContent = 'Refresh paused while editing.'; },
+            onDeferred:() => { refreshInfo.textContent = 'Refresh paused while viewing details or editing.'; },
             onError:() => { if (overviewSession.currentUid() === user.uid) refreshInfo.textContent = 'Refresh unavailable; retrying.'; }
           });
           stopApiObservations = () => refresh.stop();

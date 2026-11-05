@@ -26,6 +26,10 @@ RELEASE_SOURCES = {'vendors.html': Path('deploy/frontend-api/vendors.html'),
                    'integrations.html': Path('deploy/frontend-api/integrations.html'),
                    'kpi-history.html': Path('deploy/frontend-api/kpi-history.html'),
                    'stats.html': Path('deploy/frontend-api/stats.html')}
+# Explicit opt-in for isolated staging review only. The default production
+# release continues to fail closed until migration and cutover are verified.
+REVIEW_SOURCES = {'index.html': Path('deploy/frontend-api/index.html'),
+                  'private-messages.html': Path('deploy/frontend-api/private-messages.html')}
 DIRECT_STORAGE = re.compile(r'firebase-firestore\.js|firestore\.googleapis\.com|\bgetFirestore\s*\(', re.I)
 PROJECT_ID = re.compile(r'\bprojectId\s*:\s*["\']([^"\']+)["\']')
 LITERAL_FIREBASE_KEY = re.compile(r'\bapiKey\s*:\s*["\'][^"\']+["\']')
@@ -65,27 +69,31 @@ def secure_api_origin(value: str) -> str:
         raise ValueError('API origin must be a public HTTPS origin without path or credentials.') from None
 
 
-def source_files(root: Path) -> list[tuple[Path, Path]]:
+def source_files(root: Path, *, review_pages: bool = False) -> list[tuple[Path, Path]]:
     docs = root / 'docs'
     names = json.loads((root / 'deploy/frontend-assets.json').read_text(encoding='utf-8'))
     if (not isinstance(names, list) or len(names) != len(set(names)) or
             any(not isinstance(name, str) or Path(name).name != name or name.startswith('.') or name == 'runtime-config.js'
                 or Path(name).suffix not in TOP_LEVEL for name in names)):
         raise ValueError('Invalid frontend asset manifest')
-    for target, source in RELEASE_SOURCES.items():
+    if type(review_pages) is not bool: raise ValueError('Invalid review page selection')
+    if review_pages and not set(REVIEW_SOURCES).issubset(names):
+        raise ValueError('Both staging review pages must be in the asset manifest')
+    sources = {**RELEASE_SOURCES, **(REVIEW_SOURCES if review_pages else {})}
+    for target, source in sources.items():
         if (not isinstance(target, str) or Path(target).name != target or
                 not isinstance(source, Path) or source.is_absolute() or '..' in source.parts or
                 source.parts[:2] != ('deploy', 'frontend-api') or len(source.parts) != 3):
             raise ValueError('Invalid release source mapping')
-    files = [(Path(name), root / RELEASE_SOURCES[name] if name in RELEASE_SOURCES else docs / name) for name in names]
+    files = [(Path(name), root / sources[name] if name in sources else docs / name) for name in names]
     return files + [(Path(name), docs / name) for name in SNAPSHOTS]
 
 
-def check_release_sources(root: Path, firebase_project: str, output_root: Path | None = None) -> list[str]:
+def check_release_sources(root: Path, firebase_project: str, output_root: Path | None = None, *, review_pages: bool = False) -> list[str]:
     errors = []
     if not re.fullmatch(r'[a-z][a-z0-9-]{4,28}[a-z0-9]', firebase_project):
         return ['A valid explicitly selected Firebase project ID is required.']
-    paths = source_files(root)
+    paths = source_files(root, review_pages=review_pages)
     allowed = {str(destination) for destination, _ in paths} | {'runtime-config.js'}
     for destination, path in paths:
         if output_root is not None: path = output_root / destination
@@ -105,6 +113,8 @@ def check_release_sources(root: Path, firebase_project: str, output_root: Path |
                 errors.append(f'{rel}: deployment runtime configuration is not consumed')
             if path.suffix == '.html' and len(re.findall(r'<head\b[^>]*>', text, flags=re.I)) != 1:
                 errors.append(f'{rel}: expected exactly one head element for the API mode marker')
+            if review_pages and path.suffix == '.html' and len(re.findall(r'<body\b[^>]*>', text, flags=re.I)) != 1:
+                errors.append(f'{rel}: expected exactly one body element for the staging notice')
             if path.suffix == '.html':
                 links = AssetLinks(); links.feed(text)
                 if any(target not in allowed for target in links.paths):
@@ -123,8 +133,13 @@ def valid_web_config(config: object, project: str) -> bool:
 def build(root: Path, output: Path, firebase_project: str, values: list[str], *, api_origin: str,
           environment: str, firebase_web_config: dict, production_api_origin: str | None = None,
           production_firebase_project: str | None = None,
-          production_firebase_web_config: dict | None = None, team_enabled: bool = False) -> list[str]:
-    errors = check_publication(root, values) + check_release_sources(root, firebase_project)
+          production_firebase_web_config: dict | None = None, team_enabled: bool = False,
+          review_pages: bool = False) -> list[str]:
+    if type(review_pages) is not bool:
+        return ['Review page selection must be a boolean.']
+    errors = check_publication(root, values) + check_release_sources(root, firebase_project, review_pages=review_pages)
+    if review_pages and environment != 'preview':
+        errors.append('Review pages are allowed only in an isolated preview.')
     if type(team_enabled) is not bool:
         errors.append('Team feature flag must be a boolean.')
     if not valid_web_config(firebase_web_config, firebase_project):
@@ -148,12 +163,19 @@ def build(root: Path, output: Path, firebase_project: str, values: list[str], *,
     if errors: return errors
     output.mkdir(parents=True, mode=0o700)
     try:
-        for destination, path in source_files(root):
+        for destination, path in source_files(root, review_pages=review_pages):
             dest = output / destination
             dest.parent.mkdir(parents=True, exist_ok=True)
             if path.suffix == '.html':
                 source = path.read_text(encoding='utf-8')
                 marked = re.sub(r'(<head\b[^>]*>)', r'\1\n<meta name="padsplit-data-mode" content="api">', source, count=1, flags=re.I)
+                if review_pages:
+                    banner = ('<div role="status" style="background:#fff0c2;color:#352300;'
+                              'padding:12px 16px;font:600 14px/1.4 system-ui,sans-serif">'
+                              'Staging review: data and workflows may be incomplete. Do not use for production.</div>')
+                    marked, inserted = re.subn(r'(<body\b[^>]*>)', lambda match: match.group(1) + banner,
+                                               marked, count=1, flags=re.I)
+                    if inserted != 1: raise ValueError('Staging notice could not be inserted')
                 dest.write_text(marked, encoding='utf-8')
             else:
                 shutil.copyfile(path, dest, follow_symlinks=False)
@@ -168,7 +190,7 @@ def build(root: Path, output: Path, firebase_project: str, values: list[str], *,
         shutil.copyfile(vercel_config, output / 'vercel.json', follow_symlinks=False)
         # Re-scan exactly what was written. Source files may change between the
         # first validation and copying; no incomplete or unsafe artifact survives.
-        emitted_errors = check_release_sources(root, firebase_project, output_root=output)
+        emitted_errors = check_release_sources(root, firebase_project, output_root=output, review_pages=review_pages)
         private_values = tuple(v for v in values if isinstance(v, str) and len(v) >= 8)
         for emitted in output.rglob('*'):
             if not emitted.is_file(): continue
@@ -201,6 +223,7 @@ def main():
     parser.add_argument('--production-firebase-project', help='Required for preview isolation checks')
     parser.add_argument('--production-firebase-web-config', type=Path, help='Public production web config; required for preview isolation checks')
     parser.add_argument('--enable-team', action='store_true', help='Explicitly expose the team UI after the separately gated API and roles are configured')
+    parser.add_argument('--review-pages', action='store_true', help='Use API overview and inbox candidates for an isolated preview only; does not establish production readiness')
     parser.add_argument('--private-blocklist', type=Path, required=True, help='Private list of known sensitive values, outside checkout')
     args = parser.parse_args()
     blocklist = args.private_blocklist.resolve()
@@ -214,7 +237,7 @@ def main():
     errors = build(ROOT, args.output, args.firebase_project, values, api_origin=args.api_origin,
                    environment=args.environment, firebase_web_config=web_config, production_api_origin=args.production_api_origin,
                    production_firebase_project=args.production_firebase_project, production_firebase_web_config=production_web_config,
-                   team_enabled=args.enable_team)
+                   team_enabled=args.enable_team, review_pages=args.review_pages)
     if errors:
         for error in errors: print(error, file=sys.stderr)
         return 1

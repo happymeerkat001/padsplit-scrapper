@@ -45,6 +45,41 @@ class FrontendReleaseGateTests(unittest.TestCase):
             self.assertIn('<meta name="padsplit-data-mode" content="api">', (out / 'index.html').read_text())
             self.assertEqual(json.loads((out / 'vercel.json').read_text())['version'], 2)
             self.assertTrue(build(self.root, out, 'demo-private', [], **opts))
+
+    def test_review_pages_are_explicit_preview_only_and_still_scanned(self):
+        (self.root / 'deploy/frontend-assets.json').write_text('["index.html", "private-messages.html"]')
+        (self.root / 'docs/index.html').write_text('getFirestore(app);')
+        (self.root / 'docs/private-messages.html').write_text('getFirestore(app);')
+        review=self.root / 'deploy/frontend-api';review.mkdir()
+        template='<html><head><script src="runtime-config.js"></script><script>window.PADSPLIT_RUNTIME_CONFIG; document.querySelector(\'meta[name="padsplit-data-mode"]\')</script></head><body>{}</body></html>'
+        (review/'index.html').write_text(template.format('overview-review'))
+        (review/'private-messages.html').write_text(template.format('inbox-review'))
+        options=dict(api_origin='https://stage.example.com',environment='preview',firebase_web_config=self.web_config,
+                     production_api_origin='https://api.example.com',production_firebase_project='live-project',production_firebase_web_config=self.production_web_config)
+        with patch('frontend_build.check_publication',return_value=[]):
+            self.assertTrue(build(self.root,self.base/'default','demo-private',[],**options))
+            output=self.base/'review'
+            self.assertEqual(build(self.root,output,'demo-private',[],review_pages=True,**options),[])
+            self.assertIn('overview-review',(output/'index.html').read_text())
+            self.assertIn('inbox-review',(output/'private-messages.html').read_text())
+            self.assertIn('Staging review', (output/'index.html').read_text())
+            self.assertIn('Staging review', (output/'private-messages.html').read_text())
+            denied=self.base/'production'
+            self.assertTrue(build(self.root,denied,'demo-private',[],api_origin='https://api.example.com',environment='production',firebase_web_config=self.web_config,review_pages=True))
+            self.assertFalse(denied.exists())
+            shared=self.base/'shared-target'
+            self.assertTrue(build(self.root,shared,'demo-private',[],review_pages=True,**{**options,'api_origin':'https://api.example.com'}))
+            self.assertFalse(shared.exists())
+            invalid=self.base/'invalid-flag'
+            self.assertTrue(build(self.root,invalid,'demo-private',[],review_pages='true',**options))
+            self.assertFalse(invalid.exists())
+            (review/'index.html').write_text(template.format('getFirestore(app);'))
+            self.assertTrue(build(self.root,self.base/'unsafe','demo-private',[],review_pages=True,**options))
+            self.assertFalse((self.base/'unsafe').exists())
+            (self.root/'deploy/frontend-assets.json').write_text('["index.html"]')
+            with self.assertRaises(ValueError):
+                build(self.root,self.base/'missing-review-page','demo-private',[],review_pages=True,**options)
+            self.assertFalse((self.base/'missing-review-page').exists())
     def test_symlink_is_rejected_and_no_output_is_created(self):
         (self.root / 'docs/icon.js').symlink_to(self.root / 'docs/index.html')
         (self.root / 'deploy/frontend-assets.json').write_text('["index.html", "icon.js"]')

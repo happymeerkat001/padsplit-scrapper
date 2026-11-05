@@ -65,6 +65,25 @@ class InboxPostgresTests(unittest.TestCase):
    self.assertEqual(client.get('/v1/inbox/conversations/con-a/messages?order=invalid',headers=h('scoped')).status_code,422)
    self.assertEqual(client.get('/v1/inbox/conversations/con-a/messages?limit=101',headers=h('scoped')).status_code,422)
    self.assertEqual(client.post('/v1/inbox/conversations/con-a/messages',headers=h('owner'),json={'body':'No outbound action'}).status_code,405)
+   # A new message arriving before the current page must not shift an older
+   # page and duplicate a row or cause the next message to be skipped.
+   with psycopg.connect(dsn) as db:
+    db.execute("INSERT INTO conversations(id,property_id) VALUES ('cursor-con','a')")
+    db.execute("INSERT INTO messages(id,conversation_id,body,sent_at) VALUES ('cursor-1','cursor-con','one','2026-01-05'),('cursor-2','cursor-con','two','2026-01-04'),('cursor-3','cursor-con','three','2026-01-03'),('cursor-4','cursor-con','four',NULL),('cursor-5','cursor-con','five',NULL)")
+   path='/v1/inbox/conversations/cursor-con/messages'
+   first=client.get(path+'?limit=2&order=desc',headers=h('scoped'))
+   self.assertEqual([x['id'] for x in first.json()['items']],['cursor-1','cursor-2'])
+   self.assertEqual(first.json()['next_before'],'cursor-2')
+   with psycopg.connect(dsn) as db:db.execute("INSERT INTO messages(id,conversation_id,body,sent_at) VALUES ('cursor-new','cursor-con','new','2026-01-06')")
+   second=client.get(path+'?limit=2&order=desc&before=cursor-2',headers=h('scoped'))
+   self.assertEqual([x['id'] for x in second.json()['items']],['cursor-3','cursor-5'])
+   third=client.get(path+'?limit=2&order=desc&before=cursor-5',headers=h('scoped'))
+   self.assertEqual([x['id'] for x in third.json()['items']],['cursor-4'])
+   self.assertIsNone(third.json()['next_before'])
+   self.assertEqual(client.get(path+'?order=desc&before=msg-b',headers=h('scoped')).status_code,422)
+   self.assertEqual(client.get(path+'?order=asc&before=cursor-2',headers=h('scoped')).status_code,422)
+   self.assertEqual(client.get(path+'?order=desc&offset=1&before=cursor-2',headers=h('scoped')).status_code,422)
+   self.assertEqual(client.get(path+'?order=desc&before=cursor-2',headers=h('unscoped')).status_code,403)
   role='inbox_role_'+uuid.uuid4().hex[:10]
   with psycopg.connect(dsn,autocommit=True) as db:
    db.execute(sql.SQL('CREATE ROLE {} NOLOGIN').format(sql.Identifier(role)))

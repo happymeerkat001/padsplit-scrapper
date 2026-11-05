@@ -1,0 +1,11 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+const {parseHTML}=require(path.join(process.env.PADSPLIT_UI_TEST_MODULES,'linkedom'));
+const {window}=parseHTML(fs.readFileSync('docs/inbox.html','utf8'));
+const {document}=window,tick=()=>new Promise(resolve=>setImmediate(resolve));
+let filter='all';Object.defineProperty(document.getElementById('inbox-unread'),'value',{get:()=>filter,set:value=>{filter=value}});
+let resolveOlder;const older=new Promise(resolve=>{resolveOlder=resolve});
+const message=i=>({id:`m${i}`,body:`Message ${i}`,sender_label:null,source_deleted:false,attachments:[]});
+let initial=true;
+const api={me:async()=>({uid:'fixture',role:'viewer'}),conversations:async()=>({items:[{id:'con',property_id:'house',property_name:'Example',source_title:'Thread',source_unread:false}],ingestion:'not_configured'}),messages:async(id,options)=>{if(options.before)return older;if(initial){initial=false;return{items:Array.from({length:100},(_,i)=>message(i))};}return{items:[message('fresh')]};}};
+const context={window,document,setTimeout,clearTimeout};context.globalThis=context;vm.createContext(context);vm.runInContext(fs.readFileSync('docs/inbox-api.js','utf8'),context);
+(async()=>{const view=window.createInboxWorkspace({api,document,getUid:()=> 'fixture',isCurrent:()=>true,onAccessLost:()=>assert.fail('unexpected denial'),storage:null});await view.start();document.querySelector('[data-conversation="con"]').click();await tick();const draft=document.getElementById('inbox-draft');draft.value='keep this draft';draft.dispatchEvent(new window.Event('input'));document.getElementById('inbox-message-more').click();document.getElementById('inbox-refresh').click();await tick();await tick();assert.match(document.getElementById('inbox-messages').textContent,/Message fresh/);resolveOlder({items:[message('stale')]});await tick();assert.doesNotMatch(document.getElementById('inbox-messages').textContent,/Message stale/,'stale earlier page must not overwrite refreshed history');assert.equal(draft.value,'keep this draft');view.stop();console.log('Inbox refresh invalidates pending older-page requests without discarding drafts.');})().catch(error=>{console.error(error);process.exit(1)});

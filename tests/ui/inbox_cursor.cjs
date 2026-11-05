@@ -1,0 +1,10 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+const {parseHTML}=require(path.join(process.env.PADSPLIT_UI_TEST_MODULES,'linkedom'));
+const {window}=parseHTML(fs.readFileSync('docs/inbox.html','utf8'));
+const {document}=window,tick=()=>new Promise(resolve=>setImmediate(resolve));
+let filter='all';Object.defineProperty(document.getElementById('inbox-unread'),'value',{get:()=>filter,set:value=>{filter=value}});
+const message=i=>({id:`m${i}`,body:`Message ${i}`,sender_label:null,source_deleted:false,attachments:[]});
+let calls=[];let newerArrived=false;
+const api={me:async()=>({uid:'fixture',role:'viewer'}),conversations:async()=>({items:[{id:'con',property_id:'house',property_name:'Example',source_title:'Thread',source_unread:false}],ingestion:'not_configured'}),messages:async(id,options)=>{calls.push(options);if(calls.length===1)return{items:Array.from({length:100},(_,i)=>message(i))};assert.equal(newerArrived,true);assert.equal(options.before,'m99');return{items:[message(100),message(101)]}}};
+const context={window,document,setTimeout,clearTimeout};context.globalThis=context;vm.createContext(context);vm.runInContext(fs.readFileSync('docs/inbox-api.js','utf8'),context);
+(async()=>{const view=window.createInboxWorkspace({api,document,getUid:()=> 'fixture',isCurrent:()=>true,onAccessLost:()=>assert.fail('unexpected denial'),storage:null});await view.start();document.querySelector('[data-conversation="con"]').click();await tick();newerArrived=true;document.getElementById('inbox-message-more').click();await tick();assert.equal(calls.length,2);assert.equal(document.querySelectorAll('#inbox-messages .inbox-entry').length,102);assert.match(document.querySelector('#inbox-messages .inbox-entry').textContent,/Message 101/);view.stop();console.log('Inbox older-page requests use a stable message anchor.');})().catch(error=>{console.error(error);process.exit(1)});

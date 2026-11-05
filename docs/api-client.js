@@ -131,12 +131,16 @@
         if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100 || !Number.isSafeInteger(offset) || offset < 0 || offset > 10000 || typeof q !== 'string' || q.length > 100 || typeof unread !== 'boolean') throw new Error('Invalid inbox search.');
         return request('/v1/inbox/search', {method:'POST',body:{limit,offset,q,unread},signal});
       },
-      messages: (id, {limit = 50, offset = 0, order, signal} = {}) => {
+      messages: (id, {limit = 50, offset = 0, order, before, signal} = {}) => {
         const path = '/v1/inbox/conversations/' + segment(id) + '/messages';
+        if (before !== undefined && (order !== 'desc' || offset !== 0)) throw new Error('Invalid page cursor.');
+        if (before !== undefined) segment(before);
         if (order === undefined) return paged(path, {limit, offset, signal});
         if (!['asc','desc'].includes(order)) throw new Error('Invalid message order.');
         if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100 || !Number.isSafeInteger(offset) || offset < 0 || offset > 10000) throw new Error('Invalid page.');
-        return request(path + '?' + new URLSearchParams({limit:String(limit),offset:String(offset),order}), {signal});
+        const query=new URLSearchParams({limit:String(limit),offset:String(offset),order});
+        if (before !== undefined) query.set('before',before);
+        return request(path + '?' + query, {signal});
       },
       codes: id => request(codesPath(id)),
       codesSchema: () => request('/v1/codes/schema'),
