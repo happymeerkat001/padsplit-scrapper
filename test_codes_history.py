@@ -2,6 +2,7 @@
 """Snapshot contract and catch-up. Never print field values."""
 
 import os
+import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -173,6 +174,36 @@ class CatchupTests(unittest.TestCase):
         afternoon_add = AFTERNOON.split("git -C \"$WORKSPACE\" add", 1)[1].split("if git", 1)[0]
         self.assertNotIn("codes_history.py", morning_add)
         self.assertNotIn("codes_history.py", afternoon_add)
+
+
+class EnvLoadTests(unittest.TestCase):
+    def test_load_environment_does_not_override_existing(self) -> None:
+        preset = "PADSPLIT_TEST_ENV_PRESET"
+        from_file = "PADSPLIT_TEST_ENV_FROM_FILE"
+        with tempfile.TemporaryDirectory() as tmp:
+            env_path = Path(tmp) / ".env"
+            env_path.write_text(f"{preset}=from-dotenv\n{from_file}=from-dotenv\n")
+            with patch.object(codes_history, "ENV_PATH", env_path):
+                with patch.dict(os.environ, {preset: "from-process"}, clear=False):
+                    os.environ.pop(from_file, None)
+                    codes_history.load_environment()
+                    self.assertEqual(os.environ[preset], "from-process")
+                    self.assertEqual(os.environ[from_file], "from-dotenv")
+
+    def test_main_loads_environment_before_catch_up(self) -> None:
+        order: list[str] = []
+
+        def load() -> None:
+            order.append("load")
+
+        def catch_up(**_kwargs):
+            order.append("catch")
+            return {"action": "skip_ci"}
+
+        with patch.object(codes_history, "load_environment", side_effect=load):
+            with patch.object(codes_history, "catch_up", side_effect=catch_up):
+                self.assertEqual(codes_history.main(), 0)
+        self.assertEqual(order, ["load", "catch"])
 
 
 class FakeSnap:
