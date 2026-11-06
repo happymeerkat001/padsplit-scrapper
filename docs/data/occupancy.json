@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-11-06T18:31:15Z",
+  "scraped_at": "2026-11-06T23:32:22Z",
   "derived_from": [
     "messages",
     "tasks"
@@ -264,17 +264,17 @@
       "property_id": 20021,
       "address": "1404 Pioneer Lane",
       "room_number": 5,
-      "occupant_present": true,
+      "occupant_present": false,
       "listed_move_out": "2026-10-24",
       "next_move_in": null,
       "open_turn_ticket_ids": [],
       "open_eviction_ticket_ids": [],
       "open_hold_ticket_ids": [],
       "move_out_photos": 0,
-      "vacant": false,
+      "vacant": true,
       "turned": false,
       "rent_ready": false,
-      "days_vacant": 0,
+      "days_vacant": 13,
       "seo_eligible": false
     },
     {
@@ -352,9 +352,7 @@
       "occupant_present": true,
       "listed_move_out": "2026-10-26",
       "next_move_in": null,
-      "open_turn_ticket_ids": [
-        496082
-      ],
+      "open_turn_ticket_ids": [],
       "open_eviction_ticket_ids": [],
       "open_hold_ticket_ids": [],
       "move_out_photos": 0,
@@ -435,6 +433,23 @@
     {
       "property_id": null,
       "address": "3406 Green Hill Drive",
+      "room_number": 6,
+      "occupant_present": true,
+      "listed_move_out": null,
+      "next_move_in": "2026-11-08",
+      "open_turn_ticket_ids": [],
+      "open_eviction_ticket_ids": [],
+      "open_hold_ticket_ids": [],
+      "move_out_photos": 0,
+      "vacant": false,
+      "turned": false,
+      "rent_ready": false,
+      "days_vacant": 0,
+      "seo_eligible": false
+    },
+    {
+      "property_id": null,
+      "address": "3406 Green Hill Drive",
       "room_number": 7,
       "occupant_present": true,
       "listed_move_out": null,
@@ -456,14 +471,12 @@
       "occupant_present": true,
       "listed_move_out": "2026-09-30",
       "next_move_in": null,
-      "open_turn_ticket_ids": [
-        482823
-      ],
+      "open_turn_ticket_ids": [],
       "open_eviction_ticket_ids": [],
       "open_hold_ticket_ids": [],
       "move_out_photos": 3,
       "vacant": false,
-      "turned": false,
+      "turned": true,
       "rent_ready": false,
       "days_vacant": 0,
       "seo_eligible": false
@@ -771,7 +784,7 @@
       "open_hold_ticket_ids": [],
       "move_out_photos": 3,
       "vacant": false,
-      "turned": false,
+      "turned": true,
       "rent_ready": false,
       "days_vacant": 0,
       "seo_eligible": false
@@ -865,18 +878,18 @@
       "property_id": 7093,
       "address": "6623 Leana Avenue",
       "room_number": 5,
-      "occupant_present": true,
+      "occupant_present": false,
       "listed_move_out": "2026-10-18",
       "next_move_in": null,
       "open_turn_ticket_ids": [],
       "open_eviction_ticket_ids": [],
       "open_hold_ticket_ids": [],
       "move_out_photos": 2,
-      "vacant": false,
-      "turned": false,
-      "rent_ready": false,
-      "days_vacant": 0,
-      "seo_eligible": false
+      "vacant": true,
+      "turned": true,
+      "rent_ready": true,
+      "days_vacant": 19,
+      "seo_eligible": true
     }
   ]
 }
