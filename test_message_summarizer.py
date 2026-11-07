@@ -329,13 +329,9 @@ class MessageSummarizerTests(unittest.TestCase):
             ["10235 Ridge Oak, Dallas, TX — Room 2 — now\nWater leak"],
         )
 
-    def test_main_sends_visible_fallback_when_both_responses_are_invalid(self) -> None:
-        _, sent_messages = self.run_main_with(["not json", "still not json"])
-
-        self.assertEqual(
-            sent_messages,
-            ["⚠️ Formatting fallback (AI response was not valid JSON):\n\nstill not json"],
-        )
+    def test_main_fails_safely_when_both_responses_are_invalid(self) -> None:
+        with self.assertRaisesRegex(RuntimeError, "invalid summary JSON"):
+            self.run_main_with(["not json", "still not json"])
 
     def test_main_sends_no_urgent_messages_empty_state(self) -> None:
         _, sent_messages = self.run_main_with(["[]"])
